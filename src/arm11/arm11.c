@@ -516,6 +516,15 @@ static void Step32()
 	    }
 	}
     }
+    //CLREX (ARM11)
+    if((opcode >> 20) == 0xF57 && (opcode >> 4) == 1) {
+	return;
+    }
+    //NOP (ARM11)
+    if(((opcode << 4) >> 12) == 0x320F0) {
+	return;
+    }
+
 
     switch ((opcode >> 26) & 0x3) {
     case 0: {
@@ -1008,6 +1017,26 @@ static void arm11_Disasm32(u32 a)
 	    return;
 	}
     }
+    //CLREX (ARM11)
+    if((opcode >> 20) == 0xF57 && (opcode >> 4) == 1) {
+	printf("clrex");
+	return;
+    }
+    //NOP (ARM11)
+    if(((opcode << 4) >> 12) == 0x320F0) {
+	switch(opcode & 0xFF) {
+	case 0:
+	    printf("nop");
+	    return;
+	case 1:
+	    printf("yield");
+	    return;
+	default:
+	    printf("nop (reserved)");
+	    return;
+	}
+    }
+
 
     switch ((opcode >> 26) & 0x3) {
     case 0: {
@@ -2461,24 +2490,26 @@ bool ARM::BreakFind(u32 address)
 
 void arm11_Dump()
 {
+    printf("\n===========\n");
     printf("STACK DUMP:\n");
     printf("===========\n");
 
     // Print stack
     u32 i;
     for (i = 0; i < 16; i++) {
-	u32 addr = *sp + (i << 2);
+	u32 addr = *sp - (i << 2);
 	u32 value;
 
 	// Read stack
 	value = mem_Read32(addr);
 
 	// Print value
-	printf("[%02d] 0x%08X\n", i, value);
+	printf("[-%02d] 0x%08X\n", i, value);
     }
 
-    printf("REGISTERS DUMP:");
-    printf("===============");
+    printf("===============\n");
+    printf("REGISTERS DUMP:\n");
+    printf("===============\n");
 
     // Print GPRs
     for (i = 0; i < 16; i += 2)
@@ -2487,7 +2518,7 @@ void arm11_Dump()
     printf("\n");
 
     // Print CPSR
-    printf(" (z: %d, n: %d, c: %d, v: %d, I: %d, F: %d, t: %d, mode: 0x%x\n",
+    printf("(z: %d, n: %d, c: %d, v: %d, I: %d, F: %d, t: %d, mode: 0x%x)\n",
 	   cpsr.z, cpsr.n, cpsr.c, cpsr.v, cpsr.I, cpsr.F, cpsr.t, cpsr.mode);
 
     // Print SPSR

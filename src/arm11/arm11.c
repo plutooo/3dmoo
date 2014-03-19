@@ -91,6 +91,12 @@ void arm11_SetPCSP(u32 ipc, u32 isp) {
 static void ExecuteSVC(u8 num)
 {
     printf("Got SVC 0x%x!\n", num);
+
+    if(num == 0x21) {
+	r[0] = 1;
+	return;
+    }
+
     exit(1);
 }
 
@@ -374,6 +380,7 @@ static void Step32()
     arm11_Disasm32(*pc);
     opcode = mem_Read32(*pc);
 
+    printf("[%08x] ", *pc);
     *pc += sizeof(opcode);
 
     u32 Rn    = ((opcode >> 16) & 0xF);
@@ -428,6 +435,86 @@ static void Step32()
 	}
 
 	return;
+    }
+
+    //LDREXB/STREXB/LDREXH/STREXH/LDREX/STREX (ARM11)
+    if (((opcode >> 23) & 0x1F) == 3 && 
+	((opcode >>  4) & 0xFF) == 0xF9) {
+	
+	if((opcode >> 20) & 1) {
+	    if((opcode & 0xF) == 0xF) {
+		switch((opcode >> 21) & 3) {
+		case 0: //W
+		    if (!CondCheck32(opcode))
+			return;
+
+		    r[Rd] = mem_Read32(r[Rn], r[Rm]);
+		    return;
+		case 1: //D
+		    if (!CondCheck32(opcode))
+			return;
+
+		    if(Rn % 2) {
+			printf("invalid insn, Rn must be even.\n");
+			exit(1);
+		    }
+
+		    r[Rd]   = mem_Read32(r[Rn]);
+		    r[Rd+1] = mem_Read32(r[Rn]+4);
+		    return;
+		case 2: //B
+		    if (!CondCheck32(opcode))
+			return;
+
+		    r[Rd] = mem_Read8(r[Rn]);
+		    return;
+		case 3: //H
+		    if (!CondCheck32(opcode))
+			return;
+
+		    r[Rd] = mem_Read16(r[Rn]);
+		    return;
+		}
+	    }
+	}
+	else {
+	    switch((opcode >> 21) & 3) {
+	    case 0: //W
+		if (!CondCheck32(opcode))
+		    return;
+
+		r[Rd] = 0;
+		mem_Write32(r[Rn], r[Rm]);
+		return;
+	    case 1: //D
+		if (!CondCheck32(opcode))
+		    return;
+
+		if(Rn % 2) {
+		    printf("invalid insn, Rn must be even.\n");
+		    exit(1);
+		}
+
+		r[Rd] = 0;
+		mem_Write32(r[Rn], r[Rm]);
+		mem_Write32(r[Rn]+4, r[Rm+1]);
+		return;
+	    case 2: //B
+		if (!CondCheck32(opcode))
+		    return;
+
+		r[Rd] = 0;
+		mem_Write8(r[Rn], r[Rm]);
+		return;
+	    case 3: //H
+		if (!CondCheck32(opcode))
+		    return;
+
+		r[Rd] = 0;
+		mem_Write16(r[Rn], r[Rm]);
+		return;
+	    }
+	}
     }
 
     switch ((opcode >> 26) & 0x3) {
@@ -850,6 +937,7 @@ static void Step32()
 
     // XXX: Error here
     printf("unknown opcode (0x%08x)\n", opcode);
+    exit(1);
 }
 
 static void arm11_Disasm32(u32 a)
@@ -899,6 +987,26 @@ static void arm11_Disasm32(u32 a)
 	    printf(", r%d", Rd);
 	printf("\n");
 	return;
+    }
+
+    //LDREXB/STREXB/LDREXH/STREXH/LDREX/STREX (ARM11)
+    if (((opcode >> 23) & 0x1F) == 3 && 
+	((opcode >>  4) & 0xFF) == 0xF9) {
+
+	if((opcode >> 20) & 1) {
+	    if((opcode & 0xF) == 0xF) {
+		printf("ldrex%c", "\0dbh"[((opcode >> 21) & 3)]);
+		CondPrint32(opcode);
+		printf(" r%d, [r%d]\n", Rd, Rn);
+		return;
+	    }
+	}
+	else {
+	    printf("strex%c", "\0dbh"[((opcode >> 21) & 3)]);
+	    CondPrint32(opcode);
+	    printf(" r%d, r%d, r%d\n", Rd, Rm, Rn);
+	    return;
+	}
     }
 
     switch ((opcode >> 26) & 0x3) {

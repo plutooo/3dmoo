@@ -99,6 +99,8 @@ int mem_Write8(uint32_t addr, uint8_t w) {
     }
 
     DEBUG("%s: trying to write8 unmapped addr %08x, w=%02x\n", __func__, addr, w & 0xff);
+    arm11_Dump();
+    exit(1);
     return 1;
 }
 
@@ -112,6 +114,8 @@ uint8_t mem_Read8(uint32_t addr) {
     }
 
     DEBUG("%s: trying to read8 unmapped addr %08x\n", __func__, addr);
+    arm11_Dump();
+    exit(1);
     return 0;
 }
 
@@ -126,6 +130,8 @@ int mem_Write16(uint32_t addr, uint16_t w) {
     }
 
     DEBUG("%s: trying to write16 unmapped addr %08x, w=%04x\n", __func__, addr, w & 0xffff);
+    arm11_Dump();
+    exit(1);
     return 1;
 }
 
@@ -139,6 +145,8 @@ uint16_t mem_Read16(uint32_t addr) {
     }
 
     DEBUG("%s: trying to read16 unmapped addr %08x\n", __func__, addr);
+    arm11_Dump();
+    exit(1);
     return 0;
 }
 

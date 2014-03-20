@@ -8,7 +8,7 @@ TODO
 [0%] Add proper handling of MRC/MCR.
 
 * loader
-[0%] Add support for CIA.
+[75%] Check support for CIA.
 
 * svc
 [0%] Implement crucial SVCs.

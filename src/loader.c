@@ -242,13 +242,29 @@ clean:
 
 
 int loader_LoadNCCH(FILE* fd) {
+
+	u32 offset1 = 0;
+
     // Read header.
     ctr_ncchheader h;
     if(fread(&h, sizeof(h), 1, fd) != 1) {
 	ERROR("%s: failed to read header.\n", __func__);
 	return 1;
     }
-
+	if(memcmp(&h.signature[0], &0x20200000, 4) != 0) {
+      offset1 = 0x20 + 0x2020;
+	  
+      offset1 += Read32(&h.signature[8]);
+      offset1 += Read32(&h.signature[0xC]);
+      offset1 += Read32(&h.signature[0x10]);
+      offset1 = (UInt32)(offset1 & ~0xff);
+      offset1 += 0x100;
+	  fseek(fd, offset1, SEEK_SET);
+	    if(fread(&h, sizeof(h), 1, fd) != 1) {
+		ERROR("%s: failed to read header.\n", __func__);
+		return 1;
+    }
+	}
     if(memcmp(&h.magic, "NCCH", 4) != 0) {
 	ERROR("%s: invalid magic.. wrong file?\n", __func__);
 	return 1;
@@ -272,7 +288,7 @@ int loader_LoadNCCH(FILE* fd) {
     DEBUG("ExeFS offset:    %08x\n", exefs_off);
     DEBUG("ExeFS size:      %08x\n", exefs_sz);
 
-    fseek(fd, exefs_off, SEEK_SET);
+    fseek(fd, exefs_off + offset1, SEEK_SET);
 
     exefs_header eh;
     if(fread(&eh, sizeof(eh), 1, fd) != 1) {
@@ -297,7 +313,7 @@ int loader_LoadNCCH(FILE* fd) {
 
 	if(strcmp(eh.section[i].name, ".code") == 0) {
 	    sec_off += exefs_off + sizeof(eh);
-	    fseek(fd, sec_off, SEEK_SET);
+	    fseek(fd, sec_off + offset1, SEEK_SET);
 
 	    uint8_t* sec = malloc(AlignPage(sec_size));
 	    if(sec == NULL) {

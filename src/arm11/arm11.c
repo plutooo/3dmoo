@@ -1073,12 +1073,7 @@ static void arm11_Disasm32(u32 a)
     }
 
     if ((opcode & 0x0FF00FF0) == 0x06600FF0) { //UQSUB8
-        b1 = (u8)(r[Rm]) - (u8)(r[Rn]);
-        b2 = (u8)(r[Rm] >> 8) - (u8)(r[Rn] >> 8);
-        b3 = (u8)(r[Rm] >> 16) - (u8)(r[Rn] >> 16);
-        b4 = (u8)(r[Rm] >> 24) - (u8)(r[Rn] >> 24);
-        r[Rd] = (b1 | b2 << 8 | b3 << 16 | b4 << 24);
-	printf("sxth Rm=r%d, Rn=r%d, Rd=r%d\n", Rm, Rn, Rd);
+	printf("uqsub8 Rm=r%d, Rn=r%d, Rd=r%d\n", Rm, Rn, Rd);
     }
     if ((opcode & 0x0FFF0FF0) == 0x06bf0070) { //sxth
 	printf("sxth Rd=r%d, Rm=r%d\n", Rd, Rm);

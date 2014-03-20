@@ -176,5 +176,7 @@ int mem_Read32(uint32_t addr) {
     }
 
     DEBUG("%s: trying to read32 unmapped addr %08x\n", __func__, addr);
+    arm11_Dump();
+    exit(1);
     return 0;
 }

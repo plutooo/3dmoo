@@ -151,6 +151,21 @@ typedef struct {
     } accessdesc;
 } exheader_header;
 
+typedef struct {
+    u32 hdr_sz;
+    u16 type;
+    u16 version;
+    u32 cert_sz;
+    u32 tik_sz;
+    u32 tmd_sz;
+    u32 meta_sz;
+    u64 content_sz;
+    u32 content_idx[0x2000];
+} cia_header;
+
+#define CIA_MAGIC sizeof(cia_header)
+
+
 static u32 Read32(uint8_t p[4]) {
     return p[0] | p[1] << 8 | p[2] << 16 | p[3] << 24;
 }
@@ -242,8 +257,7 @@ clean:
 
 
 int loader_LoadNCCH(FILE* fd) {
-
-	u32 offset1 = 0;
+    u32 ncch_off = 0;
 
     // Read header.
     ctr_ncchheader h;
@@ -251,20 +265,28 @@ int loader_LoadNCCH(FILE* fd) {
 	ERROR("%s: failed to read header.\n", __func__);
 	return 1;
     }
-	if(memcmp(&h.signature[0], &0x20200000, 4) != 0) {
-      offset1 = 0x20 + 0x2020;
-	  
-      offset1 += Read32(&h.signature[8]);
-      offset1 += Read32(&h.signature[0xC]);
-      offset1 += Read32(&h.signature[0x10]);
-      offset1 = (UInt32)(offset1 & ~0xff);
-      offset1 += 0x100;
-	  fseek(fd, offset1, SEEK_SET);
-	    if(fread(&h, sizeof(h), 1, fd) != 1) {
-		ERROR("%s: failed to read header.\n", __func__);
-		return 1;
-    }
+
+    // Load CIA.
+    if(Read32(h.signature) == CIA_MAGIC) {
+	cia_header* ch = (cia_header*) &h;
+
+	ncch_off = 0x20 + 0x2020;
+
+	ncch_off += ch->cert_sz;
+	ncch_off += ch->tik_sz;
+	ncch_off += ch->tmd_sz;
+	ncch_off += ch->meta_sz;
+
+	ncch_off = (u32)(ncch_off & ~0xff);
+	ncch_off += 0x100;
+	fseek(fd, ncch_off, SEEK_SET);
+
+	if(fread(&h, sizeof(h), 1, fd) != 1) {
+	    ERROR("%s: failed to read header.\n", __func__);
+	    return 1;
 	}
+    }
+
     if(memcmp(&h.magic, "NCCH", 4) != 0) {
 	ERROR("%s: invalid magic.. wrong file?\n", __func__);
 	return 1;
@@ -288,7 +310,7 @@ int loader_LoadNCCH(FILE* fd) {
     DEBUG("ExeFS offset:    %08x\n", exefs_off);
     DEBUG("ExeFS size:      %08x\n", exefs_sz);
 
-    fseek(fd, exefs_off + offset1, SEEK_SET);
+    fseek(fd, exefs_off + ncch_off, SEEK_SET);
 
     exefs_header eh;
     if(fread(&eh, sizeof(eh), 1, fd) != 1) {
@@ -313,7 +335,7 @@ int loader_LoadNCCH(FILE* fd) {
 
 	if(strcmp(eh.section[i].name, ".code") == 0) {
 	    sec_off += exefs_off + sizeof(eh);
-	    fseek(fd, sec_off + offset1, SEEK_SET);
+	    fseek(fd, sec_off + ncch_off, SEEK_SET);
 
 	    uint8_t* sec = malloc(AlignPage(sec_size));
 	    if(sec == NULL) {

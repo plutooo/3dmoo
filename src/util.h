@@ -24,6 +24,8 @@
 #define s16 int16_t
 #define u32 uint32_t
 #define s32 int32_t
+#define u64 uint64_t
+#define s64 int64_t
 
 #define DEBUG(x ...) fprintf(stdout, x);
 #define ERROR(x ...) fprintf(stderr, x);

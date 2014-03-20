@@ -1072,6 +1072,35 @@ static void arm11_Disasm32(u32 a)
 	return;
     }
 
+    if ((opcode & 0x0FF00FF0) == 0x06600FF0) { //UQSUB8
+        b1 = (u8)(r[Rm]) - (u8)(r[Rn]);
+        b2 = (u8)(r[Rm] >> 8) - (u8)(r[Rn] >> 8);
+        b3 = (u8)(r[Rm] >> 16) - (u8)(r[Rn] >> 16);
+        b4 = (u8)(r[Rm] >> 24) - (u8)(r[Rn] >> 24);
+        r[Rd] = (b1 | b2 << 8 | b3 << 16 | b4 << 24);
+	printf("sxth Rm=r%d, Rn=r%d, Rd=r%d\n", Rm, Rn, Rd);
+    }
+    if ((opcode & 0x0FFF0FF0) == 0x06bf0070) { //sxth
+	printf("sxth Rd=r%d, Rm=r%d\n", Rd, Rm);
+    }
+    if ((opcode & 0x0FFF0FF0) == 0x06af0070) { //sxtb
+	printf("sxtb Rd=r%d, Rm=r%d\n", Rd, Rm);
+    }
+    if ((opcode & 0x0FFF0FF0) == 0x06ef0070) { //uxtb
+	printf("uxtb Rd=r%d, Rm=r%d\n", Rd, Rm);
+    }
+    if ((opcode & 0x0FFF0FF0) == 0x06ff0070) { //uxth
+	printf("uxth Rd=r%d, Rm=r%d\n", Rd, Rm);
+    }
+
+    if ((opcode & 0x0FFF0FF0) == 0x06bf0fb0) { //rev16
+	printf("rev16 Rd=r%d, Rm=r%d\n", Rd, Rm);
+    }
+
+    if ((opcode & 0x0FFF0FF0) == 0x06bf0f30) { //rev
+	printf("rev Rd=r%d, Rm=r%d\n", Rd, Rm);
+    }
+
     if ((opcode >> 24) == 0xEF) {
 	u32 Imm = opcode & 0xFFFFFF;
 	printf("swi 0x%X\n", Imm);

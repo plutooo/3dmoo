@@ -421,10 +421,10 @@ static void Step32()
 	
 	if ((this.curInstruction & 0x0FF00FF0) == 0x06600FF0)//UQSUB8
 	{
-        Byte b1 = (Byte)((Byte)(registers[rm]) - (Byte)(registers[rn]));
-        Byte b2 = (Byte)((Byte)(registers[rm] >> 8) - (Byte)(registers[rn] >> 8));
-        Byte b3 = (Byte)((Byte)(registers[rm] >> 16) - (Byte)(registers[rn] >> 16));
-        Byte b4 = (Byte)((Byte)(registers[rm] >> 24) - (Byte)(registers[rn] >> 24));
+        b1 = (Byte)((Byte)(registers[rm]) - (Byte)(registers[rn]));
+        b2 = (Byte)((Byte)(registers[rm] >> 8) - (Byte)(registers[rn] >> 8));
+        b3 = (Byte)((Byte)(registers[rm] >> 16) - (Byte)(registers[rn] >> 16));
+        b4 = (Byte)((Byte)(registers[rm] >> 24) - (Byte)(registers[rn] >> 24));
         registers[rd] = (uint)(b1 | b2 << 8 | b3 << 16 | b4 << 24);
 	}
 	if ((this.curInstruction & 0x0FFF0FF0) == 0x06bf0070)//sxth

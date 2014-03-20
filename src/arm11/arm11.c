@@ -377,6 +377,8 @@ static void Step32()
 {
     u32 opcode;
 
+	uint temp;
+	
     arm11_Disasm32(*pc);
     opcode = mem_Read32(*pc);
 
@@ -412,6 +414,19 @@ static void Step32()
 	return;
     }
 
+	if ((opcode & 0x0FFF0FF0) == 0x06bf0fb0) //rev16
+	{
+		uint temp = registers[rm];
+        registers[rd] = (((temp & 0xFF) >> 0x0) << 0x8) + (((temp & 0xFF00) >> 0x8) << 0x0) + (((temp & 0xFF0000) >> 0x10) << 0x18) + (((temp & 0xFF000000) >> 0x18) << 0x10);
+	}
+
+	if ((opcode & 0x0FFF0FF0) == 0x06bf0f30) //rev
+	{
+		uint temp = registers[rm];
+        registers[rd] = (((temp & 0xFF) >> 0x0) << 0x18) + (((temp & 0xFF00) >> 0x8) << 0x10) + (((temp & 0xFF0000) >> 0x10) << 0x8) + (((temp & 0xFF000000) >> 0x18) << 0x0);
+	}
+	
+	
     if ((opcode >> 24) == 0xEF) { // SVC
 	u32 Imm = opcode & 0xFFFFFF;
 	ExecuteSVC(Imm & 0xFF);

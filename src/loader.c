@@ -342,6 +342,9 @@ int loader_LoadNCCH(FILE* fd) {
     u32 stack_size = Read32(ex.codesetinfo.stacksize);
     mem_AddSegment(0x10000000 - stack_size, stack_size, NULL);
 
+    // Add thread command buffer.
+    mem_AddSegment(0xFFFF0000, 0x1000, NULL);
+
     // Set entrypoint and stack ptr.
     arm11_SetPCSP(Read32(ex.codesetinfo.text.address),
 	0x10000000);

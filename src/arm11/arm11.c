@@ -938,9 +938,40 @@ static void Step32()
 	return;
     }
 
-    case 7: {// MRC
-	// XXX: MRC not implemented.
-        return;
+    case 7: {// MRC/MCR
+	if(((opcode >> 4) & 1) && !((opcode >> 24) & 1)) {
+	    bool L = (opcode >> 20) & 1;
+	    u32  CRm = opcode & 0xF;
+	    u32  CP = (opcode >> 5) & 0x7;
+	    u32  CP_num = (opcode >> 8) & 0xF;
+	    u32  Rd = (opcode >> 12) & 0xF;
+	    u32  CRn = (opcode >> 16) & 0xF;
+	    u32  CPOpc = (opcode >> 21) & 0x7;
+
+	    // TODO: some floating point
+	    if(CPOpc == 7) {
+		DEBUG("Not implmented.\n");
+		return;
+	    }
+
+	    if(L) {
+		printf("MRC L=%d, CRm=%x, CP=%x, CP_num=%x, Rd=%x, CRn=%x, CPOpc=%x\n",
+		       L, CRm, CP, CP_num, Rd, CRn, CPOpc);
+
+		if(CRm == 0 && CP == 3 && CP_num == 15 && CRn == 13 && CPOpc == 0) {
+		    // GetThreadCommandBuffer
+		    r[Rd] = 0xFFFF0000;
+		    return;
+		}
+	    }
+	    else {
+		printf("MCR L=%d, CRm=%x, CP=%x, CP_num=%x, Rd=%x, CRn=%x, CPOpc=%x\n",
+		       L, CRm, CP, CP_num, Rd, CRn, CPOpc);
+	    }
+	    DEBUG("MRC/MCR not implemented.\n");
+	    exit(1);
+	    return;
+	}
     }
     }
 

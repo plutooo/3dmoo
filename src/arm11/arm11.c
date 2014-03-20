@@ -413,7 +413,25 @@ static void Step32()
 
 	return;
     }
-
+	
+	if ((this.curInstruction & 0x0FFF0FF0) == 0x06bf0070)//sxth
+	{
+       temp = registers[rm] &0xFFFF;
+       if ((temp & 0x8000) != 0)
+       {
+           temp |= 0xFFFF0000;
+       }
+       registers[rd] = temp;
+	}
+	if ((this.curInstruction & 0x0FFF0FF0) == 0x06af0070)//sxtb
+	{
+       temp = registers[rm] &0xFF;
+       if ((temp & 0x80) != 0)
+       {
+           temp |= 0xFFFFFF00;
+       }
+       registers[rd] = temp;
+	}
     if ((this.curInstruction & 0x0FFF0FF0) == 0x06ef0070)//uxtb
     {
         registers[rd] = (registers[rm] & 0xFF);

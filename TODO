@@ -1,0 +1,23 @@
+TODO
+
+* arm11
+[0%] Implement media-instructions (with conditions!).
+[0%] PARTIAL Implement missing instructions.
+[0%] Review arm11.c to make sure it is consistent.
+[0%] Add threading support.
+[0%] Add proper handling of MRC/MCR.
+
+* loader
+[0%] Add support for CIA.
+
+* svc
+[0%] Implement crucial SVCs.
+
+* misc
+[0%] Move ThreadCommandBuffer(s) to correct address (currently 0xFFFF0000).
+[0%] Implement a debugger.
+[0%] Implement SDL screen.
+[0%] Better error-handling than exit(1).
+[0%] Add a proper Makefile.
+[0%] Make it build on Windows.
+[0%] Fix headers for all *.c files.

@@ -1,4 +1,5 @@
 /*
+ * Copyright (C) 2014 - ichfly
  * Copyright (C) 2014 - plutoo
  * Copyright (C) 2011 - Miguel Boton (Waninkoko)
  * Copyright (C) 2010 - crediar, megazig
@@ -382,6 +383,12 @@ static void Step32()
 {
     u32 opcode;
 
+	uint temp;
+	Byte b1;
+	Byte b2;
+	Byte b3;
+	Byte b4;
+	
     arm11_Disasm32(*pc);
     opcode = mem_Read32(*pc);
 
@@ -416,7 +423,55 @@ static void Step32()
 
 	return;
     }
+	
+	if ((this.curInstruction & 0x0FF00FF0) == 0x06600FF0)//UQSUB8
+	{
+        b1 = (Byte)((Byte)(registers[rm]) - (Byte)(registers[rn]));
+        b2 = (Byte)((Byte)(registers[rm] >> 8) - (Byte)(registers[rn] >> 8));
+        b3 = (Byte)((Byte)(registers[rm] >> 16) - (Byte)(registers[rn] >> 16));
+        b4 = (Byte)((Byte)(registers[rm] >> 24) - (Byte)(registers[rn] >> 24));
+        registers[rd] = (uint)(b1 | b2 << 8 | b3 << 16 | b4 << 24);
+	}
+	if ((this.curInstruction & 0x0FFF0FF0) == 0x06bf0070)//sxth
+	{
+       temp = registers[rm] &0xFFFF;
+       if ((temp & 0x8000) != 0)
+       {
+           temp |= 0xFFFF0000;
+       }
+       registers[rd] = temp;
+	}
+	if ((this.curInstruction & 0x0FFF0FF0) == 0x06af0070)//sxtb
+	{
+       temp = registers[rm] &0xFF;
+       if ((temp & 0x80) != 0)
+       {
+           temp |= 0xFFFFFF00;
+       }
+       registers[rd] = temp;
+	}
+    if ((this.curInstruction & 0x0FFF0FF0) == 0x06ef0070)//uxtb
+    {
+        registers[rd] = (registers[rm] & 0xFF);
+    }
+    if ((this.curInstruction & 0x0FFF0FF0) == 0x06ff0070)//uxth
+    {
+        registers[rd] = (registers[rm] & 0xFFFF);
+    }
 
+	if ((opcode & 0x0FFF0FF0) == 0x06bf0fb0) //rev16
+	{
+		uint temp = registers[rm];
+        registers[rd] = (((temp & 0xFF) >> 0x0) << 0x8) + (((temp & 0xFF00) >> 0x8) << 0x0) + (((temp & 0xFF0000) >> 0x10) << 0x18) + (((temp & 0xFF000000) >> 0x18) << 0x10);
+	}
+
+	if ((opcode & 0x0FFF0FF0) == 0x06bf0f30) //rev
+	{
+		uint temp = registers[rm];
+        registers[rd] = (((temp & 0xFF) >> 0x0) << 0x18) + (((temp & 0xFF00) >> 0x8) << 0x10) + (((temp & 0xFF0000) >> 0x10) << 0x8) + (((temp & 0xFF000000) >> 0x18) << 0x0);
+	}
+	
+	
     if ((opcode >> 24) == 0xEF) { // SVC
 	u32 Imm = opcode & 0xFFFFFF;
 	svc_Execute(Imm & 0xFF);

@@ -25,4 +25,6 @@
 #define u32 uint32_t
 #define s32 int32_t
 
-#define DEBUG(x ...) fprintf(stderr, x);
+#define DEBUG(x ...) fprintf(stdout, x);
+#define ERROR(x ...) fprintf(stderr, x);
+#define PAUSE() fgetc(stdin);

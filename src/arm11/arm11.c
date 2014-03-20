@@ -88,16 +88,21 @@ void arm11_SetPCSP(u32 ipc, u32 isp) {
     *sp = isp;
 }
 
-static void ExecuteSVC(u8 num)
-{
-    printf("Got SVC 0x%x!\n", num);
-
-    if(num == 0x21) {
-	r[0] = 1;
-	return;
+u32 arm11_R(u32 n) {
+    if(n > 15) {
+	ERROR("%s: invalid r%n.\n", __func__, n);
+	return 0;
     }
 
-    exit(1);
+    return r[n];
+}
+
+void arm11_SetR(u32 n, u32 val) {
+    if(n > 15) {
+	ERROR("%s: invalid r%n.\n", __func__, n);
+	return;
+    }
+    r[n] = val;
 }
 
 static bool CondCheck32(u32 opcode)
@@ -414,7 +419,7 @@ static void Step32()
 
     if ((opcode >> 24) == 0xEF) { // SVC
 	u32 Imm = opcode & 0xFFFFFF;
-	ExecuteSVC(Imm & 0xFF);
+	svc_Execute(Imm & 0xFF);
 	return;
     }
 
@@ -455,7 +460,7 @@ static void Step32()
 			return;
 
 		    if(Rn % 2) {
-			printf("invalid insn, Rn must be even.\n");
+			ERROR("invalid insn, Rn must be even.\n");
 			exit(1);
 		    }
 
@@ -491,7 +496,7 @@ static void Step32()
 		    return;
 
 		if(Rn % 2) {
-		    printf("invalid insn, Rn must be even.\n");
+		    ERROR("invalid insn, Rn must be even.\n");
 		    exit(1);
 		}
 
@@ -948,16 +953,14 @@ static void Step32()
 	    u32  CRn = (opcode >> 16) & 0xF;
 	    u32  CPOpc = (opcode >> 21) & 0x7;
 
-	    // TODO: some floating point
+	    // TODO: Some floating point instruction
 	    if(CPOpc == 7) {
-		DEBUG("Not implmented.\n");
+		ERROR("Not implemented.\n");
+		PAUSE();
 		return;
 	    }
 
 	    if(L) {
-		printf("MRC L=%d, CRm=%x, CP=%x, CP_num=%x, Rd=%x, CRn=%x, CPOpc=%x\n",
-		       L, CRm, CP, CP_num, Rd, CRn, CPOpc);
-
 		if(CRm == 0 && CP == 3 && CP_num == 15 && CRn == 13 && CPOpc == 0) {
 		    // GetThreadCommandBuffer
 		    r[Rd] = 0xFFFF0000;
@@ -965,10 +968,9 @@ static void Step32()
 		}
 	    }
 	    else {
-		printf("MCR L=%d, CRm=%x, CP=%x, CP_num=%x, Rd=%x, CRn=%x, CPOpc=%x\n",
-		       L, CRm, CP, CP_num, Rd, CRn, CPOpc);
 	    }
-	    DEBUG("MRC/MCR not implemented.\n");
+
+	    ERROR("MRC/MCR not implemented.\n");
 	    exit(1);
 	    return;
 	}
@@ -976,7 +978,7 @@ static void Step32()
     }
 
     // XXX: Error here
-    printf("unknown opcode (0x%08x)\n", opcode);
+    ERROR("unknown opcode (0x%08x)\n", opcode);
     exit(1);
 }
 
@@ -1427,12 +1429,21 @@ static void arm11_Disasm32(u32 a)
     }
 
     case 7: {// MRC
-	printf("mrc ...\n");
+	bool L = (opcode >> 20) & 1;
+	u32  CRm = opcode & 0xF;
+	u32  CP = (opcode >> 5) & 0x7;
+	u32  CP_num = (opcode >> 8) & 0xF;
+	u32  Rd = (opcode >> 12) & 0xF;
+	u32  CRn = (opcode >> 16) & 0xF;
+	u32  CPOpc = (opcode >> 21) & 0x7;
+
+	printf("mcr L=%d, CRm=%x, CP=%x, CP_num=%x, Rd=%x, CRn=%x, CPOpc=%x\n",
+	       L, CRm, CP, CP_num, Rd, CRn, CPOpc);
 	return;
     }
     }
 
-    printf("unknown opcode (0x%08x)\n", opcode);
+    ERROR("unknown opcode (0x%08x)\n", opcode);
 }
 
 void Step16()
@@ -2020,7 +2031,7 @@ void Step16()
 	return;
     }
 
-    printf("unknown opcode (0x%04x)\n", opcode);
+    ERROR("unknown opcode (0x%04x)\n", opcode);
 }
 
 void arm11_Disasm16(u32 a)
@@ -2466,7 +2477,7 @@ void arm11_Disasm16(u32 a)
 	return;
     }
 
-    printf("unknown opcode (0x%04x)\n", opcode);
+    ERROR("unknown opcode (0x%04x)\n", opcode);
 }
 
 bool arm11_Step()

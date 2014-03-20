@@ -414,6 +414,15 @@ static void Step32()
 	return;
     }
 
+    if ((this.curInstruction & 0x0FFF0FF0) == 0x06ef0070)//uxtb
+    {
+        registers[rd] = (registers[rm] & 0xFF);
+    }
+    if ((this.curInstruction & 0x0FFF0FF0) == 0x06ff0070)//uxth
+    {
+        registers[rd] = (registers[rm] & 0xFFFF);
+    }
+
 	if ((opcode & 0x0FFF0FF0) == 0x06bf0fb0) //rev16
 	{
 		uint temp = registers[rm];

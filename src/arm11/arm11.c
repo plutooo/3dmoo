@@ -388,7 +388,7 @@ static void Step32()
     u8 b2;
     u8 b3;
     u8 b4;
-	
+
     arm11_Disasm32(*pc);
     opcode = mem_Read32(*pc);
 
@@ -964,7 +964,7 @@ static void Step32()
 	}
 
 	if (L) {
-	    s32 i;
+		s32 i;
 	    for (i = 0; i < 16; i++) {
 		if ((opcode >> i) & 1) {
 		    if (P)  start += (U) ? sizeof(u32) : -sizeof(u32);
@@ -1534,6 +1534,8 @@ void Step16()
 {
     u16 opcode;
 
+	s32 i;
+
     /* Read opcode */
     opcode = mem_Read16(*pc);
 
@@ -2019,7 +2021,6 @@ void Step16()
 	    if (lrf)
 		Push(*lr);
 
-	    s32 i;
 	    for (i = 7; i >= 0; i--)
 		if ((opcode >> i) & 1)
 		    Push(r[i]);
@@ -2029,7 +2030,6 @@ void Step16()
 	case 6: {// POP
 	    bool pcf = opcode & 0x100;
 
-	    s32 i;
 	    for (i = 0; i < 8; i++) {
 		if ((opcode >> i) & 1) {
 		    r[i] = Pop();

@@ -160,7 +160,7 @@ typedef struct {
     u32 tmd_sz;
     u32 meta_sz;
     u64 content_sz;
-    u32 content_idx[0x2000];
+    u8 content_idx[0x2000];
 } cia_header;
 
 #define CIA_MAGIC sizeof(cia_header)
@@ -270,12 +270,11 @@ int loader_LoadNCCH(FILE* fd) {
     if(Read32(h.signature) == CIA_MAGIC) {
 	cia_header* ch = (cia_header*) &h;
 
-	ncch_off = 0x20 + 0x2020;
+	ncch_off = 0x20 + ch->hdr_sz;
 
 	ncch_off += ch->cert_sz;
 	ncch_off += ch->tik_sz;
 	ncch_off += ch->tmd_sz;
-	ncch_off += ch->meta_sz;
 
 	ncch_off = (u32)(ncch_off & ~0xff);
 	ncch_off += 0x100;

@@ -34,7 +34,7 @@ int main(int argc, char* argv[]) {
     arm11_Init();
 
     // Load file.
-    if(loader_LoadNCCH(fd) != 0) {
+    if(loader_LoadFile(fd) != 0) {
 	fclose(fd);
 	return 1;
     }

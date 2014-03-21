@@ -256,187 +256,183 @@ clean:
 }
 
 
-void *load_elf_image(u8 *addr)
+static u32 load_elf_image(u8 *addr)
 {
- u32 *header = addr;
- u32 *phdr = addr + Read32(&header[7]);
- u32 n = Read32(&header[11]) &0xFFFF;
- u32 i;
+    u32 *header = (u32*) addr;
+    u32 *phdr = (u32*) (addr + Read32((u8*) &header[7]));
+    u32 n = Read32((u8*)&header[11]) &0xFFFF;
+    u32 i;
 
-     for (i = 0; i < n; i++, phdr += 8) {
-             if (phdr[0] != 1)       // PT_LOAD
-                         continue;
+    for (i = 0; i < n; i++, phdr += 8) {
+	if (phdr[0] != 1) // PT_LOAD
+	    continue;
 
-			 u32 off = Read32(&phdr[1]);
-			 u32 dest = (void *)Read32(&phdr[3]);
-			 u32 filesz = Read32(&phdr[4]);
-			 u32 memsz = Read32(&phdr[5]);
+	u32 off = Read32((u8*) &phdr[1]);
+	u32 dest = Read32((u8*) &phdr[3]);
+	u32 filesz = Read32((u8*) &phdr[4]);
+	u32 memsz = Read32((u8*) &phdr[5]);
 
-			 u8* data = malloc(memsz);
-			 memset(data, 0, memsz);
-			 memcpy(data, addr + off, filesz);
-			 mem_AddSegment(dest, memsz, data);
+	u8* data = malloc(memsz);
+	memset(data, 0, memsz);
+	memcpy(data, addr + off, filesz);
+	mem_AddSegment(dest, memsz, data);
 
-	}
+    }
 
-         return (void *)header[6];
+    return Read32((u8*) &header[6]);
  }
 
 
-int loader_LoadNCCH(FILE* fd) {
-	u32 ncch_off = 0;
+int loader_LoadFile(FILE* fd) {
+    u32 ncch_off = 0;
 
-	// Read header.
-	ctr_ncchheader h;
+    // Read header.
+    ctr_ncchheader h;
+    if (fread(&h, sizeof(h), 1, fd) != 1) {
+	ERROR("%s: failed to read header.\n", __func__);
+	return 1;
+    }
+
+    if (Read32(h.signature) == 0x464c457f) // Load ELF
+    {
+	// Add stack segment.
+	mem_AddSegment(0x10000000 - 0x100000, 0x100000, NULL);
+
+	// Add thread command buffer.
+	mem_AddSegment(0xFFFF0000, 0x1000, NULL);
+
+	// Load elf.
+	fseek(fd, 0, SEEK_END);
+	u32 elfsize = ftell(fd);
+	u8* data = malloc(elfsize);
+	fseek(fd, 0, SEEK_SET);
+	fread(data, elfsize, 1, fd);
+
+	// Set entrypoint and stack ptr.
+	arm11_SetPCSP(load_elf_image(data),
+		      0x10000000);
+
+	free(data);
+	return 0;
+    }
+
+    if (Read32(h.signature) == CIA_MAGIC) {		// Load CIA
+	cia_header* ch = (cia_header*)&h;
+
+	ncch_off = 0x20 + ch->hdr_sz;
+
+	ncch_off += ch->cert_sz;
+	ncch_off += ch->tik_sz;
+	ncch_off += ch->tmd_sz;
+
+	ncch_off = (u32)(ncch_off & ~0xff);
+	ncch_off += 0x100;
+	fseek(fd, ncch_off, SEEK_SET);
+
 	if (fread(&h, sizeof(h), 1, fd) != 1) {
-		ERROR("%s: failed to read header.\n", __func__);
+	    ERROR("%s: failed to read header.\n", __func__);
+	    return 1;
+	}
+    }
+    // Load NCCH
+    if (memcmp(&h.magic, "NCCH", 4) != 0) {
+	ERROR("%s: invalid magic.. wrong file?\n", __func__);
+	return 1;
+    }
+
+    // Read Exheader.
+    exheader_header ex;
+    if (fread(&ex, sizeof(ex), 1, fd) != 1) {
+	ERROR("%s: failed to read exheader.\n", __func__);
+	return 1;
+    }
+
+    bool is_compressed = ex.codesetinfo.flags.flag & 1;
+    ex.codesetinfo.name[7] = '\0';
+    DEBUG("Name: %s\n", ex.codesetinfo.name);
+    DEBUG("Code compressed: %s\n", is_compressed ? "YES" : "NO");
+
+    // Read ExeFS.
+    u32 exefs_off = Read32(h.exefsoffset) * 0x200;
+    u32 exefs_sz = Read32(h.exefssize) * 0x200;
+    DEBUG("ExeFS offset:    %08x\n", exefs_off);
+    DEBUG("ExeFS size:      %08x\n", exefs_sz);
+
+    fseek(fd, exefs_off + ncch_off, SEEK_SET);
+
+    exefs_header eh;
+    if (fread(&eh, sizeof(eh), 1, fd) != 1) {
+	ERROR("%s: failed to read ExeFS header.\n", __func__);
+	return 1;
+    }
+
+    u32 i;
+    for (i = 0; i < 8; i++) {
+	u32 sec_size = Read32(eh.section[i].size);
+	u32 sec_off = Read32(eh.section[i].offset);
+
+	if (sec_size == 0)
+	    continue;
+
+	DEBUG("ExeFS section %d:\n", i);
+	eh.section[i].name[7] = '\0';
+	DEBUG("    name:   %s\n", eh.section[i].name);
+	DEBUG("    offset: %08x\n", sec_off);
+	DEBUG("    size:   %08x\n", sec_size);
+
+
+	if (strcmp(eh.section[i].name, ".code") == 0) {
+	    sec_off += exefs_off + sizeof(eh);
+	    fseek(fd, sec_off + ncch_off, SEEK_SET);
+
+	    uint8_t* sec = malloc(AlignPage(sec_size));
+	    if (sec == NULL) {
+		ERROR("%s: section malloc failed.\n", __func__);
 		return 1;
+	    }
+
+	    if (fread(sec, sec_size, 1, fd) != 1) {
+		ERROR("%s: section fread failed.\n", __func__);
+		return 1;
+	    }
+
+	    // Decompress first section if flag set.
+	    if (i == 0 && is_compressed) {
+		u32 dec_size = GetDecompressedSize(sec, sec_size);
+		u8* dec = malloc(AlignPage(dec_size));
+
+		DEBUG("Decompressing..\n");
+		if (Decompress(sec, sec_size, dec, dec_size) == 0) {
+		    ERROR("%s: section decompression failed.\n", __func__);
+		    return 1;
+		}
+		DEBUG("  .. OK\n");
+
+		free(sec);
+		sec = dec;
+		sec_size = dec_size;
+	    }
+
+	    // Load .code section.
+	    sec_size = AlignPage(sec_size);
+	    mem_AddSegment(Read32(ex.codesetinfo.text.address), sec_size, sec);
 	}
-	if (Read32(h.signature) == 0x464c457f)          // LOAD ELF
-	{
+    }
 
-		// Add stack segment.
-		mem_AddSegment(0x10000000 - 0x100000, 0x100000, NULL);
+    // Add .bss segment.
+    u32 bss_off = AlignPage(Read32(ex.codesetinfo.data.address) +
+			    Read32(ex.codesetinfo.data.codesize));
+    mem_AddSegment(bss_off, AlignPage(Read32(ex.codesetinfo.bsssize)), NULL);
 
-		// Add thread command buffer.
-		mem_AddSegment(0xFFFF0000, 0x1000, NULL);
+    // Add stack segment.
+    u32 stack_size = Read32(ex.codesetinfo.stacksize);
+    mem_AddSegment(0x10000000 - stack_size, stack_size, NULL);
 
-		//load elf
-		fseek(fd, 0, SEEK_END);
-		u32 elfsize = ftell(fd);
-		u8* data = malloc(elfsize);
-		fseek(fd, 0, SEEK_SET);
-		fread(data, elfsize, 1, fd);
+    // Add thread command buffer.
+    mem_AddSegment(0xFFFF0000, 0x1000, NULL);
 
-		// Set entrypoint and stack ptr.
-		arm11_SetPCSP(load_elf_image(data),
-			0x10000000);
-		
-
-		free(data);
-	}
-	else
-	{
-
-		if (Read32(h.signature) == CIA_MAGIC) {		// Load CIA
-			cia_header* ch = (cia_header*)&h;
-
-			ncch_off = 0x20 + ch->hdr_sz;
-
-			ncch_off += ch->cert_sz;
-			ncch_off += ch->tik_sz;
-			ncch_off += ch->tmd_sz;
-
-			ncch_off = (u32)(ncch_off & ~0xff);
-			ncch_off += 0x100;
-			fseek(fd, ncch_off, SEEK_SET);
-
-			if (fread(&h, sizeof(h), 1, fd) != 1) {
-				ERROR("%s: failed to read header.\n", __func__);
-				return 1;
-			}
-		}
-		// Load NCCH
-		if (memcmp(&h.magic, "NCCH", 4) != 0) {
-			ERROR("%s: invalid magic.. wrong file?\n", __func__);
-			return 1;
-		}
-
-		// Read Exheader.
-		exheader_header ex;
-		if (fread(&ex, sizeof(ex), 1, fd) != 1) {
-			ERROR("%s: failed to read exheader.\n", __func__);
-			return 1;
-		}
-
-		bool is_compressed = ex.codesetinfo.flags.flag & 1;
-		ex.codesetinfo.name[7] = '\0';
-		DEBUG("Name: %s\n", ex.codesetinfo.name);
-		DEBUG("Code compressed: %s\n", is_compressed ? "YES" : "NO");
-
-		// Read ExeFS.
-		u32 exefs_off = Read32(h.exefsoffset) * 0x200;
-		u32 exefs_sz = Read32(h.exefssize) * 0x200;
-		DEBUG("ExeFS offset:    %08x\n", exefs_off);
-		DEBUG("ExeFS size:      %08x\n", exefs_sz);
-
-		fseek(fd, exefs_off + ncch_off, SEEK_SET);
-
-		exefs_header eh;
-		if (fread(&eh, sizeof(eh), 1, fd) != 1) {
-			ERROR("%s: failed to read ExeFS header.\n", __func__);
-			return 1;
-		}
-
-		u32 i;
-		for (i = 0; i < 8; i++) {
-			u32 sec_size = Read32(eh.section[i].size);
-			u32 sec_off = Read32(eh.section[i].offset);
-
-			if (sec_size == 0)
-				continue;
-
-			DEBUG("ExeFS section %d:\n", i);
-			eh.section[i].name[7] = '\0';
-			DEBUG("    name:   %s\n", eh.section[i].name);
-			DEBUG("    offset: %08x\n", sec_off);
-			DEBUG("    size:   %08x\n", sec_size);
-
-
-			if (strcmp(eh.section[i].name, ".code") == 0) {
-				sec_off += exefs_off + sizeof(eh);
-				fseek(fd, sec_off + ncch_off, SEEK_SET);
-
-				uint8_t* sec = malloc(AlignPage(sec_size));
-				if (sec == NULL) {
-					ERROR("%s: section malloc failed.\n", __func__);
-					return 1;
-				}
-
-				if (fread(sec, sec_size, 1, fd) != 1) {
-					ERROR("%s: section fread failed.\n", __func__);
-					return 1;
-				}
-
-				// Decompress first section if flag set.
-				if (i == 0 && is_compressed) {
-					u32 dec_size = GetDecompressedSize(sec, sec_size);
-					u8* dec = malloc(AlignPage(dec_size));
-
-					DEBUG("Decompressing..\n");
-					if (Decompress(sec, sec_size, dec, dec_size) == 0) {
-						ERROR("%s: section decompression failed.\n", __func__);
-						return 1;
-					}
-					DEBUG("  .. OK\n");
-
-					free(sec);
-					sec = dec;
-					sec_size = dec_size;
-				}
-
-				// Load .code section.
-				sec_size = AlignPage(sec_size);
-				mem_AddSegment(Read32(ex.codesetinfo.text.address), sec_size, sec);
-			}
-		}
-
-		// Add .bss segment.
-		u32 bss_off = AlignPage(Read32(ex.codesetinfo.data.address) +
-			Read32(ex.codesetinfo.data.codesize));
-		mem_AddSegment(bss_off, AlignPage(Read32(ex.codesetinfo.bsssize)), NULL);
-
-		// Add stack segment.
-		u32 stack_size = Read32(ex.codesetinfo.stacksize);
-		mem_AddSegment(0x10000000 - stack_size, stack_size, NULL);
-
-		// Add thread command buffer.
-		mem_AddSegment(0xFFFF0000, 0x1000, NULL);
-
-
-		// Set entrypoint and stack ptr.
-		arm11_SetPCSP(Read32(ex.codesetinfo.text.address),
-			0x10000000);
-	}
+    // Set entrypoint and stack ptr.
+    arm11_SetPCSP(Read32(ex.codesetinfo.text.address),
+		  0x10000000);
     return 0;
 }

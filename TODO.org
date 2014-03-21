@@ -10,7 +10,6 @@ TODO
 [0%] Add proper handling of MRC/MCR.
 
 * loader
-[0%] ADD support for elf.
 
 * svc
 [0%] Implement crucial SVCs.

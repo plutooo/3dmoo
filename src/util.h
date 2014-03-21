@@ -27,6 +27,6 @@
 #define u64 uint64_t
 #define s64 int64_t
 
-#define DEBUG(x, ...) fprintf(stdout, x);
-#define ERROR(x, ...) fprintf(stderr, x);
+#define DEBUG(...) fprintf(stdout, __VA_ARGS__);
+#define ERROR(...) fprintf(stderr, __VA_ARGS__);
 #define PAUSE() fgetc(stdin);

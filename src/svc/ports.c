@@ -31,7 +31,7 @@ static struct {
     u32 (*fnInitHandle)();
     u32 (*fnSyncRequest)();
 } ports[] = {
-    // Services are declared here.
+    // Ports are declared here.
     {
 	"srv:",
 	PORT_TYPE_SRV,

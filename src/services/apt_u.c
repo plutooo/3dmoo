@@ -15,19 +15,14 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#define HANDLE_TYPE_UNK     0
-#define HANDLE_TYPE_PORT    1
-#define HANDLE_TYPE_SERVICE 2
+#include <stdio.h>
+#include <stdlib.h>
 
-#define PORT_TYPE_SRV       0
+#include "../util.h"
+#include "../handles.h"
 
-#define SERVICE_TYPE_APT_U  0
-
-typedef struct {
-    bool taken;
-    u32  type;
-    u32  subtype;
-} handleinfo;
-
-handleinfo* handle_Get(u32 handle);
-u32 handle_New(u32 type, u32 subtype);
+u32 apt_u_SyncRequest() {
+    DEBUG("STUBBED\n");
+    PAUSE();
+    return 0;
+}

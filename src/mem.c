@@ -180,3 +180,19 @@ int mem_Read32(uint32_t addr) {
     exit(1);
     return 0;
 }
+
+int mem_Read(uint8_t* buf_out, uint32_t addr, uint32_t size) {
+    size_t i;
+
+    for(i=0; i<num_mappings; i++) {
+	if(Contains(&mappings[i], addr, size)) {
+	    memcpy(buf_out, &mappings[i].phys[addr - mappings[i].base], size);
+	    return 0;
+	}
+    }
+
+    DEBUG("trying to read 0x%x bytes unmapped addr %08x\n", size, addr);
+    arm11_Dump();
+    exit(1);
+    return 0;
+}

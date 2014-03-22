@@ -20,3 +20,4 @@
 [0%] Better error-handling than exit(1).
 [0%] Add a proper Makefile.
 [0%] Fix headers for all *.c files.
+[0%] Make it compile with -Wall

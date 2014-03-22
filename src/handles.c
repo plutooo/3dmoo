@@ -16,44 +16,31 @@
  */
 
 #include <stdio.h>
+#include <stdlib.h>
 
-#include "../util.h"
-#include "../handles.h"
+#include "util.h"
+#include "handles.h"
 
-u32 svcConnectToPort() {
-    u32 handle_out   = arm11_R(0);
-    u32 portname_ptr = arm11_R(1);;
-    char name[12];
+#define MAX_NUM_HANDLES 0x1000
+#define HANDLES_BASE    0xDEADBABE
 
-    u32 i;
-    for(i=0; i<12; i++) {
-	name[i] = mem_Read8(portname_ptr+i);
-	if(name[i] == '\0')
-	    break;
-    }
+static struct {
+    bool taken;
+    u32  type;
+} handles[MAX_NUM_HANDLES];
 
-    if(i == 12 && name[7] != '\0') {
-	ERROR("requesting service with missing null-byte\n");
+static u32 handles_num;
+
+
+u32 handle_New(u32 type) {
+    if(handles_num == MAX_NUM_HANDLES) {
+	ERROR("not enough handles..\n");
 	arm11_Dump();
-	PAUSE();
-	return 0xE0E0181E;
+	exit(1);
     }
 
-    if(strcmp(name, "srv:") == 0) {
-        arm11_SetR(1, handle_New(HANDLE_TYPE_PORT));
-        return 0;
-    }
+    handles[handles_num].taken = true;
+    handles[handles_num].type  = type;
 
-    DEBUG("portname=%s\n", name);
-    PAUSE();
-    return 0;
-}
-
-u32 svcSendSyncRequest() {
-    u32 session = arm11_R(0);
-
-    DEBUG("STUBBED.\n");
-    DEBUG("session=%08x\n", session);
-    PAUSE();
-    return 0;
+    return HANDLES_BASE + handles_num++;
 }

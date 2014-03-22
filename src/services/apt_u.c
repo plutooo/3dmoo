@@ -20,9 +20,31 @@
 
 #include "../util.h"
 #include "../handles.h"
+#include "../mem.h"
+#include "../arm11/arm11.h"
+
+u32 lock_handle;
 
 u32 apt_u_SyncRequest() {
-    DEBUG("STUBBED\n");
+    u32 cid = mem_Read32(0xFFFF0080);
+    u32 flags;
+
+    // Read command-id.
+    switch(cid) {
+    case 0x10040:
+	flags = mem_Read32(0xFFFF0084);
+	DEBUG("apt_u::GetLockHandle, flags=%08x\n", flags);
+	PAUSE();
+
+	mem_Write32(0xFFFF0084, 0);
+
+	lock_handle = handle_New(HANDLE_TYPE_UNK, 0);
+	mem_Write32(0xFFFF0094, lock_handle);
+	return 0;
+    }
+
+    ERROR("NOT IMPLEMENTED\n");
+    arm11_Dump();
     PAUSE();
     return 0;
 }

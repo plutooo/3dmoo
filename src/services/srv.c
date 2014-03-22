@@ -42,6 +42,22 @@ static struct {
 };
 
 
+u32 services_SyncRequest() {
+    u32 handle = arm11_R(0);
+    handleinfo* hi = handle_Get(handle);
+
+    u32 i;
+    for(i=0; i<ARRAY_SIZE(services); i++) {
+	if(services[i].subtype == hi->subtype)
+	    return services[i].fnSyncRequest();
+    }
+
+    ERROR("invalid handle.\n");
+    arm11_Dump();
+    PAUSE();
+    return 0;
+}
+
 u32 srv_InitHandle() {
     // Create a handle for srv: port.
     arm11_SetR(1, handle_New(HANDLE_TYPE_PORT, PORT_TYPE_SRV));

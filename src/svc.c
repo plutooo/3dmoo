@@ -128,7 +128,7 @@ static const char* names[256] = {
     "UnmapProcessMemory",
     NULL, NULL, NULL,
     "TerminateProcess",
-    "No ",
+    NULL,
     "CreateResourceLimit",
     NULL, NULL,
     "KernelSetState",
@@ -175,6 +175,7 @@ void svc_Execute(u8 num)
     else if(num == 0x38) {
 	DEBUG("resourcelimit=%08x, handle=%08x\n", arm11_R(0), arm11_R(1));
 	DEBUG("STUBBED");
+        PAUSE();
 	arm11_SetR(0, 1);
 	return;
     }
@@ -182,6 +183,7 @@ void svc_Execute(u8 num)
 	DEBUG("values_ptr=%08x, handleResourceLimit=%08x, names_ptr=%08x, nameCount=%d\n",
 	       arm11_R(0), arm11_R(1), arm11_R(2), arm11_R(3));
 	DEBUG("STUBBED");
+        PAUSE();
 	arm11_SetR(0, 1);
 	return;
     }

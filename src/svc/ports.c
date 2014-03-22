@@ -24,9 +24,10 @@
 #include "../mem.h"
 #include "../handles.h"
 
-// XXX: Move this to separate header
+// services/srv.c
 u32 srv_InitHandle();
 u32 srv_SyncRequest();
+u32 services_SyncRequest();
 
 static struct {
     const char* name;
@@ -83,6 +84,9 @@ u32 svcSendSyncRequest() {
 	exit(1);
     }
 
+    if(hi->type == HANDLE_TYPE_SERVICE) {
+        return services_SyncRequest();
+    }
     if(hi->type != HANDLE_TYPE_PORT) {
 	ERROR("handle %08x is not a port-handle..\n", handle);
 	PAUSE();

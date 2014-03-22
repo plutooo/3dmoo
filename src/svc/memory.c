@@ -67,10 +67,10 @@ u32 svcControlMemory() {
     DEBUG("out_addr=%08x\naddr_in0=%08x\naddr_in1=%08x\n"
           "size=%08x\noperation=%08x\nop=%s (%x)\nreg=%s (%x)\nis_linear=%d\n",
           arm11_R(0), arm11_R(1), arm11_R(2), arm11_R(3),
-	      operation,
-	      op, operation & 0xFF,
-	      reg, operation & 0xF00,
-	      !!(operation & 0x1000));
+	  operation,
+	  op, operation & 0xFF,
+	  reg, operation & 0xF00,
+	  !!(operation & 0x1000));
     PAUSE();
 
     // Check inputs.

@@ -144,28 +144,42 @@ void svc_Execute(u8 num)
     DEBUG("-- svc%s (0x%x) --\n", name, num);
 
     if(num == 1) {
-	svcControlMemory();
-	arm11_SetR(0, 1);
+	arm11_SetR(0, svcControlMemory());
 	return;
     }
+    else if(num == 0x2d) {
+	arm11_SetR(0, svcConnectToPort());
+	return;
+    }
+    else if(num == 0x32) {
+	arm11_SetR(0, svcSendSyncRequest());
+	return;
+    }
+
+    // Stubs.
     else if(num == 0x21) {
+	DEBUG("STUBBED");
 	arm11_SetR(0, 1);
+	PAUSE();
 	return;
     }
     else if(num == 0x23) {
-	printf("handle=%08x\n", arm11_R(0));
+	DEBUG("handle=%08x\n", arm11_R(0));
+	DEBUG("STUBBED");
 	PAUSE();
 	arm11_SetR(0, 1);
 	return;
     }
     else if(num == 0x38) {
-	printf("resourcelimit=%08x, handle=%08x\n", arm11_R(0), arm11_R(1));
+	DEBUG("resourcelimit=%08x, handle=%08x\n", arm11_R(0), arm11_R(1));
+	DEBUG("STUBBED");
 	arm11_SetR(0, 1);
 	return;
     }
     else if(num == 0x3a) {
-	printf("values_ptr=%08x, handleResourceLimit=%08x, names_ptr=%08x, nameCount=%d\n",
+	DEBUG("values_ptr=%08x, handleResourceLimit=%08x, names_ptr=%08x, nameCount=%d\n",
 	       arm11_R(0), arm11_R(1), arm11_R(2), arm11_R(3));
+	DEBUG("STUBBED");
 	arm11_SetR(0, 1);
 	return;
     }

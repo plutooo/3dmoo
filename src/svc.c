@@ -172,6 +172,20 @@ void svc_Execute(u8 num)
 	arm11_SetR(0, 1);
 	return;
     }
+    else if(num == 0x24) {
+        u32 handle = arm11_R(0);
+        u64 nanoseconds = arm11_R(2);
+        nanoseconds <<= 32;
+        nanoseconds |= arm11_R(3);
+
+        DEBUG("handle=%08x, nanoseconds=%llx\n", handle,
+		  (unsigned long long int) nanoseconds);
+	DEBUG("STUBBED");
+        arm11_Dump();
+        PAUSE();
+	arm11_SetR(0, 1);
+	return;
+    }
     else if(num == 0x38) {
 	DEBUG("resourcelimit=%08x, handle=%08x\n", arm11_R(0), arm11_R(1));
 	DEBUG("STUBBED");

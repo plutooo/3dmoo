@@ -25,6 +25,7 @@
 #include "../mem.h"
 
 u32 apt_u_SyncRequest();
+u32 gsp_gpu_SyncRequest();
 
 static struct {
     const char* name;
@@ -34,10 +35,16 @@ static struct {
 } services[] = {
     // Services are declared here.
     {
-	"APT:U",
+	"APT:U\0\0\0\0",
 	SERVICE_TYPE_APT_U,
 	0,
 	&apt_u_SyncRequest
+    },
+    {
+	"gsp::Gpu",
+	SERVICE_TYPE_GSP_GPU,
+	0,
+	&gsp_gpu_SyncRequest
     }
 };
 
@@ -96,16 +103,10 @@ u32 srv_SyncRequest() {
 	// Read rest of command header
 	mem_Read((u8*) &req, 0xFFFF0084, sizeof(req));
 
-	if(req.name[7] != '\0') {
-	    ERROR("Missing null-byte in name.\n");
-	    arm11_Dump();
-	    exit(1);
-	}
-
 	u32 i;
 	for(i=0; i<ARRAY_SIZE(services); i++) {
 	    // Find service in list.
-	    if(strcmp(req.name, services[i].name) == 0) {
+	    if(memcmp(req.name, services[i].name, strnlen(services[i].name, 8)) == 0) {
 
 		// Write result.
 		mem_Write32(0xFFFF0084, 0);

@@ -15,21 +15,19 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#define HANDLE_TYPE_UNK       0
-#define HANDLE_TYPE_PORT      1
-#define HANDLE_TYPE_SERVICE   2
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
-#define PORT_TYPE_SRV         0
+#include "../util.h"
+#include "../arm11/arm11.h"
+#include "../handles.h"
+#include "../mem.h"
 
-#define SERVICE_TYPE_APT_U    0
-#define SERVICE_TYPE_GSP_GPU  1
+u32 gsp_gpu_SyncRequest() {
+    DEBUG("STUBBED\n");
+    PAUSE();
 
-typedef struct {
-    bool taken;
-    u32  type;
-    u32  subtype;
-} handleinfo;
-
-handleinfo* handle_Get(u32 handle);
-u32 handle_New(u32 type, u32 subtype);
+    return 0;
+}
 

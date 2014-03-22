@@ -105,7 +105,7 @@ u32 svcControlMemory() {
 	}
     }
     else if(operation == CONTROL_OP_FREE) {
-	if(addr0 >= 0x08000000 || (addr0+size) >= 0x1C000000) {
+	if(addr0 < 0x08000000 || (addr0+size) >= 0x1C000000) {
 	    ERROR("trying to free outside heap region\n");
 	    arm11_Dump();
 	    PAUSE();

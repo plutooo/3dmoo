@@ -19,6 +19,7 @@
 #include <stdlib.h>
 
 #include "util.h"
+#include "arm11/arm11.h"
 #include "handles.h"
 
 #define MAX_NUM_HANDLES 0x1000

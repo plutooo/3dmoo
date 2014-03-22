@@ -20,6 +20,8 @@
 #include <string.h>
 
 #include "util.h"
+#include "arm11/arm11.h"
+#include "mem.h"
 
 // Shamelessly stolen from ctrtool.
 typedef struct {
@@ -381,7 +383,7 @@ int loader_LoadFile(FILE* fd) {
 	DEBUG("    size:   %08x\n", sec_size);
 
 
-	if (strcmp(eh.section[i].name, ".code") == 0) {
+	if (strcmp((char*) eh.section[i].name, ".code") == 0) {
 	    sec_off += exefs_off + sizeof(eh);
 	    fseek(fd, sec_off + ncch_off, SEEK_SET);
 

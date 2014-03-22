@@ -17,9 +17,12 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "../util.h"
+#include "../arm11/arm11.h"
 #include "../handles.h"
+#include "../mem.h"
 
 u32 apt_u_SyncRequest();
 
@@ -75,7 +78,7 @@ u32 srv_SyncRequest() {
        } req;
 
 	// Read rest of command header
-	mem_Read(&req, 0xFFFF0084, sizeof(req));
+	mem_Read((u8*) &req, 0xFFFF0084, sizeof(req));
 
 	if(req.name[7] != '\0') {
 	    ERROR("Missing null-byte in name.\n");

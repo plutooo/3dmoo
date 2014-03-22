@@ -15,40 +15,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-
-#include "util.h"
-#include "arm11/arm11.h"
-
-int loader_LoadFile(FILE* fd);
-
-
-int main(int argc, char* argv[]) {
-    if(argc != 2) {
-	printf("Usage:\n");
-	printf("%s <in.ncch>\n", argv[0]);
-	return 1;
-    }
-
-    FILE* fd = fopen(argv[1], "rb");
-    if(fd == NULL) {
-	perror("Error opening file");
-	return 1;
-    }
-
-    arm11_Init();
-
-    // Load file.
-    if(loader_LoadFile(fd) != 0) {
-	fclose(fd);
-	return 1;
-    }
-
-    // Execute.
-    while(1)
-	arm11_Step();
-
-    fclose(fd);
-    return 0;
-}
+void arm11_Init();
+void arm11_SetPCSP(u32 pc, u32 sp);
+u32  arm11_R(u32 n);
+void arm11_SetR(u32 n, u32 val);
+bool arm11_Step();
+void arm11_Dump();

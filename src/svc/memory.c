@@ -18,6 +18,8 @@
 #include <stdio.h>
 
 #include "../util.h"
+#include "../mem.h"
+#include "../arm11/arm11.h"
 
 #define SVCERROR_ALIGN_ADDR     0xE0E01BF1
 #define SVCERROR_INVALID_SIZE   0xE0E01BF2
@@ -149,9 +151,9 @@ u32 svcControlMemory() {
             return 0xE0E01BEE;
         }*/
 	
-	u32 access;
+	/*u32 access;
 	
-        /*if(GetProcessId() != 1) {
+        if(GetProcessId() != 1) {
 	    access = operation & 0xF00;
 
 	    if(access) {
@@ -164,9 +166,9 @@ u32 svcControlMemory() {
             if(!sub_FFF682A4(GetUserKProcess(), 1, size)) {
 		return 0xC860180A;
 	    }
-	}*/
+	}
 	
-	u32 handle_out = 0;
+	u32 handle_out = 0;*/
 	int rc = 0;
 
 	// "Guess" implementation that can be used to map GSP heap

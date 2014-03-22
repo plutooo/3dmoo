@@ -15,40 +15,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-
-#include "util.h"
-#include "arm11/arm11.h"
-
-int loader_LoadFile(FILE* fd);
-
-
-int main(int argc, char* argv[]) {
-    if(argc != 2) {
-	printf("Usage:\n");
-	printf("%s <in.ncch>\n", argv[0]);
-	return 1;
-    }
-
-    FILE* fd = fopen(argv[1], "rb");
-    if(fd == NULL) {
-	perror("Error opening file");
-	return 1;
-    }
-
-    arm11_Init();
-
-    // Load file.
-    if(loader_LoadFile(fd) != 0) {
-	fclose(fd);
-	return 1;
-    }
-
-    // Execute.
-    while(1)
-	arm11_Step();
-
-    fclose(fd);
-    return 0;
-}
+int mem_AddSegment(uint32_t base, uint32_t size, uint8_t* data);
+int mem_Write8(uint32_t addr, uint8_t w);
+u8  mem_Read8(uint32_t addr);
+int mem_Write16(uint32_t addr, uint16_t w);
+u16 mem_Read16(uint32_t addr);
+int mem_Write32(uint32_t addr, uint32_t w);
+u32 mem_Read32(uint32_t addr);
+int mem_Read(uint8_t* buf_out, uint32_t addr, uint32_t size);

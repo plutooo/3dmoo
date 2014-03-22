@@ -25,6 +25,8 @@
 #include <stdint.h>
 
 #include "../util.h"
+#include "../mem.h"
+#include "../svc.h"
 
 static void arm11_Disasm32(u32 a);
 
@@ -73,8 +75,7 @@ union {
 u32 spsr;
 
 
-void arm11_Init()
-{
+void arm11_Init() {
     sp = (u32 *)(r + 13);
     lr = (u32 *)(r + 14);
     pc = (u32 *)(r + 15);
@@ -91,7 +92,7 @@ void arm11_SetPCSP(u32 ipc, u32 isp) {
 
 u32 arm11_R(u32 n) {
     if(n > 15) {
-	ERROR("invalid r%n.\n", n);
+	ERROR("invalid r%u.\n", n);
 	return 0;
     }
 
@@ -100,7 +101,7 @@ u32 arm11_R(u32 n) {
 
 void arm11_SetR(u32 n, u32 val) {
     if(n > 15) {
-	ERROR("invalid r%n.\n", n);
+	ERROR("invalid r%u.\n", n);
 	return;
     }
     r[n] = val;
@@ -957,7 +958,6 @@ static void Step32()
     case 4: {// LDM/STM
 	// XXX: Conditions?!?!?!
 	u32  start = r[Rn];
-	bool pf    = false;
 
 	if (B) {
 	    if (opcode & (1 << 15))
@@ -1309,8 +1309,6 @@ static void arm11_Disasm32(u32 a)
 
 	case 8: {// TST/MRS
 	    if (S) {
-		u32 result;
-
 		printf("tst");
 		CondPrint32(opcode);
 
@@ -1329,8 +1327,6 @@ static void arm11_Disasm32(u32 a)
 
 	case 9: {// TEQ/MSR
 	    if (S) {
-		u32 result;
-
 		printf("teq");
 		CondPrint32(opcode);
 
@@ -1354,6 +1350,12 @@ static void arm11_Disasm32(u32 a)
 	    if (S) {
 		u32 value;
 
+		if (I) {
+		    value = ROR(Imm, amt);
+		} else {
+		    value = r[Rm];
+		}
+
 		printf("cmp");
 		CondPrint32(opcode);
 
@@ -1371,6 +1373,12 @@ static void arm11_Disasm32(u32 a)
 	case 11: {// CMN/MSR2
 	    if (S) {
 		u32 value;
+
+		if (I) {
+		    value = ROR(Imm, amt);
+		} else {
+		    value = r[Rm];
+		}
 
 		printf("cmn");
 		CondPrint32(opcode);
@@ -1449,7 +1457,7 @@ static void arm11_Disasm32(u32 a)
     }
 
     case 1: {// LDR/STR
-	u32  addr, value, wb;
+	u32  addr, value;
 
 	printf("%s%s", (L) ? "ldr" : "str", (B) ? "b" : "");
 	CondPrint32(opcode);
@@ -1484,7 +1492,6 @@ static void arm11_Disasm32(u32 a)
 
     switch ((opcode >> 25) & 7) {
     case 4: {// LDM/STM
-	u32  start = r[Rn];
 	bool pf    = false;
 
 	if (L) {
@@ -2045,7 +2052,6 @@ void Step16()
 
 	case 2: {// PUSH
 	    bool lrf = opcode & 0x100;
-	    bool pf  = false;
 
 	    if (lrf)
 		Push(*lr);
@@ -2353,11 +2359,11 @@ void arm11_Disasm16(u32 a)
     }
 
     if ((opcode >> 11) == 9) {
-	u32 Rd   = (opcode >> 8) & 7;
+	/*u32 Rd   = (opcode >> 8) & 7;
 	u32 Imm  = (opcode & 0xFF);
 	u32 addr = a + (Imm << 2) + sizeof(opcode);
 
-	//printf("ldr r%d, =0x%08X\n", Rd, r[Rd]);
+	printf("ldr r%d, =0x%08X\n", Rd, r[Rd]);*/
 	// XXX: print imm loads
 	ERROR("ldr TODO\n");
 	PAUSE();
@@ -2596,8 +2602,6 @@ void arm11_Disasm16(u32 a)
 
 bool arm11_Step()
 {
-    bool ret;
-
     *pc &= ~1;
 
     cpsr.t ? Step16() : Step32();

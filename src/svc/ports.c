@@ -17,8 +17,11 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "../util.h"
+#include "../arm11/arm11.h"
+#include "../mem.h"
 #include "../handles.h"
 
 // XXX: Move this to separate header
@@ -41,7 +44,7 @@ static struct {
 };
 
 u32 svcConnectToPort() {
-    u32 handle_out   = arm11_R(0);
+    //u32 handle_out   = arm11_R(0);
     u32 portname_ptr = arm11_R(1);;
     char name[12];
 

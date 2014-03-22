@@ -19,7 +19,9 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
+
 #include "util.h"
+#include "arm11/arm11.h"
 
 typedef struct {
     uint32_t base;
@@ -166,7 +168,7 @@ int mem_Write32(uint32_t addr, uint32_t w) {
     return 0;
 }
 
-int mem_Read32(uint32_t addr) {
+u32 mem_Read32(uint32_t addr) {
     size_t i;
 
     for(i=0; i<num_mappings; i++) {

@@ -389,10 +389,11 @@ static void Step32()
     u8 b3;
     u8 b4;
 
-    arm11_Disasm32(*pc);
     opcode = mem_Read32(*pc);
 
     printf("[%08x] ", *pc);
+    arm11_Disasm32(*pc);
+
     *pc += sizeof(opcode);
 
     u32 Rn    = ((opcode >> 16) & 0xF);
@@ -502,20 +503,21 @@ static void Step32()
 	return;
     }
 
+
     //LDREXB/STREXB/LDREXH/STREXH/LDREX/STREX (ARM11)
     if (((opcode >> 23) & 0x1F) == 3 && 
 	((opcode >>  4) & 0xFF) == 0xF9) {
-	
+
 	if((opcode >> 20) & 1) {
 	    if((opcode & 0xF) == 0xF) {
-		switch((opcode >> 21) & 3) {
-		case 0: //W
+		switch((opcode >> 21) & 7) {
+		case 4:
 		    if (!CondCheck32(opcode))
 			return;
 
-		    r[Rd] = mem_Read32(r[Rn], r[Rm]);
+		    r[Rd] = mem_Read32(r[Rn]);
 		    return;
-		case 1: //D
+		case 5:
 		    if (!CondCheck32(opcode))
 			return;
 
@@ -527,13 +529,13 @@ static void Step32()
 		    r[Rd]   = mem_Read32(r[Rn]);
 		    r[Rd+1] = mem_Read32(r[Rn]+4);
 		    return;
-		case 2: //B
+		case 6:
 		    if (!CondCheck32(opcode))
 			return;
 
 		    r[Rd] = mem_Read8(r[Rn]);
 		    return;
-		case 3: //H
+		case 7:
 		    if (!CondCheck32(opcode))
 			return;
 
@@ -543,15 +545,15 @@ static void Step32()
 	    }
 	}
 	else {
-	    switch((opcode >> 21) & 3) {
-	    case 0: //W
+	    switch((opcode >> 21) & 7) {
+	    case 4:
 		if (!CondCheck32(opcode))
 		    return;
 
 		r[Rd] = 0;
 		mem_Write32(r[Rn], r[Rm]);
 		return;
-	    case 1: //D
+	    case 5:
 		if (!CondCheck32(opcode))
 		    return;
 
@@ -564,14 +566,14 @@ static void Step32()
 		mem_Write32(r[Rn], r[Rm]);
 		mem_Write32(r[Rn]+4, r[Rm+1]);
 		return;
-	    case 2: //B
+	    case 6:
 		if (!CondCheck32(opcode))
 		    return;
 
 		r[Rd] = 0;
 		mem_Write8(r[Rn], r[Rm]);
 		return;
-	    case 3: //H
+	    case 7:
 		if (!CondCheck32(opcode))
 		    return;
 
@@ -582,14 +584,13 @@ static void Step32()
 	}
     }
     //CLREX (ARM11)
-    if((opcode >> 20) == 0xF57 && (opcode >> 4) == 1) {
+    if(opcode == 0xF57FF01F) {
 	return;
     }
-    //NOP (ARM11)
+    //NOP (ARM11), XXX: verify
     if(((opcode << 4) >> 12) == 0x320F0) {
 	return;
     }
-
 
     switch ((opcode >> 26) & 0x3) {
     case 0: {
@@ -1121,35 +1122,63 @@ static void arm11_Disasm32(u32 a)
 
 	if((opcode >> 20) & 1) {
 	    if((opcode & 0xF) == 0xF) {
-		printf("ldrex%c", "\0dbh"[((opcode >> 21) & 3)]);
-		CondPrint32(opcode);
-		printf(" r%d, [r%d]\n", Rd, Rn);
-		return;
+		switch((opcode >> 21) & 7) {
+		case 4:
+		    printf("ldrex");
+		    goto found_ldr2;
+		case 5:
+		    printf("ldrexd");
+		    goto found_ldr2;
+		case 6:
+		    printf("ldrexb");
+		    goto found_ldr2;
+		case 7:
+		    printf("ldrexh");
+		    goto found_ldr2;
+		found_ldr2:
+		    CondPrint32(opcode);
+		    printf(" r%d, [r%d] (=[%08x])\n", Rd, Rn, r[Rn]);
+		    return;
+		}
 	    }
 	}
 	else {
-	    printf("strex%c", "\0dbh"[((opcode >> 21) & 3)]);
-	    CondPrint32(opcode);
-	    printf(" r%d, r%d, r%d\n", Rd, Rm, Rn);
-	    return;
+	    switch((opcode >> 21) & 7) {
+	    case 4:
+		printf("strex");
+		goto found_str2;
+	    case 5:
+		printf("strexd");
+		goto found_str2;
+	    case 6:
+		printf("strexb");
+		goto found_str2;
+	    case 7:
+		printf("strexh");
+		goto found_str2;
+	    found_str2:
+		CondPrint32(opcode);
+		printf(" r%d, r%d, r%d\n", Rd, Rm, Rn);
+		return;
+	    }
 	}
     }
     //CLREX (ARM11)
-    if((opcode >> 20) == 0xF57 && (opcode >> 4) == 1) {
-	printf("clrex");
+    if(opcode == 0xF57FF01F) {
+	printf("clrex\n");
 	return;
     }
-    //NOP (ARM11)
+    //NOP (ARM11), XXX: verify
     if(((opcode << 4) >> 12) == 0x320F0) {
 	switch(opcode & 0xFF) {
 	case 0:
-	    printf("nop");
+	    printf("nop\n");
 	    return;
 	case 1:
-	    printf("yield");
+	    printf("yield\n");
 	    return;
 	default:
-	    printf("nop (reserved)");
+	    printf("nop (reserved)\n");
 	    return;
 	}
     }
@@ -2330,7 +2359,8 @@ void arm11_Disasm16(u32 a)
 
 	//printf("ldr r%d, =0x%08X\n", Rd, r[Rd]);
 	// XXX: print imm loads
-	printf("ldr TODO\n");
+	ERROR("ldr TODO\n");
+	PAUSE();
 	return;
     }
 

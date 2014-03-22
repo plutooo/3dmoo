@@ -144,29 +144,28 @@ void svc_Execute(u8 num)
     DEBUG("-- svc%s (0x%x) --\n", name, num);
 
     if(num == 1) {
-	const char* op;
-
-	switch(arm11_R(4)) {
-	case 1: op = "FREE"; break;
-	case 2: op = "RESERVE"; break;
-	case 3: op = "COMMIT"; break;
-	case 4: op = "MAP"; break;
-	case 5: op = "UNMAP"; break;
-	case 6: op = "PROTECT"; break;
-	case 0x100: op = "REGION APP"; break;
-	case 0x200: op = "REGION SYSTEM"; break;
-	case 0x300: op = "REGION BASE"; break;
-	case 0x1000: op = "LINEAR"; break;
-	default: op = "UNKNOWN";
-	}
-
-	DEBUG("out_addr=%08x\naddr_in0=%08x\naddr_in1=%08x\nsize=%08x\ntype=%s\n",
-	      arm11_R(0), arm11_R(1), arm11_R(2), arm11_R(3), op);
-
-	PAUSE();
+	svcControlMemory();
+	arm11_SetR(0, 1);
 	return;
     }
     else if(num == 0x21) {
+	arm11_SetR(0, 1);
+	return;
+    }
+    else if(num == 0x23) {
+	printf("handle=%08x\n", arm11_R(0));
+	PAUSE();
+	arm11_SetR(0, 1);
+	return;
+    }
+    else if(num == 0x38) {
+	printf("resourcelimit=%08x, handle=%08x\n", arm11_R(0), arm11_R(1));
+	arm11_SetR(0, 1);
+	return;
+    }
+    else if(num == 0x3a) {
+	printf("values_ptr=%08x, handleResourceLimit=%08x, names_ptr=%08x, nameCount=%d\n",
+	       arm11_R(0), arm11_R(1), arm11_R(2), arm11_R(3));
 	arm11_SetR(0, 1);
 	return;
     }

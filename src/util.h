@@ -27,6 +27,11 @@
 #define u64 uint64_t
 #define s64 int64_t
 
+// Fix for Microshit compiler
+#ifndef __func__
+#define __func__ __FUNCTION__
+#endif
+
 #define DEBUG(...) do { \
 	fprintf(stdout, "%s: ", __func__); \
 	fprintf(stdout,  __VA_ARGS__);	   \

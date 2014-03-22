@@ -16,9 +16,29 @@
  */
 
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "../util.h"
 #include "../handles.h"
+
+// XXX: Move this to separate header
+u32 srv_InitHandle();
+u32 srv_SyncRequest();
+
+static struct {
+    const char* name;
+    u32 subtype;
+    u32 (*fnInitHandle)();
+    u32 (*fnSyncRequest)();
+} ports[] = {
+    // Services are declared here.
+    {
+	"srv:",
+	PORT_TYPE_SRV,
+	&srv_InitHandle,
+	&srv_SyncRequest
+    }
+};
 
 u32 svcConnectToPort() {
     u32 handle_out   = arm11_R(0);
@@ -39,21 +59,42 @@ u32 svcConnectToPort() {
 	return 0xE0E0181E;
     }
 
-    if(strcmp(name, "srv:") == 0) {
-        arm11_SetR(1, handle_New(HANDLE_TYPE_PORT));
-        return 0;
+    for(i=0; i<ARRAY_SIZE(ports); i++) {
+	if(strcmp(name, ports[i].name) == 0) {
+	    return ports[i].fnInitHandle();
+	}
     }
 
-    DEBUG("portname=%s\n", name);
+    DEBUG("Port %s: NOT IMPLEMENTED!\n", name);
     PAUSE();
     return 0;
 }
 
 u32 svcSendSyncRequest() {
-    u32 session = arm11_R(0);
+    u32 handle = arm11_R(0);
+    handleinfo* hi = handle_Get(handle);
 
-    DEBUG("STUBBED.\n");
-    DEBUG("session=%08x\n", session);
+    if(hi == NULL) {
+	ERROR("handle %08x not found..\n", handle);
+	PAUSE();
+	exit(1);
+    }
+
+    if(hi->type != HANDLE_TYPE_PORT) {
+	ERROR("handle %08x is not a port-handle..\n", handle);
+	PAUSE();
+	exit(1);
+    }
+
+    u32 i;
+    for(i=0; i<ARRAY_SIZE(ports); i++) {
+	if(hi->subtype == ports[i].subtype)
+	    return ports[i].fnSyncRequest();
+    }
+
+    ERROR("no port found for sync..\n");
+    arm11_Dump();
     PAUSE();
+    exit(1);
     return 0;
 }

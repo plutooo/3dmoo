@@ -24,23 +24,29 @@
 #define MAX_NUM_HANDLES 0x1000
 #define HANDLES_BASE    0xDEADBABE
 
-static struct {
-    bool taken;
-    u32  type;
-} handles[MAX_NUM_HANDLES];
-
+static handleinfo handles[MAX_NUM_HANDLES];
 static u32 handles_num;
 
 
-u32 handle_New(u32 type) {
+u32 handle_New(u32 type, u32 subtype) {
     if(handles_num == MAX_NUM_HANDLES) {
 	ERROR("not enough handles..\n");
 	arm11_Dump();
 	exit(1);
     }
 
-    handles[handles_num].taken = true;
-    handles[handles_num].type  = type;
+    handles[handles_num].taken    = true;
+    handles[handles_num].type     = type;
+    handles[handles_num].subtype  = subtype;
 
     return HANDLES_BASE + handles_num++;
+}
+
+handleinfo* handle_Get(u32 handle) {
+    u32 idx = handle - HANDLES_BASE;
+
+    if(idx < handles_num)
+	return &handles[idx];
+
+    return NULL;
 }

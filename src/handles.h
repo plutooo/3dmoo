@@ -17,3 +17,14 @@
 
 #define HANDLE_TYPE_UNK  0
 #define HANDLE_TYPE_PORT 1
+
+#define PORT_TYPE_SRV    0
+
+typedef struct {
+    bool taken;
+    u32  type;
+    u32  subtype;
+} handleinfo;
+
+handleinfo* handle_Get(u32 handle);
+u32 handle_New(u32 type, u32 subtype);

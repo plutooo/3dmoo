@@ -15,33 +15,18 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <stdint.h>
-#include <stdbool.h>
+#include <stdio.h>
 
-#define u8  uint8_t
-#define s8  int8_t
-#define u16 uint16_t
-#define s16 int16_t
-#define u32 uint32_t
-#define s32 int32_t
-#define u64 uint64_t
-#define s64 int64_t
+#include "../util.h"
+#include "../handles.h"
 
-// Fix for Microshit compiler
-#ifndef __func__
-#define __func__ __FUNCTION__
-#endif
+u32 srv_InitHandle() {
+    arm11_SetR(1, handle_New(HANDLE_TYPE_PORT, PORT_TYPE_SRV));
+    return 0;
+}
 
-#define DEBUG(...) do { \
-	fprintf(stdout, "%s: ", __func__); \
-	fprintf(stdout,  __VA_ARGS__);	   \
-    } while(0);
-
-#define ERROR(...) do { \
-	fprintf(stderr, "%s:%d: ", __FILE__, __LINE__); \
-	fprintf(stderr, __VA_ARGS__);			\
-    } while(0);
-
-#define PAUSE() fgetc(stdin);
-
-#define ARRAY_SIZE(s) (sizeof(s)/sizeof((s)[0]))
+u32 srv_SyncRequest() {
+    DEBUG("Got srv_SyncRequest!\n");
+    PAUSE();
+    return 0;
+}

@@ -172,6 +172,13 @@ void svc_Execute(u8 num)
 	arm11_SetR(0, 1);
 	return;
     }
+    else if(num == 0x14) {
+        DEBUG("handle=%08x\n", arm11_R(0));
+	DEBUG("STUBBED");
+	PAUSE();
+	arm11_SetR(0, 1);
+	return;
+    }
     else if(num == 0x24) {
         u32 handle = arm11_R(0);
         u64 nanoseconds = arm11_R(2);
@@ -181,7 +188,6 @@ void svc_Execute(u8 num)
         DEBUG("handle=%08x, nanoseconds=%llx\n", handle,
 		  (unsigned long long int) nanoseconds);
 	DEBUG("STUBBED");
-        arm11_Dump();
         PAUSE();
 	arm11_SetR(0, 1);
 	return;

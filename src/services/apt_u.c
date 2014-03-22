@@ -24,22 +24,41 @@
 #include "../arm11/arm11.h"
 
 u32 lock_handle;
+u32 event_handles[2];
 
 u32 apt_u_SyncRequest() {
     u32 cid = mem_Read32(0xFFFF0080);
-    u32 flags;
 
     // Read command-id.
     switch(cid) {
     case 0x10040:
-	flags = mem_Read32(0xFFFF0084);
-	DEBUG("apt_u::GetLockHandle, flags=%08x\n", flags);
+	(void) 0;
+
+	u32 flags = mem_Read32(0xFFFF0084);
+	DEBUG("apt_u_GetLockHandle, flags=%08x\n", flags);
 	PAUSE();
 
-	mem_Write32(0xFFFF0084, 0);
+	mem_Write32(0xFFFF0084, 0); // result
 
+	// XXX: fix handle
 	lock_handle = handle_New(HANDLE_TYPE_UNK, 0);
-	mem_Write32(0xFFFF0094, lock_handle);
+	mem_Write32(0xFFFF0094, lock_handle); // lock_handle
+	return 0;
+    case 0x20080:
+	(void) 0;
+
+	u32 app_id = mem_Read32(0xFFFF0084);
+	DEBUG("apt_u_RegisterApp, app_id=%08x\n", app_id);
+	PAUSE();
+
+	mem_Write32(0xFFFF0084, 0); // result
+
+	// XXX: fix handles
+	event_handles[0] = handle_New(HANDLE_TYPE_UNK, 0);
+	event_handles[1] = handle_New(HANDLE_TYPE_UNK, 0);
+
+	mem_Write32(0xFFFF008C, event_handles[0]); // some event handles
+	mem_Write32(0xFFFF0090, event_handles[1]); // some event handles
 	return 0;
     }
 

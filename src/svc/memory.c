@@ -19,9 +19,9 @@
 
 #include "../util.h"
 
-#define SVCERROR_INVALIDADDR   0xE0E01BF1
-#define SVCERROR_INVALIDSIZE   0xE0E01BF2
-#define SVCERROR_INVALIDPARAMS 0xE0E01BF5
+#define SVCERROR_ALIGN_ADDR     0xE0E01BF1
+#define SVCERROR_INVALID_SIZE   0xE0E01BF2
+#define SVCERROR_INVALID_PARAMS 0xE0E01BF5
 
 #define CONTROL_OP_NOOP    0
 #define CONTROL_OP_FREE    1
@@ -31,10 +31,10 @@
 #define CONTROL_OP_UNMAP   5
 #define CONTROL_OP_PROTECT 6
 
-#define CONTROL_LINEAR     0x1000
+#define CONTROL_LINEAR_FLAG 0x1000
+
 
 u32 svcControlMemory() {
-    u32 addr_out  = arm11_R(0);
     u32 addr0     = arm11_R(1);
     u32 addr1     = arm11_R(2);
     u32 size      = arm11_R(3);
@@ -63,47 +63,70 @@ u32 svcControlMemory() {
     }
 
     DEBUG("out_addr=%08x\naddr_in0=%08x\naddr_in1=%08x\n"
-          "size=%08x\nop=%s (%x)\nreg=%s (%x)\nis_linear=%d\n",
+          "size=%08x\noperation=%08x\nop=%s (%x)\nreg=%s (%x)\nis_linear=%d\n",
           arm11_R(0), arm11_R(1), arm11_R(2), arm11_R(3),
+	      operation,
 	      op, operation & 0xFF,
 	      reg, operation & 0xF00,
 	      !!(operation & 0x1000));
     PAUSE();
 
     // Check inputs.
-    if(addr0 & 0xFFF00000 || addr1 & 0xFFF00000)
-	return SVCERROR_INVALIDADDR;
+    if(addr0 & 0x00000FFF || addr1 & 0x00000FFF) {
+	ERROR("got non-aligned addr0/1\n");
+	arm11_Dump();
+	PAUSE();
+	return SVCERROR_ALIGN_ADDR;
+    }
 
-    if(size & 0xFFF00000)
-	return SVCERROR_INVALIDSIZE;
+    if(size & 0x00000FFF) {
+	ERROR("got non-aligned size\n");
+	arm11_Dump();
+	PAUSE();
+	return SVCERROR_INVALID_SIZE;
+    }
 
-    if(operation == (CONTROL_LINEAR | CONTROL_OP_COMMIT)) {
+    if(operation == (CONTROL_LINEAR_FLAG | CONTROL_OP_COMMIT)) {
 	if(addr0 == 0) {
-	    if(addr1 != 0)
-		return SVCERROR_INVALIDPARAMS;
+	    if(addr1 != 0) {
+		ERROR("comitting linear region, if addr0 == 0, then addr1 must be == 0\n");
+		arm11_Dump();
+		PAUSE();
+		return SVCERROR_INVALID_PARAMS;
+	    }
 	}
 	else if(size != 0) {
 	    if(addr0 <= 0x14000000 || (addr0+size) > 0x1C000000 || addr1 != 0) {
-		return SVCERROR_INVALIDPARAMS;
+		ERROR("got invalid [addr0, addr0+size) range, or addr1 == 0\n");
+		arm11_Dump();
+		PAUSE();
+		return SVCERROR_INVALID_PARAMS;
 	    }
 	}
     }
     else if(operation == CONTROL_OP_FREE) {
-	if(addr0 >= 0x08000000 || (addr0+size) >= 0x1C000000)
-	    return SVCERROR_INVALIDPARAMS;
+	if(addr0 >= 0x08000000 || (addr0+size) >= 0x1C000000) {
+	    ERROR("trying to free outside heap region\n");
+	    arm11_Dump();
+	    PAUSE();
+	    return SVCERROR_INVALID_PARAMS;
+	}
     }
     else {
-	if(addr0 >= 0x08000000 || (addr0+size) > 0x14000000)
-	    return SVCERROR_INVALIDPARAMS;
+	if(addr0 < 0x08000000 || (addr0+size) > 0x14000000) {
+	    ERROR("got invalid region outside (0x08000000-0x14000000)\n");
+	    arm11_Dump();
+	    PAUSE();
+	    return SVCERROR_INVALID_PARAMS;
+	}
 
 	if(operation == CONTROL_OP_MAP || operation == CONTROL_OP_UNMAP) {
-	    if(size == 0) {
-		if(addr1 >= 0x100000 || (addr1+size) > 0x14000000)
-		    return SVCERROR_INVALIDPARAMS;
+	    if(addr1 >= 0x00100000 || (addr1+size) < 0x14000000) {
+		ERROR("trying to map forbidden region 0x00100000-0x14000000\n");
+		arm11_Dump();
+		PAUSE();
+		return SVCERROR_INVALID_PARAMS;
 	    }
-
-	    if(addr1 >= 0x100000)
-		return SVCERROR_INVALIDPARAMS;
 	}
     }
 
@@ -145,7 +168,16 @@ u32 svcControlMemory() {
 	
 	u32 handle_out = 0;
 	int rc = 0;
-	
+
+	// "Guess" implementation that can be used to map GSP heap
+	if(operationId == CONTROL_OP_COMMIT) {
+	    DEBUG("here\n");
+	    PAUSE();
+
+	    arm11_SetR(1, 0x08000000); // return value is in R1?
+	    return mem_AddSegment(addr0, size, NULL) == 0 ? 0 : -1;
+	}
+
         // XXX:
         //rc = sub_FFF741B4(GetUserKProcess()+0x1C, &handle_out, addr0, addr1, size, access, addr_out, 0);
 	

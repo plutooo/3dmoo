@@ -289,7 +289,7 @@ int loader_LoadFile(FILE* fd) {
     // Read header.
     ctr_ncchheader h;
     if (fread(&h, sizeof(h), 1, fd) != 1) {
-	ERROR("%s: failed to read header.\n", __func__);
+	ERROR("failed to read header.\n");
 	return 1;
     }
 
@@ -330,20 +330,20 @@ int loader_LoadFile(FILE* fd) {
 	fseek(fd, ncch_off, SEEK_SET);
 
 	if (fread(&h, sizeof(h), 1, fd) != 1) {
-	    ERROR("%s: failed to read header.\n", __func__);
+	    ERROR("failed to read header.\n");
 	    return 1;
 	}
     }
     // Load NCCH
     if (memcmp(&h.magic, "NCCH", 4) != 0) {
-	ERROR("%s: invalid magic.. wrong file?\n", __func__);
+	ERROR("invalid magic.. wrong file?\n");
 	return 1;
     }
 
     // Read Exheader.
     exheader_header ex;
     if (fread(&ex, sizeof(ex), 1, fd) != 1) {
-	ERROR("%s: failed to read exheader.\n", __func__);
+	ERROR("failed to read exheader.\n");
 	return 1;
     }
 
@@ -362,7 +362,7 @@ int loader_LoadFile(FILE* fd) {
 
     exefs_header eh;
     if (fread(&eh, sizeof(eh), 1, fd) != 1) {
-	ERROR("%s: failed to read ExeFS header.\n", __func__);
+	ERROR("failed to read ExeFS header.\n");
 	return 1;
     }
 
@@ -387,12 +387,12 @@ int loader_LoadFile(FILE* fd) {
 
 	    uint8_t* sec = malloc(AlignPage(sec_size));
 	    if (sec == NULL) {
-		ERROR("%s: section malloc failed.\n", __func__);
+		ERROR("section malloc failed.\n");
 		return 1;
 	    }
 
 	    if (fread(sec, sec_size, 1, fd) != 1) {
-		ERROR("%s: section fread failed.\n", __func__);
+		ERROR("section fread failed.\n");
 		return 1;
 	    }
 
@@ -403,7 +403,7 @@ int loader_LoadFile(FILE* fd) {
 
 		DEBUG("Decompressing..\n");
 		if (Decompress(sec, sec_size, dec, dec_size) == 0) {
-		    ERROR("%s: section decompression failed.\n", __func__);
+		    ERROR("section decompression failed.\n");
 		    return 1;
 		}
 		DEBUG("  .. OK\n");

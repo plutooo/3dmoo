@@ -50,7 +50,7 @@ static int AddMapping(uint32_t base, uint32_t size) {
 	return 0;
 
     if(num_mappings == MAX_MAPPINGS) {
-        DEBUG("%s: too many mappings.\n", __func__);
+        DEBUG("too many mappings.\n");
         return 1;
     }
 
@@ -60,15 +60,15 @@ static int AddMapping(uint32_t base, uint32_t size) {
 
     for(j=0; j<num_mappings; j++) {
         if(Overlaps(&mappings[j], &mappings[i])) {
-            DEBUG("%s: trying to add overlapping mapping %08x, size=%08x.\n",
-		  __func__, base, size);
+            DEBUG("trying to add overlapping mapping %08x, size=%08x.\n",
+		   base, size);
             return 2;
         }
     }
 
     mappings[i].phys = calloc(sizeof(uint8_t), size);
     if(mappings[i].phys == NULL) {
-	DEBUG("%s: calloc failed for %08x, size=%08x\n", __func__, base, size);
+	DEBUG("calloc failed for %08x, size=%08x\n", base, size);
 	return 3;
     }
 
@@ -98,7 +98,7 @@ int mem_Write8(uint32_t addr, uint8_t w) {
 	}
     }
 
-    DEBUG("%s: trying to write8 unmapped addr %08x, w=%02x\n", __func__, addr, w & 0xff);
+    DEBUG("trying to write8 unmapped addr %08x, w=%02x\n", addr, w & 0xff);
     arm11_Dump();
     exit(1);
     return 1;
@@ -113,7 +113,7 @@ uint8_t mem_Read8(uint32_t addr) {
 	}
     }
 
-    DEBUG("%s: trying to read8 unmapped addr %08x\n", __func__, addr);
+    DEBUG("trying to read8 unmapped addr %08x\n", addr);
     arm11_Dump();
     exit(1);
     return 0;
@@ -129,7 +129,7 @@ int mem_Write16(uint32_t addr, uint16_t w) {
 	}
     }
 
-    DEBUG("%s: trying to write16 unmapped addr %08x, w=%04x\n", __func__, addr, w & 0xffff);
+    DEBUG("trying to write16 unmapped addr %08x, w=%04x\n", addr, w & 0xffff);
     arm11_Dump();
     exit(1);
     return 1;
@@ -144,7 +144,7 @@ uint16_t mem_Read16(uint32_t addr) {
 	}
     }
 
-    DEBUG("%s: trying to read16 unmapped addr %08x\n", __func__, addr);
+    DEBUG("trying to read16 unmapped addr %08x\n", addr);
     arm11_Dump();
     exit(1);
     return 0;
@@ -160,7 +160,7 @@ int mem_Write32(uint32_t addr, uint32_t w) {
 	}
     }
 
-    DEBUG("%s: trying to write32 unmapped addr %08x, w=%04x\n", __func__, addr, w & 0xffff);
+    DEBUG("trying to write32 unmapped addr %08x, w=%04x\n", addr, w & 0xffff);
     arm11_Dump();
     exit(1);
     return 0;
@@ -175,7 +175,7 @@ int mem_Read32(uint32_t addr) {
 	}
     }
 
-    DEBUG("%s: trying to read32 unmapped addr %08x\n", __func__, addr);
+    DEBUG("trying to read32 unmapped addr %08x\n", addr);
     arm11_Dump();
     exit(1);
     return 0;

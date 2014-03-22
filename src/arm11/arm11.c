@@ -91,7 +91,7 @@ void arm11_SetPCSP(u32 ipc, u32 isp) {
 
 u32 arm11_R(u32 n) {
     if(n > 15) {
-	ERROR("%s: invalid r%n.\n", __func__, n);
+	ERROR("invalid r%n.\n", n);
 	return 0;
     }
 
@@ -100,7 +100,7 @@ u32 arm11_R(u32 n) {
 
 void arm11_SetR(u32 n, u32 val) {
     if(n > 15) {
-	ERROR("%s: invalid r%n.\n", __func__, n);
+	ERROR("invalid r%n.\n", n);
 	return;
     }
     r[n] = val;

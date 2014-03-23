@@ -17,9 +17,9 @@
 
 #include <stdio.h>
 
-#include "../util.h"
-#include "../mem.h"
-#include "../arm11/arm11.h"
+#include "util.h"
+#include "mem.h"
+#include "arm11.h"
 
 #define SVCERROR_ALIGN_ADDR     0xE0E01BF1
 #define SVCERROR_INVALID_SIZE   0xE0E01BF2

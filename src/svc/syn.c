@@ -2,11 +2,11 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "../util.h"
-#include "../arm11/arm11.h"
-#include "../handles.h"
-#include "../mem.h"
-#include "../svc.h"
+#include "util.h"
+#include "arm11.h"
+#include "handles.h"
+#include "mem.h"
+#include "svc.h"
 
 
 bool syn_IsLocked(u32 handle)

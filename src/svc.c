@@ -19,7 +19,7 @@
 #include <stdlib.h>
 
 #include "util.h"
-#include "arm11/arm11.h"
+#include "arm11.h"
 #include "svc.h"
 
 static const char* names[256] = {

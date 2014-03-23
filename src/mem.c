@@ -21,7 +21,7 @@
 #include <string.h>
 
 #include "util.h"
-#include "arm11/arm11.h"
+#include "arm11.h"
 
 typedef struct {
     uint32_t base;

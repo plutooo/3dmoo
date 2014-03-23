@@ -15,20 +15,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
-#include "util.h"
-#include "arm11.h"
-#include "mem.h"
-#include "handles.h"
-
-u32 svcCreateEvent() {
-    u32 handle = arm11_R(0);
-    u32 resettype = arm11_R(1);
-
-    DEBUG("STUBBED, handle=%x, resettype=%x.\n", handle, resettype);
-    PAUSE();
-    return 0;
-}
+void arm11_Init();
+void arm11_SetPCSP(u32 pc, u32 sp);
+u32  arm11_R(u32 n);
+void arm11_SetR(u32 n, u32 val);
+bool arm11_Step();
+void arm11_Dump();

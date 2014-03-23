@@ -15,20 +15,26 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#define error_not_a_mutex 0x81234567 //correct me fixme
 
-#include "util.h"
-#include "arm11.h"
-#include "mem.h"
-#include "handles.h"
+// svc.c
+void svc_Execute(u8 num);
 
-u32 svcCreateEvent() {
-    u32 handle = arm11_R(0);
-    u32 resettype = arm11_R(1);
+// svc/memory.c
+u32 svcControlMemory();
+u32 svcMapMemoryBlock();
 
-    DEBUG("STUBBED, handle=%x, resettype=%x.\n", handle, resettype);
-    PAUSE();
-    return 0;
-}
+// svc/ports.c
+u32 svcConnectToPort();
+
+// svc/events.c
+u32 svcCreateEvent();
+
+// svc/syn.c
+bool syn_IsLocked(u32 handle);
+u32 ReleaseMutex(u32 handle);
+
+// Generics (handles.c)
+u32 svcSendSyncRequest();
+u32 svcCloseHandle();
+

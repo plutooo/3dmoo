@@ -19,10 +19,10 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "../util.h"
-#include "../arm11/arm11.h"
-#include "../handles.h"
-#include "../mem.h"
+#include "util.h"
+#include "arm11.h"
+#include "handles.h"
+#include "mem.h"
 
 u32 apt_u_SyncRequest();
 u32 gsp_gpu_SyncRequest();

@@ -24,9 +24,9 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#include "../util.h"
-#include "../mem.h"
-#include "../svc.h"
+#include "util.h"
+#include "mem.h"
+#include "svc.h"
 
 static void arm11_Disasm32(u32 a);
 

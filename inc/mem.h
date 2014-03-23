@@ -15,20 +15,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
-#include "util.h"
-#include "arm11.h"
-#include "mem.h"
-#include "handles.h"
-
-u32 svcCreateEvent() {
-    u32 handle = arm11_R(0);
-    u32 resettype = arm11_R(1);
-
-    DEBUG("STUBBED, handle=%x, resettype=%x.\n", handle, resettype);
-    PAUSE();
-    return 0;
-}
+int mem_AddSegment(uint32_t base, uint32_t size, uint8_t* data);
+int mem_Write8(uint32_t addr, uint8_t w);
+u8  mem_Read8(uint32_t addr);
+int mem_Write16(uint32_t addr, uint16_t w);
+u16 mem_Read16(uint32_t addr);
+int mem_Write32(uint32_t addr, uint32_t w);
+u32 mem_Read32(uint32_t addr);
+int mem_Read(uint8_t* buf_out, uint32_t addr, uint32_t size);

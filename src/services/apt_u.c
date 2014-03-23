@@ -19,10 +19,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "../util.h"
-#include "../handles.h"
-#include "../mem.h"
-#include "../arm11/arm11.h"
+#include "util.h"
+#include "handles.h"
+#include "mem.h"
+#include "arm11.h"
 
 u32 lock_handle;
 u32 event_handles[2];

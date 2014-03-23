@@ -25,8 +25,12 @@ u32 svcControlMemory();
 
 // svc/ports.c
 u32 svcConnectToPort();
-u32 svcSendSyncRequest();
 
 // svc/syn.c
-bool synislocked(u32 handel);
+bool syn_IsLocked(u32 handle);
 u32 ReleaseMutex(u32 handle);
+
+// Generics (handles.c)
+u32 svcSendSyncRequest();
+u32 svcCloseHandle();
+

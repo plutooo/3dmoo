@@ -49,13 +49,12 @@ static struct {
 };
 
 
-u32 services_SyncRequest() {
-    u32 handle = arm11_R(0);
-    handleinfo* hi = handle_Get(handle);
-
+u32 services_SyncRequest(handleinfo* h) {
     u32 i;
+
+    // Lookup which requested service in table.
     for(i=0; i<ARRAY_SIZE(services); i++) {
-	if(services[i].subtype == hi->subtype)
+	if(services[i].subtype == h->subtype)
 	    return services[i].fnSyncRequest();
     }
 

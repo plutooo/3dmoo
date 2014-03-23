@@ -29,6 +29,36 @@
 static handleinfo handles[MAX_NUM_HANDLES];
 static u32 handles_num;
 
+static struct {
+    char* name;
+    u32   (*fnSyncRequest)(handleinfo* h);
+    u32   (*fnCloseHandle)(handleinfo* h);
+
+} handle_types[] = {
+    {	"misc",
+	NULL,
+	NULL
+    },
+    {	"port",
+	&port_SyncRequest,
+	NULL
+    },
+    {	"service",
+	&services_SyncRequest,
+	NULL
+    },
+    {	"event",
+	NULL,
+	NULL
+    },
+    {	"mutex",
+	NULL,
+	NULL
+    }
+};
+
+#define NUM_HANDLE_TYPES ARRAY_SIZE(handle_types)
+
 
 u32 handle_New(u32 type, u32 subtype) {
     if(handles_num == MAX_NUM_HANDLES) {
@@ -53,4 +83,63 @@ handleinfo* handle_Get(u32 handle) {
 	return &handles[idx];
 
     return NULL;
+}
+
+
+/* Generic SVC implementations. */
+u32 svcSendSyncRequest() {
+    u32 handle = arm11_R(0);
+    handleinfo* hi = handle_Get(handle);
+
+    if(hi == NULL) {
+	ERROR("handle %08x not found.\n", handle);
+	PAUSE();
+	exit(1);
+    }
+
+    if(hi->type >= NUM_HANDLE_TYPES) {
+	// This should never happen.
+	ERROR("handle %08x has non-defined type.\n", handle);
+	PAUSE();
+	exit(1);
+    }
+
+    // Lookup actual callback in table.
+    if(handle_types[hi->type].fnSyncRequest != NULL)
+	return handle_types[hi->type].fnSyncRequest(hi);
+
+    ERROR("svcSyncRequest undefined for handle-type \"%s\".\n",
+	  handle_types[hi->type].name);
+    arm11_Dump();
+    PAUSE();
+    exit(1);
+    return 0;
+}
+
+u32 svcCloseHandle() {
+    u32 handle = arm11_R(0);
+    handleinfo* hi = handle_Get(handle);
+
+    if(hi == NULL) {
+	ERROR("handle %08x not found.\n", handle);
+	PAUSE();
+	exit(1);
+    }
+
+    if(hi->type >= NUM_HANDLE_TYPES) {
+	// This should never happen.
+	ERROR("handle %08x has non-defined type.\n", handle);
+	PAUSE();
+	exit(1);
+    }
+
+    // Lookup actual callback in table.
+    if(handle_types[hi->type].fnCloseHandle != NULL)
+	return handle_types[hi->type].fnCloseHandle(hi);
+
+    ERROR("svcCloseHandle undefined for handle-type \"%s\".\n",
+	  handle_types[hi->type].name);
+    arm11_Dump();
+    PAUSE();
+    return 0;
 }

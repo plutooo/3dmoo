@@ -157,19 +157,16 @@ void svc_Execute(u8 num)
 	arm11_SetR(0, svcSendSyncRequest());
 	return;
     }
+    else if(num == 0x23) {
+	arm11_SetR(0, svcCloseHandle());
+	return;
+    }
 
     // Stubs.
     else if(num == 0x21) {
 	DEBUG("STUBBED");
 	arm11_SetR(0, 1);
 	PAUSE();
-	return;
-    }
-    else if(num == 0x23) {
-	DEBUG("handle=%08x\n", arm11_R(0));
-	DEBUG("STUBBED");
-	PAUSE();
-	arm11_SetR(0, 1);
 	return;
     }
     else if(num == 0x14) {
@@ -183,13 +180,14 @@ void svc_Execute(u8 num)
         u64 nanoseconds = arm11_R(2);
         nanoseconds <<= 32;
         nanoseconds |= arm11_R(3);
-		if (synislocked(handle) == true)
-		{
-			//lockcpu
-			DEBUG("STUBBED lock cpu");
-		}
+
         DEBUG("handle=%08x, nanoseconds=%llx\n", handle,
 		  (unsigned long long int) nanoseconds);
+
+	if (syn_IsLocked(handle) == true) {
+	    //lockcpu
+	    DEBUG("STUBBED lock cpu");
+	}
 
         PAUSE();
 	arm11_SetR(0, 1);

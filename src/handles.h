@@ -48,3 +48,7 @@ typedef struct {
 
 handleinfo* handle_Get(u32 handle);
 u32 handle_New(u32 type, u32 subtype);
+
+// svc/ports.c
+u32 port_SyncRequest(handleinfo* h);
+u32 services_SyncRequest(handleinfo* h);

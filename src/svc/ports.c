@@ -27,7 +27,6 @@
 // services/srv.c
 u32 srv_InitHandle();
 u32 srv_SyncRequest();
-u32 services_SyncRequest();
 
 static struct {
     const char* name;
@@ -74,34 +73,18 @@ u32 svcConnectToPort() {
     return 0;
 }
 
-u32 svcSendSyncRequest() {
-    u32 handle = arm11_R(0);
-    handleinfo* hi = handle_Get(handle);
-
-    if(hi == NULL) {
-	ERROR("handle %08x not found..\n", handle);
-	PAUSE();
-	exit(1);
-    }
-
-    if(hi->type == HANDLE_TYPE_SERVICE) {
-        return services_SyncRequest();
-    }
-    if(hi->type != HANDLE_TYPE_PORT) {
-	ERROR("handle %08x is not a port-handle..\n", handle);
-	PAUSE();
-	exit(1);
-    }
-
+u32 port_SyncRequest(handleinfo* h) {
     u32 i;
+
     for(i=0; i<ARRAY_SIZE(ports); i++) {
-	if(hi->subtype == ports[i].subtype)
+	if(h->subtype == ports[i].subtype)
 	    return ports[i].fnSyncRequest();
     }
 
-    ERROR("no port found for sync..\n");
+    // This should never happen.
+    ERROR("svcCloseHandle undefined for port-type \"%x\".\n",
+	  h->subtype);
     arm11_Dump();
     PAUSE();
-    exit(1);
     return 0;
 }

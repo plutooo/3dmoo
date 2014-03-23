@@ -37,4 +37,5 @@ u32 ReleaseMutex(u32 handle)
 		DEBUG("ERROR LOCK_TYP_PULSE not supported for MUTEX");
 	}
 	h->locked = false;
+	return 1;
 }

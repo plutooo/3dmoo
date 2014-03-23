@@ -48,7 +48,7 @@ void threads_Switch(u32 from, u32 to) {
 	exit(1);
     }
 
-    if(!threads[from].active && !threads[to].active) {
+    if(!threads[from].active || !threads[to].active) {
 	ERROR("Trying to switch nonactive threads..\n");
 	arm11_Dump();
 	exit(1);

@@ -107,15 +107,15 @@ void arm11_SetR(u32 n, u32 val) {
     r[n] = val;
 }
 
-void arm11_LoadContext(u32* r_in[18]) {
+void arm11_LoadContext(u32 r_in[18]) {
     memcpy(r, r_in, sizeof(r));
-    cpsr = r_in[16];
+    cpsr.value = r_in[16];
     spsr = r_in[17];
 }
 
 void arm11_SaveContext(u32 r_out[18]) {
     memcpy(r_out, r, sizeof(r));
-    r_out[16] = cpsr;
+    r_out[16] = cpsr.value;
     r_out[17] = spsr;
 }
 

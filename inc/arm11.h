@@ -22,5 +22,5 @@ void arm11_SetR(u32 n, u32 val);
 bool arm11_Step();
 void arm11_Dump();
 
-void arm11_LoadContext(u32* r_in[18]);
+void arm11_LoadContext(u32 r_in[18]);
 void arm11_SaveContext(u32 r_out[18]);

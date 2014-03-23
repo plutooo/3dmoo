@@ -40,8 +40,8 @@ u32 handle_New(u32 type, u32 subtype) {
     handles[handles_num].taken    = true;
     handles[handles_num].type     = type;
     handles[handles_num].subtype  = subtype;
-	handles[handles_num].locked   = false;
-	handles[handles_num].locktype = LOCK_TYP_STICKY;
+    handles[handles_num].locked   = false;
+    handles[handles_num].locktype = LOCK_TYPE_STICKY;
 
     return HANDLES_BASE + handles_num++;
 }

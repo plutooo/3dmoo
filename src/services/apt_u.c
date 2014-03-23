@@ -46,7 +46,7 @@ u32 apt_u_SyncRequest() {
 	
 	handleinfo* h = handle_Get(lock_handle);
 	h->locked = false;
-	h->locktype = LOCK_TYP_ONESHOT;
+	h->locktype = LOCK_TYPE_ONESHOT;
 
 	mem_Write32(0xFFFF0094, lock_handle); // lock_handle
 	return 0;
@@ -62,11 +62,11 @@ u32 apt_u_SyncRequest() {
 	event_handles[0] = handle_New(HANDLE_TYPE_EVENT, HANDLE_SUBEVENT_APTMENUEVENT);
 	h = handle_Get(event_handles[0]);
 	h->locked = true;
-	h->locktype = LOCK_TYP_ONESHOT;
+	h->locktype = LOCK_TYPE_ONESHOT;
 	event_handles[1] = handle_New(HANDLE_TYPE_EVENT, HANDLE_SUBEVENT_APTPAUSEEVENT);
 	h = handle_Get(event_handles[1]);
 	h->locked = true;
-	h->locktype = LOCK_TYP_ONESHOT;
+	h->locktype = LOCK_TYPE_ONESHOT;
 
 	mem_Write32(0xFFFF008C, event_handles[0]); // some event handles
 	mem_Write32(0xFFFF0090, event_handles[1]); // some event handles

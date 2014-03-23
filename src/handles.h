@@ -27,25 +27,24 @@
 #define SERVICE_TYPE_APT_U    0
 #define SERVICE_TYPE_GSP_GPU  1
 
-#define HANDLE_SUBEVENT_USER     0
-#define HANDLE_SUBEVENT_APTMENUEVENT     1
-#define HANDLE_SUBEVENT_APTPAUSEEVENT     2
+#define HANDLE_SUBEVENT_USER          0
+#define HANDLE_SUBEVENT_APTMENUEVENT  1
+#define HANDLE_SUBEVENT_APTPAUSEEVENT 2
 
-#define HANDLE_MUTEX_APTMUTEX     2
+#define HANDLE_MUTEX_APTMUTEX 2
 
-#define LOCK_TYP_ONESHOT 0
-#define LOCK_TYP_STICKY 1
-#define LOCK_TYP_PULSE 2
+#define LOCK_TYPE_ONESHOT 0
+#define LOCK_TYPE_STICKY  1
+#define LOCK_TYPE_PULSE   2
 
 
 typedef struct {
     bool taken;
     u32  type;
     u32  subtype;
-	bool locked;
-	u32 locktype;
+    bool locked;
+    u32 locktype;
 } handleinfo;
 
 handleinfo* handle_Get(u32 handle);
 u32 handle_New(u32 type, u32 subtype);
-

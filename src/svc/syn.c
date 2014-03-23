@@ -11,31 +11,31 @@
 
 bool synislocked(u32 handle)
 {
-	handleinfo* h = handle_Get(handle);
-	if (h->locked)
+    handleinfo* h = handle_Get(handle);
+    if (h->locked)
+    {
+	return true;
+    }
+    else
+    {
+	if (h->locktype != LOCK_TYPE_STICKY)
 	{
-		return true;
+	    h->locked = true;
 	}
-	else
-	{
-		if (h->locktype != LOCK_TYP_STICKY)
-		{
-			h->locked = true;
-		}
-	}
-	return false;
+    }
+    return false;
 }
 u32 ReleaseMutex(u32 handle)
 {
-	handleinfo* h = handle_Get(handle);
-	if (h->type != HANDLE_TYPE_MUTEX)
-	{
-		DEBUG("ERROR: ReleaseMutex on a handle that is not a MUTEX type");
-	}
-	if (h->locktype == LOCK_TYP_PULSE)
-	{
-		DEBUG("ERROR LOCK_TYP_PULSE not supported for MUTEX");
-	}
-	h->locked = false;
-	return 1;
+    handleinfo* h = handle_Get(handle);
+    if (h->type != HANDLE_TYPE_MUTEX)
+    {
+	DEBUG("ERROR: ReleaseMutex on a handle that is not a MUTEX type");
+    }
+    if (h->locktype == LOCK_TYPE_PULSE)
+    {
+	DEBUG("ERROR LOCK_TYPE_PULSE not supported for MUTEX");
+    }
+    h->locked = false;
+    return 1;
 }

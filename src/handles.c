@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2014 - plutoo
+ * Copyright (C) 2014 - ichfly
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -39,6 +40,8 @@ u32 handle_New(u32 type, u32 subtype) {
     handles[handles_num].taken    = true;
     handles[handles_num].type     = type;
     handles[handles_num].subtype  = subtype;
+	handles[handles_num].locked   = false;
+	handles[handles_num].locktype = LOCK_TYP_STICKY;
 
     return HANDLES_BASE + handles_num++;
 }

@@ -15,6 +15,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#define error_not_a_mutex 0x81234567 //correct me fixme
+
 // svc.c
 void svc_Execute(u8 num);
 
@@ -24,3 +26,7 @@ u32 svcControlMemory();
 // svc/ports.c
 u32 svcConnectToPort();
 u32 svcSendSyncRequest();
+
+// svc/syn.c
+bool synislocked(u32 handel);
+u32 ReleaseMutex(u32 handle);

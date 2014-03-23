@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2014 - plutoo
+ * Copyright (C) 2014 - ichfly
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,16 +19,31 @@
 #define HANDLE_TYPE_UNK       0
 #define HANDLE_TYPE_PORT      1
 #define HANDLE_TYPE_SERVICE   2
+#define HANDLE_TYPE_EVENT     3
+#define HANDLE_TYPE_MUTEX     4
 
 #define PORT_TYPE_SRV         0
 
 #define SERVICE_TYPE_APT_U    0
 #define SERVICE_TYPE_GSP_GPU  1
 
+#define HANDLE_SUBEVENT_USER     0
+#define HANDLE_SUBEVENT_APTMENUEVENT     1
+#define HANDLE_SUBEVENT_APTPAUSEEVENT     2
+
+#define HANDLE_MUTEX_APTMUTEX     2
+
+#define LOCK_TYP_ONESHOT 0
+#define LOCK_TYP_STICKY 1
+#define LOCK_TYP_PULSE 2
+
+
 typedef struct {
     bool taken;
     u32  type;
     u32  subtype;
+	bool locked;
+	u32 locktype;
 } handleinfo;
 
 handleinfo* handle_Get(u32 handle);

@@ -136,6 +136,7 @@ static const char* names[256] = {
     NULL
 };
 
+
 void svc_Execute(u8 num)
 {
     const char* name = names[num & 0xFF];
@@ -159,6 +160,14 @@ void svc_Execute(u8 num)
     }
     else if(num == 0x23) {
 	arm11_SetR(0, svcCloseHandle());
+	return;
+    }
+    else if(num == 0x17) {
+	arm11_SetR(0, svcCreateEvent());
+	return;
+    }
+    else if(num == 0x1f) {
+	arm11_SetR(0, svcMapMemoryBlock());
 	return;
     }
 

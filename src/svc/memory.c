@@ -200,3 +200,15 @@ u32 svcControlMemory() {
 
     return 0;
 }
+
+u32 svcMapMemoryBlock() {
+    u32 handle     = arm11_R(0);
+    u32 addr       = arm11_R(1);
+    u32 my_perm    = arm11_R(2);
+    u32 other_perm = arm11_R(3);
+
+    DEBUG("STUBBED\nhandle=%x, addr=%08x, my_perm=%x, other_perm=%x\n",
+	  handle, addr, my_perm, other_perm);
+    PAUSE();
+    return 0;
+}

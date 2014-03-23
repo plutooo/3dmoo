@@ -110,10 +110,8 @@ u32 svcSendSyncRequest() {
 
     ERROR("svcSyncRequest undefined for handle-type \"%s\".\n",
 	  handle_types[hi->type].name);
-    arm11_Dump();
     PAUSE();
     exit(1);
-    return 0;
 }
 
 u32 svcCloseHandle() {
@@ -139,7 +137,6 @@ u32 svcCloseHandle() {
 
     ERROR("svcCloseHandle undefined for handle-type \"%s\".\n",
 	  handle_types[hi->type].name);
-    arm11_Dump();
     PAUSE();
     return 0;
 }

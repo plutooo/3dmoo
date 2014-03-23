@@ -8,16 +8,19 @@
 [0%] Add proper handling of MRC/MCR.
 
 * loader
+[0%] Load modules according to exheader.
 
 * svc
 [50%] svcControlMemory
-[0%] svcConnectToPort
+[1%] svcCreateAddressArbiter
+[1%] svcCloseHandle
+[1%] svcReleaseMutex
+[1%] WaitSynchronization1
 
 * misc
+[0%] Generalize handling of all handle-related SVC's.
 [0%] Move ThreadCommandBuffer(s) to correct address (currently 0xFFFF0000).
 [0%] Implement a debugger.
 [0%] Implement SDL screen.
 [0%] Better error-handling than exit(1).
 [0%] Add a proper Makefile.
-[0%] Fix headers for all *.c files.
-[0%] Make it compile with -Wall

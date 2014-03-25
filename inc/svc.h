@@ -31,10 +31,11 @@ u32 svcConnectToPort();
 u32 svcCreateEvent();
 
 // svc/syn.c
-bool syn_IsLocked(u32 handle);
-u32 ReleaseMutex(u32 handle);
+u32 svcCreateMutex();
+u32 svcReleaseMutex();
 
 // Generics (handles.c)
 u32 svcSendSyncRequest();
 u32 svcCloseHandle();
+u32 svcWaitSynchronization1();
 

@@ -22,6 +22,7 @@
 #include "util.h"
 #include "arm11.h"
 #include "handles.h"
+#include "svc.h"
 
 #define MAX_NUM_HANDLES 0x1000
 #define HANDLES_BASE    0xDEADBABE
@@ -33,27 +34,33 @@ static struct {
     char* name;
     u32   (*fnSyncRequest)(handleinfo* h);
     u32   (*fnCloseHandle)(handleinfo* h);
+    u32   (*fnWaitSynchronization)(handleinfo* h);
 
 } handle_types[] = {
     {	"misc",
+	NULL,
 	NULL,
 	NULL
     },
     {	"port",
 	&port_SyncRequest,
+	NULL,
 	NULL
     },
     {	"service",
 	&services_SyncRequest,
+	NULL,
 	NULL
     },
     {	"event",
 	NULL,
+	NULL,
 	NULL
     },
     {	"mutex",
+	&mutex_SyncRequest,
 	NULL,
-	NULL
+	&mutex_WaitSynchronization
     }
 };
 
@@ -134,6 +141,33 @@ u32 svcCloseHandle() {
     // Lookup actual callback in table.
     if(handle_types[hi->type].fnCloseHandle != NULL)
 	return handle_types[hi->type].fnCloseHandle(hi);
+
+    ERROR("svcCloseHandle undefined for handle-type \"%s\".\n",
+	  handle_types[hi->type].name);
+    PAUSE();
+    return 0;
+}
+
+u32 svcWaitSynchronization1() {
+    u32 handle = arm11_R(0);
+    handleinfo* hi = handle_Get(handle);
+
+    if(hi == NULL) {
+	ERROR("handle %08x not found.\n", handle);
+	PAUSE();
+	exit(1);
+    }
+
+    if(hi->type >= NUM_HANDLE_TYPES) {
+	// This should never happen.
+	ERROR("handle %08x has non-defined type.\n", handle);
+	PAUSE();
+	exit(1);
+    }
+
+    // Lookup actual callback in table.
+    if(handle_types[hi->type].fnWaitSynchronization != NULL)
+	return handle_types[hi->type].fnWaitSynchronization(hi);
 
     ERROR("svcCloseHandle undefined for handle-type \"%s\".\n",
 	  handle_types[hi->type].name);

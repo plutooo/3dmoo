@@ -20,6 +20,7 @@
 
 #include "util.h"
 #include "arm11.h"
+#include "handles.h"
 #include "svc.h"
 
 static const char* names[256] = {
@@ -154,6 +155,10 @@ void svc_Execute(u8 num)
 	arm11_SetR(0, svcConnectToPort());
 	return;
     }
+    else if(num == 0x24) {
+	arm11_SetR(0, svcWaitSynchronization1());
+	return;
+    }
     else if(num == 0x32) {
 	arm11_SetR(0, svcSendSyncRequest());
 	return;
@@ -170,36 +175,20 @@ void svc_Execute(u8 num)
 	arm11_SetR(0, svcMapMemoryBlock());
 	return;
     }
+    else if(num == 0x14) {
+	arm11_SetR(0, svcCreateMutex());
+	return;
+    }
+    else if(num == 0x14) {
+	arm11_SetR(0, svcReleaseMutex(arm11_R(0)));
+	return;
+    }
 
     // Stubs.
     else if(num == 0x21) {
 	DEBUG("STUBBED");
 	arm11_SetR(0, 1);
 	PAUSE();
-	return;
-    }
-    else if(num == 0x14) {
-        DEBUG("handle=%08x\n", arm11_R(0));
-	PAUSE();
-	arm11_SetR(0, ReleaseMutex(arm11_R(0)));
-	return;
-    }
-    else if(num == 0x24) {
-        u32 handle = arm11_R(0);
-        u64 nanoseconds = arm11_R(2);
-        nanoseconds <<= 32;
-        nanoseconds |= arm11_R(3);
-
-        DEBUG("handle=%08x, nanoseconds=%llx\n", handle,
-		  (unsigned long long int) nanoseconds);
-
-	if (syn_IsLocked(handle) == true) {
-	    //lockcpu
-	    DEBUG("STUBBED lock cpu");
-	}
-
-        PAUSE();
-	arm11_SetR(0, 1);
 	return;
     }
     else if(num == 0x38) {

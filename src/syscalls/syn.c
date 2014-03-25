@@ -23,7 +23,7 @@ u32 mutex_WaitSynchronization(handleinfo* h) {
     DEBUG("waiting for mutex to unlock..\n");
     PAUSE();
 
-    while(!h->locked);
+    while(h->locked);
     return 0;
 }
 

@@ -175,12 +175,12 @@ void svc_Execute(u8 num)
 	arm11_SetR(0, svcMapMemoryBlock());
 	return;
     }
-    else if(num == 0x14) {
+    else if(num == 0x13) {
 	arm11_SetR(0, svcCreateMutex());
 	return;
     }
     else if(num == 0x14) {
-	arm11_SetR(0, svcReleaseMutex(arm11_R(0)));
+	arm11_SetR(0, svcReleaseMutex());
 	return;
     }
 

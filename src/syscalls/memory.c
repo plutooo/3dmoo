@@ -38,14 +38,14 @@
 
 
 u32 svcControlMemory() {
-    u32 outaddr     = arm11_R(0);
-    u32 addr0       = arm11_R(1);
-    u32 addr1       = arm11_R(2);
-    u32 size        = arm11_R(3);
-    u32 operation   = arm11_R(4);
+    u32 op    = arm11_R(0);
+    u32 addr0 = arm11_R(1);
+    u32 addr1 = arm11_R(2);
+    u32 size  = arm11_R(3);
+    u32 perms = arm11_R(4);
 
-    DEBUG("outaddr=%x, addr0=%x, addr1=%x, size=%x, op=%x!\n",
-	  outaddr, addr0, addr1, size, operation);
+    DEBUG("op=%x, addr0=%x, addr1=%x, size=%x, perm=%x\n",
+	  op, addr0, addr1, size, perms);
     PAUSE();
 
     if(addr0 & 0xFFF)
@@ -55,72 +55,73 @@ u32 svcControlMemory() {
     if(size & 0xFFF)
 	return SVCERROR_INVALID_SIZE;
 
-    if(outaddr == 0x10003) { // FFF680A4
+    if(op == 0x10003) { // FFF680A4
 	if(addr0 == 0) { // FFF680C4
 	    if(addr1 != 0)
 		return SVCERROR_INVALID_PARAMS;
 	}
 	else if(size == 0) { // FFF680D0
-	    if(addr0 >= 0x14000000)
+	    if(addr0 < 0x14000000)
 		return SVCERROR_INVALID_PARAMS;
-	    if((addr0+size) < 0x1C000000)
+	    if((addr0+size) >= 0x1C000000)
 		return SVCERROR_INVALID_PARAMS;
 	    if(addr1 != 0)
 		return SVCERROR_INVALID_PARAMS;
 	}
 	else {
-	    if(addr0 >= 0x14000000)
+	    if(addr0 < 0x14000000)
 		return SVCERROR_INVALID_PARAMS;
-	    if((addr0+size) < 0x1C000000)
+	    if(addr0 >= 0x1C000000)
 		return SVCERROR_INVALID_PARAMS;
 	    if(addr1 != 0)
 		return SVCERROR_INVALID_PARAMS;
 	}
     }
-    else if(outaddr == 1) {
+    else if(op == 1) {
 	if(size == 0) { // FFF68110
-	    if(addr0 >= 0x08000000) // FFF68130
+	    if(addr0 < 0x08000000) // FFF68130
 		return SVCERROR_INVALID_PARAMS;
-	    if(addr0 > 0x1C000000)
+	    if(addr0 <= 0x1C000000)
 		return SVCERROR_INVALID_PARAMS;
 	}
 	else {
-	    if(addr0 >= 0x08000000)
+	    if(addr0 < 0x08000000)
 		return SVCERROR_INVALID_PARAMS;
-	    if((addr0+size) > 0x1C000000)
+	    if((addr0+size) <= 0x1C000000)
 		return SVCERROR_INVALID_PARAMS;
 	}
     }
     else {
 	if(size == 0) { // FFF68148
-	    if(addr0 >= 0x08000000)
+	    if(addr0 < 0x08000000)
 		return SVCERROR_INVALID_PARAMS;
-	    else if(addr0 < 0x14000000)
+	    if(addr0 >= 0x14000000)
 		return SVCERROR_INVALID_PARAMS;
 	}
 	else {
-	    if(addr0 >= 0x08000000)
+	    if(addr0 < 0x08000000)
 		return SVCERROR_INVALID_PARAMS;
-	    if((addr0+size) < 0x14000000)
+	    if((addr0+size) >= 0x14000000)
 		return SVCERROR_INVALID_PARAMS;
 	}
 
-	if(outaddr != 4 && outaddr != 5) { // FFF680E8
+	if(op == 4 || op == 5) { // FFF680E8
 	    if(size == 0) {
-		if(addr1 >= 0x100000) // FFF681CC
+		if(addr1 < 0x100000) // FFF681CC
 		    return SVCERROR_INVALID_PARAMS;
-		if(addr1 < 0x14000000)
+		if(addr1 >= 0x14000000)
 		    return SVCERROR_INVALID_PARAMS;
 	    }
-	    if(addr1 >= 0x100000)
+	    if(addr1 < 0x100000)
 		return SVCERROR_INVALID_PARAMS;
 	    
-	    if((addr1+size) < 0x14000000)
+	    if((addr1+size) >= 0x14000000)
 		return SVCERROR_INVALID_PARAMS;
 	}
     }
 
-    switch(outaddr & 0xff) {
+    // ????
+    switch(op & 0xff) {
     case 1: case 3: case 4: case 5: case 6:
 	break;
     default:
@@ -130,22 +131,28 @@ u32 svcControlMemory() {
     if(size == 0)
 	return 0;
 
-    u32 flags = outaddr & 0xff;
-
     //kprocess = *0xFFFF9004;
     //*(SP+0x10) = kprocess + 0x1c;
 
+    // ???
+    /*
+    u32 flags = outaddr & 0xff;
     if(flags != 1) {
-	if(operation != 0 && operation != 1 && operation != 2 && operation != 3)
+	if(perms != 0 && perms != 1 && perms != 2 && perms != 3)
 	    return SVCERROR_INVALID_OPERATION;
     }
+    */
 
     s32 rc;
     DEBUG("mapping!\n");
     PAUSE();
 
-    arm11_SetR(1, addr0); // return value is in R1?
-    rc = mem_AddSegment(addr0, size, NULL) == 0 ? 0 : -1;
+    if(addr0 == 0) {
+	addr0 = 0x01000000;
+    }
+
+    arm11_SetR(1, addr0); // outaddr is in R1
+    rc = mem_AddSegment(addr0, size, NULL);
 
     /*
     // FFF6824C

@@ -26,7 +26,6 @@
 #define SVCERROR_INVALID_PARAMS    0xE0E01BF5
 #define SVCERROR_INVALID_OPERATION 0xE0E01BEE
 
-#define CONTROL_OP_NOOP    0
 #define CONTROL_OP_FREE    1
 #define CONTROL_OP_RESERVE 2
 #define CONTROL_OP_COMMIT  3
@@ -34,18 +33,40 @@
 #define CONTROL_OP_UNMAP   5
 #define CONTROL_OP_PROTECT 6
 
-#define CONTROL_LINEAR_FLAG 0x1000
+#define CONTROL_GSP_FLAG 0x10000
 
 
 u32 svcControlMemory() {
-    u32 op    = arm11_R(0);
+    u32 perm  = arm11_R(0);
     u32 addr0 = arm11_R(1);
     u32 addr1 = arm11_R(2);
     u32 size  = arm11_R(3);
-    u32 perms = arm11_R(4);
+    u32 op    = arm11_R(4);
 
-    DEBUG("op=%x, addr0=%x, addr1=%x, size=%x, perm=%x\n",
-	  op, addr0, addr1, size, perms);
+    const char* ops;
+    switch(op & 0xFF) {
+    case 1: ops = "FREE"; break;
+    case 2: ops = "RESERVE"; break;
+    case 3: ops = "COMMIT"; break;
+    case 4: ops = "MAP"; break;
+    case 5: ops = "UNMAP"; break;
+    case 6: ops = "PROTECT"; break;
+    default: ops = "UNDEFINED"; break;
+    }
+
+    const char* perms;
+    switch(perm) {
+    case 0: perms = "--"; break;
+    case 1: perms = "-R"; break;
+    case 2: perms = "W-"; break;
+    case 3: perms = "WR"; break;
+    case 0x10000000: perms = "DONTCARE"; break;
+    default: perms = "UNDEFINED";
+    }
+
+    DEBUG("op=%s %s (%x), addr0=%x, addr1=%x, size=%x, perm=%s (%x)\n",
+	  ops, op & CONTROL_GSP_FLAG ? "GSP" : "", op,
+	  addr0, addr1, size, perms, perm);
     PAUSE();
 
     if(addr0 & 0xFFF)
@@ -143,16 +164,14 @@ u32 svcControlMemory() {
     }
     */
 
-    s32 rc;
-    DEBUG("mapping!\n");
-    PAUSE();
-
-    if(addr0 == 0) {
-	addr0 = 0x01000000;
+    if(op == 0x10003) {
+	DEBUG("Mapping GSP heap..\n");
+	arm11_SetR(1, 0x08000000); // outaddr is in R1
+	return mem_AddSegment(0x08000000, size, NULL);
     }
 
-    arm11_SetR(1, addr0); // outaddr is in R1
-    rc = mem_AddSegment(addr0, size, NULL);
+    DEBUG("STUBBED!\n");
+    PAUSE();
 
     /*
     // FFF6824C
@@ -177,7 +196,7 @@ u32 svcControlMemory() {
     sub_FFF7A0E8(*r10, 1, r5);
     */
 
-    return rc;
+    return -1;
 }
 
 u32 svcMapMemoryBlock() {

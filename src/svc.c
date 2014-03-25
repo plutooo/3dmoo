@@ -147,10 +147,7 @@ void svc_Execute(u8 num)
     DEBUG("-- svc%s (0x%x) --\n", name, num);
 
     if(num == 1) {
-	u32 rc =  svcControlMemory();
-	printf("svcControlmemory: %x\n", rc);
-	PAUSE();
-	arm11_SetR(0, rc);
+	arm11_SetR(0, svcControlMemory());
 	return;
     }
     else if(num == 0x2d) {

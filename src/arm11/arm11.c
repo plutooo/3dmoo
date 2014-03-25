@@ -565,8 +565,8 @@ CCCC 0001 U100 1111 ---- ---- 1101 ----
 		    imm32 |= 0xFFFF0000;
 		
 		u32 addr = U ? r[15] + imm32 : r[15] - imm32;
-		r[Rt] = mem_Read32(addr);
-		r[Rt+1] = mem_Read32(addr+4);
+		r[Rt] = mem_Read32(addr+4);
+		r[Rt+1] = mem_Read32(addr);
 
 		return;
 	    }
@@ -584,16 +584,16 @@ CCCC 0001 U100 1111 ---- ---- 1101 ----
 	    u32 addr = P ? off : r[Rn];
 
 	    if(S) { // STRD (imm)
-		mem_Write32(addr, r[Rt]);
-		mem_Write32(addr+4, r[Rt+1]);
+		mem_Write32(addr+4, r[Rt]);
+		mem_Write32(addr, r[Rt+1]);
 
 		if(P == 0 || W == 1)
 		    r[Rn] = off;
 		return;
 	    }
 	    else { // LDRD (imm)
-		r[Rt] = mem_Read32(addr);
-		r[Rt+1] = mem_Read32(addr+4);
+		r[Rt] = mem_Read32(addr+4);
+		r[Rt+1] = mem_Read32(addr);
 
 		if(P == 0 || W == 1)
 		    r[Rn] = off;
@@ -609,16 +609,16 @@ CCCC 0001 U100 1111 ---- ---- 1101 ----
 		u32 addr = P ? off : r[Rn];
 
 		if(S) { // STRD (reg)
-		    mem_Write32(addr, r[Rt]);
-		    mem_Write32(addr+4, r[Rt+1]);
+		    mem_Write32(addr+4, r[Rt]);
+		    mem_Write32(addr, r[Rt+1]);
 
 		    if(P == 0 || W == 1)
 			r[Rn] = off;
 		    return;
 		}
 		else { // LDRD (reg)
-		    r[Rt] = mem_Read32(addr);
-		    r[Rt+1] = mem_Read32(addr+4);
+		    r[Rt] = mem_Read32(addr+4);
+		    r[Rt+1] = mem_Read32(addr);
 
 		    if(P == 0 || W == 1)
 			r[Rn] = off;
@@ -1237,6 +1237,73 @@ static void arm11_Disasm32(u32 a)
 	    printf(", r%d", Rd);
 	printf("\n");
 	return;
+    }
+
+    // LDRD/STRD (ARM11)
+    if((opcode & 0x0E1000D0) == 0x000000D0) {
+	u32 W = (opcode >> 21) & 1;
+	u32 I = (opcode >> 22) & 1;
+	u32 U = (opcode >> 23) & 1;
+	u32 P = (opcode >> 24) & 1;
+	u32 S = (opcode >> 5) & 1;
+
+	u32 Rn = (opcode >> 16) & 0xF;
+	u32 Rt = (opcode >> 12) & 0xF;
+	u32 immH =  (opcode >> 8) & 0xF;
+	u32 immL = opcode & 0xF;
+	u32 Rm = immL;
+
+	// LDRD (pc-rel)
+	if(!S && !W && P) {
+
+	    if(((opcode >> 16) & 0xF) == 0xF) {
+		u32 imm32 = (immH<<4) | immL;
+
+		if(imm32 & (1 << 8))
+		    imm32 |= 0xFFFF0000;
+
+		printf("ldrd");
+		CondPrint32(opcode);
+
+		printf(" r%d, r%d, [PC, #%s0x%x]\n", Rt, Rt+1, U ? "" : "-", imm32);
+		return;
+	    }
+	}
+	else if(I) {
+	    CondPrint32(opcode);
+
+	    u32 imm32 = (immH<<4) | immL;
+
+	    if(imm32 & (1 << 8))
+		imm32 |= 0xFFFF0000;
+
+	    if(S)
+		printf("strd");
+	    else
+		printf("ldrd");
+
+	    if(P)
+		printf(" r%d, r%d, [r%d, #%s0x%x]%s\n", Rt, Rt+1, Rn, U ? "" : "-", imm32, W ? "!" : "");
+	    else
+		printf(" r%d, r%d, [r%d], #%s0x%x\n", Rt, Rt+1, Rn, U ? "" : "-", imm32);
+	    return;
+	}
+	else if(!I) {
+	    if(((opcode >> 8) & 0xF) == 0x0) {
+		if(S)
+		    printf("strd");
+		else
+		    printf("ldrd");
+
+		CondPrint32(opcode);
+		if(P)
+		    printf(" r%d, r%d, [r%d, %sr%d]%s\n", Rt, Rt+1, Rn, U ? "" : "-", Rm, W ? "!" : "");
+		else
+		    printf(" r%d, r%d, [r%d], %sr%d\n", Rt, Rt+1, Rn, U ? "" : "-", Rm);
+		return;
+
+	    }
+	}
     }
 
     //LDREXB/STREXB/LDREXH/STREXH/LDREX/STREX (ARM11)

@@ -1,0 +1,87 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Source Files\arm11">
+      <UniqueIdentifier>{67ff8e1c-941f-48ea-8bbf-7dd7ad81ddc4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\syscalls">
+      <UniqueIdentifier>{8190a5fa-b50e-4bdc-a358-970788eafacc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\services">
+      <UniqueIdentifier>{74e8a173-e2cd-4853-b41a-c21e797869d0}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\src\handles.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\loader.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\main.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\mem.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\svc.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\arm11\arm11.c">
+      <Filter>Source Files\arm11</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\arm11\threads.c">
+      <Filter>Source Files\arm11</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\syscalls\events.c">
+      <Filter>Source Files\syscalls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\syscalls\memory.c">
+      <Filter>Source Files\syscalls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\syscalls\ports.c">
+      <Filter>Source Files\syscalls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\syscalls\syn.c">
+      <Filter>Source Files\syscalls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\services\apt_u.c">
+      <Filter>Source Files\services</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\services\gsp_gpu.c">
+      <Filter>Source Files\services</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\services\srv.c">
+      <Filter>Source Files\services</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\inc\arm11.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\inc\handles.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\inc\mem.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\inc\svc.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\inc\util.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>

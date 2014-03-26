@@ -555,30 +555,34 @@ CCCC 0001 U100 1111 ---- ---- 1101 ----
 
 	// LDRD (literal/pc-rel)
 	if(!S && !W && P) {
-	    if (!CondCheck32(opcode))
-		return;
+		if (!CondCheck32(opcode)){
+			return;
+		}
 
 	    if(((opcode >> 16) & 0xF) == 0xF) {
-		u32 imm32 = (immH<<4) | immL;
+			u32 imm32 = (immH << 4) | immL;
 
-		if(imm32 & (1 << 8))
-		    imm32 |= 0xFFFF0000;
-		
-		u32 addr = U ? r[15] + imm32 : r[15] - imm32;
-		r[Rt] = mem_Read32(addr+4);
-		r[Rt+1] = mem_Read32(addr);
+			if (imm32 & (1 << 8)){
+				imm32 |= 0xFFFF0000;
+			}
 
-		return;
+			u32 addr = U ? r[15] + imm32 : r[15] - imm32;
+			r[Rt] = mem_Read32(addr + 4);
+			r[Rt + 1] = mem_Read32(addr);
+
+			return;
 	    }
 	}
 	else if(I) {
-	    if (!CondCheck32(opcode))
-		return;
+		if (!CondCheck32(opcode)){
+			return;
+		}
 
 	    u32 imm32 = (immH<<4) | immL;
 
-	    if(imm32 & (1 << 8))
-		imm32 |= 0xFFFF0000;
+		if (imm32 & (1 << 8)){
+			imm32 |= 0xFFFF0000;
+		}
 
 	    u32 off =  U ? r[Rn] + imm32 : r[Rn] - imm32;
 	    u32 addr = P ? off : r[Rn];
@@ -589,41 +593,42 @@ CCCC 0001 U100 1111 ---- ---- 1101 ----
 
 		if(P == 0 || W == 1)
 		    r[Rn] = off;
-		return;
+			return;
 	    }
 	    else { // LDRD (imm)
-		r[Rt] = mem_Read32(addr+4);
-		r[Rt+1] = mem_Read32(addr);
+			r[Rt] = mem_Read32(addr + 4);
+			r[Rt + 1] = mem_Read32(addr);
 
-		if(P == 0 || W == 1)
-		    r[Rn] = off;
-		return;
+			if (P == 0 || W == 1)
+				r[Rn] = off;
+			return;
 	    }
 	}
 	else if(!I) {
 	    if(((opcode >> 8) & 0xF) == 0x0) {
-		if (!CondCheck32(opcode))
-		    return;
+			if (!CondCheck32(opcode)){
+				return;
+			}
 
-		u32 off =  U ? r[Rn] + r[Rm] : r[Rn] - r[Rm];
-		u32 addr = P ? off : r[Rn];
+			u32 off =  U ? r[Rn] + r[Rm] : r[Rn] - r[Rm];
+			u32 addr = P ? off : r[Rn];
 
-		if(S) { // STRD (reg)
-		    mem_Write32(addr+4, r[Rt]);
-		    mem_Write32(addr, r[Rt+1]);
+			if(S) { // STRD (reg)
+				mem_Write32(addr+4, r[Rt]);
+				mem_Write32(addr, r[Rt+1]);
 
-		    if(P == 0 || W == 1)
-			r[Rn] = off;
-		    return;
-		}
-		else { // LDRD (reg)
-		    r[Rt] = mem_Read32(addr+4);
-		    r[Rt+1] = mem_Read32(addr);
+				if(P == 0 || W == 1)
+				r[Rn] = off;
+				return;
+			}
+			else { // LDRD (reg)
+				r[Rt] = mem_Read32(addr+4);
+				r[Rt+1] = mem_Read32(addr);
 
-		    if(P == 0 || W == 1)
-			r[Rn] = off;
-		    return;
-		}
+				if(P == 0 || W == 1)
+				r[Rn] = off;
+				return;
+			}
 	    }
 	}
     }

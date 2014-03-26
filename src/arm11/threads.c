@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2014 - plutoo
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -29,29 +29,31 @@ static thread threads[MAX_THREADS];
 static u32    num_threads;
 
 
-u32 threads_New() {
+u32 threads_New()
+{
     if(num_threads == MAX_THREADS) {
-	ERROR("Too many threads..\n");
-	arm11_Dump();
-	PAUSE();
-	exit(1);
+        ERROR("Too many threads..\n");
+        arm11_Dump();
+        PAUSE();
+        exit(1);
     }
 
     threads[num_threads].active = true;
     return num_threads++;
 }
 
-void threads_Switch(u32 from, u32 to) {
+void threads_Switch(u32 from, u32 to)
+{
     if(from >= num_threads || to >= num_threads) {
-	ERROR("Trying to switch nonexisting threads..\n");
-	arm11_Dump();
-	exit(1);
+        ERROR("Trying to switch nonexisting threads..\n");
+        arm11_Dump();
+        exit(1);
     }
 
     if(!threads[from].active || !threads[to].active) {
-	ERROR("Trying to switch nonactive threads..\n");
-	arm11_Dump();
-	exit(1);
+        ERROR("Trying to switch nonactive threads..\n");
+        arm11_Dump();
+        exit(1);
     }
 
     DEBUG("Thread switch %d->%d\n", from, to);

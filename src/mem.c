@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2014 - plutoo
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -35,7 +35,8 @@ static memmap_t mappings[MAX_MAPPINGS];
 static size_t   num_mappings;
 
 
-static int Overlaps(memmap_t* a, memmap_t* b) {
+static int Overlaps(memmap_t* a, memmap_t* b)
+{
     if(a->base <= b->base && b->base < (a->base+a->size))
         return 1;
     if(a->base <= (b->base+b->size) && (b->base+b->size) < (a->base+a->size))
@@ -43,13 +44,15 @@ static int Overlaps(memmap_t* a, memmap_t* b) {
     return 0;
 }
 
-static int Contains(memmap_t* m, uint32_t addr, uint32_t sz) {
+static int Contains(memmap_t* m, uint32_t addr, uint32_t sz)
+{
     return (m->base <= addr && (addr+sz) <= (m->base+m->size));
 }
 
-static int AddMapping(uint32_t base, uint32_t size) {
+static int AddMapping(uint32_t base, uint32_t size)
+{
     if(size == 0)
-	return 0;
+        return 0;
 
     if(num_mappings == MAX_MAPPINGS) {
         DEBUG("too many mappings.\n");
@@ -63,41 +66,43 @@ static int AddMapping(uint32_t base, uint32_t size) {
     for(j=0; j<num_mappings; j++) {
         if(Overlaps(&mappings[j], &mappings[i])) {
             DEBUG("trying to add overlapping mapping %08x, size=%08x.\n",
-		   base, size);
+                  base, size);
             return 2;
         }
     }
 
     mappings[i].phys = calloc(sizeof(uint8_t), size);
     if(mappings[i].phys == NULL) {
-	DEBUG("calloc failed for %08x, size=%08x\n", base, size);
-	return 3;
+        DEBUG("calloc failed for %08x, size=%08x\n", base, size);
+        return 3;
     }
 
     num_mappings++;
     return 0;
 }
 
-int mem_AddSegment(uint32_t base, uint32_t size, uint8_t* data) {
+int mem_AddSegment(uint32_t base, uint32_t size, uint8_t* data)
+{
     int rc;
 
     rc = AddMapping(base, size);
     if(rc != 0)
-	return rc;
+        return rc;
 
     if(data != NULL)
-	memcpy(mappings[num_mappings-1].phys, data, size);
+        memcpy(mappings[num_mappings-1].phys, data, size);
     return 0;
 }
 
-int mem_Write8(uint32_t addr, uint8_t w) {
+int mem_Write8(uint32_t addr, uint8_t w)
+{
     size_t i;
 
     for(i=0; i<num_mappings; i++) {
         if(Contains(&mappings[i], addr, 1)) {
             mappings[i].phys[addr - mappings[i].base] = w;
             return 0;
-	}
+        }
     }
 
     DEBUG("trying to write8 unmapped addr %08x, w=%02x\n", addr, w & 0xff);
@@ -106,13 +111,14 @@ int mem_Write8(uint32_t addr, uint8_t w) {
     return 1;
 }
 
-uint8_t mem_Read8(uint32_t addr) {
+uint8_t mem_Read8(uint32_t addr)
+{
     size_t i;
 
     for(i=0; i<num_mappings; i++) {
-	if(Contains(&mappings[i], addr, 1)) {
+        if(Contains(&mappings[i], addr, 1)) {
             return mappings[i].phys[addr - mappings[i].base];
-	}
+        }
     }
 
     DEBUG("trying to read8 unmapped addr %08x\n", addr);
@@ -121,14 +127,15 @@ uint8_t mem_Read8(uint32_t addr) {
     return 0;
 }
 
-int mem_Write16(uint32_t addr, uint16_t w) {
+int mem_Write16(uint32_t addr, uint16_t w)
+{
     size_t i;
 
     for(i=0; i<num_mappings; i++) {
-	if(Contains(&mappings[i], addr, 2)) {
-	    *(uint16_t*) (&mappings[i].phys[addr - mappings[i].base]) = w; 
-	    return 0;
-	}
+        if(Contains(&mappings[i], addr, 2)) {
+            *(uint16_t*) (&mappings[i].phys[addr - mappings[i].base]) = w;
+            return 0;
+        }
     }
 
     DEBUG("trying to write16 unmapped addr %08x, w=%04x\n", addr, w & 0xffff);
@@ -137,13 +144,14 @@ int mem_Write16(uint32_t addr, uint16_t w) {
     return 1;
 }
 
-uint16_t mem_Read16(uint32_t addr) {
+uint16_t mem_Read16(uint32_t addr)
+{
     size_t i;
 
     for(i=0; i<num_mappings; i++) {
-	if(Contains(&mappings[i], addr, 2)) {
+        if(Contains(&mappings[i], addr, 2)) {
             return *(uint16_t*) (&mappings[i].phys[addr - mappings[i].base]);
-	}
+        }
     }
 
     DEBUG("trying to read16 unmapped addr %08x\n", addr);
@@ -152,14 +160,15 @@ uint16_t mem_Read16(uint32_t addr) {
     return 0;
 }
 
-int mem_Write32(uint32_t addr, uint32_t w) {
+int mem_Write32(uint32_t addr, uint32_t w)
+{
     size_t i;
 
     for(i=0; i<num_mappings; i++) {
-	if(Contains(&mappings[i], addr, 4)) {
-	    *(uint32_t*) (&mappings[i].phys[addr - mappings[i].base]) = w;
-	    return 0;
-	}
+        if(Contains(&mappings[i], addr, 4)) {
+            *(uint32_t*) (&mappings[i].phys[addr - mappings[i].base]) = w;
+            return 0;
+        }
     }
 
     DEBUG("trying to write32 unmapped addr %08x, w=%04x\n", addr, w & 0xffff);
@@ -168,13 +177,14 @@ int mem_Write32(uint32_t addr, uint32_t w) {
     return 0;
 }
 
-u32 mem_Read32(uint32_t addr) {
+u32 mem_Read32(uint32_t addr)
+{
     size_t i;
 
     for(i=0; i<num_mappings; i++) {
-	if(Contains(&mappings[i], addr, 4)) {
+        if(Contains(&mappings[i], addr, 4)) {
             return *(uint32_t*) (&mappings[i].phys[addr - mappings[i].base]);
-	}
+        }
     }
 
     DEBUG("trying to read32 unmapped addr %08x\n", addr);
@@ -183,14 +193,15 @@ u32 mem_Read32(uint32_t addr) {
     return 0;
 }
 
-int mem_Read(uint8_t* buf_out, uint32_t addr, uint32_t size) {
+int mem_Read(uint8_t* buf_out, uint32_t addr, uint32_t size)
+{
     size_t i;
 
     for(i=0; i<num_mappings; i++) {
-	if(Contains(&mappings[i], addr, size)) {
-	    memcpy(buf_out, &mappings[i].phys[addr - mappings[i].base], size);
-	    return 0;
-	}
+        if(Contains(&mappings[i], addr, size)) {
+            memcpy(buf_out, &mappings[i].phys[addr - mappings[i].base], size);
+            return 0;
+        }
     }
 
     DEBUG("trying to read 0x%x bytes unmapped addr %08x\n", size, addr);

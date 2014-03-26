@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2014 - plutoo
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -35,27 +35,28 @@ static struct {
 } services[] = {
     // Services are declared here.
     {
-	"APT:U\0\0\0\0",
-	SERVICE_TYPE_APT_U,
-	0,
-	&apt_u_SyncRequest
+        "APT:U\0\0\0\0",
+        SERVICE_TYPE_APT_U,
+        0,
+        &apt_u_SyncRequest
     },
     {
-	"gsp::Gpu",
-	SERVICE_TYPE_GSP_GPU,
-	0,
-	&gsp_gpu_SyncRequest
+        "gsp::Gpu",
+        SERVICE_TYPE_GSP_GPU,
+        0,
+        &gsp_gpu_SyncRequest
     }
 };
 
 
-u32 services_SyncRequest(handleinfo* h) {
+u32 services_SyncRequest(handleinfo* h)
+{
     u32 i;
 
     // Lookup which requested service in table.
     for(i=0; i<ARRAY_SIZE(services); i++) {
-	if(services[i].subtype == h->subtype)
-	    return services[i].fnSyncRequest();
+        if(services[i].subtype == h->subtype)
+            return services[i].fnSyncRequest();
     }
 
     ERROR("invalid handle.\n");
@@ -64,67 +65,69 @@ u32 services_SyncRequest(handleinfo* h) {
     return 0;
 }
 
-u32 srv_InitHandle() {
+u32 srv_InitHandle()
+{
     // Create a handle for srv: port.
     arm11_SetR(1, handle_New(HANDLE_TYPE_PORT, PORT_TYPE_SRV));
 
     // Create handles for all services.
     u32 i;
     for(i=0; i<ARRAY_SIZE(services); i++) {
-	services[i].handle = handle_New(HANDLE_TYPE_SERVICE, services[i].subtype);
+        services[i].handle = handle_New(HANDLE_TYPE_SERVICE, services[i].subtype);
     }
 
     return 0;
 }
 
-u32 srv_SyncRequest() {
+u32 srv_SyncRequest()
+{
     u32 cid = mem_Read32(0xFFFF0080);
 
     // Read command-id.
     switch(cid) {
 
     case 0x10002:
-	DEBUG("srv_RegisterClient\n");
+        DEBUG("srv_RegisterClient\n");
 
-	// XXX: check +4, flags?
-	PAUSE();
-	break;
+        // XXX: check +4, flags?
+        PAUSE();
+        break;
 
     case 0x50100:
-	DEBUG("srv_GetServiceHandle\n");
+        DEBUG("srv_GetServiceHandle\n");
 
         struct {
             char name[8];
             uint32_t name_len;
             uint32_t unk2;
-       } req;
+        } req;
 
-	// Read rest of command header
-	mem_Read((u8*) &req, 0xFFFF0084, sizeof(req));
+        // Read rest of command header
+        mem_Read((u8*) &req, 0xFFFF0084, sizeof(req));
 
-	u32 i;
-	for(i=0; i<ARRAY_SIZE(services); i++) {
-	    // Find service in list.
-	    if(memcmp(req.name, services[i].name, strnlen(services[i].name, 8)) == 0) {
+        u32 i;
+        for(i=0; i<ARRAY_SIZE(services); i++) {
+            // Find service in list.
+            if(memcmp(req.name, services[i].name, strnlen(services[i].name, 8)) == 0) {
 
-		// Write result.
-		mem_Write32(0xFFFF0084, 0);
+                // Write result.
+                mem_Write32(0xFFFF0084, 0);
 
-		// Write handle_out.
-		mem_Write32(0xFFFF008C, services[i].handle);
+                // Write handle_out.
+                mem_Write32(0xFFFF008C, services[i].handle);
 
-		return 0;
-	    }
-	}
+                return 0;
+            }
+        }
 
-	ERROR("Unimplemented service: %s\n", req.name);
-	arm11_Dump();
-	exit(1);
+        ERROR("Unimplemented service: %s\n", req.name);
+        arm11_Dump();
+        exit(1);
 
     default:
-	ERROR("Unimplemented command %08x in \"srv:\"\n", cid);
-	arm11_Dump();
-	exit(1);
+        ERROR("Unimplemented command %08x in \"srv:\"\n", cid);
+        arm11_Dump();
+        exit(1);
     }
 
     return 0;

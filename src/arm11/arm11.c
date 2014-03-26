@@ -3,7 +3,7 @@
  * Copyright (C) 2014 - plutoo
  * Copyright (C) 2011 - Miguel Boton (Waninkoko)
  * Copyright (C) 2010 - crediar, megazig
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -58,24 +58,25 @@ enum {
 
 union {
     struct {
-	bool n:1;
-	bool z:1;
-	bool c:1;
-	bool v:1;
+        bool n:1;
+        bool z:1;
+        bool c:1;
+        bool v:1;
 
-	unsigned pad:20;
+        unsigned pad:20;
 
-	bool I:1;
-	bool F:1;
-	bool t:1;
-	u16  mode:5;
+        bool I:1;
+        bool F:1;
+        bool t:1;
+        u16  mode:5;
     };
     u32 value;
 } cpsr;
 u32 spsr;
 
 
-void arm11_Init() {
+void arm11_Init()
+{
     sp = (u32 *)(r + 13);
     lr = (u32 *)(r + 14);
     pc = (u32 *)(r + 15);
@@ -85,35 +86,40 @@ void arm11_Init() {
 
 }
 
-void arm11_SetPCSP(u32 ipc, u32 isp) {
+void arm11_SetPCSP(u32 ipc, u32 isp)
+{
     *pc = ipc;
     *sp = isp;
 }
 
-u32 arm11_R(u32 n) {
+u32 arm11_R(u32 n)
+{
     if(n > 15) {
-	ERROR("invalid r%u.\n", n);
-	return 0;
+        ERROR("invalid r%u.\n", n);
+        return 0;
     }
 
     return r[n];
 }
 
-void arm11_SetR(u32 n, u32 val) {
+void arm11_SetR(u32 n, u32 val)
+{
     if(n > 15) {
-	ERROR("invalid r%u.\n", n);
-	return;
+        ERROR("invalid r%u.\n", n);
+        return;
     }
     r[n] = val;
 }
 
-void arm11_LoadContext(u32 r_in[18]) {
+void arm11_LoadContext(u32 r_in[18])
+{
     memcpy(r, r_in, sizeof(r));
     cpsr.value = r_in[16];
     spsr = r_in[17];
 }
 
-void arm11_SaveContext(u32 r_out[18]) {
+void arm11_SaveContext(u32 r_out[18])
+{
     memcpy(r_out, r, sizeof(r));
     r_out[16] = cpsr.value;
     r_out[17] = spsr;
@@ -123,35 +129,35 @@ static bool CondCheck32(u32 opcode)
 {
     switch(opcode >> 28) {
     case EQ:
-	return cpsr.z;
+        return cpsr.z;
     case NE:
-	return !cpsr.z;
+        return !cpsr.z;
     case CS:
-	return cpsr.c;
+        return cpsr.c;
     case CC:
-	return !cpsr.c;
+        return !cpsr.c;
     case MI:
-	return cpsr.n;
+        return cpsr.n;
     case PL:
-	return !cpsr.n;
+        return !cpsr.n;
     case VS:
-	return cpsr.v;
+        return cpsr.v;
     case VC:
-	return !cpsr.v;
+        return !cpsr.v;
     case HI:
-	return (cpsr.c && !cpsr.z);
+        return (cpsr.c && !cpsr.z);
     case LS:
-	return (!cpsr.c || cpsr.z);
+        return (!cpsr.c || cpsr.z);
     case GE:
-	return (cpsr.n == cpsr.v);
+        return (cpsr.n == cpsr.v);
     case LT:
-	return (cpsr.n != cpsr.v);
+        return (cpsr.n != cpsr.v);
     case GT:
-	return (cpsr.n == cpsr.v && !cpsr.z);
+        return (cpsr.n == cpsr.v && !cpsr.z);
     case LE:
-	return (cpsr.n != cpsr.v || cpsr.z);
+        return (cpsr.n != cpsr.v || cpsr.z);
     case AL:
-	return true;
+        return true;
     }
 
     return false;
@@ -161,35 +167,35 @@ static bool CondCheck16(u16 opcode)
 {
     switch((opcode >> 8) & 0xF) {
     case EQ:
-	return cpsr.z;
+        return cpsr.z;
     case NE:
-	return !cpsr.z;
+        return !cpsr.z;
     case CS:
-	return cpsr.c;
+        return cpsr.c;
     case CC:
-	return !cpsr.c;
+        return !cpsr.c;
     case MI:
-	return cpsr.n;
+        return cpsr.n;
     case PL:
-	return !cpsr.n;
+        return !cpsr.n;
     case VS:
-	return cpsr.v;
+        return cpsr.v;
     case VC:
-	return !cpsr.v;
+        return !cpsr.v;
     case HI:
-	return (cpsr.c && !cpsr.z);
+        return (cpsr.c && !cpsr.z);
     case LS:
-	return (!cpsr.c || cpsr.z);
+        return (!cpsr.c || cpsr.z);
     case GE:
-	return (cpsr.n == cpsr.v);
+        return (cpsr.n == cpsr.v);
     case LT:
-	return (cpsr.n != cpsr.v);
+        return (cpsr.n != cpsr.v);
     case GT:
-	return (cpsr.n == cpsr.v && !cpsr.z);
+        return (cpsr.n == cpsr.v && !cpsr.z);
     case LE:
-	return (cpsr.n != cpsr.v || cpsr.z);
+        return (cpsr.n != cpsr.v || cpsr.z);
     case AL:
-	return true;
+        return true;
     }
 
     return false;
@@ -199,33 +205,47 @@ static void CondPrint32(u32 opcode)
 {
     switch (opcode >> 28) {
     case EQ:
-	printf("eq"); break;
+        printf("eq");
+        break;
     case NE:
-	printf("ne"); break;
+        printf("ne");
+        break;
     case CS:
-	printf("cs"); break;
+        printf("cs");
+        break;
     case CC:
-	printf("cc"); break;
+        printf("cc");
+        break;
     case MI:
-	printf("mi"); break;
+        printf("mi");
+        break;
     case PL:
-	printf("pl"); break;
+        printf("pl");
+        break;
     case VS:
-	printf("vs"); break;
+        printf("vs");
+        break;
     case VC:
-	printf("vc"); break;
+        printf("vc");
+        break;
     case HI:
-	printf("hi"); break;
+        printf("hi");
+        break;
     case LS:
-	printf("ls"); break;
+        printf("ls");
+        break;
     case GE:
-	printf("ge"); break;
+        printf("ge");
+        break;
     case LT:
-	printf("lt"); break;
+        printf("lt");
+        break;
     case GT:
-	printf("gt"); break;
+        printf("gt");
+        break;
     case LE:
-	printf("le"); break;
+        printf("le");
+        break;
     }
 }
 
@@ -233,40 +253,54 @@ static void CondPrint16(u16 opcode)
 {
     switch ((opcode >> 8) & 0xF) {
     case EQ:
-	printf("eq"); break;
+        printf("eq");
+        break;
     case NE:
-	printf("ne"); break;
+        printf("ne");
+        break;
     case CS:
-	printf("cs"); break;
+        printf("cs");
+        break;
     case CC:
-	printf("cc"); break;
+        printf("cc");
+        break;
     case MI:
-	printf("mi"); break;
+        printf("mi");
+        break;
     case PL:
-	printf("pl"); break;
+        printf("pl");
+        break;
     case VS:
-	printf("vs"); break;
+        printf("vs");
+        break;
     case VC:
-	printf("vc"); break;
+        printf("vc");
+        break;
     case HI:
-	printf("hi"); break;
+        printf("hi");
+        break;
     case LS:
-	printf("ls"); break;
+        printf("ls");
+        break;
     case GE:
-	printf("ge"); break;
+        printf("ge");
+        break;
     case LT:
-	printf("lt"); break;
+        printf("lt");
+        break;
     case GT:
-	printf("gt"); break;
+        printf("gt");
+        break;
     case LE:
-	printf("le"); break;
+        printf("le");
+        break;
     }
 }
 
 static void SuffixPrint(u32 opcode)
 {
     if ((opcode >> 20) & 1)
-	printf("s");
+        printf("s");
 }
 
 static void ShiftPrint(u32 opcode)
@@ -274,21 +308,21 @@ static void ShiftPrint(u32 opcode)
     u32 amt = (opcode >> 7)  & 0x1F;
 
     if (!amt)
-	return;
+        return;
 
     switch ((opcode >> 5) & 3) {
     case 0:
-	printf(",LSL#%d", amt);
-	break;
+        printf(",LSL#%d", amt);
+        break;
     case 1:
-	printf(",LSR#%d", amt);
-	break;
+        printf(",LSR#%d", amt);
+        break;
     case 2:
-	printf(",ASR#%d", amt);
-	break;
+        printf(",ASR#%d", amt);
+        break;
     case 3:
-	printf(",ROR#%d", amt);
-	break;
+        printf(",ROR#%d", amt);
+        break;
     }
 }
 
@@ -307,8 +341,8 @@ static bool OverflowFrom(u32 a, u32 b)
     u32 s = a + b;
 
     if((a & (1 << 31)) == (b & (1 << 31)) &&
-       (s & (1 << 31)) != (a & (1 << 31)))
-	return true;
+            (s & (1 << 31)) != (a & (1 << 31)))
+        return true;
 
     return false;
 }
@@ -349,30 +383,30 @@ static u32 Shift(u32 opcode, u32 value)
     u32 result;
 
     if (!amt)
-	return value;
+        return value;
 
     switch ((opcode >> 5) & 3) {
     case 0:
-	if (S) cpsr.c = value & (1 << (32 - amt));
+        if (S) cpsr.c = value & (1 << (32 - amt));
 
-	result = LSL(value, amt);
-	break;
+        result = LSL(value, amt);
+        break;
     case 1:
-	if (S) cpsr.c = value & (1 << (amt - 1));
+        if (S) cpsr.c = value & (1 << (amt - 1));
 
-	result = LSR(value, amt);
-	break;
+        result = LSR(value, amt);
+        break;
     case 2:
-	if (S) cpsr.c = value & (1 << (amt - 1));
+        if (S) cpsr.c = value & (1 << (amt - 1));
 
-	result = ASR(value, amt);
-	break;
+        result = ASR(value, amt);
+        break;
     case 3:
-	result = ROR(value, amt);
-	break;
+        result = ROR(value, amt);
+        break;
 
     default:
-	result = value;
+        result = value;
     }
 
     return result;
@@ -425,744 +459,729 @@ static void Step32()
     bool L = (opcode >> 20) & 1;
 
     if (((opcode >> 8) & 0xFFFFF) == 0x12FFF) {
-	bool link = (opcode >> 5) & 1;
+        bool link = (opcode >> 5) & 1;
 
-	if (!CondCheck32(opcode))
-	    return;
+        if (!CondCheck32(opcode))
+            return;
 
-	if (link) *lr = *pc;
+        if (link) *lr = *pc;
 
-	cpsr.t = r[Rm] & 1;
-	*pc    = r[Rm] & ~1;
+        cpsr.t = r[Rm] & 1;
+        *pc    = r[Rm] & ~1;
 
-	return;
+        return;
     }
 
-    if ((opcode & 0x0FF00FF0) == 0x06600FF0)//UQSUB8
-    {
+    if ((opcode & 0x0FF00FF0) == 0x06600FF0) { //UQSUB8
         b1 = (u8)(r[Rm]) - (u8)(r[Rn]);
         b2 = (u8)(r[Rm] >> 8) - (u8)(r[Rn] >> 8);
         b3 = (u8)(r[Rm] >> 16) - (u8)(r[Rn] >> 16);
         b4 = (u8)(r[Rm] >> 24) - (u8)(r[Rn] >> 24);
         r[Rd] = (b1 | b2 << 8 | b3 << 16 | b4 << 24);
     }
-    if ((opcode & 0x0FFF0FF0) == 0x06bf0070)//sxth
-    {
-	temp = r[Rm] &0xFFFF;
-	if ((temp & 0x8000) != 0)
-	{
-	    temp |= 0xFFFF0000;
-	}
-	r[Rd] = temp;
+    if ((opcode & 0x0FFF0FF0) == 0x06bf0070) { //sxth
+        temp = r[Rm] &0xFFFF;
+        if ((temp & 0x8000) != 0) {
+            temp |= 0xFFFF0000;
+        }
+        r[Rd] = temp;
     }
-    if ((opcode & 0x0FFF0FF0) == 0x06af0070)//sxtb
-    {
-	temp = r[Rm] &0xFF;
-	if ((temp & 0x80) != 0)
-	{
-	    temp |= 0xFFFFFF00;
-	}
-	r[Rd] = temp;
+    if ((opcode & 0x0FFF0FF0) == 0x06af0070) { //sxtb
+        temp = r[Rm] &0xFF;
+        if ((temp & 0x80) != 0) {
+            temp |= 0xFFFFFF00;
+        }
+        r[Rd] = temp;
     }
-    if ((opcode & 0x0FFF0FF0) == 0x06ef0070)//uxtb
-    {
+    if ((opcode & 0x0FFF0FF0) == 0x06ef0070) { //uxtb
         r[Rd] = (r[Rm] & 0xFF);
     }
-    if ((opcode & 0x0FFF0FF0) == 0x06ff0070)//uxth
-    {
+    if ((opcode & 0x0FFF0FF0) == 0x06ff0070) { //uxth
         r[Rd] = (r[Rm] & 0xFFFF);
     }
 
-    if ((opcode & 0x0FFF0FF0) == 0x06bf0fb0) //rev16
-    {
-	u32 temp = r[Rm];
+    if ((opcode & 0x0FFF0FF0) == 0x06bf0fb0) { //rev16
+        u32 temp = r[Rm];
         r[Rd] = (((temp & 0xFF) >> 0x0) << 0x8) +
-	    (((temp & 0xFF00) >> 0x8) << 0x0) +
-	    (((temp & 0xFF0000) >> 0x10) << 0x18) +
-	    (((temp & 0xFF000000) >> 0x18) << 0x10);
+                (((temp & 0xFF00) >> 0x8) << 0x0) +
+                (((temp & 0xFF0000) >> 0x10) << 0x18) +
+                (((temp & 0xFF000000) >> 0x18) << 0x10);
     }
 
-    if ((opcode & 0x0FFF0FF0) == 0x06bf0f30) //rev
-    {
-	u32 temp = r[Rm];
+    if ((opcode & 0x0FFF0FF0) == 0x06bf0f30) { //rev
+        u32 temp = r[Rm];
         r[Rd] = (((temp & 0xFF) >> 0x0) << 0x18) +
-	    (((temp & 0xFF00) >> 0x8) << 0x10) +
-	    (((temp & 0xFF0000) >> 0x10) << 0x8) +
-	    (((temp & 0xFF000000) >> 0x18) << 0x0);
+                (((temp & 0xFF00) >> 0x8) << 0x10) +
+                (((temp & 0xFF0000) >> 0x10) << 0x8) +
+                (((temp & 0xFF000000) >> 0x18) << 0x0);
     }
-	
+
     if ((opcode >> 24) == 0xEF) { // SVC
-	u32 Imm = opcode & 0xFFFFFF;
-	svc_Execute(Imm & 0xFF);
-	return;
+        u32 Imm = opcode & 0xFFFFFF;
+        svc_Execute(Imm & 0xFF);
+        return;
     }
 
     if (((opcode >> 22) & 0x3F) == 0 && // MUL/MLA
-	((opcode >>  4) & 0x0F) == 9) {
+            ((opcode >>  4) & 0x0F) == 9) {
 
-	if (!CondCheck32(opcode))
-	    return;
+        if (!CondCheck32(opcode))
+            return;
 
-	if (W)
-	    r[Rn] = (r[Rm] * r[Rs] + r[Rd]) & 0xFFFFFFFF;
-	else
-	    r[Rn] = (r[Rm] * r[Rs]) & 0xFFFFFFFF;
+        if (W)
+            r[Rn] = (r[Rm] * r[Rs] + r[Rd]) & 0xFFFFFFFF;
+        else
+            r[Rn] = (r[Rm] * r[Rs]) & 0xFFFFFFFF;
 
-	if (S) {
-	    cpsr.z = r[Rn] == 0;
-	    cpsr.n = r[Rn] >> 31;
-	}
+        if (S) {
+            cpsr.z = r[Rn] == 0;
+            cpsr.n = r[Rn] >> 31;
+        }
 
-	return;
+        return;
     }
 
     //STRD
-/*
-  strd (reg)
-CCCC 000P U0W0 ---- ---- 0000 1111 ----
-                Rn   Rt             Rm
+    /*
+      strd (reg)
+    CCCC 000P U0W0 ---- ---- 0000 1111 ----
+                    Rn   Rt             Rm
 
-  ldrd (reg)
-CCCC 000P U0W0 ---- ---- 0000 1101 ----
-                Rn   Rt             Rm
+      ldrd (reg)
+    CCCC 000P U0W0 ---- ---- 0000 1101 ----
+                    Rn   Rt             Rm
 
-  strd (i)
-CCCC 000P U1W0 ---- ---- ---- 1111 ----
-                Rn   Rt  imm4H     imm4L
+      strd (i)
+    CCCC 000P U1W0 ---- ---- ---- 1111 ----
+                    Rn   Rt  imm4H     imm4L
 
-  ldrd (i)
-CCCC 000P U1W0 ---- ---- ---- 1101 ----
-                Rn   Rt  imm4H     imm4L
+      ldrd (i)
+    CCCC 000P U1W0 ---- ---- ---- 1101 ----
+                    Rn   Rt  imm4H     imm4L
 
-  ldrd (literal)
-CCCC 0001 U100 1111 ---- ---- 1101 ----
-                     Rt  imm4H     imm4L
+      ldrd (literal)
+    CCCC 0001 U100 1111 ---- ---- 1101 ----
+                         Rt  imm4H     imm4L
 
-*/
+    */
     // LDRD/STRD (ARM11)
     if((opcode & 0x0E1000D0) == 0x000000D0) {
-	u32 W = (opcode >> 21) & 1;
-	u32 I = (opcode >> 22) & 1;
-	u32 U = (opcode >> 23) & 1;
-	u32 P = (opcode >> 24) & 1;
-	u32 S = (opcode >> 5) & 1;
+        u32 W = (opcode >> 21) & 1;
+        u32 I = (opcode >> 22) & 1;
+        u32 U = (opcode >> 23) & 1;
+        u32 P = (opcode >> 24) & 1;
+        u32 S = (opcode >> 5) & 1;
 
-	u32 Rn = (opcode >> 16) & 0xF;
-	u32 Rt = (opcode >> 12) & 0xF;
-	u32 immH =  (opcode >> 8) & 0xF;
-	u32 immL = opcode & 0xF;
-	u32 Rm = immL;
+        u32 Rn = (opcode >> 16) & 0xF;
+        u32 Rt = (opcode >> 12) & 0xF;
+        u32 immH =  (opcode >> 8) & 0xF;
+        u32 immL = opcode & 0xF;
+        u32 Rm = immL;
 
-	// LDRD (literal/pc-rel)
-	if(!S && !W && P) {
-		if (!CondCheck32(opcode)){
-			return;
-		}
+        // LDRD (literal/pc-rel)
+        if(!S && !W && P) {
+            if (!CondCheck32(opcode)) {
+                return;
+            }
 
-	    if(((opcode >> 16) & 0xF) == 0xF) {
-			u32 imm32 = (immH << 4) | immL;
+            if(((opcode >> 16) & 0xF) == 0xF) {
+                u32 imm32 = (immH << 4) | immL;
 
-			if (imm32 & (1 << 8)){
-				imm32 |= 0xFFFF0000;
-			}
+                if (imm32 & (1 << 8)) {
+                    imm32 |= 0xFFFF0000;
+                }
 
-			u32 addr = U ? r[15] + imm32 : r[15] - imm32;
-			r[Rt] = mem_Read32(addr + 4);
-			r[Rt + 1] = mem_Read32(addr);
+                u32 addr = U ? r[15] + imm32 : r[15] - imm32;
+                r[Rt] = mem_Read32(addr + 4);
+                r[Rt + 1] = mem_Read32(addr);
 
-			return;
-	    }
-	}
-	else if(I) {
-		if (!CondCheck32(opcode)){
-			return;
-		}
+                return;
+            }
+        } else if(I) {
+            if (!CondCheck32(opcode)) {
+                return;
+            }
 
-	    u32 imm32 = (immH<<4) | immL;
+            u32 imm32 = (immH<<4) | immL;
 
-		if (imm32 & (1 << 8)){
-			imm32 |= 0xFFFF0000;
-		}
+            if (imm32 & (1 << 8)) {
+                imm32 |= 0xFFFF0000;
+            }
 
-	    u32 off =  U ? r[Rn] + imm32 : r[Rn] - imm32;
-	    u32 addr = P ? off : r[Rn];
+            u32 off =  U ? r[Rn] + imm32 : r[Rn] - imm32;
+            u32 addr = P ? off : r[Rn];
 
-	    if(S) { // STRD (imm)
-		mem_Write32(addr+4, r[Rt]);
-		mem_Write32(addr, r[Rt+1]);
+            if(S) { // STRD (imm)
+                mem_Write32(addr+4, r[Rt]);
+                mem_Write32(addr, r[Rt+1]);
 
-		if(P == 0 || W == 1)
-		    r[Rn] = off;
-			return;
-	    }
-	    else { // LDRD (imm)
-			r[Rt] = mem_Read32(addr + 4);
-			r[Rt + 1] = mem_Read32(addr);
+                if(P == 0 || W == 1)
+                    r[Rn] = off;
+                return;
+            } else { // LDRD (imm)
+                r[Rt] = mem_Read32(addr + 4);
+                r[Rt + 1] = mem_Read32(addr);
 
-			if (P == 0 || W == 1)
-				r[Rn] = off;
-			return;
-	    }
-	}
-	else if(!I) {
-	    if(((opcode >> 8) & 0xF) == 0x0) {
-			if (!CondCheck32(opcode)){
-				return;
-			}
+                if (P == 0 || W == 1)
+                    r[Rn] = off;
+                return;
+            }
+        } else if(!I) {
+            if(((opcode >> 8) & 0xF) == 0x0) {
+                if (!CondCheck32(opcode)) {
+                    return;
+                }
 
-			u32 off =  U ? r[Rn] + r[Rm] : r[Rn] - r[Rm];
-			u32 addr = P ? off : r[Rn];
+                u32 off =  U ? r[Rn] + r[Rm] : r[Rn] - r[Rm];
+                u32 addr = P ? off : r[Rn];
 
-			if(S) { // STRD (reg)
-				mem_Write32(addr+4, r[Rt]);
-				mem_Write32(addr, r[Rt+1]);
+                if(S) { // STRD (reg)
+                    mem_Write32(addr+4, r[Rt]);
+                    mem_Write32(addr, r[Rt+1]);
 
-				if(P == 0 || W == 1)
-				r[Rn] = off;
-				return;
-			}
-			else { // LDRD (reg)
-				r[Rt] = mem_Read32(addr+4);
-				r[Rt+1] = mem_Read32(addr);
+                    if(P == 0 || W == 1)
+                        r[Rn] = off;
+                    return;
+                } else { // LDRD (reg)
+                    r[Rt] = mem_Read32(addr+4);
+                    r[Rt+1] = mem_Read32(addr);
 
-				if(P == 0 || W == 1)
-				r[Rn] = off;
-				return;
-			}
-	    }
-	}
+                    if(P == 0 || W == 1)
+                        r[Rn] = off;
+                    return;
+                }
+            }
+        }
     }
 
     //LDREXB/STREXB/LDREXH/STREXH/LDREX/STREX (ARM11)
-    if (((opcode >> 23) & 0x1F) == 3 && 
-	((opcode >>  4) & 0xFF) == 0xF9) {
+    if (((opcode >> 23) & 0x1F) == 3 &&
+            ((opcode >>  4) & 0xFF) == 0xF9) {
 
-	if((opcode >> 20) & 1) {
-	    if((opcode & 0xF) == 0xF) {
-		switch((opcode >> 21) & 7) {
-		case 4:
-		    if (!CondCheck32(opcode))
-			return;
+        if((opcode >> 20) & 1) {
+            if((opcode & 0xF) == 0xF) {
+                switch((opcode >> 21) & 7) {
+                case 4:
+                    if (!CondCheck32(opcode))
+                        return;
 
-		    r[Rd] = mem_Read32(r[Rn]);
-		    return;
-		case 5:
-		    if (!CondCheck32(opcode))
-			return;
+                    r[Rd] = mem_Read32(r[Rn]);
+                    return;
+                case 5:
+                    if (!CondCheck32(opcode))
+                        return;
 
-		    if(Rn % 2) {
-			ERROR("invalid insn, Rn must be even.\n");
-			exit(1);
-		    }
+                    if(Rn % 2) {
+                        ERROR("invalid insn, Rn must be even.\n");
+                        exit(1);
+                    }
 
-		    r[Rd]   = mem_Read32(r[Rn]);
-		    r[Rd+1] = mem_Read32(r[Rn]+4);
-		    return;
-		case 6:
-		    if (!CondCheck32(opcode))
-			return;
+                    r[Rd]   = mem_Read32(r[Rn]);
+                    r[Rd+1] = mem_Read32(r[Rn]+4);
+                    return;
+                case 6:
+                    if (!CondCheck32(opcode))
+                        return;
 
-		    r[Rd] = mem_Read8(r[Rn]);
-		    return;
-		case 7:
-		    if (!CondCheck32(opcode))
-			return;
+                    r[Rd] = mem_Read8(r[Rn]);
+                    return;
+                case 7:
+                    if (!CondCheck32(opcode))
+                        return;
 
-		    r[Rd] = mem_Read16(r[Rn]);
-		    return;
-		}
-	    }
-	}
-	else {
-	    switch((opcode >> 21) & 7) {
-	    case 4:
-		if (!CondCheck32(opcode))
-		    return;
+                    r[Rd] = mem_Read16(r[Rn]);
+                    return;
+                }
+            }
+        } else {
+            switch((opcode >> 21) & 7) {
+            case 4:
+                if (!CondCheck32(opcode))
+                    return;
 
-		r[Rd] = 0;
-		mem_Write32(r[Rn], r[Rm]);
-		return;
-	    case 5:
-		if (!CondCheck32(opcode))
-		    return;
+                r[Rd] = 0;
+                mem_Write32(r[Rn], r[Rm]);
+                return;
+            case 5:
+                if (!CondCheck32(opcode))
+                    return;
 
-		if(Rn % 2) {
-		    ERROR("invalid insn, Rn must be even.\n");
-		    exit(1);
-		}
+                if(Rn % 2) {
+                    ERROR("invalid insn, Rn must be even.\n");
+                    exit(1);
+                }
 
-		r[Rd] = 0;
-		mem_Write32(r[Rn], r[Rm]);
-		mem_Write32(r[Rn]+4, r[Rm+1]);
-		return;
-	    case 6:
-		if (!CondCheck32(opcode))
-		    return;
+                r[Rd] = 0;
+                mem_Write32(r[Rn], r[Rm]);
+                mem_Write32(r[Rn]+4, r[Rm+1]);
+                return;
+            case 6:
+                if (!CondCheck32(opcode))
+                    return;
 
-		r[Rd] = 0;
-		mem_Write8(r[Rn], r[Rm]);
-		return;
-	    case 7:
-		if (!CondCheck32(opcode))
-		    return;
+                r[Rd] = 0;
+                mem_Write8(r[Rn], r[Rm]);
+                return;
+            case 7:
+                if (!CondCheck32(opcode))
+                    return;
 
-		r[Rd] = 0;
-		mem_Write16(r[Rn], r[Rm]);
-		return;
-	    }
-	}
+                r[Rd] = 0;
+                mem_Write16(r[Rn], r[Rm]);
+                return;
+            }
+        }
     }
     //CLREX (ARM11)
     if(opcode == 0xF57FF01F) {
-	return;
+        return;
     }
     //NOP (ARM11), XXX: verify
     if(((opcode << 4) >> 12) == 0x320F0) {
-	return;
+        return;
     }
 
     switch ((opcode >> 26) & 0x3) {
     case 0: {
-	switch ((opcode >> 21) & 0xF) {
-	case 0: {// AND
-	    if (!CondCheck32(opcode))
-		return;
-
-	    if (I)
-		r[Rd] = r[Rn] & ROR(Imm, amt);
-	    else
-		r[Rd] = r[Rn] & Shift(opcode, r[Rm]);
-
-	    if (S) {
-		cpsr.z = r[Rd] == 0;
-		cpsr.n = r[Rd] >> 31;
-	    }
-
-	    return;
-	}
-
-	case 1: {// EOR
-	    if (!CondCheck32(opcode))
-		return;
-
-	    if (I)
-		r[Rd] = r[Rn] ^ ROR(Imm, amt);
-	    else
-		r[Rd] = r[Rn] ^ Shift(opcode, r[Rm]);
-
-	    if (S) {
-		cpsr.z = r[Rd] == 0;
-		cpsr.n = r[Rd] >> 31;
-	    }
-
-	    return;
-	}
-
-	case 2: {// SUB
-	    if (!CondCheck32(opcode))
-		return;
-
-	    if (I)
-		r[Rd] = r[Rn] - ROR(Imm, amt);
-	    else
-		r[Rd] = r[Rn] - Shift(opcode, r[Rm]);
-
-	    if (S) {
-		cpsr.c = (I) ? (r[Rn] >= ROR(Imm, amt)) : (r[Rn] < r[Rd]);
-		cpsr.v = (I) ? ((r[Rn] >> 31) & ~(r[Rd] >> 31)) : ((r[Rn] >> 31) & ~(r[Rd] >> 31));
-		cpsr.z = r[Rd] == 0;
-		cpsr.n = r[Rd] >> 31;
-	    }
-
-	    return;
-	}
-
-	case 3: {// RSB
-	    if (!CondCheck32(opcode))
-		return;
-
-	    if (I)
-		r[Rd] = ROR(Imm, amt) - r[Rn];
-	    else
-		r[Rd] = Shift(opcode, r[Rm]) - r[Rn];
-
-	    if (S) {
-		cpsr.c = (I) ? (r[Rn] > Imm) : (r[Rn] > r[Rm]);
-		cpsr.v = (I) ? ((Imm >> 31) & ~((Imm - r[Rn]) >> 31)) : ((Imm >> 31) & ~((r[Rm] - r[Rn]) >> 31));
-		cpsr.z = r[Rd] == 0;
-		cpsr.n = r[Rd] >> 31;
-	    }
-
-	    return;
-	}
-
-	case 4: {// ADD
-	    if (!CondCheck32(opcode))
-		return;
-
-	    if (I)
-		r[Rd]  = r[Rn] + ROR(Imm, amt);
-	    else
-		r[Rd] = r[Rn] + Shift(opcode, r[Rm]);
-
-	    if (Rn == 15)
-		r[Rd] += 4;
-
-	    if (S) {
-		cpsr.c = r[Rd] < r[Rn];
-		cpsr.v = (r[Rn] >> 31) & ~(r[Rd] >> 31);
-		cpsr.z = r[Rd] == 0;
-		cpsr.n = r[Rd] >> 31;
-	    }
-
-	    return;
-	}
-
-	case 5: {// ADC
-	    if (!CondCheck32(opcode))
-		return;
-
-	    if (I)
-		r[Rd] = r[Rn] + ROR(Imm, amt) + cpsr.c;
-	    else
-		r[Rd] = r[Rn] + Shift(opcode, r[Rm]) + cpsr.c;
-
-	    if (S) {
-		cpsr.z = r[Rd] == 0;
-		cpsr.n = r[Rd] >> 31;
-	    }
-
-	    return;
-	}
-
-	case 6: {// SBC
-	    if (!CondCheck32(opcode))
-		return;
-
-	    if (I)
-		r[Rd] = r[Rn] - ROR(Imm, amt) - !cpsr.c;
-	    else
-		r[Rd] = r[Rn] - Shift(opcode, r[Rm]) - !cpsr.c;
-
-	    if (S) {
-		cpsr.c = r[Rd] > r[Rn];
-		cpsr.v = (r[Rn] >> 31) & ~(r[Rd] >> 31);
-		cpsr.z = r[Rd] == 0;
-		cpsr.n = r[Rd] >> 31;
-	    }
-
-	    return;
-	}
-
-	case 7: {// RSC
-	    if (!CondCheck32(opcode))
-		return;
-
-	    if (I)
-		r[Rd] = ROR(Imm, amt) - r[Rn] - !cpsr.c;
-	    else
-		r[Rd] = Shift(opcode, r[Rm]) - r[Rn] - !cpsr.c;
-
-	    if (S) {
-		cpsr.c = (I) ? (r[Rd] > Imm) : (r[Rd] > r[Rm]);
-		cpsr.v = (I) ? ((r[Rm] >> 31) & ~(r[Rd] >> 31)) : ((r[Rn] >> 31) & ~(r[Rd] >> 31));
-		cpsr.z = r[Rd] == 0;
-		cpsr.n = r[Rd] >> 31;
-	    }
-
-	    return;
-	}
-
-	case 8: {// TST/MRS
-	    if (S) {
-		// XXX: Cond??!?!
-
-		u32 result;
-
-		if (!I) {
-		    result = r[Rn] & Shift(opcode, r[Rm]);
-		} else {
-		    result = r[Rn] & ROR(Imm, amt);
-		}
-
-		cpsr.z = result == 0;
-		cpsr.n = result >> 31;
-	    } else {
-		r[Rd] = cpsr.value;
-	    }
-
-	    return;
-	}
-
-	case 9: {// TEQ/MSR
-	    if (S) {
-		// XXX: Cond?!?!?
-
-		u32 result;
-
-		if (!I) {
-		    result = r[Rn] ^ Shift(opcode, r[Rm]);
-		} else {
-		    result = r[Rn] ^ ROR(Imm, amt);
-		}
-
-		cpsr.z = result == 0;
-		cpsr.n = result >> 31;
-	    } else {
-		if (I) {
-		    cpsr.value = r[Rm];
-		} else {
-		    cpsr.value = Imm;
-		}
-	    }
-
-	    return;
-	}
-
-	case 10: {// CMP/MRS2
-	    if (S) {
-		// XXX: Cond?!?!?
-
-		u32 value;
-
-		if (I) {
-		    value = ROR(Imm, amt);
-		} else {
-		    value = r[Rm];
-		}
-
-		if (CondCheck32(opcode))
-		    Substract(r[Rn], value);
-	    } else {
-		// XXX: MRS2 not implemented??
-	    }
-
-	    return;
-	}
-
-	case 11: {// CMN/MSR2
-	    if (S) {
-		u32 value;
-
-		if (I) {
-		    value = ROR(Imm, amt);
-		} else {
-		    value = r[Rm];
-		}
-
-		if (CondCheck32(opcode))
-		    Addition(r[Rn], value);
-	    } else {
-		// XXX: MRS2 not implemented??
-	    }
-
-	    return;
-	}
-
-	case 12: {// ORR
-	    if (!CondCheck32(opcode))
-		return;
-
-	    if (I)
-		r[Rd] = r[Rn] | ROR(Imm, amt);
-	    else 
-		r[Rd] = r[Rn] | Shift(opcode, r[Rm]);
-
-	    if (S) {
-		cpsr.z = r[Rd] == 0;
-		cpsr.n = r[Rd] >> 31;
-	    }
-
-	    return;
-	}
-
-	case 13: {// MOV
-	    if (!CondCheck32(opcode))
-		return;
-
-	    if (I)
-		r[Rd] = ROR(Imm, amt);
-	    else
-		r[Rd] = (Rm == 15) ? (*pc + sizeof(opcode)) : Shift(opcode, r[Rm]);
-
-	    if (S) {
-		cpsr.z = r[Rd] == 0;
-		cpsr.n = r[Rd] >> 31;
-	    }
-
-	    return;
-	}
-
-	case 14: {// BIC
-	    if (!CondCheck32(opcode))
-		return;
-
-	    if (I)
-		r[Rd] = r[Rn] & ~(ROR(Imm, amt));
-	    else
-		r[Rd] = r[Rd] & ~Shift(opcode, r[Rm]);
-
-	    if (S) {
-		cpsr.z = r[Rd] == 0;
-		cpsr.n = r[Rd] >> 31;
-	    }
-
-	    return;
-	}
-
-	case 15: {// MVN
-	    if (!CondCheck32(opcode))
-		return;
-
-	    if (I)
-		r[Rd] = ~ROR(Imm, amt);
-	    else
-		r[Rd] = ~Shift(opcode, r[Rm]);
-
-	    if (S) {
-		cpsr.z = r[Rd] == 0;
-		cpsr.n = r[Rd] >> 31;
-	    }
-
-	    return;
-	}
-	}
+        switch ((opcode >> 21) & 0xF) {
+        case 0: {// AND
+            if (!CondCheck32(opcode))
+                return;
+
+            if (I)
+                r[Rd] = r[Rn] & ROR(Imm, amt);
+            else
+                r[Rd] = r[Rn] & Shift(opcode, r[Rm]);
+
+            if (S) {
+                cpsr.z = r[Rd] == 0;
+                cpsr.n = r[Rd] >> 31;
+            }
+
+            return;
+        }
+
+        case 1: {// EOR
+            if (!CondCheck32(opcode))
+                return;
+
+            if (I)
+                r[Rd] = r[Rn] ^ ROR(Imm, amt);
+            else
+                r[Rd] = r[Rn] ^ Shift(opcode, r[Rm]);
+
+            if (S) {
+                cpsr.z = r[Rd] == 0;
+                cpsr.n = r[Rd] >> 31;
+            }
+
+            return;
+        }
+
+        case 2: {// SUB
+            if (!CondCheck32(opcode))
+                return;
+
+            if (I)
+                r[Rd] = r[Rn] - ROR(Imm, amt);
+            else
+                r[Rd] = r[Rn] - Shift(opcode, r[Rm]);
+
+            if (S) {
+                cpsr.c = (I) ? (r[Rn] >= ROR(Imm, amt)) : (r[Rn] < r[Rd]);
+                cpsr.v = (I) ? ((r[Rn] >> 31) & ~(r[Rd] >> 31)) : ((r[Rn] >> 31) & ~(r[Rd] >> 31));
+                cpsr.z = r[Rd] == 0;
+                cpsr.n = r[Rd] >> 31;
+            }
+
+            return;
+        }
+
+        case 3: {// RSB
+            if (!CondCheck32(opcode))
+                return;
+
+            if (I)
+                r[Rd] = ROR(Imm, amt) - r[Rn];
+            else
+                r[Rd] = Shift(opcode, r[Rm]) - r[Rn];
+
+            if (S) {
+                cpsr.c = (I) ? (r[Rn] > Imm) : (r[Rn] > r[Rm]);
+                cpsr.v = (I) ? ((Imm >> 31) & ~((Imm - r[Rn]) >> 31)) : ((Imm >> 31) & ~((r[Rm] - r[Rn]) >> 31));
+                cpsr.z = r[Rd] == 0;
+                cpsr.n = r[Rd] >> 31;
+            }
+
+            return;
+        }
+
+        case 4: {// ADD
+            if (!CondCheck32(opcode))
+                return;
+
+            if (I)
+                r[Rd]  = r[Rn] + ROR(Imm, amt);
+            else
+                r[Rd] = r[Rn] + Shift(opcode, r[Rm]);
+
+            if (Rn == 15)
+                r[Rd] += 4;
+
+            if (S) {
+                cpsr.c = r[Rd] < r[Rn];
+                cpsr.v = (r[Rn] >> 31) & ~(r[Rd] >> 31);
+                cpsr.z = r[Rd] == 0;
+                cpsr.n = r[Rd] >> 31;
+            }
+
+            return;
+        }
+
+        case 5: {// ADC
+            if (!CondCheck32(opcode))
+                return;
+
+            if (I)
+                r[Rd] = r[Rn] + ROR(Imm, amt) + cpsr.c;
+            else
+                r[Rd] = r[Rn] + Shift(opcode, r[Rm]) + cpsr.c;
+
+            if (S) {
+                cpsr.z = r[Rd] == 0;
+                cpsr.n = r[Rd] >> 31;
+            }
+
+            return;
+        }
+
+        case 6: {// SBC
+            if (!CondCheck32(opcode))
+                return;
+
+            if (I)
+                r[Rd] = r[Rn] - ROR(Imm, amt) - !cpsr.c;
+            else
+                r[Rd] = r[Rn] - Shift(opcode, r[Rm]) - !cpsr.c;
+
+            if (S) {
+                cpsr.c = r[Rd] > r[Rn];
+                cpsr.v = (r[Rn] >> 31) & ~(r[Rd] >> 31);
+                cpsr.z = r[Rd] == 0;
+                cpsr.n = r[Rd] >> 31;
+            }
+
+            return;
+        }
+
+        case 7: {// RSC
+            if (!CondCheck32(opcode))
+                return;
+
+            if (I)
+                r[Rd] = ROR(Imm, amt) - r[Rn] - !cpsr.c;
+            else
+                r[Rd] = Shift(opcode, r[Rm]) - r[Rn] - !cpsr.c;
+
+            if (S) {
+                cpsr.c = (I) ? (r[Rd] > Imm) : (r[Rd] > r[Rm]);
+                cpsr.v = (I) ? ((r[Rm] >> 31) & ~(r[Rd] >> 31)) : ((r[Rn] >> 31) & ~(r[Rd] >> 31));
+                cpsr.z = r[Rd] == 0;
+                cpsr.n = r[Rd] >> 31;
+            }
+
+            return;
+        }
+
+        case 8: {// TST/MRS
+            if (S) {
+                // XXX: Cond??!?!
+
+                u32 result;
+
+                if (!I) {
+                    result = r[Rn] & Shift(opcode, r[Rm]);
+                } else {
+                    result = r[Rn] & ROR(Imm, amt);
+                }
+
+                cpsr.z = result == 0;
+                cpsr.n = result >> 31;
+            } else {
+                r[Rd] = cpsr.value;
+            }
+
+            return;
+        }
+
+        case 9: {// TEQ/MSR
+            if (S) {
+                // XXX: Cond?!?!?
+
+                u32 result;
+
+                if (!I) {
+                    result = r[Rn] ^ Shift(opcode, r[Rm]);
+                } else {
+                    result = r[Rn] ^ ROR(Imm, amt);
+                }
+
+                cpsr.z = result == 0;
+                cpsr.n = result >> 31;
+            } else {
+                if (I) {
+                    cpsr.value = r[Rm];
+                } else {
+                    cpsr.value = Imm;
+                }
+            }
+
+            return;
+        }
+
+        case 10: {// CMP/MRS2
+            if (S) {
+                // XXX: Cond?!?!?
+
+                u32 value;
+
+                if (I) {
+                    value = ROR(Imm, amt);
+                } else {
+                    value = r[Rm];
+                }
+
+                if (CondCheck32(opcode))
+                    Substract(r[Rn], value);
+            } else {
+                // XXX: MRS2 not implemented??
+            }
+
+            return;
+        }
+
+        case 11: {// CMN/MSR2
+            if (S) {
+                u32 value;
+
+                if (I) {
+                    value = ROR(Imm, amt);
+                } else {
+                    value = r[Rm];
+                }
+
+                if (CondCheck32(opcode))
+                    Addition(r[Rn], value);
+            } else {
+                // XXX: MRS2 not implemented??
+            }
+
+            return;
+        }
+
+        case 12: {// ORR
+            if (!CondCheck32(opcode))
+                return;
+
+            if (I)
+                r[Rd] = r[Rn] | ROR(Imm, amt);
+            else
+                r[Rd] = r[Rn] | Shift(opcode, r[Rm]);
+
+            if (S) {
+                cpsr.z = r[Rd] == 0;
+                cpsr.n = r[Rd] >> 31;
+            }
+
+            return;
+        }
+
+        case 13: {// MOV
+            if (!CondCheck32(opcode))
+                return;
+
+            if (I)
+                r[Rd] = ROR(Imm, amt);
+            else
+                r[Rd] = (Rm == 15) ? (*pc + sizeof(opcode)) : Shift(opcode, r[Rm]);
+
+            if (S) {
+                cpsr.z = r[Rd] == 0;
+                cpsr.n = r[Rd] >> 31;
+            }
+
+            return;
+        }
+
+        case 14: {// BIC
+            if (!CondCheck32(opcode))
+                return;
+
+            if (I)
+                r[Rd] = r[Rn] & ~(ROR(Imm, amt));
+            else
+                r[Rd] = r[Rd] & ~Shift(opcode, r[Rm]);
+
+            if (S) {
+                cpsr.z = r[Rd] == 0;
+                cpsr.n = r[Rd] >> 31;
+            }
+
+            return;
+        }
+
+        case 15: {// MVN
+            if (!CondCheck32(opcode))
+                return;
+
+            if (I)
+                r[Rd] = ~ROR(Imm, amt);
+            else
+                r[Rd] = ~Shift(opcode, r[Rm]);
+
+            if (S) {
+                cpsr.z = r[Rd] == 0;
+                cpsr.n = r[Rd] >> 31;
+            }
+
+            return;
+        }
+        }
     }
 
     case 1: {// LDR/STR
-	u32  addr, value, wb;
+        u32  addr, value, wb;
 
-	Imm = opcode & 0xFFF;
+        Imm = opcode & 0xFFF;
 
-	if (L && Rn == 15) {
-	    addr  = *pc + Imm + sizeof(opcode);
-	    value = mem_Read32(addr);
+        if (L && Rn == 15) {
+            addr  = *pc + Imm + sizeof(opcode);
+            value = mem_Read32(addr);
 
-	    if (CondCheck32(opcode))
-		r[Rd] = value;
+            if (CondCheck32(opcode))
+                r[Rd] = value;
 
-	    return;
-	}
+            return;
+        }
 
-	if (I) {
-	    value = Shift(opcode, r[Rm]);
-	} else {
-	    value = Imm;
-	}
+        if (I) {
+            value = Shift(opcode, r[Rm]);
+        } else {
+            value = Imm;
+        }
 
-	if (!CondCheck32(opcode))
-	    return;
+        if (!CondCheck32(opcode))
+            return;
 
-	if (U) wb = r[Rn] + value;
-	else   wb = r[Rn] - value;
+        if (U) wb = r[Rn] + value;
+        else   wb = r[Rn] - value;
 
-	addr = (P) ? wb : r[Rn];
+        addr = (P) ? wb : r[Rn];
 
-	if (L) {
-	    if (B)
-		r[Rd] = mem_Read8 (addr);
-	    else
-		r[Rd] = mem_Read32(addr);
-	} else {
-	    value = r[Rd];
-	    if (Rd == 15)
-		value += 8;
+        if (L) {
+            if (B)
+                r[Rd] = mem_Read8 (addr);
+            else
+                r[Rd] = mem_Read32(addr);
+        } else {
+            value = r[Rd];
+            if (Rd == 15)
+                value += 8;
 
-	    if (B)
-		mem_Write8 (addr, value);
-	    else
-		mem_Write32(addr, value);
-	}
+            if (B)
+                mem_Write8 (addr, value);
+            else
+                mem_Write32(addr, value);
+        }
 
-	if (W || !P) r[Rn] = wb;
-	return;
+        if (W || !P) r[Rn] = wb;
+        return;
     }
 
     default:
-	break;
+        break;
     }
 
     switch ((opcode >> 25) & 7) {
     case 4: {// LDM/STM
-	// XXX: Conditions?!?!?!
-	u32  start = r[Rn];
+        // XXX: Conditions?!?!?!
+        u32  start = r[Rn];
 
-	if (B) {
-	    if (opcode & (1 << 15))
-		cpsr.value = spsr;
-	}
+        if (B) {
+            if (opcode & (1 << 15))
+                cpsr.value = spsr;
+        }
 
-	if (L) {
-		s32 i;
-	    for (i = 0; i < 16; i++) {
-		if ((opcode >> i) & 1) {
-		    if (P)  start += (U) ? sizeof(u32) : -sizeof(u32);
-		    r[i] = mem_Read32(start);
-		    if (!P) start += (U) ? sizeof(u32) : -sizeof(u32);
-		}
-	    }
-	} else {
-	    s32 i;
-	    for (i = 15; i >= 0; i--) {
-		if ((opcode >> i) & 1) {
-		    if (P)  start += (U) ? sizeof(u32) : -sizeof(u32);
-		    mem_Write32(start, r[i]);
-		    if (!P) start += (U) ? sizeof(u32) : -sizeof(u32);
-		}
-	    }
-	}
+        if (L) {
+            s32 i;
+            for (i = 0; i < 16; i++) {
+                if ((opcode >> i) & 1) {
+                    if (P)  start += (U) ? sizeof(u32) : -sizeof(u32);
+                    r[i] = mem_Read32(start);
+                    if (!P) start += (U) ? sizeof(u32) : -sizeof(u32);
+                }
+            }
+        } else {
+            s32 i;
+            for (i = 15; i >= 0; i--) {
+                if ((opcode >> i) & 1) {
+                    if (P)  start += (U) ? sizeof(u32) : -sizeof(u32);
+                    mem_Write32(start, r[i]);
+                    if (!P) start += (U) ? sizeof(u32) : -sizeof(u32);
+                }
+            }
+        }
 
-	if (W) r[Rn] = start;
-	return;
+        if (W) r[Rn] = start;
+        return;
     }
 
     case 5: {// B/BL
-	bool link = opcode & (1 << 24);
+        bool link = opcode & (1 << 24);
 
-	Imm = (opcode & 0xFFFFFF) << 2;
-	if (Imm & (1 << 25)) Imm = ~(~Imm & 0xFFFFFF);
-	Imm += sizeof(opcode);
+        Imm = (opcode & 0xFFFFFF) << 2;
+        if (Imm & (1 << 25)) Imm = ~(~Imm & 0xFFFFFF);
+        Imm += sizeof(opcode);
 
-	if (!CondCheck32(opcode))
-	    return;
+        if (!CondCheck32(opcode))
+            return;
 
-	if (link) *lr = *pc;
-	*pc += Imm;
+        if (link) *lr = *pc;
+        *pc += Imm;
 
-	return;
+        return;
     }
 
     case 7: {// MRC/MCR
-	if(((opcode >> 4) & 1) && !((opcode >> 24) & 1)) {
-	    bool L = (opcode >> 20) & 1;
-	    u32  CRm = opcode & 0xF;
-	    u32  CP = (opcode >> 5) & 0x7;
-	    u32  CP_num = (opcode >> 8) & 0xF;
-	    u32  Rd = (opcode >> 12) & 0xF;
-	    u32  CRn = (opcode >> 16) & 0xF;
-	    u32  CPOpc = (opcode >> 21) & 0x7;
+        if(((opcode >> 4) & 1) && !((opcode >> 24) & 1)) {
+            bool L = (opcode >> 20) & 1;
+            u32  CRm = opcode & 0xF;
+            u32  CP = (opcode >> 5) & 0x7;
+            u32  CP_num = (opcode >> 8) & 0xF;
+            u32  Rd = (opcode >> 12) & 0xF;
+            u32  CRn = (opcode >> 16) & 0xF;
+            u32  CPOpc = (opcode >> 21) & 0x7;
 
-	    // TODO: Some floating point instruction
-	    if(CPOpc == 7) {
-		ERROR("Not implemented.\n");
-		PAUSE();
-		return;
-	    }
+            // TODO: Some floating point instruction
+            if(CPOpc == 7) {
+                ERROR("Not implemented.\n");
+                PAUSE();
+                return;
+            }
 
-	    if(L) {
-		if(CRm == 0 && CP == 3 && CP_num == 15 && CRn == 13 && CPOpc == 0) {
-		    // GetThreadCommandBuffer
-		    r[Rd] = 0xFFFF0000;
-		    return;
-		}
-	    }
-	    else {
-	    }
+            if(L) {
+                if(CRm == 0 && CP == 3 && CP_num == 15 && CRn == 13 && CPOpc == 0) {
+                    // GetThreadCommandBuffer
+                    r[Rd] = 0xFFFF0000;
+                    return;
+                }
+            } else {
+            }
 
-	    ERROR("MRC/MCR not implemented.\n");
-	    exit(1);
-	    return;
-	}
+            ERROR("MRC/MCR not implemented.\n");
+            exit(1);
+            return;
+        }
     }
     }
 
@@ -1193,568 +1212,565 @@ static void arm11_Disasm32(u32 a)
     bool L = (opcode >> 20) & 1;
 
     if (((opcode >> 8) & 0xFFFFF) == 0x12FFF) {
-	bool link = (opcode >> 5) & 1;
+        bool link = (opcode >> 5) & 1;
 
-	printf("b%sx", (link) ? "l" : "");
-	CondPrint32(opcode);
-	printf(" r%d\n", Rm);
-	return;
+        printf("b%sx", (link) ? "l" : "");
+        CondPrint32(opcode);
+        printf(" r%d\n", Rm);
+        return;
     }
 
     if ((opcode & 0x0FF00FF0) == 0x06600FF0) { //UQSUB8
-	printf("uqsub8 Rm=r%d, Rn=r%d, Rd=r%d\n", Rm, Rn, Rd);
+        printf("uqsub8 Rm=r%d, Rn=r%d, Rd=r%d\n", Rm, Rn, Rd);
     }
     if ((opcode & 0x0FFF0FF0) == 0x06bf0070) { //sxth
-	printf("sxth Rd=r%d, Rm=r%d\n", Rd, Rm);
+        printf("sxth Rd=r%d, Rm=r%d\n", Rd, Rm);
     }
     if ((opcode & 0x0FFF0FF0) == 0x06af0070) { //sxtb
-	printf("sxtb Rd=r%d, Rm=r%d\n", Rd, Rm);
+        printf("sxtb Rd=r%d, Rm=r%d\n", Rd, Rm);
     }
     if ((opcode & 0x0FFF0FF0) == 0x06ef0070) { //uxtb
-	printf("uxtb Rd=r%d, Rm=r%d\n", Rd, Rm);
+        printf("uxtb Rd=r%d, Rm=r%d\n", Rd, Rm);
     }
     if ((opcode & 0x0FFF0FF0) == 0x06ff0070) { //uxth
-	printf("uxth Rd=r%d, Rm=r%d\n", Rd, Rm);
+        printf("uxth Rd=r%d, Rm=r%d\n", Rd, Rm);
     }
 
     if ((opcode & 0x0FFF0FF0) == 0x06bf0fb0) { //rev16
-	printf("rev16 Rd=r%d, Rm=r%d\n", Rd, Rm);
+        printf("rev16 Rd=r%d, Rm=r%d\n", Rd, Rm);
     }
 
     if ((opcode & 0x0FFF0FF0) == 0x06bf0f30) { //rev
-	printf("rev Rd=r%d, Rm=r%d\n", Rd, Rm);
+        printf("rev Rd=r%d, Rm=r%d\n", Rd, Rm);
     }
 
     if ((opcode >> 24) == 0xEF) {
-	u32 Imm = opcode & 0xFFFFFF;
-	printf("swi 0x%X\n", Imm);
-	return;
+        u32 Imm = opcode & 0xFFFFFF;
+        printf("swi 0x%X\n", Imm);
+        return;
     }
 
     if (((opcode >> 22) & 0x3F) == 0 &&
-	((opcode >>  4) & 0x0F) == 9) {
-	printf("%s", (W) ? "mla" : "mul");
-	CondPrint32(opcode);
-	SuffixPrint(opcode);
+            ((opcode >>  4) & 0x0F) == 9) {
+        printf("%s", (W) ? "mla" : "mul");
+        CondPrint32(opcode);
+        SuffixPrint(opcode);
 
-	printf(" r%d, r%d, r%d", Rn, Rm, Rs);
-	if (W)
-	    printf(", r%d", Rd);
-	printf("\n");
-	return;
+        printf(" r%d, r%d, r%d", Rn, Rm, Rs);
+        if (W)
+            printf(", r%d", Rd);
+        printf("\n");
+        return;
     }
 
     // LDRD/STRD (ARM11)
     if((opcode & 0x0E1000D0) == 0x000000D0) {
-	u32 W = (opcode >> 21) & 1;
-	u32 I = (opcode >> 22) & 1;
-	u32 U = (opcode >> 23) & 1;
-	u32 P = (opcode >> 24) & 1;
-	u32 S = (opcode >> 5) & 1;
+        u32 W = (opcode >> 21) & 1;
+        u32 I = (opcode >> 22) & 1;
+        u32 U = (opcode >> 23) & 1;
+        u32 P = (opcode >> 24) & 1;
+        u32 S = (opcode >> 5) & 1;
 
-	u32 Rn = (opcode >> 16) & 0xF;
-	u32 Rt = (opcode >> 12) & 0xF;
-	u32 immH =  (opcode >> 8) & 0xF;
-	u32 immL = opcode & 0xF;
-	u32 Rm = immL;
+        u32 Rn = (opcode >> 16) & 0xF;
+        u32 Rt = (opcode >> 12) & 0xF;
+        u32 immH =  (opcode >> 8) & 0xF;
+        u32 immL = opcode & 0xF;
+        u32 Rm = immL;
 
-	// LDRD (pc-rel)
-	if(!S && !W && P) {
+        // LDRD (pc-rel)
+        if(!S && !W && P) {
 
-	    if(((opcode >> 16) & 0xF) == 0xF) {
-		u32 imm32 = (immH<<4) | immL;
+            if(((opcode >> 16) & 0xF) == 0xF) {
+                u32 imm32 = (immH<<4) | immL;
 
-		if(imm32 & (1 << 8))
-		    imm32 |= 0xFFFF0000;
+                if(imm32 & (1 << 8))
+                    imm32 |= 0xFFFF0000;
 
-		printf("ldrd");
-		CondPrint32(opcode);
+                printf("ldrd");
+                CondPrint32(opcode);
 
-		printf(" r%d, r%d, [PC, #%s0x%x]\n", Rt, Rt+1, U ? "" : "-", imm32);
-		return;
-	    }
-	}
-	else if(I) {
-	    CondPrint32(opcode);
+                printf(" r%d, r%d, [PC, #%s0x%x]\n", Rt, Rt+1, U ? "" : "-", imm32);
+                return;
+            }
+        } else if(I) {
+            CondPrint32(opcode);
 
-	    u32 imm32 = (immH<<4) | immL;
+            u32 imm32 = (immH<<4) | immL;
 
-	    if(imm32 & (1 << 8))
-		imm32 |= 0xFFFF0000;
+            if(imm32 & (1 << 8))
+                imm32 |= 0xFFFF0000;
 
-	    if(S)
-		printf("strd");
-	    else
-		printf("ldrd");
+            if(S)
+                printf("strd");
+            else
+                printf("ldrd");
 
-	    if(P)
-		printf(" r%d, r%d, [r%d, #%s0x%x]%s\n", Rt, Rt+1, Rn, U ? "" : "-", imm32, W ? "!" : "");
-	    else
-		printf(" r%d, r%d, [r%d], #%s0x%x\n", Rt, Rt+1, Rn, U ? "" : "-", imm32);
-	    return;
-	}
-	else if(!I) {
-	    if(((opcode >> 8) & 0xF) == 0x0) {
-		if(S)
-		    printf("strd");
-		else
-		    printf("ldrd");
+            if(P)
+                printf(" r%d, r%d, [r%d, #%s0x%x]%s\n", Rt, Rt+1, Rn, U ? "" : "-", imm32, W ? "!" : "");
+            else
+                printf(" r%d, r%d, [r%d], #%s0x%x\n", Rt, Rt+1, Rn, U ? "" : "-", imm32);
+            return;
+        } else if(!I) {
+            if(((opcode >> 8) & 0xF) == 0x0) {
+                if(S)
+                    printf("strd");
+                else
+                    printf("ldrd");
 
-		CondPrint32(opcode);
-		if(P)
-		    printf(" r%d, r%d, [r%d, %sr%d]%s\n", Rt, Rt+1, Rn, U ? "" : "-", Rm, W ? "!" : "");
-		else
-		    printf(" r%d, r%d, [r%d], %sr%d\n", Rt, Rt+1, Rn, U ? "" : "-", Rm);
-		return;
+                CondPrint32(opcode);
+                if(P)
+                    printf(" r%d, r%d, [r%d, %sr%d]%s\n", Rt, Rt+1, Rn, U ? "" : "-", Rm, W ? "!" : "");
+                else
+                    printf(" r%d, r%d, [r%d], %sr%d\n", Rt, Rt+1, Rn, U ? "" : "-", Rm);
+                return;
 
-	    }
-	}
+            }
+        }
     }
 
     //LDREXB/STREXB/LDREXH/STREXH/LDREX/STREX (ARM11)
-    if (((opcode >> 23) & 0x1F) == 3 && 
-	((opcode >>  4) & 0xFF) == 0xF9) {
+    if (((opcode >> 23) & 0x1F) == 3 &&
+            ((opcode >>  4) & 0xFF) == 0xF9) {
 
-	if((opcode >> 20) & 1) {
-	    if((opcode & 0xF) == 0xF) {
-		switch((opcode >> 21) & 7) {
-		case 4:
-		    printf("ldrex");
-		    goto found_ldr2;
-		case 5:
-		    printf("ldrexd");
-		    goto found_ldr2;
-		case 6:
-		    printf("ldrexb");
-		    goto found_ldr2;
-		case 7:
-		    printf("ldrexh");
-		    goto found_ldr2;
-		found_ldr2:
-		    CondPrint32(opcode);
-		    printf(" r%d, [r%d] (=[%08x])\n", Rd, Rn, r[Rn]);
-		    return;
-		}
-	    }
-	}
-	else {
-	    switch((opcode >> 21) & 7) {
-	    case 4:
-		printf("strex");
-		goto found_str2;
-	    case 5:
-		printf("strexd");
-		goto found_str2;
-	    case 6:
-		printf("strexb");
-		goto found_str2;
-	    case 7:
-		printf("strexh");
-		goto found_str2;
-	    found_str2:
-		CondPrint32(opcode);
-		printf(" r%d, r%d, r%d\n", Rd, Rm, Rn);
-		return;
-	    }
-	}
+        if((opcode >> 20) & 1) {
+            if((opcode & 0xF) == 0xF) {
+                switch((opcode >> 21) & 7) {
+                case 4:
+                    printf("ldrex");
+                    goto found_ldr2;
+                case 5:
+                    printf("ldrexd");
+                    goto found_ldr2;
+                case 6:
+                    printf("ldrexb");
+                    goto found_ldr2;
+                case 7:
+                    printf("ldrexh");
+                    goto found_ldr2;
+found_ldr2:
+                    CondPrint32(opcode);
+                    printf(" r%d, [r%d] (=[%08x])\n", Rd, Rn, r[Rn]);
+                    return;
+                }
+            }
+        } else {
+            switch((opcode >> 21) & 7) {
+            case 4:
+                printf("strex");
+                goto found_str2;
+            case 5:
+                printf("strexd");
+                goto found_str2;
+            case 6:
+                printf("strexb");
+                goto found_str2;
+            case 7:
+                printf("strexh");
+                goto found_str2;
+found_str2:
+                CondPrint32(opcode);
+                printf(" r%d, r%d, r%d\n", Rd, Rm, Rn);
+                return;
+            }
+        }
     }
     //CLREX (ARM11)
     if(opcode == 0xF57FF01F) {
-	printf("clrex\n");
-	return;
+        printf("clrex\n");
+        return;
     }
     //NOP (ARM11), XXX: verify
     if(((opcode << 4) >> 12) == 0x320F0) {
-	switch(opcode & 0xFF) {
-	case 0:
-	    printf("nop\n");
-	    return;
-	case 1:
-	    printf("yield\n");
-	    return;
-	default:
-	    printf("nop (reserved)\n");
-	    return;
-	}
+        switch(opcode & 0xFF) {
+        case 0:
+            printf("nop\n");
+            return;
+        case 1:
+            printf("yield\n");
+            return;
+        default:
+            printf("nop (reserved)\n");
+            return;
+        }
     }
 
 
     switch ((opcode >> 26) & 0x3) {
     case 0: {
-	switch ((opcode >> 21) & 0xF) {
-	case 0: {// AND
-	    printf("and");
-	    CondPrint32(opcode);
-	    SuffixPrint(opcode);
+        switch ((opcode >> 21) & 0xF) {
+        case 0: {// AND
+            printf("and");
+            CondPrint32(opcode);
+            SuffixPrint(opcode);
 
-	    if (!I) {
-		printf(" r%d, r%d, r%d", Rd, Rn, Rm);
-		ShiftPrint(opcode);
-	    } else
-		printf(" r%d, r%d, #0x%X", Rd, Rn, ROR(Imm, amt));
+            if (!I) {
+                printf(" r%d, r%d, r%d", Rd, Rn, Rm);
+                ShiftPrint(opcode);
+            } else
+                printf(" r%d, r%d, #0x%X", Rd, Rn, ROR(Imm, amt));
 
-	    printf("\n");
-	    return;
-	}
+            printf("\n");
+            return;
+        }
 
-	case 1: {// EOR
-	    printf("eor");
-	    CondPrint32(opcode);
-	    SuffixPrint(opcode);
+        case 1: {// EOR
+            printf("eor");
+            CondPrint32(opcode);
+            SuffixPrint(opcode);
 
-	    if (!I) {
-		printf(" r%d, r%d, r%d", Rd, Rn, Rm);
-		ShiftPrint(opcode);
-	    } else
-		printf(" r%d, r%d, #0x%X", Rd, Rn, ROR(Imm, amt));
+            if (!I) {
+                printf(" r%d, r%d, r%d", Rd, Rn, Rm);
+                ShiftPrint(opcode);
+            } else
+                printf(" r%d, r%d, #0x%X", Rd, Rn, ROR(Imm, amt));
 
-	    printf("\n");
-	    return;
-	}
+            printf("\n");
+            return;
+        }
 
-	case 2: {// SUB
-	    printf("sub");
-	    CondPrint32(opcode);
-	    SuffixPrint(opcode);
+        case 2: {// SUB
+            printf("sub");
+            CondPrint32(opcode);
+            SuffixPrint(opcode);
 
-	    if (!I) {
-		printf(" r%d, r%d, r%d", Rd, Rn, Rm);
-		ShiftPrint(opcode);
-	    } else
-		printf(" r%d, r%d, #0x%X", Rd, Rn, ROR(Imm, amt));
+            if (!I) {
+                printf(" r%d, r%d, r%d", Rd, Rn, Rm);
+                ShiftPrint(opcode);
+            } else
+                printf(" r%d, r%d, #0x%X", Rd, Rn, ROR(Imm, amt));
 
-	    printf("\n");
-	    return;
-	}
+            printf("\n");
+            return;
+        }
 
-	case 3: {// RSB
-	    printf("rsb");
-	    CondPrint32(opcode);
-	    SuffixPrint(opcode);
+        case 3: {// RSB
+            printf("rsb");
+            CondPrint32(opcode);
+            SuffixPrint(opcode);
 
-	    if (!I) {
-		printf(" r%d, r%d, r%d", Rd, Rn, Rm);
-		ShiftPrint(opcode);
-	    } else
-		printf(" r%d, r%d, #0x%X", Rd, Rn, ROR(Imm, amt));
+            if (!I) {
+                printf(" r%d, r%d, r%d", Rd, Rn, Rm);
+                ShiftPrint(opcode);
+            } else
+                printf(" r%d, r%d, #0x%X", Rd, Rn, ROR(Imm, amt));
 
-	    printf("\n");
-	    return;
-	}
+            printf("\n");
+            return;
+        }
 
-	case 4: {// ADD
-	    printf("add");
-	    CondPrint32(opcode);
-	    SuffixPrint(opcode);
+        case 4: {// ADD
+            printf("add");
+            CondPrint32(opcode);
+            SuffixPrint(opcode);
 
-	    if (!I) {
-		printf(" r%d, r%d, r%d", Rd, Rn, Rm);
-		ShiftPrint(opcode);
-	    } else
-		printf(" r%d, r%d, #0x%X", Rd, Rn, ROR(Imm, amt));
+            if (!I) {
+                printf(" r%d, r%d, r%d", Rd, Rn, Rm);
+                ShiftPrint(opcode);
+            } else
+                printf(" r%d, r%d, #0x%X", Rd, Rn, ROR(Imm, amt));
 
-	    printf("\n");
-	    return;
-	}
+            printf("\n");
+            return;
+        }
 
-	case 5: {// ADC
-	    printf("adc");
-	    CondPrint32(opcode);
-	    SuffixPrint(opcode);
+        case 5: {// ADC
+            printf("adc");
+            CondPrint32(opcode);
+            SuffixPrint(opcode);
 
-	    if (!I) {
-		printf(" r%d, r%d, r%d", Rd, Rn, Rm);
-		ShiftPrint(opcode);
-	    } else
-		printf(" r%d, r%d, #0x%X", Rd, Rn, ROR(Imm, amt));
+            if (!I) {
+                printf(" r%d, r%d, r%d", Rd, Rn, Rm);
+                ShiftPrint(opcode);
+            } else
+                printf(" r%d, r%d, #0x%X", Rd, Rn, ROR(Imm, amt));
 
-	    printf("\n");
-	    return;
-	}
+            printf("\n");
+            return;
+        }
 
-	case 6: {// SBC
-	    printf("sbc");
-	    CondPrint32(opcode);
-	    SuffixPrint(opcode);
+        case 6: {// SBC
+            printf("sbc");
+            CondPrint32(opcode);
+            SuffixPrint(opcode);
 
-	    if (!I) {
-		printf(" r%d, r%d, r%d", Rd, Rn, Rm);
-		ShiftPrint(opcode);
-	    } else
-		printf(" r%d, r%d, #0x%X", Rd, Rn, ROR(Imm, amt));
+            if (!I) {
+                printf(" r%d, r%d, r%d", Rd, Rn, Rm);
+                ShiftPrint(opcode);
+            } else
+                printf(" r%d, r%d, #0x%X", Rd, Rn, ROR(Imm, amt));
 
-	    printf("\n");
-	    return;
-	}
+            printf("\n");
+            return;
+        }
 
-	case 7: {// RSC
-	    printf("rsc");
-	    CondPrint32(opcode);
-	    SuffixPrint(opcode);
+        case 7: {// RSC
+            printf("rsc");
+            CondPrint32(opcode);
+            SuffixPrint(opcode);
 
-	    if (!I) {
-		printf(" r%d, r%d, r%d", Rd, Rn, Rm);
-		ShiftPrint(opcode);
-	    } else
-		printf(" r%d, r%d, #0x%X", Rd, Rn, ROR(Imm, amt));
+            if (!I) {
+                printf(" r%d, r%d, r%d", Rd, Rn, Rm);
+                ShiftPrint(opcode);
+            } else
+                printf(" r%d, r%d, #0x%X", Rd, Rn, ROR(Imm, amt));
 
-	    printf("\n");
-	    return;
-	}
+            printf("\n");
+            return;
+        }
 
-	case 8: {// TST/MRS
-	    if (S) {
-		printf("tst");
-		CondPrint32(opcode);
+        case 8: {// TST/MRS
+            if (S) {
+                printf("tst");
+                CondPrint32(opcode);
 
-		if (!I) {
-		    printf(" r%d, r%d\n", Rn, Rm);
-		    ShiftPrint(opcode);
-		} else {
-		    printf(" r%d, #0x%X\n", Rn, ROR(Imm, amt));
-		}
-	    } else {
-		printf("mrs r%d, cpsr\n", Rd);
-	    }
+                if (!I) {
+                    printf(" r%d, r%d\n", Rn, Rm);
+                    ShiftPrint(opcode);
+                } else {
+                    printf(" r%d, #0x%X\n", Rn, ROR(Imm, amt));
+                }
+            } else {
+                printf("mrs r%d, cpsr\n", Rd);
+            }
 
-	    return;
-	}
+            return;
+        }
 
-	case 9: {// TEQ/MSR
-	    if (S) {
-		printf("teq");
-		CondPrint32(opcode);
+        case 9: {// TEQ/MSR
+            if (S) {
+                printf("teq");
+                CondPrint32(opcode);
 
-		if (!I) {
-		    printf(" r%d, r%d\n", Rn, Rm);
-		} else {
-		    printf(" r%d, #0x%X\n", Rn, ROR(Imm, amt));
-		}
-	    } else {
-		if (I) {
-		    printf("msr cpsr, r%d\n", Rm);
-		} else {
-		    printf("msr cpsr, 0x%08X\n", Imm);
-		}
-	    }
+                if (!I) {
+                    printf(" r%d, r%d\n", Rn, Rm);
+                } else {
+                    printf(" r%d, #0x%X\n", Rn, ROR(Imm, amt));
+                }
+            } else {
+                if (I) {
+                    printf("msr cpsr, r%d\n", Rm);
+                } else {
+                    printf("msr cpsr, 0x%08X\n", Imm);
+                }
+            }
 
-	    return;
-	}
+            return;
+        }
 
-	case 10: {// CMP/MRS2
-	    if (S) {
-		u32 value;
+        case 10: {// CMP/MRS2
+            if (S) {
+                u32 value;
 
-		if (I) {
-		    value = ROR(Imm, amt);
-		} else {
-		    value = r[Rm];
-		}
+                if (I) {
+                    value = ROR(Imm, amt);
+                } else {
+                    value = r[Rm];
+                }
 
-		printf("cmp");
-		CondPrint32(opcode);
+                printf("cmp");
+                CondPrint32(opcode);
 
-		if (I) {
-		    printf(" r%d, 0x%08X\n", Rn, value);
-		} else {
-		    printf(" r%d, r%d\n", Rn, Rm);
-		}
-	    } else
-		printf("mrs2...\n");
+                if (I) {
+                    printf(" r%d, 0x%08X\n", Rn, value);
+                } else {
+                    printf(" r%d, r%d\n", Rn, Rm);
+                }
+            } else
+                printf("mrs2...\n");
 
-	    return;
-	}
+            return;
+        }
 
-	case 11: {// CMN/MSR2
-	    if (S) {
-		u32 value;
+        case 11: {// CMN/MSR2
+            if (S) {
+                u32 value;
 
-		if (I) {
-		    value = ROR(Imm, amt);
-		} else {
-		    value = r[Rm];
-		}
+                if (I) {
+                    value = ROR(Imm, amt);
+                } else {
+                    value = r[Rm];
+                }
 
-		printf("cmn");
-		CondPrint32(opcode);
+                printf("cmn");
+                CondPrint32(opcode);
 
-		if (I) {
-		    printf(" r%d, 0x%08X\n", Rn, value);
-		} else {
-		    printf(" r%d, r%d\n", Rn, Rm);
-		}
-	    } else
-		printf("msr2...\n");
+                if (I) {
+                    printf(" r%d, 0x%08X\n", Rn, value);
+                } else {
+                    printf(" r%d, r%d\n", Rn, Rm);
+                }
+            } else
+                printf("msr2...\n");
 
-	    return;
-	}
+            return;
+        }
 
-	case 12: {// ORR
-	    printf("orr");
-	    CondPrint32(opcode);
-	    SuffixPrint(opcode);
+        case 12: {// ORR
+            printf("orr");
+            CondPrint32(opcode);
+            SuffixPrint(opcode);
 
-	    if (!I) {
-		printf(" r%d, r%d, r%d", Rd, Rn, Rm);
-		ShiftPrint(opcode);
-	    } else
-		printf(" r%d, r%d, #0x%X", Rd, Rn, ROR(Imm, amt));
+            if (!I) {
+                printf(" r%d, r%d, r%d", Rd, Rn, Rm);
+                ShiftPrint(opcode);
+            } else
+                printf(" r%d, r%d, #0x%X", Rd, Rn, ROR(Imm, amt));
 
-	    printf("\n");
-	    return;
-	}
+            printf("\n");
+            return;
+        }
 
-	case 13: {// MOV
-	    printf("mov");
-	    CondPrint32(opcode);
-	    SuffixPrint(opcode);
+        case 13: {// MOV
+            printf("mov");
+            CondPrint32(opcode);
+            SuffixPrint(opcode);
 
-	    if (!I) {
-		printf(" r%d, r%d", Rd, Rm);
-		ShiftPrint(opcode);
-	    } else
-		printf(" r%d, #0x%X", Rd, ROR(Imm, amt));
+            if (!I) {
+                printf(" r%d, r%d", Rd, Rm);
+                ShiftPrint(opcode);
+            } else
+                printf(" r%d, #0x%X", Rd, ROR(Imm, amt));
 
-	    printf("\n");
-	    return;
-	}
+            printf("\n");
+            return;
+        }
 
-	case 14: {// BIC
-	    printf("bic");
-	    CondPrint32(opcode);
-	    SuffixPrint(opcode);
+        case 14: {// BIC
+            printf("bic");
+            CondPrint32(opcode);
+            SuffixPrint(opcode);
 
-	    if (!I) {
-		printf(" r%d, r%d, r%d", Rd, Rn, Rm);
-		ShiftPrint(opcode);
-	    } else
-		printf(" r%d, r%d, #0x%X", Rd, Rn, ROR(Imm, amt));
+            if (!I) {
+                printf(" r%d, r%d, r%d", Rd, Rn, Rm);
+                ShiftPrint(opcode);
+            } else
+                printf(" r%d, r%d, #0x%X", Rd, Rn, ROR(Imm, amt));
 
-	    printf("\n");
-	    return;
-	}
+            printf("\n");
+            return;
+        }
 
-	case 15: {// MVN
-	    printf("mvn");
-	    CondPrint32(opcode);
-	    SuffixPrint(opcode);
+        case 15: {// MVN
+            printf("mvn");
+            CondPrint32(opcode);
+            SuffixPrint(opcode);
 
-	    if (!I) {
-		printf(" r%d, r%d", Rd, Rm);
-		ShiftPrint(opcode);
-	    } else
-		printf(" r%d, #0x%X", Rd, ROR(Imm, amt));
+            if (!I) {
+                printf(" r%d, r%d", Rd, Rm);
+                ShiftPrint(opcode);
+            } else
+                printf(" r%d, #0x%X", Rd, ROR(Imm, amt));
 
-	    printf("\n");
-	    return;
-	}
-	}
+            printf("\n");
+            return;
+        }
+        }
     }
 
     case 1: {// LDR/STR
-	u32  addr, value;
+        u32  addr, value;
 
-	printf("%s%s", (L) ? "ldr" : "str", (B) ? "b" : "");
-	CondPrint32(opcode);
-	printf(" r%d,", Rd);
+        printf("%s%s", (L) ? "ldr" : "str", (B) ? "b" : "");
+        CondPrint32(opcode);
+        printf(" r%d,", Rd);
 
-	Imm = opcode & 0xFFF;
+        Imm = opcode & 0xFFF;
 
-	if (L && Rn == 15) {
-	    addr  = a + Imm + sizeof(opcode);
-	    value = mem_Read32(addr);
+        if (L && Rn == 15) {
+            addr  = a + Imm + sizeof(opcode);
+            value = mem_Read32(addr);
 
-	    printf(" =0x%x\n", value);
-	    return;
-	}
+            printf(" =0x%x\n", value);
+            return;
+        }
 
-	printf(" [r%d", Rn);
+        printf(" [r%d", Rn);
 
-	if (I) {
-	    printf(", %sr%d", (U) ? "" : "-", Rm);
-	    ShiftPrint(opcode);
-	} else {
-	    value = Imm;
-	    printf(", #%s0x%X", (U) ? "" : "-", value);
-	}
-	printf("]%s\n", (W) ? "!" : "");
-	return;
+        if (I) {
+            printf(", %sr%d", (U) ? "" : "-", Rm);
+            ShiftPrint(opcode);
+        } else {
+            value = Imm;
+            printf(", #%s0x%X", (U) ? "" : "-", value);
+        }
+        printf("]%s\n", (W) ? "!" : "");
+        return;
     }
 
     default:
-	break;
+        break;
     }
 
     switch ((opcode >> 25) & 7) {
     case 4: {// LDM/STM
-	bool pf    = false;
+        bool pf    = false;
 
-	if (L) {
-	    printf("ldm");
-	    if (Rn == 13)
-		printf("%c%c", (P) ? 'e' : 'f', (U) ? 'd' : 'a');
-	    else
-		printf("%c%c", (U) ? 'i' : 'd', (P) ? 'b' : 'a');
-	} else {
-	    printf("stm");
-	    if (Rn == 13)
-		printf("%c%c", (P) ? 'f' : 'e', (U) ? 'a' : 'd');
-	    else
-		printf("%c%c", (U) ? 'i' : 'd', (P) ? 'b' : 'a');
-	}
+        if (L) {
+            printf("ldm");
+            if (Rn == 13)
+                printf("%c%c", (P) ? 'e' : 'f', (U) ? 'd' : 'a');
+            else
+                printf("%c%c", (U) ? 'i' : 'd', (P) ? 'b' : 'a');
+        } else {
+            printf("stm");
+            if (Rn == 13)
+                printf("%c%c", (P) ? 'f' : 'e', (U) ? 'a' : 'd');
+            else
+                printf("%c%c", (U) ? 'i' : 'd', (P) ? 'b' : 'a');
+        }
 
-	if (Rn == 13)
-	    printf(" sp");
-	else
-	    printf(" r%d", Rn);
+        if (Rn == 13)
+            printf(" sp");
+        else
+            printf(" r%d", Rn);
 
-	if (W) printf("!");
-	printf(", {");
+        if (W) printf("!");
+        printf(", {");
 
-	s32 i;
-	for (i = 0; i < 16; i++) {
-	    if ((opcode >> i) & 1) {
-		if (pf) printf(", ");
-		printf("r%d", i);
+        s32 i;
+        for (i = 0; i < 16; i++) {
+            if ((opcode >> i) & 1) {
+                if (pf) printf(", ");
+                printf("r%d", i);
 
-		pf = true;
-	    }
-	}
+                pf = true;
+            }
+        }
 
-	printf("}");
-	if (B) {
-	    printf("^");
-	}
-	printf("\n");
-	return;
+        printf("}");
+        if (B) {
+            printf("^");
+        }
+        printf("\n");
+        return;
     }
 
     case 5: {// B/BL
-	bool link = opcode & (1 << 24);
+        bool link = opcode & (1 << 24);
 
-	printf("b%s", (link) ? "l" : "");
-	CondPrint32(opcode);
+        printf("b%s", (link) ? "l" : "");
+        CondPrint32(opcode);
 
-	Imm = (opcode & 0xFFFFFF) << 2;
-	if (Imm & (1 << 25)) Imm = ~(~Imm & 0xFFFFFF);
-	Imm += sizeof(opcode);
+        Imm = (opcode & 0xFFFFFF) << 2;
+        if (Imm & (1 << 25)) Imm = ~(~Imm & 0xFFFFFF);
+        Imm += sizeof(opcode);
 
-	printf(" 0x%08X\n", a + Imm);
-	return;
+        printf(" 0x%08X\n", a + Imm);
+        return;
     }
 
     case 7: {// MRC
-	bool L = (opcode >> 20) & 1;
-	u32  CRm = opcode & 0xF;
-	u32  CP = (opcode >> 5) & 0x7;
-	u32  CP_num = (opcode >> 8) & 0xF;
-	u32  Rd = (opcode >> 12) & 0xF;
-	u32  CRn = (opcode >> 16) & 0xF;
-	u32  CPOpc = (opcode >> 21) & 0x7;
+        bool L = (opcode >> 20) & 1;
+        u32  CRm = opcode & 0xF;
+        u32  CP = (opcode >> 5) & 0x7;
+        u32  CP_num = (opcode >> 8) & 0xF;
+        u32  Rd = (opcode >> 12) & 0xF;
+        u32  CRn = (opcode >> 16) & 0xF;
+        u32  CPOpc = (opcode >> 21) & 0x7;
 
-	printf("mcr L=%d, CRm=%x, CP=%x, CP_num=%x, Rd=%x, CRn=%x, CPOpc=%x\n",
-	       L, CRm, CP, CP_num, Rd, CRn, CPOpc);
-	return;
+        printf("mcr L=%d, CRm=%x, CP=%x, CP_num=%x, Rd=%x, CRn=%x, CPOpc=%x\n",
+               L, CRm, CP, CP_num, Rd, CRn, CPOpc);
+        return;
     }
     }
 
@@ -1765,7 +1781,7 @@ void Step16()
 {
     u16 opcode;
 
-	s32 i;
+    s32 i;
 
     /* Read opcode */
     opcode = mem_Read16(*pc);
@@ -1774,575 +1790,575 @@ void Step16()
     *pc += sizeof(opcode);
 
     if ((opcode >> 13) == 0) {
-	u32 Imm = (opcode >> 6) & 0x1F;
-	u32 Rn  = (opcode >> 6) & 7;
-	u32 Rm  = (opcode >> 3) & 7;
-	u32 Rd  = (opcode >> 0) & 7;
+        u32 Imm = (opcode >> 6) & 0x1F;
+        u32 Rn  = (opcode >> 6) & 7;
+        u32 Rm  = (opcode >> 3) & 7;
+        u32 Rd  = (opcode >> 0) & 7;
 
-	switch ((opcode >> 11) & 3) {
-	case 0: {// LSL
-	    if (Imm > 0 && Imm <= 32) {
-		cpsr.c = r[Rd] & (1 << (32 - Imm));
-		r[Rd]  = LSL(r[Rd], Imm);
-	    }
+        switch ((opcode >> 11) & 3) {
+        case 0: {// LSL
+            if (Imm > 0 && Imm <= 32) {
+                cpsr.c = r[Rd] & (1 << (32 - Imm));
+                r[Rd]  = LSL(r[Rd], Imm);
+            }
 
-	    if (Imm > 32) {
-		cpsr.c = 0;
-		r[Rd]  = 0;
-	    }
+            if (Imm > 32) {
+                cpsr.c = 0;
+                r[Rd]  = 0;
+            }
 
-	    cpsr.z = r[Rd] == 0;
-	    cpsr.n = r[Rd] >> 31;
-	    return;
-	}
+            cpsr.z = r[Rd] == 0;
+            cpsr.n = r[Rd] >> 31;
+            return;
+        }
 
-	case 1: {// LSR
-	    if (Imm > 0 && Imm <= 32) {
-		cpsr.c = r[Rd] & (1 << (Imm - 1));
-		r[Rd]  = LSR(r[Rd], Imm);
-	    }
+        case 1: {// LSR
+            if (Imm > 0 && Imm <= 32) {
+                cpsr.c = r[Rd] & (1 << (Imm - 1));
+                r[Rd]  = LSR(r[Rd], Imm);
+            }
 
-	    if (Imm > 32) {
-		cpsr.c = 0;
-		r[Rd]  = 0;
-	    }
+            if (Imm > 32) {
+                cpsr.c = 0;
+                r[Rd]  = 0;
+            }
 
-	    cpsr.z = r[Rd] == 0;
-	    cpsr.n = r[Rd] >> 31;
-	    return;
-	}
+            cpsr.z = r[Rd] == 0;
+            cpsr.n = r[Rd] >> 31;
+            return;
+        }
 
-	case 2: {// ASR
-	    if (Imm > 0 && Imm <= 32) {
-		cpsr.c = r[Rd] & (1 << (Imm - 1));
-		r[Rd]  = ASR(r[Rd], Imm);
-	    }
+        case 2: {// ASR
+            if (Imm > 0 && Imm <= 32) {
+                cpsr.c = r[Rd] & (1 << (Imm - 1));
+                r[Rd]  = ASR(r[Rd], Imm);
+            }
 
-	    if (Imm > 32) {
-		cpsr.c = 0;
-		r[Rd]  = 0;
-	    }
+            if (Imm > 32) {
+                cpsr.c = 0;
+                r[Rd]  = 0;
+            }
 
-	    cpsr.z = r[Rd] == 0;
-	    cpsr.n = r[Rd] >> 31;
-	    return;
-	}
+            cpsr.z = r[Rd] == 0;
+            cpsr.n = r[Rd] >> 31;
+            return;
+        }
 
-	case 3: {// ADD, SUB
-	    if (opcode & 0x400) {
-		Imm &= 7;
+        case 3: {// ADD, SUB
+            if (opcode & 0x400) {
+                Imm &= 7;
 
-		if (opcode & 0x200) {
-		    r[Rd] = Substract(r[Rm], Imm);
-		    return;
-		} else {
-		    r[Rd] = Addition(r[Rm], Imm);
-		}
-	    } else {
-		if (opcode & 0x200) {
-		    r[Rd] = Substract(r[Rm], r[Rn]);
-		    return;
-		} else {
-		    r[Rd] = Addition(r[Rm], r[Rn]);
-		    return;
-		}
-	    }
+                if (opcode & 0x200) {
+                    r[Rd] = Substract(r[Rm], Imm);
+                    return;
+                } else {
+                    r[Rd] = Addition(r[Rm], Imm);
+                }
+            } else {
+                if (opcode & 0x200) {
+                    r[Rd] = Substract(r[Rm], r[Rn]);
+                    return;
+                } else {
+                    r[Rd] = Addition(r[Rm], r[Rn]);
+                    return;
+                }
+            }
 
-	    return;
-	}
-	}
+            return;
+        }
+        }
     }
 
     if ((opcode >> 13) == 1) {
-	u32 Imm = (opcode & 0xFF);
-	u32 Rn  = (opcode >> 8) & 7;
+        u32 Imm = (opcode & 0xFF);
+        u32 Rn  = (opcode >> 8) & 7;
 
-	switch ((opcode >> 11) & 3) {
-	case 0: {// MOV
-	    r[Rn] = Imm;
+        switch ((opcode >> 11) & 3) {
+        case 0: {// MOV
+            r[Rn] = Imm;
 
-	    cpsr.z = r[Rn] == 0;
-	    cpsr.n = r[Rn] >> 31;
-	    return;
-	}
+            cpsr.z = r[Rn] == 0;
+            cpsr.n = r[Rn] >> 31;
+            return;
+        }
 
-	case 1: {// CMP
-	    Substract(r[Rn], Imm);
-	    return;
-	}
+        case 1: {// CMP
+            Substract(r[Rn], Imm);
+            return;
+        }
 
-	case 2: {// ADD
-	    r[Rn] = Addition(r[Rn], Imm);
-	    return;
-	}
+        case 2: {// ADD
+            r[Rn] = Addition(r[Rn], Imm);
+            return;
+        }
 
-	case 3: {// SUB
-	    r[Rn] = Substract(r[Rn], Imm);
-	    return;
-	}
-	}
+        case 3: {// SUB
+            r[Rn] = Substract(r[Rn], Imm);
+            return;
+        }
+        }
     }
 
     if ((opcode >> 10) == 0x10) {
-	u32 Rd = opcode & 7;
-	u32 Rm = (opcode >> 3) & 7;
+        u32 Rd = opcode & 7;
+        u32 Rm = (opcode >> 3) & 7;
 
-	switch ((opcode >> 6) & 0xF) {
-	case 0: {// AND
-	    r[Rd] &= r[Rm];
+        switch ((opcode >> 6) & 0xF) {
+        case 0: {// AND
+            r[Rd] &= r[Rm];
 
-	    cpsr.z = r[Rd] == 0;
-	    cpsr.n = r[Rd] >> 31;
-	    return;
-	}
+            cpsr.z = r[Rd] == 0;
+            cpsr.n = r[Rd] >> 31;
+            return;
+        }
 
-	case 1: {// EOR
-	    r[Rd] ^= r[Rm];
+        case 1: {// EOR
+            r[Rd] ^= r[Rm];
 
-	    cpsr.z = r[Rd] == 0;
-	    cpsr.n = r[Rd] >> 31;
-	    return;
-	}
+            cpsr.z = r[Rd] == 0;
+            cpsr.n = r[Rd] >> 31;
+            return;
+        }
 
-	case 2: {// LSL
-	    u8 shift = r[Rm] & 0xFF;
+        case 2: {// LSL
+            u8 shift = r[Rm] & 0xFF;
 
-	    if (shift > 0 && shift <= 32) {
-		cpsr.c = r[Rd] & (1 << (32 - shift));
-		r[Rd]  = LSL(r[Rd], shift);
-	    }
+            if (shift > 0 && shift <= 32) {
+                cpsr.c = r[Rd] & (1 << (32 - shift));
+                r[Rd]  = LSL(r[Rd], shift);
+            }
 
-	    if (shift > 32) {
-		cpsr.c = 0;
-		r[Rd]  = 0;
-	    }
+            if (shift > 32) {
+                cpsr.c = 0;
+                r[Rd]  = 0;
+            }
 
-	    cpsr.z = r[Rd] == 0;
-	    cpsr.n = r[Rd] >> 31;
-	    return;
-	}
+            cpsr.z = r[Rd] == 0;
+            cpsr.n = r[Rd] >> 31;
+            return;
+        }
 
-	case 3: {// LSR
-	    u8 shift = r[Rm] & 0xFF;
+        case 3: {// LSR
+            u8 shift = r[Rm] & 0xFF;
 
-	    if (shift > 0 && shift <= 32) {
-		cpsr.c = r[Rd] & (1 << (shift - 1));
-		r[Rd]  = LSR(r[Rd], shift);
-	    }
+            if (shift > 0 && shift <= 32) {
+                cpsr.c = r[Rd] & (1 << (shift - 1));
+                r[Rd]  = LSR(r[Rd], shift);
+            }
 
-	    if (shift > 32) {
-		cpsr.c = 0;
-		r[Rd]  = 0;
-	    }
+            if (shift > 32) {
+                cpsr.c = 0;
+                r[Rd]  = 0;
+            }
 
-	    cpsr.z = r[Rd] == 0;
-	    cpsr.n = r[Rd] >> 31;
-	    return;
-	}
+            cpsr.z = r[Rd] == 0;
+            cpsr.n = r[Rd] >> 31;
+            return;
+        }
 
-	case 4: {// ASR
-	    u8 shift = r[Rm] & 0xFF;
+        case 4: {// ASR
+            u8 shift = r[Rm] & 0xFF;
 
-	    if (shift > 0 && shift < 32) {
-		cpsr.c = r[Rd] & (1 << (shift - 1));
-		r[Rd]  = ASR(r[Rd], shift);
-	    }
+            if (shift > 0 && shift < 32) {
+                cpsr.c = r[Rd] & (1 << (shift - 1));
+                r[Rd]  = ASR(r[Rd], shift);
+            }
 
-	    if (shift == 32) {
-		cpsr.c = r[Rd] >> 31;
-		r[Rd]  = 0;
-	    }
+            if (shift == 32) {
+                cpsr.c = r[Rd] >> 31;
+                r[Rd]  = 0;
+            }
 
-	    if (shift > 32) {
-		cpsr.c = 0;
-		r[Rd]  = 0;
-	    }
+            if (shift > 32) {
+                cpsr.c = 0;
+                r[Rd]  = 0;
+            }
 
-	    cpsr.z = r[Rd] == 0;
-	    cpsr.n = r[Rd] >> 31;
-	    return;
-	}
+            cpsr.z = r[Rd] == 0;
+            cpsr.n = r[Rd] >> 31;
+            return;
+        }
 
-	case 5: {// ADC
-	    r[Rd] = Addition(r[Rd], r[Rm]);
-	    r[Rd] = Addition(r[Rd], cpsr.c);
+        case 5: {// ADC
+            r[Rd] = Addition(r[Rd], r[Rm]);
+            r[Rd] = Addition(r[Rd], cpsr.c);
 
-	    cpsr.z = r[Rd] == 0;
-	    cpsr.n = r[Rd] >> 31;
-	    return;
-	}
+            cpsr.z = r[Rd] == 0;
+            cpsr.n = r[Rd] >> 31;
+            return;
+        }
 
-	case 6: {// SBC
-	    r[Rd] = Substract(r[Rd], r[Rm]);
-	    r[Rd] = Substract(r[Rd], !cpsr.c);
+        case 6: {// SBC
+            r[Rd] = Substract(r[Rd], r[Rm]);
+            r[Rd] = Substract(r[Rd], !cpsr.c);
 
-	    cpsr.z = r[Rd] == 0;
-	    cpsr.n = r[Rd] >> 31;
-	    return;
-	}
-	    
-	case 7: {// ROR
-	    u8 shift = r[Rm] & 0xFF;
+            cpsr.z = r[Rd] == 0;
+            cpsr.n = r[Rd] >> 31;
+            return;
+        }
 
-	    while (shift >= 32)
-		shift -= 32;
+        case 7: {// ROR
+            u8 shift = r[Rm] & 0xFF;
 
-	    if (shift) {
-		cpsr.c = r[Rd] & (1 << (shift - 1));
-		r[Rd]  = ROR(r[Rd], shift);
-	    }
+            while (shift >= 32)
+                shift -= 32;
 
-	    cpsr.z = r[Rd] == 0;
-	    cpsr.n = r[Rd] >> 31;
-	    return;
-	}
+            if (shift) {
+                cpsr.c = r[Rd] & (1 << (shift - 1));
+                r[Rd]  = ROR(r[Rd], shift);
+            }
 
-	case 8: {// TST
-	    u32 result = r[Rd] & r[Rm];
+            cpsr.z = r[Rd] == 0;
+            cpsr.n = r[Rd] >> 31;
+            return;
+        }
 
-	    cpsr.z = result == 0;
-	    cpsr.n = result >> 31;
-	    return;
-	}
+        case 8: {// TST
+            u32 result = r[Rd] & r[Rm];
 
-	case 9: {// NEG
-	    r[Rd] = -r[Rm];
+            cpsr.z = result == 0;
+            cpsr.n = result >> 31;
+            return;
+        }
 
-	    cpsr.z = r[Rd] == 0;
-	    cpsr.n = r[Rd] >> 31;
-	    return;
-	}
+        case 9: {// NEG
+            r[Rd] = -r[Rm];
 
-	case 10: {// CMP
-	    Substract(r[Rd], r[Rm]);
-	    return;
-	}
+            cpsr.z = r[Rd] == 0;
+            cpsr.n = r[Rd] >> 31;
+            return;
+        }
 
-	case 11: {// CMN/MVN
-	    if (opcode & 0x100) {
-		r[Rd] = !r[Rm];
+        case 10: {// CMP
+            Substract(r[Rd], r[Rm]);
+            return;
+        }
 
-		cpsr.z = r[Rd] == 0;
-		cpsr.n = r[Rd] >> 31;
-	    } else {
-		Addition(r[Rd], r[Rm]);
-	    }
+        case 11: {// CMN/MVN
+            if (opcode & 0x100) {
+                r[Rd] = !r[Rm];
 
-	    return;
-	}
+                cpsr.z = r[Rd] == 0;
+                cpsr.n = r[Rd] >> 31;
+            } else {
+                Addition(r[Rd], r[Rm]);
+            }
 
-	case 12: {// ORR
-	    r[Rd] |= r[Rm];
+            return;
+        }
 
-	    cpsr.z = r[Rd] == 0;
-	    cpsr.n = r[Rd] >> 31;
-	    return;
-	}
+        case 12: {// ORR
+            r[Rd] |= r[Rm];
 
-	case 13: {// MUL
-	    r[Rd] *= r[Rm];
+            cpsr.z = r[Rd] == 0;
+            cpsr.n = r[Rd] >> 31;
+            return;
+        }
 
-	    cpsr.z = r[Rd] == 0;
-	    cpsr.n = r[Rd] >> 31;
-	    return;
-	}
+        case 13: {// MUL
+            r[Rd] *= r[Rm];
 
-	case 14: {// BIC
-	    r[Rd] &= ~r[Rm];
+            cpsr.z = r[Rd] == 0;
+            cpsr.n = r[Rd] >> 31;
+            return;
+        }
 
-	    cpsr.z = r[Rd] == 0;
-	    cpsr.n = r[Rd] >> 31;
-	    return;
-	}
-	}
+        case 14: {// BIC
+            r[Rd] &= ~r[Rm];
+
+            cpsr.z = r[Rd] == 0;
+            cpsr.n = r[Rd] >> 31;
+            return;
+        }
+        }
     }
 
     if ((opcode >> 7) == 0x8F) {
-	u32 Rm = (opcode >> 3) & 0xF;
+        u32 Rm = (opcode >> 3) & 0xF;
 
-	*lr = *pc | 1;
-	
-	cpsr.t = r[Rm] & 1;
-	*pc    = r[Rm] & ~1;
-	return;
+        *lr = *pc | 1;
+
+        cpsr.t = r[Rm] & 1;
+        *pc    = r[Rm] & ~1;
+        return;
     }
 
     if ((opcode >> 10) == 0x11) {
-	u32 Rd = ((opcode >> 4) & 8) | (opcode & 7);
-	u32 Rm = ((opcode >> 3) & 0xF);
+        u32 Rd = ((opcode >> 4) & 8) | (opcode & 7);
+        u32 Rm = ((opcode >> 3) & 0xF);
 
-	switch ((opcode >> 8) & 3) {
-	case 0: {// ADD
-	    r[Rd] = Addition(r[Rd], r[Rm]);
-	    return;
-	}
+        switch ((opcode >> 8) & 3) {
+        case 0: {// ADD
+            r[Rd] = Addition(r[Rd], r[Rm]);
+            return;
+        }
 
-	case 1: {// CMP
-	    Substract(r[Rd], r[Rm]);
-	    return;
-	}
+        case 1: {// CMP
+            Substract(r[Rd], r[Rm]);
+            return;
+        }
 
-	case 2: {// MOV (NOP)
-	    if (Rd == 8 && Rm == 8) {
-		return;
-	    }
+        case 2: {// MOV (NOP)
+            if (Rd == 8 && Rm == 8) {
+                return;
+            }
 
-	    r[Rd] = r[Rm];
-	    return;
-	}
+            r[Rd] = r[Rm];
+            return;
+        }
 
-	case 3: {// BX
-	    cpsr.t = r[Rm] & 1;
+        case 3: {// BX
+            cpsr.t = r[Rm] & 1;
 
-	    if (Rm == 15)
-		*pc += sizeof(opcode);
-	    else
-		*pc = r[Rm] & ~1;
-	    return;
-	}
-	}
+            if (Rm == 15)
+                *pc += sizeof(opcode);
+            else
+                *pc = r[Rm] & ~1;
+            return;
+        }
+        }
     }
 
     if ((opcode >> 11) == 9) {
-	u32 Rd   = (opcode >> 8) & 7;
-	u32 Imm  = (opcode & 0xFF);
-	u32 addr = *pc + (Imm << 2) + sizeof(opcode);
+        u32 Rd   = (opcode >> 8) & 7;
+        u32 Imm  = (opcode & 0xFF);
+        u32 addr = *pc + (Imm << 2) + sizeof(opcode);
 
-	r[Rd] = mem_Read32(addr);
-	return;
+        r[Rd] = mem_Read32(addr);
+        return;
     }
 
     if ((opcode >> 12) == 5) {
-	u32 Rd = (opcode >> 0) & 7;
-	u32 Rn = (opcode >> 3) & 7;
-	u32 Rm = (opcode >> 6) & 7;
+        u32 Rd = (opcode >> 0) & 7;
+        u32 Rn = (opcode >> 3) & 7;
+        u32 Rm = (opcode >> 6) & 7;
 
-	switch ((opcode >> 9) & 7) {
-	case 0: {// STR
-	    u32 addr  = r[Rn] + r[Rm];
-	    u32 value = r[Rd];
+        switch ((opcode >> 9) & 7) {
+        case 0: {// STR
+            u32 addr  = r[Rn] + r[Rm];
+            u32 value = r[Rd];
 
-	    mem_Write32(addr, value);
-	    return;
-	}
+            mem_Write32(addr, value);
+            return;
+        }
 
-	case 2: {// STRB
-	    u32 addr  = r[Rn] + r[Rm];
-	    u8  value = r[Rd] & 0xFF;
+        case 2: {// STRB
+            u32 addr  = r[Rn] + r[Rm];
+            u8  value = r[Rd] & 0xFF;
 
-	    mem_Write8(addr, value);
-	    return;
-	}
+            mem_Write8(addr, value);
+            return;
+        }
 
-	case 4: {// LDR
-	    u32 addr = r[Rn] + r[Rm];
+        case 4: {// LDR
+            u32 addr = r[Rn] + r[Rm];
 
-	    r[Rd] = mem_Read32(addr);
-	    return;
-	}
+            r[Rd] = mem_Read32(addr);
+            return;
+        }
 
-	case 6: {// LDRB
-	    u32 addr = r[Rn] + r[Rm];
+        case 6: {// LDRB
+            u32 addr = r[Rn] + r[Rm];
 
-	    r[Rd] = mem_Read8(addr);
-	    return;
-	}
-	}
+            r[Rd] = mem_Read8(addr);
+            return;
+        }
+        }
     }
 
     if ((opcode >> 13) == 3) {
-	u32 Rd  = (opcode >> 0) & 7;
-	u32 Rn  = (opcode >> 3) & 7;
-	u32 Imm = (opcode >> 6) & 7;
+        u32 Rd  = (opcode >> 0) & 7;
+        u32 Rn  = (opcode >> 3) & 7;
+        u32 Imm = (opcode >> 6) & 7;
 
-	if (opcode & 0x1000) {
-	    if (opcode & 0x800) {
-		u32 addr = r[Rn] + (Imm << 2);
+        if (opcode & 0x1000) {
+            if (opcode & 0x800) {
+                u32 addr = r[Rn] + (Imm << 2);
 
-		r[Rd] = mem_Read8(addr);
-	    } else {
-		u32 addr  = r[Rn] + (Imm << 2);
-		u8  value = r[Rd] & 0xFF;
+                r[Rd] = mem_Read8(addr);
+            } else {
+                u32 addr  = r[Rn] + (Imm << 2);
+                u8  value = r[Rd] & 0xFF;
 
-		mem_Write8(addr, value);
-	    }
-	} else {
-	    if (opcode & 0x800) {
-		u32 addr = r[Rn] + (Imm << 2);
+                mem_Write8(addr, value);
+            }
+        } else {
+            if (opcode & 0x800) {
+                u32 addr = r[Rn] + (Imm << 2);
 
-		r[Rd] = mem_Read32(addr);
-	    } else {
-		u32 addr  = r[Rn] + (Imm << 2);
-		u32 value = r[Rd];
+                r[Rd] = mem_Read32(addr);
+            } else {
+                u32 addr  = r[Rn] + (Imm << 2);
+                u32 value = r[Rd];
 
-		mem_Write32(addr, value);
-	    }
-	}
-	return;
+                mem_Write32(addr, value);
+            }
+        }
+        return;
     }
 
     if ((opcode >> 12) == 8) {
-	u32 Rd  = (opcode >> 0) & 7;
-	u32 Rn  = (opcode >> 3) & 7;
-	u32 Imm = (opcode >> 6) & 7;
+        u32 Rd  = (opcode >> 0) & 7;
+        u32 Rn  = (opcode >> 3) & 7;
+        u32 Imm = (opcode >> 6) & 7;
 
-	if (opcode & 0x800) {
-	    u32 addr = r[Rn] + (Imm << 1);
+        if (opcode & 0x800) {
+            u32 addr = r[Rn] + (Imm << 1);
 
-	    r[Rd] = mem_Read16(addr);
-	} else {
-	    u32 addr  = r[Rn] + (Imm << 1);
-	    u16 value = r[Rd];
+            r[Rd] = mem_Read16(addr);
+        } else {
+            u32 addr  = r[Rn] + (Imm << 1);
+            u16 value = r[Rd];
 
-	    mem_Write16(addr, value);
-	}
+            mem_Write16(addr, value);
+        }
 
-	return;
+        return;
     }
 
     if ((opcode >> 12) == 9) {
-	u32 Rd  = (opcode >> 8) & 7;
-	u32 Imm = (opcode & 0xFF);
+        u32 Rd  = (opcode >> 8) & 7;
+        u32 Imm = (opcode & 0xFF);
 
-	if (opcode & 0x800) {
-	    u32 addr = *sp + (Imm << 2);
+        if (opcode & 0x800) {
+            u32 addr = *sp + (Imm << 2);
 
-	    r[Rd] = mem_Read32(addr);
-	} else {
-	    u32 addr  = *sp + (Imm << 2);
-	    u32 value = r[Rd];
+            r[Rd] = mem_Read32(addr);
+        } else {
+            u32 addr  = *sp + (Imm << 2);
+            u32 value = r[Rd];
 
-	    mem_Write32(addr, value);
-	}
+            mem_Write32(addr, value);
+        }
 
-	return;
+        return;
     }
 
     if ((opcode >> 12) == 10) {
-	u32 Rd  = (opcode >> 8) & 7;
-	u32 Imm = (opcode & 0xFF);
+        u32 Rd  = (opcode >> 8) & 7;
+        u32 Imm = (opcode & 0xFF);
 
-	if (opcode & 0x800) {
-	    r[Rd] = *sp + (Imm << 2);
-	} else {
-	    r[Rd] = (*pc & ~2) + (Imm << 2);
-	}
+        if (opcode & 0x800) {
+            r[Rd] = *sp + (Imm << 2);
+        } else {
+            r[Rd] = (*pc & ~2) + (Imm << 2);
+        }
 
-	return;
+        return;
     }
 
     if ((opcode >> 12) == 11) {
-	switch ((opcode >> 9) & 7) {
-	case 0: {// ADD/SUB
-	    u32 Imm = (opcode & 0x7F);
+        switch ((opcode >> 9) & 7) {
+        case 0: {// ADD/SUB
+            u32 Imm = (opcode & 0x7F);
 
-	    if (opcode & 0x80) {
-		*sp -= Imm << 2;
-	    } else {
-		*sp += Imm << 2;
-	    }
+            if (opcode & 0x80) {
+                *sp -= Imm << 2;
+            } else {
+                *sp += Imm << 2;
+            }
 
-	    return;
-	}
+            return;
+        }
 
-	case 2: {// PUSH
-	    bool lrf = opcode & 0x100;
+        case 2: {// PUSH
+            bool lrf = opcode & 0x100;
 
-	    if (lrf)
-		Push(*lr);
+            if (lrf)
+                Push(*lr);
 
-	    for (i = 7; i >= 0; i--)
-		if ((opcode >> i) & 1)
-		    Push(r[i]);
-	    return;
-	}
+            for (i = 7; i >= 0; i--)
+                if ((opcode >> i) & 1)
+                    Push(r[i]);
+            return;
+        }
 
-	case 6: {// POP
-	    bool pcf = opcode & 0x100;
+        case 6: {// POP
+            bool pcf = opcode & 0x100;
 
-	    for (i = 0; i < 8; i++) {
-		if ((opcode >> i) & 1) {
-		    r[i] = Pop();
-		}
-	    }
+            for (i = 0; i < 8; i++) {
+                if ((opcode >> i) & 1) {
+                    r[i] = Pop();
+                }
+            }
 
-	    if (pcf) {
-		*pc    = Pop();
-		cpsr.t = *pc & 1;
-	    }
-	    return;
-	}
-	}
+            if (pcf) {
+                *pc    = Pop();
+                cpsr.t = *pc & 1;
+            }
+            return;
+        }
+        }
     }
 
     if ((opcode >> 12) == 12) {
-	u32 Rn = (opcode >> 8) & 7;
+        u32 Rn = (opcode >> 8) & 7;
 
-	if (opcode & 0x800) {
-	    u32 i;
-	    for (i = 0; i < 8; i++) {
-		if ((opcode >> i) & 1) {
-		    r[i]   = mem_Read32(r[Rn]);
-		    r[Rn] += sizeof(u32);
-		}
-	    }
-	    return;
-	} else {
-	    u32 i;
-	    for (i = 0; i < 8; i++) {
-		if ((opcode >> i) & 1) {
-		    mem_Write32(r[Rn], r[i]);
-		    r[Rn] += sizeof(u32);
-		}
-	    }
-	    return;
-	}
+        if (opcode & 0x800) {
+            u32 i;
+            for (i = 0; i < 8; i++) {
+                if ((opcode >> i) & 1) {
+                    r[i]   = mem_Read32(r[Rn]);
+                    r[Rn] += sizeof(u32);
+                }
+            }
+            return;
+        } else {
+            u32 i;
+            for (i = 0; i < 8; i++) {
+                if ((opcode >> i) & 1) {
+                    mem_Write32(r[Rn], r[i]);
+                    r[Rn] += sizeof(u32);
+                }
+            }
+            return;
+        }
     }
 
     if ((opcode >> 12) == 13) {
-	u32 Imm = (opcode & 0xFF) << 1;
+        u32 Imm = (opcode & 0xFF) << 1;
 
-	if (Imm & 0x100)
-	    Imm = ~((~Imm) & 0xFF);
+        if (Imm & 0x100)
+            Imm = ~((~Imm) & 0xFF);
 
-	Imm += 2;
+        Imm += 2;
 
-	if (CondCheck16(opcode))
-	    *pc += Imm;
-	return;
+        if (CondCheck16(opcode))
+            *pc += Imm;
+        return;
     }
 
     if ((opcode >> 11) == 28) {
-	u32 Imm = (opcode & 0x7FF) << 1;
+        u32 Imm = (opcode & 0x7FF) << 1;
 
-	if (Imm & (1 << 11)) {
-	    Imm  = (~Imm) & 0xFFE;
-	    *pc -= Imm;
-	} else
-	    *pc += Imm + 2;
-	return;
+        if (Imm & (1 << 11)) {
+            Imm  = (~Imm) & 0xFFE;
+            *pc -= Imm;
+        } else
+            *pc += Imm + 2;
+        return;
     }
 
     if ((opcode >> 11) == 0x1E) {
-	u32  opc = mem_Read16(*pc);
+        u32  opc = mem_Read16(*pc);
 
-	u32  Imm = ((opcode & 0x7FF) << 12) | ((opc & 0x7FF) << 1);
-	bool blx = ((opcode >> 11) & 3) == 3;
+        u32  Imm = ((opcode & 0x7FF) << 12) | ((opc & 0x7FF) << 1);
+        bool blx = ((opcode >> 11) & 3) == 3;
 
-	*lr  = *pc + sizeof(opcode);
-	*lr |= 1;
+        *lr  = *pc + sizeof(opcode);
+        *lr |= 1;
 
-	if (Imm & (1 << 22)) {
-	    Imm  = (~Imm) & 0x7FFFFE;
-	    *pc -= Imm;
-	} else
-	    *pc += Imm + 2;
+        if (Imm & (1 << 22)) {
+            Imm  = (~Imm) & 0x7FFFFE;
+            *pc -= Imm;
+        } else
+            *pc += Imm + 2;
 
-	if (blx) {
-	    cpsr.t = 0;
-	}
+        if (blx) {
+            cpsr.t = 0;
+        }
 
-	return;
+        return;
     }
 
     ERROR("unknown opcode (0x%04x)\n", opcode);
@@ -2355,441 +2371,441 @@ void arm11_Disasm16(u32 a)
     opcode = mem_Read16(a);
 
     if ((opcode >> 13) == 0) {
-	u32 Imm = (opcode >> 6) & 0x1F;
-	u32 Rn  = (opcode >> 6) & 7;
-	u32 Rm  = (opcode >> 3) & 7;
-	u32 Rd  = (opcode >> 0) & 7;
+        u32 Imm = (opcode >> 6) & 0x1F;
+        u32 Rn  = (opcode >> 6) & 7;
+        u32 Rm  = (opcode >> 3) & 7;
+        u32 Rd  = (opcode >> 0) & 7;
 
-	switch ((opcode >> 11) & 3) {
-	case 0: {// LSL
-	    printf("lsl r%d, r%d, #0x%02X\n", Rd, Rm, Imm);
-	    return;
-	}
+        switch ((opcode >> 11) & 3) {
+        case 0: {// LSL
+            printf("lsl r%d, r%d, #0x%02X\n", Rd, Rm, Imm);
+            return;
+        }
 
-	case 1: {// LSR
-	    printf("lsr r%d, r%d, #0x%02X\n", Rd, Rm, Imm);
-	    return;
-	}
+        case 1: {// LSR
+            printf("lsr r%d, r%d, #0x%02X\n", Rd, Rm, Imm);
+            return;
+        }
 
-	case 2: {// ASR
-	    printf("asr r%d, r%d, #0x%02X\n", Rd, Rm, Imm);
-	    return;
-	}
+        case 2: {// ASR
+            printf("asr r%d, r%d, #0x%02X\n", Rd, Rm, Imm);
+            return;
+        }
 
-	case 3: {// ADD, SUB
-	    if (opcode & 0x400) {
-		Imm &= 7;
+        case 3: {// ADD, SUB
+            if (opcode & 0x400) {
+                Imm &= 7;
 
-		if (opcode & 0x200) {
-		    printf("sub r%d, r%d, #0x%02X\n", Rd, Rm, Imm);
-		    return;
-		} else {
-		    printf("add r%d, r%d, #0x%02X\n", Rd, Rm, Imm);
-		}
-	    } else {
-		if (opcode & 0x200) {
-		    printf("sub r%d, r%d, r%d\n", Rd, Rm, Rn);
-		    return;
-		} else {
-		    printf("add r%d, r%d, r%d\n", Rd, Rm, Rn);
-		    return;
-		}
-	    }
+                if (opcode & 0x200) {
+                    printf("sub r%d, r%d, #0x%02X\n", Rd, Rm, Imm);
+                    return;
+                } else {
+                    printf("add r%d, r%d, #0x%02X\n", Rd, Rm, Imm);
+                }
+            } else {
+                if (opcode & 0x200) {
+                    printf("sub r%d, r%d, r%d\n", Rd, Rm, Rn);
+                    return;
+                } else {
+                    printf("add r%d, r%d, r%d\n", Rd, Rm, Rn);
+                    return;
+                }
+            }
 
-	    return;
-	}
-	}
+            return;
+        }
+        }
     }
 
     if ((opcode >> 13) == 1) {
-	u32 Imm = (opcode & 0xFF);
-	u32 Rn  = (opcode >> 8) & 7;
+        u32 Imm = (opcode & 0xFF);
+        u32 Rn  = (opcode >> 8) & 7;
 
-	switch ((opcode >> 11) & 3) {
-	case 0: {// MOV
-	    printf("mov r%d, #0x%02X\n", Rn, Imm);
-	    return;
-	}
+        switch ((opcode >> 11) & 3) {
+        case 0: {// MOV
+            printf("mov r%d, #0x%02X\n", Rn, Imm);
+            return;
+        }
 
-	case 1: {// CMP
-	    printf("cmp r%d, #0x%02X\n", Rn, Imm);
-	    return;
-	}
+        case 1: {// CMP
+            printf("cmp r%d, #0x%02X\n", Rn, Imm);
+            return;
+        }
 
-	case 2: {// ADD
-	    printf("add r%d, #0x%02X\n", Rn, Imm);
-	    return;
-	}
+        case 2: {// ADD
+            printf("add r%d, #0x%02X\n", Rn, Imm);
+            return;
+        }
 
-	case 3: {// SUB
-	    printf("sub r%d, #0x%02X\n", Rn, Imm);
-	    return;
-	}
-	}
+        case 3: {// SUB
+            printf("sub r%d, #0x%02X\n", Rn, Imm);
+            return;
+        }
+        }
     }
 
     if ((opcode >> 10) == 0x10) {
-	u32 Rd = opcode & 7;
-	u32 Rm = (opcode >> 3) & 7;
+        u32 Rd = opcode & 7;
+        u32 Rm = (opcode >> 3) & 7;
 
-	switch ((opcode >> 6) & 0xF) {
-	case 0: {// AND
-	    printf("and r%d, r%d\n", Rd, Rm);
-	    return;
-	}
+        switch ((opcode >> 6) & 0xF) {
+        case 0: {// AND
+            printf("and r%d, r%d\n", Rd, Rm);
+            return;
+        }
 
-	case 1: {// EOR
-	    printf("eor r%d, r%d\n", Rd, Rm);
-	    return;
-	}
+        case 1: {// EOR
+            printf("eor r%d, r%d\n", Rd, Rm);
+            return;
+        }
 
-	case 2: {// LSL
-	    printf("lsl r%d, r%d\n", Rd, Rm);
-	    return;
-	}
+        case 2: {// LSL
+            printf("lsl r%d, r%d\n", Rd, Rm);
+            return;
+        }
 
-	case 3: {// LSR
-	    printf("lsr r%d, r%d\n", Rd, Rm);
-	    return;
-	}
+        case 3: {// LSR
+            printf("lsr r%d, r%d\n", Rd, Rm);
+            return;
+        }
 
-	case 4: {// ASR
-	    printf("asr r%d, r%d\n", Rd, Rm);
-	    return;
-	}
+        case 4: {// ASR
+            printf("asr r%d, r%d\n", Rd, Rm);
+            return;
+        }
 
-	case 5: {// ADC
-	    printf("adc r%d, r%d\n", Rd, Rm);
-	    return;
-	}
+        case 5: {// ADC
+            printf("adc r%d, r%d\n", Rd, Rm);
+            return;
+        }
 
-	case 6: {// SBC
-	    printf("sbc r%d, r%d\n", Rd, Rm);
-	    return;
-	}
-	    
-	case 7: {// ROR
-	    printf("ror r%d, r%d\n", Rd, Rm);
-	    return;
-	}
+        case 6: {// SBC
+            printf("sbc r%d, r%d\n", Rd, Rm);
+            return;
+        }
 
-	case 8: {// TST
-	    printf("tst r%d, r%d\n", Rd, Rm);
-	    return;
-	}
+        case 7: {// ROR
+            printf("ror r%d, r%d\n", Rd, Rm);
+            return;
+        }
 
-	case 9: {// NEG
-	    printf("neg r%d, r%d\n", Rd, Rm);
-	    return;
-	}
+        case 8: {// TST
+            printf("tst r%d, r%d\n", Rd, Rm);
+            return;
+        }
 
-	case 10: {// CMP
-	    printf("cmp r%d, r%d\n", Rd, Rm);
-	    return;
-	}
+        case 9: {// NEG
+            printf("neg r%d, r%d\n", Rd, Rm);
+            return;
+        }
 
-	case 11: {// CMN/MVN
-	    if (opcode & 0x100) {
-		printf("mvn r%d, r%d\n", Rd, Rm);
-	    } else {
-		printf("cmn r%d, r%d\n", Rd, Rm);
-	    }
+        case 10: {// CMP
+            printf("cmp r%d, r%d\n", Rd, Rm);
+            return;
+        }
 
-	    return;
-	}
+        case 11: {// CMN/MVN
+            if (opcode & 0x100) {
+                printf("mvn r%d, r%d\n", Rd, Rm);
+            } else {
+                printf("cmn r%d, r%d\n", Rd, Rm);
+            }
 
-	case 12: {// ORR
-	    printf("orr r%d, r%d\n", Rd, Rm);
-	    return;
-	}
+            return;
+        }
 
-	case 13: {// MUL
-	    printf("mul r%d, r%d\n", Rd, Rm);
-	    return;
-	}
+        case 12: {// ORR
+            printf("orr r%d, r%d\n", Rd, Rm);
+            return;
+        }
 
-	case 14: {// BIC
-	    printf("bic r%d, r%d\n", Rd, Rm);
-	    return;
-	}
-	}
+        case 13: {// MUL
+            printf("mul r%d, r%d\n", Rd, Rm);
+            return;
+        }
+
+        case 14: {// BIC
+            printf("bic r%d, r%d\n", Rd, Rm);
+            return;
+        }
+        }
     }
 
     if ((opcode >> 7) == 0x8F) {
-	u32 Rm = (opcode >> 3) & 0xF;
+        u32 Rm = (opcode >> 3) & 0xF;
 
-	printf("blx r%d\n", Rm);
-	return;
+        printf("blx r%d\n", Rm);
+        return;
     }
 
     if ((opcode >> 10) == 0x11) {
-	u32 Rd = ((opcode >> 4) & 8) | (opcode & 7);
-	u32 Rm = ((opcode >> 3) & 0xF);
+        u32 Rd = ((opcode >> 4) & 8) | (opcode & 7);
+        u32 Rm = ((opcode >> 3) & 0xF);
 
-	switch ((opcode >> 8) & 3) {
-	case 0: {// ADD
-	    printf("add r%d, r%d\n", Rd, Rm);
-	    return;
-	}
+        switch ((opcode >> 8) & 3) {
+        case 0: {// ADD
+            printf("add r%d, r%d\n", Rd, Rm);
+            return;
+        }
 
-	case 1: {// CMP
-	    printf("cmp r%d, r%d\n", Rd, Rm);
-	    return;
-	}
+        case 1: {// CMP
+            printf("cmp r%d, r%d\n", Rd, Rm);
+            return;
+        }
 
-	case 2: {// MOV (NOP)
-	    if (Rd == 8 && Rm == 8) {
-		printf("nop\n");
-		return;
-	    }
-	    printf("mov r%d, r%d\n", Rd, Rm);
-	    return;
-	}
+        case 2: {// MOV (NOP)
+            if (Rd == 8 && Rm == 8) {
+                printf("nop\n");
+                return;
+            }
+            printf("mov r%d, r%d\n", Rd, Rm);
+            return;
+        }
 
-	case 3: {// BX
-	    printf("bx r%d\n", Rm);
-	    return;
-	}
-	}
+        case 3: {// BX
+            printf("bx r%d\n", Rm);
+            return;
+        }
+        }
     }
 
     if ((opcode >> 11) == 9) {
-	/*u32 Rd   = (opcode >> 8) & 7;
-	u32 Imm  = (opcode & 0xFF);
-	u32 addr = a + (Imm << 2) + sizeof(opcode);
+        /*u32 Rd   = (opcode >> 8) & 7;
+        u32 Imm  = (opcode & 0xFF);
+        u32 addr = a + (Imm << 2) + sizeof(opcode);
 
-	printf("ldr r%d, =0x%08X\n", Rd, r[Rd]);*/
-	// XXX: print imm loads
-	ERROR("ldr TODO\n");
-	PAUSE();
-	return;
+        printf("ldr r%d, =0x%08X\n", Rd, r[Rd]);*/
+        // XXX: print imm loads
+        ERROR("ldr TODO\n");
+        PAUSE();
+        return;
     }
 
     if ((opcode >> 12) == 5) {
-	u32 Rd = (opcode >> 0) & 7;
-	u32 Rn = (opcode >> 3) & 7;
-	u32 Rm = (opcode >> 6) & 7;
+        u32 Rd = (opcode >> 0) & 7;
+        u32 Rn = (opcode >> 3) & 7;
+        u32 Rm = (opcode >> 6) & 7;
 
-	switch ((opcode >> 9) & 7) {
-	case 0: {// STR
-	    printf("str r%d, [r%d, r%d]\n", Rd, Rn, Rm);
-	    return;
-	}
+        switch ((opcode >> 9) & 7) {
+        case 0: {// STR
+            printf("str r%d, [r%d, r%d]\n", Rd, Rn, Rm);
+            return;
+        }
 
-	case 2: {// STRB
-	    printf("strb r%d, [r%d, r%d]\n", Rd, Rn, Rm);
-	    return;
-	}
+        case 2: {// STRB
+            printf("strb r%d, [r%d, r%d]\n", Rd, Rn, Rm);
+            return;
+        }
 
-	case 4: {// LDR
-	    printf("ldr r%d, [r%d, r%d]\n", Rd, Rn, Rm);
-	    return;
-	}
+        case 4: {// LDR
+            printf("ldr r%d, [r%d, r%d]\n", Rd, Rn, Rm);
+            return;
+        }
 
-	case 6: {// LDRB
-	    printf("ldrb r%d, [r%d, r%d]\n", Rd, Rn, Rm);
-	    return;
-	}
-	}
+        case 6: {// LDRB
+            printf("ldrb r%d, [r%d, r%d]\n", Rd, Rn, Rm);
+            return;
+        }
+        }
     }
 
     if ((opcode >> 13) == 3) {
-	u32 Rd  = (opcode >> 0) & 7;
-	u32 Rn  = (opcode >> 3) & 7;
-	u32 Imm = (opcode >> 6) & 7;
+        u32 Rd  = (opcode >> 0) & 7;
+        u32 Rn  = (opcode >> 3) & 7;
+        u32 Imm = (opcode >> 6) & 7;
 
-	if (opcode & 0x1000) {
-	    if (opcode & 0x800) {
-		printf("ldrb r%d, [r%d, 0x%02X]\n", Rd, Rn, Imm);
-	    } else {
-		printf("strb r%d, [r%d, 0x%02X]\n", Rd, Rn, Imm);
-	    }
-	} else {
-	    if (opcode & 0x800) {
-		printf("ldr r%d, [r%d, 0x%02X]\n", Rd, Rn, Imm << 2);
-	    } else {
-		printf("str r%d, [r%d, 0x%02X]\n", Rd, Rn, Imm << 2);
-	    }
-	}
-	return;
+        if (opcode & 0x1000) {
+            if (opcode & 0x800) {
+                printf("ldrb r%d, [r%d, 0x%02X]\n", Rd, Rn, Imm);
+            } else {
+                printf("strb r%d, [r%d, 0x%02X]\n", Rd, Rn, Imm);
+            }
+        } else {
+            if (opcode & 0x800) {
+                printf("ldr r%d, [r%d, 0x%02X]\n", Rd, Rn, Imm << 2);
+            } else {
+                printf("str r%d, [r%d, 0x%02X]\n", Rd, Rn, Imm << 2);
+            }
+        }
+        return;
     }
 
     if ((opcode >> 12) == 8) {
-	u32 Rd  = (opcode >> 0) & 7;
-	u32 Rn  = (opcode >> 3) & 7;
-	u32 Imm = (opcode >> 6) & 7;
+        u32 Rd  = (opcode >> 0) & 7;
+        u32 Rn  = (opcode >> 3) & 7;
+        u32 Imm = (opcode >> 6) & 7;
 
-	if (opcode & 0x800) {
-	    printf("ldrh r%d, [r%d, 0x%02X]\n", Rd, Rn, Imm << 1);
-	} else {
-	    printf("strh r%d, [r%d, 0x%02X]\n", Rd, Rn, Imm << 1);
-	}
-	return;
+        if (opcode & 0x800) {
+            printf("ldrh r%d, [r%d, 0x%02X]\n", Rd, Rn, Imm << 1);
+        } else {
+            printf("strh r%d, [r%d, 0x%02X]\n", Rd, Rn, Imm << 1);
+        }
+        return;
     }
 
     if ((opcode >> 12) == 9) {
-	// XXX: only sp (?)
+        // XXX: only sp (?)
 
-	u32 Rd  = (opcode >> 8) & 7;
-	u32 Imm = (opcode & 0xFF);
+        u32 Rd  = (opcode >> 8) & 7;
+        u32 Imm = (opcode & 0xFF);
 
-	if (opcode & 0x800) {
-	    printf("ldr r%d, [sp, 0x%02X]\n", Rd, Imm << 2);
-	} else {
-	    printf("str r%d, [sp, 0x%02X]\n", Rd, Imm << 2);
-	}
-	return;
+        if (opcode & 0x800) {
+            printf("ldr r%d, [sp, 0x%02X]\n", Rd, Imm << 2);
+        } else {
+            printf("str r%d, [sp, 0x%02X]\n", Rd, Imm << 2);
+        }
+        return;
     }
 
     if ((opcode >> 12) == 10) {
-	u32 Rd  = (opcode >> 8) & 7;
-	u32 Imm = (opcode & 0xFF);
+        u32 Rd  = (opcode >> 8) & 7;
+        u32 Imm = (opcode & 0xFF);
 
-	if (opcode & 0x800) {
-	    printf("add r%d, sp, #0x%02X\n", Rd, Imm << 2);
-	} else {
-	    printf("add r%d, pc, #0x%02X\n", Rd, Imm << 2);
-	}
-	return;
+        if (opcode & 0x800) {
+            printf("add r%d, sp, #0x%02X\n", Rd, Imm << 2);
+        } else {
+            printf("add r%d, pc, #0x%02X\n", Rd, Imm << 2);
+        }
+        return;
     }
 
     if ((opcode >> 12) == 11) {
-	switch ((opcode >> 9) & 7) {
-	case 0: {// ADD/SUB
-	    u32 Imm = (opcode & 0x7F);
+        switch ((opcode >> 9) & 7) {
+        case 0: {// ADD/SUB
+            u32 Imm = (opcode & 0x7F);
 
-	    if (opcode & 0x80) {
-		printf("sub sp, #0x%02X\n", Imm << 2);
-	    } else {
-		printf("add sp, #0x%02X\n", Imm << 2);
-	    }
-	    return;
-	}
+            if (opcode & 0x80) {
+                printf("sub sp, #0x%02X\n", Imm << 2);
+            } else {
+                printf("add sp, #0x%02X\n", Imm << 2);
+            }
+            return;
+        }
 
-	case 2: {// PUSH
-	    bool lrf = opcode & 0x100;
-	    bool pf  = false;
+        case 2: {// PUSH
+            bool lrf = opcode & 0x100;
+            bool pf  = false;
 
-	    printf("push {");
+            printf("push {");
 
-	    s32 i;
-	    for (i = 0; i < 8; i++) {
-		if ((opcode >> i) & 1) {
-		    if (pf) printf(",");
-		    printf("r%d", i);
+            s32 i;
+            for (i = 0; i < 8; i++) {
+                if ((opcode >> i) & 1) {
+                    if (pf) printf(",");
+                    printf("r%d", i);
 
-		    pf = true;
-		}
-	    }
+                    pf = true;
+                }
+            }
 
-	    if (lrf) {
-		if (pf) printf(",");
-		printf("lr");
-	    }
+            if (lrf) {
+                if (pf) printf(",");
+                printf("lr");
+            }
 
-	    printf("}\n");
-	    return;
-	}
+            printf("}\n");
+            return;
+        }
 
-	case 6: {// POP
-	    bool pcf = opcode & 0x100;
-	    bool pf  = false;
+        case 6: {// POP
+            bool pcf = opcode & 0x100;
+            bool pf  = false;
 
-	    printf("pop {");
+            printf("pop {");
 
-	    s32 i;
-	    for (i = 0; i < 8; i++) {
-		if ((opcode >> i) & 1) {
-		    if (pf) printf(",");
-		    printf("r%d", i);
-		}
-	    }
+            s32 i;
+            for (i = 0; i < 8; i++) {
+                if ((opcode >> i) & 1) {
+                    if (pf) printf(",");
+                    printf("r%d", i);
+                }
+            }
 
-	    if (pcf) {
-		if (pf) printf(",");
-		printf("pc");
-	    }
+            if (pcf) {
+                if (pf) printf(",");
+                printf("pc");
+            }
 
-	    printf("}\n");
-	    return;
-	}
-	}
+            printf("}\n");
+            return;
+        }
+        }
     }
 
     if ((opcode >> 12) == 12) {
-	u32 Rn = (opcode >> 8) & 7;
+        u32 Rn = (opcode >> 8) & 7;
 
-	if (opcode & 0x800) {
-	    printf("ldmia r%d!, {", Rn);
+        if (opcode & 0x800) {
+            printf("ldmia r%d!, {", Rn);
 
-	    u32 i;
-	    for (i = 0; i < 8; i++) {
-		if ((opcode >> i) & 1) {
-		    printf("r%d,", i);
-		}
-	    }
-	    printf("}\n");
-	    return;
-	} else {
-	    printf("stmia r%d!, {", Rn);
+            u32 i;
+            for (i = 0; i < 8; i++) {
+                if ((opcode >> i) & 1) {
+                    printf("r%d,", i);
+                }
+            }
+            printf("}\n");
+            return;
+        } else {
+            printf("stmia r%d!, {", Rn);
 
-	    u32 i;
-	    for (i = 0; i < 8; i++) {
-		if ((opcode >> i) & 1) {
-		    printf("r%d,", i);
-		}
-	    }
-	    printf("}\n");
-	    return;
-	}
+            u32 i;
+            for (i = 0; i < 8; i++) {
+                if ((opcode >> i) & 1) {
+                    printf("r%d,", i);
+                }
+            }
+            printf("}\n");
+            return;
+        }
     }
 
     if ((opcode >> 12) == 13) {
-	u32 Imm = (opcode & 0xFF) << 1;
+        u32 Imm = (opcode & 0xFF) << 1;
 
-	if (Imm & 0x100)
-	    Imm = ~((~Imm) & 0xFF);
+        if (Imm & 0x100)
+            Imm = ~((~Imm) & 0xFF);
 
-	Imm += 2;
+        Imm += 2;
 
-	printf("b");
-	CondPrint16(opcode);
-	printf(" 0x%08X\n", a + Imm);
+        printf("b");
+        CondPrint16(opcode);
+        printf(" 0x%08X\n", a + Imm);
 
-	return;
+        return;
     }
 
     if ((opcode >> 11) == 28) {
-	u32 Imm = (opcode & 0x7FF) << 1;
+        u32 Imm = (opcode & 0x7FF) << 1;
 
-	if (Imm & (1 << 11)) {
-	    Imm  = (~Imm) & 0xFFE;
-	    a -= Imm;
-	} else
-	    a += Imm + 2;
+        if (Imm & (1 << 11)) {
+            Imm  = (~Imm) & 0xFFE;
+            a -= Imm;
+        } else
+            a += Imm + 2;
 
-	printf("b 0x%08X, 0x%X\n", a, Imm);
-	return;
+        printf("b 0x%08X, 0x%X\n", a, Imm);
+        return;
     }
 
     if ((opcode >> 11) == 0x1E) {
-	u32  opc = mem_Read16(a);
-	u32  Imm = ((opcode & 0x7FF) << 12) | ((opc & 0x7FF) << 1);
-	bool blx = ((opcode >> 11) & 3) == 3;
+        u32  opc = mem_Read16(a);
+        u32  Imm = ((opcode & 0x7FF) << 12) | ((opc & 0x7FF) << 1);
+        bool blx = ((opcode >> 11) & 3) == 3;
 
-	if (Imm & (1 << 22)) {
-	    Imm  = (~Imm) & 0x7FFFFE;
-	    a -= Imm;
-	} else
-	    a += Imm + 2;
+        if (Imm & (1 << 22)) {
+            Imm  = (~Imm) & 0x7FFFFE;
+            a -= Imm;
+        } else
+            a += Imm + 2;
 
-	if (blx) {
-	    cpsr.t = 0;
-	    printf("blx 0x%08X\n", a);
-	} else
-	    printf("bl 0x%08X\n", a);
+        if (blx) {
+            cpsr.t = 0;
+            printf("blx 0x%08X\n", a);
+        } else
+            printf("bl 0x%08X\n", a);
 
-	return;
+        return;
     }
 
     ERROR("unknown opcode (0x%04x)\n", opcode);
@@ -2852,14 +2868,14 @@ void arm11_Dump()
     // Print stack
     u32 i;
     for (i = 0; i < 16; i++) {
-	u32 addr = *sp - (i << 2);
-	u32 value;
+        u32 addr = *sp - (i << 2);
+        u32 value;
 
-	// Read stack
-	value = mem_Read32(addr);
+        // Read stack
+        value = mem_Read32(addr);
 
-	// Print value
-	printf("[-%02d] 0x%08X\n", i, value);
+        // Print value
+        printf("[-%02d] 0x%08X\n", i, value);
     }
 
     printf("===============\n");
@@ -2868,13 +2884,13 @@ void arm11_Dump()
 
     // Print GPRs
     for (i = 0; i < 16; i += 2)
-	printf("r%-2d: 0x%08X\t\tr%-2d: 0x%08X\n", i, r[i], i+1, r[i+1]);
+        printf("r%-2d: 0x%08X\t\tr%-2d: 0x%08X\n", i, r[i], i+1, r[i+1]);
 
     printf("\n");
 
     // Print CPSR
     printf("(z: %d, n: %d, c: %d, v: %d, I: %d, F: %d, t: %d, mode: 0x%x)\n",
-	   cpsr.z, cpsr.n, cpsr.c, cpsr.v, cpsr.I, cpsr.F, cpsr.t, cpsr.mode);
+           cpsr.z, cpsr.n, cpsr.c, cpsr.v, cpsr.I, cpsr.F, cpsr.t, cpsr.mode);
 
     // Print SPSR
 }

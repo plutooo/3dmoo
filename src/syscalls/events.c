@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2014 - plutoo
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -24,7 +24,8 @@
 #include "mem.h"
 #include "handles.h"
 
-u32 svcCreateEvent() {
+u32 svcCreateEvent()
+{
     u32 handle = arm11_R(0);
     u32 resettype = arm11_R(1);
 

@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2014 - plutoo
  * Copyright (C) 2014 - ichfly
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -146,11 +146,11 @@ typedef struct {
     exheader_arm9accesscontrol arm9accesscontrol;
     // }
     struct {
-	u8 signature[0x100];
-	u8 ncchpubkeymodulus[0x100];
-	exheader_arm11systemlocalcaps arm11systemlocalcaps;
-	exheader_arm11kernelcapabilities arm11kernelcaps;
-	exheader_arm9accesscontrol arm9accesscontrol;
+        u8 signature[0x100];
+        u8 ncchpubkeymodulus[0x100];
+        exheader_arm11systemlocalcaps arm11systemlocalcaps;
+        exheader_arm11kernelcapabilities arm11kernelcaps;
+        exheader_arm9accesscontrol arm9accesscontrol;
     } accessdesc;
 } exheader_header;
 
@@ -169,12 +169,14 @@ typedef struct {
 #define CIA_MAGIC sizeof(cia_header)
 
 
-static u32 Read32(uint8_t p[4]) {
-	u32 temp = p[0] | p[1] << 8 | p[2] << 16 | p[3] << 24;
-	return temp;
+static u32 Read32(uint8_t p[4])
+{
+    u32 temp = p[0] | p[1] << 8 | p[2] << 16 | p[3] << 24;
+    return temp;
 }
 
-static u32 AlignPage(u32 in) {
+static u32 AlignPage(u32 in)
+{
     return ((in + 0xFFF) / 0x1000) * 0x1000;
 }
 
@@ -202,55 +204,54 @@ int Decompress(u8* compressed, u32 compressedsize, u8* decompressed, u32 decompr
     memcpy(decompressed, compressed, compressedsize);
 
     while(index > stopindex) {
-	control = compressed[--index];
+        control = compressed[--index];
 
-	for(i=0; i<8; i++) {
-	    if(index <= stopindex)
-		break;
-	    if(index <= 0)
-		break;
-	    if(out <= 0)
-		break;
+        for(i=0; i<8; i++) {
+            if(index <= stopindex)
+                break;
+            if(index <= 0)
+                break;
+            if(out <= 0)
+                break;
 
-	    if(control & 0x80) {
-		if(index < 2) {
-		    fprintf(stderr, "Error, compression out of bounds\n");
-		    goto clean;
-		}
+            if(control & 0x80) {
+                if(index < 2) {
+                    fprintf(stderr, "Error, compression out of bounds\n");
+                    goto clean;
+                }
 
-		index -= 2;
+                index -= 2;
 
-		segmentoffset = compressed[index] | (compressed[index+1]<<8);
-		segmentsize = ((segmentoffset >> 12)&15)+3;
-		segmentoffset &= 0x0FFF;
-		segmentoffset += 2;
+                segmentoffset = compressed[index] | (compressed[index+1]<<8);
+                segmentsize = ((segmentoffset >> 12)&15)+3;
+                segmentoffset &= 0x0FFF;
+                segmentoffset += 2;
 
-		if(out < segmentsize) {
-		    fprintf(stderr, "Error, compression out of bounds\n");
-		    goto clean;
-		}
+                if(out < segmentsize) {
+                    fprintf(stderr, "Error, compression out of bounds\n");
+                    goto clean;
+                }
 
-		for(j=0; j<segmentsize; j++) {
-		    u8 data;
+                for(j=0; j<segmentsize; j++) {
+                    u8 data;
 
-		    if(out+segmentoffset >= decompressedsize) {
-			fprintf(stderr, "Error, compression out of bounds\n");
-			goto clean;
-		    }
+                    if(out+segmentoffset >= decompressedsize) {
+                        fprintf(stderr, "Error, compression out of bounds\n");
+                        goto clean;
+                    }
 
-		    data  = decompressed[out+segmentoffset];
-		    decompressed[--out] = data;
-		}
-	    }
-	    else {
-		if(out < 1) {
-		    fprintf(stderr, "Error, compression out of bounds\n");
-		    goto clean;
-		}
-		decompressed[--out] = compressed[--index];
-	    }
-	    control <<= 1;
-	}
+                    data  = decompressed[out+segmentoffset];
+                    decompressed[--out] = data;
+                }
+            } else {
+                if(out < 1) {
+                    fprintf(stderr, "Error, compression out of bounds\n");
+                    goto clean;
+                }
+                decompressed[--out] = compressed[--index];
+            }
+            control <<= 1;
+        }
     }
 
     return 1;
@@ -267,87 +268,87 @@ static u32 load_elf_image(u8 *addr)
     u32 i;
 
     for (i = 0; i < n; i++, phdr += 8) {
-	if (phdr[0] != 1) // PT_LOAD
-	    continue;
+        if (phdr[0] != 1) // PT_LOAD
+            continue;
 
-	u32 off = Read32((u8*) &phdr[1]);
-	u32 dest = Read32((u8*) &phdr[3]);
-	u32 filesz = Read32((u8*) &phdr[4]);
-	u32 memsz = Read32((u8*) &phdr[5]);
+        u32 off = Read32((u8*) &phdr[1]);
+        u32 dest = Read32((u8*) &phdr[3]);
+        u32 filesz = Read32((u8*) &phdr[4]);
+        u32 memsz = Read32((u8*) &phdr[5]);
 
-	u8* data = malloc(memsz);
-	memset(data, 0, memsz);
-	memcpy(data, addr + off, filesz);
-	mem_AddSegment(dest, memsz, data);
+        u8* data = malloc(memsz);
+        memset(data, 0, memsz);
+        memcpy(data, addr + off, filesz);
+        mem_AddSegment(dest, memsz, data);
 
     }
 
     return Read32((u8*) &header[6]);
- }
+}
 
 
-int loader_LoadFile(FILE* fd) {
+int loader_LoadFile(FILE* fd)
+{
     u32 ncch_off = 0;
 
     // Read header.
     ctr_ncchheader h;
     if (fread(&h, sizeof(h), 1, fd) != 1) {
-	ERROR("failed to read header.\n");
-	return 1;
+        ERROR("failed to read header.\n");
+        return 1;
     }
 
-    if (Read32(h.signature) == 0x464c457f) // Load ELF
-    {
-	// Add stack segment.
-	mem_AddSegment(0x10000000 - 0x100000, 0x100000, NULL);
+    if (Read32(h.signature) == 0x464c457f) { // Load ELF
+        // Add stack segment.
+        mem_AddSegment(0x10000000 - 0x100000, 0x100000, NULL);
 
-	// Add thread command buffer.
-	mem_AddSegment(0xFFFF0000, 0x1000, NULL);
+        // Add thread command buffer.
+        mem_AddSegment(0xFFFF0000, 0x1000, NULL);
 
-	// Load elf.
-	fseek(fd, 0, SEEK_END);
-	u32 elfsize = ftell(fd);
-	u8* data = malloc(elfsize);
-	fseek(fd, 0, SEEK_SET);
-	fread(data, elfsize, 1, fd);
+        // Load elf.
+        fseek(fd, 0, SEEK_END);
+        u32 elfsize = ftell(fd);
+        u8* data = malloc(elfsize);
+        fseek(fd, 0, SEEK_SET);
+        fread(data, elfsize, 1, fd);
 
-	// Set entrypoint and stack ptr.
-	arm11_SetPCSP(load_elf_image(data),
-		      0x10000000);
+        // Set entrypoint and stack ptr.
+        arm11_SetPCSP(load_elf_image(data),
+                      0x10000000);
 
-	free(data);
-	return 0;
+        free(data);
+        return 0;
     }
 
     if (Read32(h.signature) == CIA_MAGIC) {		// Load CIA
-	cia_header* ch = (cia_header*)&h;
+        cia_header* ch = (cia_header*)&h;
 
-	ncch_off = 0x20 + ch->hdr_sz;
+        ncch_off = 0x20 + ch->hdr_sz;
 
-	ncch_off += ch->cert_sz;
-	ncch_off += ch->tik_sz;
-	ncch_off += ch->tmd_sz;
+        ncch_off += ch->cert_sz;
+        ncch_off += ch->tik_sz;
+        ncch_off += ch->tmd_sz;
 
-	ncch_off = (u32)(ncch_off & ~0xff);
-	ncch_off += 0x100;
-	fseek(fd, ncch_off, SEEK_SET);
+        ncch_off = (u32)(ncch_off & ~0xff);
+        ncch_off += 0x100;
+        fseek(fd, ncch_off, SEEK_SET);
 
-	if (fread(&h, sizeof(h), 1, fd) != 1) {
-	    ERROR("failed to read header.\n");
-	    return 1;
-	}
+        if (fread(&h, sizeof(h), 1, fd) != 1) {
+            ERROR("failed to read header.\n");
+            return 1;
+        }
     }
     // Load NCCH
     if (memcmp(&h.magic, "NCCH", 4) != 0) {
-	ERROR("invalid magic.. wrong file?\n");
-	return 1;
+        ERROR("invalid magic.. wrong file?\n");
+        return 1;
     }
 
     // Read Exheader.
     exheader_header ex;
     if (fread(&ex, sizeof(ex), 1, fd) != 1) {
-	ERROR("failed to read exheader.\n");
-	return 1;
+        ERROR("failed to read exheader.\n");
+        return 1;
     }
 
     bool is_compressed = ex.codesetinfo.flags.flag & 1;
@@ -365,66 +366,66 @@ int loader_LoadFile(FILE* fd) {
 
     exefs_header eh;
     if (fread(&eh, sizeof(eh), 1, fd) != 1) {
-	ERROR("failed to read ExeFS header.\n");
-	return 1;
+        ERROR("failed to read ExeFS header.\n");
+        return 1;
     }
 
     u32 i;
     for (i = 0; i < 8; i++) {
-	u32 sec_size = Read32(eh.section[i].size);
-	u32 sec_off = Read32(eh.section[i].offset);
+        u32 sec_size = Read32(eh.section[i].size);
+        u32 sec_off = Read32(eh.section[i].offset);
 
-	if (sec_size == 0)
-	    continue;
+        if (sec_size == 0)
+            continue;
 
-	DEBUG("ExeFS section %d:\n", i);
-	eh.section[i].name[7] = '\0';
-	DEBUG("    name:   %s\n", eh.section[i].name);
-	DEBUG("    offset: %08x\n", sec_off);
-	DEBUG("    size:   %08x\n", sec_size);
+        DEBUG("ExeFS section %d:\n", i);
+        eh.section[i].name[7] = '\0';
+        DEBUG("    name:   %s\n", eh.section[i].name);
+        DEBUG("    offset: %08x\n", sec_off);
+        DEBUG("    size:   %08x\n", sec_size);
 
 
-	if (strcmp((char*) eh.section[i].name, ".code") == 0) {
-	    sec_off += exefs_off + sizeof(eh);
-	    fseek(fd, sec_off + ncch_off, SEEK_SET);
+        if (strcmp((char*) eh.section[i].name, ".code") == 0) {
+            sec_off += exefs_off + sizeof(eh);
+            fseek(fd, sec_off + ncch_off, SEEK_SET);
 
-	    uint8_t* sec = malloc(AlignPage(sec_size));
-	    if (sec == NULL) {
-		ERROR("section malloc failed.\n");
-		return 1;
-	    }
+            uint8_t* sec = malloc(AlignPage(sec_size));
+            if (sec == NULL) {
+                ERROR("section malloc failed.\n");
+                return 1;
+            }
 
-	    if (fread(sec, sec_size, 1, fd) != 1) {
-		ERROR("section fread failed.\n");
-		return 1;
-	    }
+            if (fread(sec, sec_size, 1, fd) != 1) {
+                ERROR("section fread failed.\n");
+                return 1;
+            }
 
-	    // Decompress first section if flag set.
-	    if (i == 0 && is_compressed) {
-		u32 dec_size = GetDecompressedSize(sec, sec_size);
-		u8* dec = malloc(AlignPage(dec_size));
+            // Decompress first section if flag set.
+            if (i == 0 && is_compressed) {
+                u32 dec_size = GetDecompressedSize(sec, sec_size);
+                u8* dec = malloc(AlignPage(dec_size));
 
-		DEBUG("Decompressing..\n");
-		if (Decompress(sec, sec_size, dec, dec_size) == 0) {
-		    ERROR("section decompression failed.\n");
-		    return 1;
-		}
-		DEBUG("  .. OK\n");
+                DEBUG("Decompressing..\n");
+                if (Decompress(sec, sec_size, dec, dec_size) == 0) {
+                    ERROR("section decompression failed.\n");
+                    return 1;
+                }
+                DEBUG("  .. OK\n");
 
-		free(sec);
-		sec = dec;
-		sec_size = dec_size;
-	    }
+                free(sec);
+                sec = dec;
+                sec_size = dec_size;
+            }
 
-	    // Load .code section.
-	    sec_size = AlignPage(sec_size);
-	    mem_AddSegment(Read32(ex.codesetinfo.text.address), sec_size, sec);
-	}
+            // Load .code section.
+            sec_size = AlignPage(sec_size);
+            mem_AddSegment(Read32(ex.codesetinfo.text.address), sec_size, sec);
+        }
     }
 
     // Add .bss segment.
     u32 bss_off = AlignPage(Read32(ex.codesetinfo.data.address) +
-			    Read32(ex.codesetinfo.data.codesize));
+                            Read32(ex.codesetinfo.data.codesize));
     mem_AddSegment(bss_off, AlignPage(Read32(ex.codesetinfo.bsssize)), NULL);
 
     // Add stack segment.
@@ -436,6 +437,6 @@ int loader_LoadFile(FILE* fd) {
 
     // Set entrypoint and stack ptr.
     arm11_SetPCSP(Read32(ex.codesetinfo.text.address),
-		  0x10000000);
+                  0x10000000);
     return 0;
 }

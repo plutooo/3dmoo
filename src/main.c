@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2014 - plutoo
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -24,30 +24,31 @@
 int loader_LoadFile(FILE* fd);
 
 
-int main(int argc, char* argv[]) {
+int main(int argc, char* argv[])
+{
     if(argc != 2) {
-	printf("Usage:\n");
-	printf("%s <in.ncch>\n", argv[0]);
-	return 1;
+        printf("Usage:\n");
+        printf("%s <in.ncch>\n", argv[0]);
+        return 1;
     }
 
     FILE* fd = fopen(argv[1], "rb");
     if(fd == NULL) {
-	perror("Error opening file");
-	return 1;
+        perror("Error opening file");
+        return 1;
     }
 
     arm11_Init();
 
     // Load file.
     if(loader_LoadFile(fd) != 0) {
-	fclose(fd);
-	return 1;
+        fclose(fd);
+        return 1;
     }
 
     // Execute.
     while(1)
-	arm11_Step();
+        arm11_Step();
 
     fclose(fd);
     return 0;

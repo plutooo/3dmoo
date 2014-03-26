@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2014 - plutoo
  * Copyright (C) 2014 - ichfly
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -37,41 +37,47 @@ static struct {
     u32   (*fnWaitSynchronization)(handleinfo* h);
 
 } handle_types[] = {
-    {	"misc",
-	NULL,
-	NULL,
-	NULL
+    {
+        "misc",
+        NULL,
+        NULL,
+        NULL
     },
-    {	"port",
-	&port_SyncRequest,
-	NULL,
-	NULL
+    {
+        "port",
+        &port_SyncRequest,
+        NULL,
+        NULL
     },
-    {	"service",
-	&services_SyncRequest,
-	NULL,
-	NULL
+    {
+        "service",
+        &services_SyncRequest,
+        NULL,
+        NULL
     },
-    {	"event",
-	NULL,
-	NULL,
-	NULL
+    {
+        "event",
+        NULL,
+        NULL,
+        NULL
     },
-    {	"mutex",
-	&mutex_SyncRequest,
-	NULL,
-	&mutex_WaitSynchronization
+    {
+        "mutex",
+        &mutex_SyncRequest,
+        NULL,
+        &mutex_WaitSynchronization
     }
 };
 
 #define NUM_HANDLE_TYPES ARRAY_SIZE(handle_types)
 
 
-u32 handle_New(u32 type, u32 subtype) {
+u32 handle_New(u32 type, u32 subtype)
+{
     if(handles_num == MAX_NUM_HANDLES) {
-	ERROR("not enough handles..\n");
-	arm11_Dump();
-	exit(1);
+        ERROR("not enough handles..\n");
+        arm11_Dump();
+        exit(1);
     }
 
     handles[handles_num].taken    = true;
@@ -83,94 +89,98 @@ u32 handle_New(u32 type, u32 subtype) {
     return HANDLES_BASE + handles_num++;
 }
 
-handleinfo* handle_Get(u32 handle) {
+handleinfo* handle_Get(u32 handle)
+{
     u32 idx = handle - HANDLES_BASE;
 
     if(idx < handles_num)
-	return &handles[idx];
+        return &handles[idx];
 
     return NULL;
 }
 
 
 /* Generic SVC implementations. */
-u32 svcSendSyncRequest() {
+u32 svcSendSyncRequest()
+{
     u32 handle = arm11_R(0);
     handleinfo* hi = handle_Get(handle);
 
     if(hi == NULL) {
-	ERROR("handle %08x not found.\n", handle);
-	PAUSE();
-	exit(1);
+        ERROR("handle %08x not found.\n", handle);
+        PAUSE();
+        exit(1);
     }
 
     if(hi->type >= NUM_HANDLE_TYPES) {
-	// This should never happen.
-	ERROR("handle %08x has non-defined type.\n", handle);
-	PAUSE();
-	exit(1);
+        // This should never happen.
+        ERROR("handle %08x has non-defined type.\n", handle);
+        PAUSE();
+        exit(1);
     }
 
     // Lookup actual callback in table.
     if(handle_types[hi->type].fnSyncRequest != NULL)
-	return handle_types[hi->type].fnSyncRequest(hi);
+        return handle_types[hi->type].fnSyncRequest(hi);
 
     ERROR("svcSyncRequest undefined for handle-type \"%s\".\n",
-	  handle_types[hi->type].name);
+          handle_types[hi->type].name);
     PAUSE();
     exit(1);
 }
 
-u32 svcCloseHandle() {
+u32 svcCloseHandle()
+{
     u32 handle = arm11_R(0);
     handleinfo* hi = handle_Get(handle);
 
     if(hi == NULL) {
-	ERROR("handle %08x not found.\n", handle);
-	PAUSE();
-	exit(1);
+        ERROR("handle %08x not found.\n", handle);
+        PAUSE();
+        exit(1);
     }
 
     if(hi->type >= NUM_HANDLE_TYPES) {
-	// This should never happen.
-	ERROR("handle %08x has non-defined type.\n", handle);
-	PAUSE();
-	exit(1);
+        // This should never happen.
+        ERROR("handle %08x has non-defined type.\n", handle);
+        PAUSE();
+        exit(1);
     }
 
     // Lookup actual callback in table.
     if(handle_types[hi->type].fnCloseHandle != NULL)
-	return handle_types[hi->type].fnCloseHandle(hi);
+        return handle_types[hi->type].fnCloseHandle(hi);
 
     ERROR("svcCloseHandle undefined for handle-type \"%s\".\n",
-	  handle_types[hi->type].name);
+          handle_types[hi->type].name);
     PAUSE();
     return 0;
 }
 
-u32 svcWaitSynchronization1() {
+u32 svcWaitSynchronization1()
+{
     u32 handle = arm11_R(0);
     handleinfo* hi = handle_Get(handle);
 
     if(hi == NULL) {
-	ERROR("handle %08x not found.\n", handle);
-	PAUSE();
-	exit(1);
+        ERROR("handle %08x not found.\n", handle);
+        PAUSE();
+        exit(1);
     }
 
     if(hi->type >= NUM_HANDLE_TYPES) {
-	// This should never happen.
-	ERROR("handle %08x has non-defined type.\n", handle);
-	PAUSE();
-	exit(1);
+        // This should never happen.
+        ERROR("handle %08x has non-defined type.\n", handle);
+        PAUSE();
+        exit(1);
     }
 
     // Lookup actual callback in table.
     if(handle_types[hi->type].fnWaitSynchronization != NULL)
-	return handle_types[hi->type].fnWaitSynchronization(hi);
+        return handle_types[hi->type].fnWaitSynchronization(hi);
 
     ERROR("svcCloseHandle undefined for handle-type \"%s\".\n",
-	  handle_types[hi->type].name);
+          handle_types[hi->type].name);
     PAUSE();
     return 0;
 }

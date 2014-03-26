@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2014 - plutoo
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -36,7 +36,8 @@
 #define CONTROL_GSP_FLAG 0x10000
 
 
-u32 svcControlMemory() {
+u32 svcControlMemory()
+{
     u32 perm  = arm11_R(0);
     u32 addr0 = arm11_R(1);
     u32 addr1 = arm11_R(2);
@@ -45,112 +46,135 @@ u32 svcControlMemory() {
 
     const char* ops;
     switch(op & 0xFF) {
-    case 1: ops = "FREE"; break;
-    case 2: ops = "RESERVE"; break;
-    case 3: ops = "COMMIT"; break;
-    case 4: ops = "MAP"; break;
-    case 5: ops = "UNMAP"; break;
-    case 6: ops = "PROTECT"; break;
-    default: ops = "UNDEFINED"; break;
+    case 1:
+        ops = "FREE";
+        break;
+    case 2:
+        ops = "RESERVE";
+        break;
+    case 3:
+        ops = "COMMIT";
+        break;
+    case 4:
+        ops = "MAP";
+        break;
+    case 5:
+        ops = "UNMAP";
+        break;
+    case 6:
+        ops = "PROTECT";
+        break;
+    default:
+        ops = "UNDEFINED";
+        break;
     }
 
     const char* perms;
     switch(perm) {
-    case 0: perms = "--"; break;
-    case 1: perms = "-R"; break;
-    case 2: perms = "W-"; break;
-    case 3: perms = "WR"; break;
-    case 0x10000000: perms = "DONTCARE"; break;
-    default: perms = "UNDEFINED";
+    case 0:
+        perms = "--";
+        break;
+    case 1:
+        perms = "-R";
+        break;
+    case 2:
+        perms = "W-";
+        break;
+    case 3:
+        perms = "WR";
+        break;
+    case 0x10000000:
+        perms = "DONTCARE";
+        break;
+    default:
+        perms = "UNDEFINED";
     }
 
     DEBUG("op=%s %s (%x), addr0=%x, addr1=%x, size=%x, perm=%s (%x)\n",
-	  ops, op & CONTROL_GSP_FLAG ? "GSP" : "", op,
-	  addr0, addr1, size, perms, perm);
+          ops, op & CONTROL_GSP_FLAG ? "GSP" : "", op,
+          addr0, addr1, size, perms, perm);
     PAUSE();
 
     if(addr0 & 0xFFF)
-	return SVCERROR_ALIGN_ADDR;
+        return SVCERROR_ALIGN_ADDR;
     if(addr1 & 0xFFF)
-	return SVCERROR_ALIGN_ADDR;
+        return SVCERROR_ALIGN_ADDR;
     if(size & 0xFFF)
-	return SVCERROR_INVALID_SIZE;
+        return SVCERROR_INVALID_SIZE;
 
     if(op == 0x10003) { // FFF680A4
-	if(addr0 == 0) { // FFF680C4
-	    if(addr1 != 0)
-		return SVCERROR_INVALID_PARAMS;
-	}
-	else if(size == 0) { // FFF680D0
-	    if(addr0 < 0x14000000)
-		return SVCERROR_INVALID_PARAMS;
-	    if((addr0+size) >= 0x1C000000)
-		return SVCERROR_INVALID_PARAMS;
-	    if(addr1 != 0)
-		return SVCERROR_INVALID_PARAMS;
-	}
-	else {
-	    if(addr0 < 0x14000000)
-		return SVCERROR_INVALID_PARAMS;
-	    if(addr0 >= 0x1C000000)
-		return SVCERROR_INVALID_PARAMS;
-	    if(addr1 != 0)
-		return SVCERROR_INVALID_PARAMS;
-	}
-    }
-    else if(op == 1) {
-	if(size == 0) { // FFF68110
-	    if(addr0 < 0x08000000) // FFF68130
-		return SVCERROR_INVALID_PARAMS;
-	    if(addr0 <= 0x1C000000)
-		return SVCERROR_INVALID_PARAMS;
-	}
-	else {
-	    if(addr0 < 0x08000000)
-		return SVCERROR_INVALID_PARAMS;
-	    if((addr0+size) <= 0x1C000000)
-		return SVCERROR_INVALID_PARAMS;
-	}
-    }
-    else {
-	if(size == 0) { // FFF68148
-	    if(addr0 < 0x08000000)
-		return SVCERROR_INVALID_PARAMS;
-	    if(addr0 >= 0x14000000)
-		return SVCERROR_INVALID_PARAMS;
-	}
-	else {
-	    if(addr0 < 0x08000000)
-		return SVCERROR_INVALID_PARAMS;
-	    if((addr0+size) >= 0x14000000)
-		return SVCERROR_INVALID_PARAMS;
-	}
+        if(addr0 == 0) { // FFF680C4
+            if(addr1 != 0)
+                return SVCERROR_INVALID_PARAMS;
+        } else if(size == 0) { // FFF680D0
+            if(addr0 < 0x14000000)
+                return SVCERROR_INVALID_PARAMS;
+            if((addr0+size) >= 0x1C000000)
+                return SVCERROR_INVALID_PARAMS;
+            if(addr1 != 0)
+                return SVCERROR_INVALID_PARAMS;
+        } else {
+            if(addr0 < 0x14000000)
+                return SVCERROR_INVALID_PARAMS;
+            if(addr0 >= 0x1C000000)
+                return SVCERROR_INVALID_PARAMS;
+            if(addr1 != 0)
+                return SVCERROR_INVALID_PARAMS;
+        }
+    } else if(op == 1) {
+        if(size == 0) { // FFF68110
+            if(addr0 < 0x08000000) // FFF68130
+                return SVCERROR_INVALID_PARAMS;
+            if(addr0 <= 0x1C000000)
+                return SVCERROR_INVALID_PARAMS;
+        } else {
+            if(addr0 < 0x08000000)
+                return SVCERROR_INVALID_PARAMS;
+            if((addr0+size) <= 0x1C000000)
+                return SVCERROR_INVALID_PARAMS;
+        }
+    } else {
+        if(size == 0) { // FFF68148
+            if(addr0 < 0x08000000)
+                return SVCERROR_INVALID_PARAMS;
+            if(addr0 >= 0x14000000)
+                return SVCERROR_INVALID_PARAMS;
+        } else {
+            if(addr0 < 0x08000000)
+                return SVCERROR_INVALID_PARAMS;
+            if((addr0+size) >= 0x14000000)
+                return SVCERROR_INVALID_PARAMS;
+        }
 
-	if(op == 4 || op == 5) { // FFF680E8
-	    if(size == 0) {
-		if(addr1 < 0x100000) // FFF681CC
-		    return SVCERROR_INVALID_PARAMS;
-		if(addr1 >= 0x14000000)
-		    return SVCERROR_INVALID_PARAMS;
-	    }
-	    if(addr1 < 0x100000)
-		return SVCERROR_INVALID_PARAMS;
-	    
-	    if((addr1+size) >= 0x14000000)
-		return SVCERROR_INVALID_PARAMS;
-	}
+        if(op == 4 || op == 5) { // FFF680E8
+            if(size == 0) {
+                if(addr1 < 0x100000) // FFF681CC
+                    return SVCERROR_INVALID_PARAMS;
+                if(addr1 >= 0x14000000)
+                    return SVCERROR_INVALID_PARAMS;
+            }
+            if(addr1 < 0x100000)
+                return SVCERROR_INVALID_PARAMS;
+
+            if((addr1+size) >= 0x14000000)
+                return SVCERROR_INVALID_PARAMS;
+        }
     }
 
     // ????
     switch(op & 0xff) {
-    case 1: case 3: case 4: case 5: case 6:
-	break;
+    case 1:
+    case 3:
+    case 4:
+    case 5:
+    case 6:
+        break;
     default:
-	return SVCERROR_INVALID_OPERATION;
+        return SVCERROR_INVALID_OPERATION;
     }
 
     if(size == 0)
-	return 0;
+        return 0;
 
     //kprocess = *0xFFFF9004;
     //*(SP+0x10) = kprocess + 0x1c;
@@ -159,15 +183,15 @@ u32 svcControlMemory() {
     /*
     u32 flags = outaddr & 0xff;
     if(flags != 1) {
-	if(perms != 0 && perms != 1 && perms != 2 && perms != 3)
-	    return SVCERROR_INVALID_OPERATION;
+    if(perms != 0 && perms != 1 && perms != 2 && perms != 3)
+        return SVCERROR_INVALID_OPERATION;
     }
     */
 
     if(op == 0x10003) {
-	DEBUG("Mapping GSP heap..\n");
-	arm11_SetR(1, 0x08000000); // outaddr is in R1
-	return mem_AddSegment(0x08000000, size, NULL);
+        DEBUG("Mapping GSP heap..\n");
+        arm11_SetR(1, 0x08000000); // outaddr is in R1
+        return mem_AddSegment(0x08000000, size, NULL);
     }
 
     DEBUG("STUBBED!\n");
@@ -199,14 +223,15 @@ u32 svcControlMemory() {
     return -1;
 }
 
-u32 svcMapMemoryBlock() {
+u32 svcMapMemoryBlock()
+{
     u32 handle     = arm11_R(0);
     u32 addr       = arm11_R(1);
     u32 my_perm    = arm11_R(2);
     u32 other_perm = arm11_R(3);
 
     DEBUG("STUBBED\nhandle=%x, addr=%08x, my_perm=%x, other_perm=%x\n",
-	  handle, addr, my_perm, other_perm);
+          handle, addr, my_perm, other_perm);
     PAUSE();
     return 0;
 }

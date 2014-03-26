@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2014 - plutoo
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -24,7 +24,8 @@
 #include "handles.h"
 #include "mem.h"
 
-u32 gsp_gpu_SyncRequest() {
+u32 gsp_gpu_SyncRequest()
+{
     DEBUG("STUBBED\n");
     PAUSE();
 

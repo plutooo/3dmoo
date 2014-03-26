@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2014 - plutoo
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -143,68 +143,58 @@ void svc_Execute(u8 num)
     const char* name = names[num & 0xFF];
 
     if(name == NULL)
-	name = "Unknown";
+        name = "Unknown";
 
     DEBUG("-- svc%s (0x%x) --\n", name, num);
 
     if(num == 1) {
-	arm11_SetR(0, svcControlMemory());
-	return;
-    }
-    else if(num == 0x2d) {
-	arm11_SetR(0, svcConnectToPort());
-	return;
-    }
-    else if(num == 0x24) {
-	arm11_SetR(0, svcWaitSynchronization1());
-	return;
-    }
-    else if(num == 0x32) {
-	arm11_SetR(0, svcSendSyncRequest());
-	return;
-    }
-    else if(num == 0x23) {
-	arm11_SetR(0, svcCloseHandle());
-	return;
-    }
-    else if(num == 0x17) {
-	arm11_SetR(0, svcCreateEvent());
-	return;
-    }
-    else if(num == 0x1f) {
-	arm11_SetR(0, svcMapMemoryBlock());
-	return;
-    }
-    else if(num == 0x13) {
-	arm11_SetR(0, svcCreateMutex());
-	return;
-    }
-    else if(num == 0x14) {
-	arm11_SetR(0, svcReleaseMutex());
-	return;
+        arm11_SetR(0, svcControlMemory());
+        return;
+    } else if(num == 0x2d) {
+        arm11_SetR(0, svcConnectToPort());
+        return;
+    } else if(num == 0x24) {
+        arm11_SetR(0, svcWaitSynchronization1());
+        return;
+    } else if(num == 0x32) {
+        arm11_SetR(0, svcSendSyncRequest());
+        return;
+    } else if(num == 0x23) {
+        arm11_SetR(0, svcCloseHandle());
+        return;
+    } else if(num == 0x17) {
+        arm11_SetR(0, svcCreateEvent());
+        return;
+    } else if(num == 0x1f) {
+        arm11_SetR(0, svcMapMemoryBlock());
+        return;
+    } else if(num == 0x13) {
+        arm11_SetR(0, svcCreateMutex());
+        return;
+    } else if(num == 0x14) {
+        arm11_SetR(0, svcReleaseMutex());
+        return;
     }
 
     // Stubs.
     else if(num == 0x21) {
-	DEBUG("STUBBED");
-	arm11_SetR(0, 1);
-	PAUSE();
-	return;
-    }
-    else if(num == 0x38) {
-	DEBUG("resourcelimit=%08x, handle=%08x\n", arm11_R(0), arm11_R(1));
-	DEBUG("STUBBED");
+        DEBUG("STUBBED");
+        arm11_SetR(0, 1);
         PAUSE();
-	arm11_SetR(0, 1);
-	return;
-    }
-    else if(num == 0x3a) {
-	DEBUG("values_ptr=%08x, handleResourceLimit=%08x, names_ptr=%08x, nameCount=%d\n",
-	       arm11_R(0), arm11_R(1), arm11_R(2), arm11_R(3));
-	DEBUG("STUBBED");
+        return;
+    } else if(num == 0x38) {
+        DEBUG("resourcelimit=%08x, handle=%08x\n", arm11_R(0), arm11_R(1));
+        DEBUG("STUBBED");
         PAUSE();
-	arm11_SetR(0, 1);
-	return;
+        arm11_SetR(0, 1);
+        return;
+    } else if(num == 0x3a) {
+        DEBUG("values_ptr=%08x, handleResourceLimit=%08x, names_ptr=%08x, nameCount=%d\n",
+              arm11_R(0), arm11_R(1), arm11_R(2), arm11_R(3));
+        DEBUG("STUBBED");
+        PAUSE();
+        arm11_SetR(0, 1);
+        return;
     }
 
     arm11_Dump();

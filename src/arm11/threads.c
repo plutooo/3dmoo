@@ -37,7 +37,7 @@ u32 threads_New() {
 	exit(1);
     }
 
-    thread[num_threads].active = true;
+    threads[num_threads].active = true;
     return num_threads++;
 }
 

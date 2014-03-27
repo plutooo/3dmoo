@@ -26,10 +26,28 @@
 
 u32 svcCreateEvent()
 {
-    u32 handle = arm11_R(0);
-    u32 resettype = arm11_R(1);
+	u32 handleorigin = arm11_R(0);
+	u32 type = arm11_R(1);
+	u32 handle = handle_New(HANDLE_TYPE_EVENT, 0);
 
-    DEBUG("STUBBED, handle=%x, resettype=%x.\n", handle, resettype);
+	handleinfo* h = handle_Get(handle);
+	if (h == NULL) {
+		DEBUG("failed to get newly created Event\n");
+		PAUSE();
+		return -1;
+	}
+	if (type > LOCK_TYPE_MAX)
+	{
+		DEBUG("unknown event type\n");
+		PAUSE();
+		return -1;
+	}
+
+	h->locked = true;
+	h->locktype = type;
+	arm11_SetR(1, handle); // handle_out
+
+	DEBUG("handleoriginal=%x, resettype=%x.\n", handleorigin, type);
     PAUSE();
     return 0;
 }

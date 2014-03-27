@@ -36,6 +36,7 @@
 #define LOCK_TYPE_ONESHOT 0
 #define LOCK_TYPE_STICKY  1
 #define LOCK_TYPE_PULSE   2
+#define LOCK_TYPE_MAX   2
 
 
 typedef struct {

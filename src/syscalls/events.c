@@ -51,3 +51,12 @@ u32 svcCreateEvent()
     PAUSE();
     return 0;
 }
+u32 Event_WaitSynchronization(handleinfo* h)
+{
+	DEBUG("waiting for event to happen..\n");
+	PAUSE();
+
+	while (h->locked);
+	if (h->subtype != LOCK_TYPE_STICKY)h->locked = true;
+	return 0;
+}

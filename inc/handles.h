@@ -59,3 +59,6 @@ u32 mutex_SyncRequest(handleinfo* h);
 
 // svc/ports.c
 u32 port_SyncRequest(handleinfo* h);
+
+//syscalls/events.c
+u32 Event_WaitSynchronization(handleinfo* h);

@@ -59,7 +59,7 @@ static struct {
         "event",
         NULL,
         NULL,
-        NULL
+		&Event_WaitSynchronization
     },
     {
         "mutex",

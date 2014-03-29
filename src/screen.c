@@ -15,42 +15,20 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <stdio.h>
-#include <stdlib.h>
+#include <SDL.h>
 
 #include "util.h"
-#include "arm11.h"
-#include "screen.h"
 
-int loader_LoadFile(FILE* fd);
+void screen_Free() {
+    DEBUG("%s\n", __func__);
+    SDL_Quit();
+}
 
-int main(int argc, char* argv[])
-{
-    if(argc != 2) {
-        printf("Usage:\n");
-        printf("%s <in.ncch>\n", argv[0]);
-        return 1;
-    }
+void screen_Init() {
+    SDL_Init(SDL_INIT_VIDEO);
+    //SDL_Surface* screen = SDL_SetVideoMode(640, 480, 16, SDL_SWSURFACE);
+    SDL_SetVideoMode(400, 480, 16, SDL_SWSURFACE);
+    SDL_WM_SetCaption("3dmoo", "3dmoo");
 
-    FILE* fd = fopen(argv[1], "rb");
-    if(fd == NULL) {
-        perror("Error opening file");
-        return 1;
-    }
-
-    screen_Init();
-    arm11_Init();
-
-    // Load file.
-    if(loader_LoadFile(fd) != 0) {
-        fclose(fd);
-        return 1;
-    }
-
-    // Execute.
-    while(1)
-        arm11_Step();
-
-    fclose(fd);
-    return 0;
+    atexit(&screen_Free);
 }

@@ -94,7 +94,7 @@ u32 srv_SyncRequest()
         break;
 
     case 0x50100:
-	DEBUG("srv_GetServiceHandle\n");
+        DEBUG("srv_GetServiceHandle\n");
 
         struct {
             char name[8];
@@ -105,13 +105,13 @@ u32 srv_SyncRequest()
         // Read rest of command header
         mem_Read((u8*) &req, 0xFFFF0084, sizeof(req));
 
-	char names[9];
-	memcpy(names, req.name, 8);
-	names[8] = '\0';
+        char names[9];
+        memcpy(names, req.name, 8);
+        names[8] = '\0';
 
         DEBUG("name=%s, namelen=%u, unk=0x%x\n", names, req.name_len,
-	      req.unk2);
-	PAUSE();
+              req.unk2);
+        PAUSE();
 
         u32 i;
         for(i=0; i<ARRAY_SIZE(services); i++) {

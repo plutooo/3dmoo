@@ -26,37 +26,36 @@
 
 u32 svcCreateEvent()
 {
-	u32 handleorigin = arm11_R(0);
-	u32 type = arm11_R(1);
-	u32 handle = handle_New(HANDLE_TYPE_EVENT, 0);
+    u32 handleorigin = arm11_R(0);
+    u32 type = arm11_R(1);
+    u32 handle = handle_New(HANDLE_TYPE_EVENT, 0);
 
-	handleinfo* h = handle_Get(handle);
-	if (h == NULL) {
-		DEBUG("failed to get newly created Event\n");
-		PAUSE();
-		return -1;
-	}
-	if (type > LOCK_TYPE_MAX)
-	{
-		DEBUG("unknown event type\n");
-		PAUSE();
-		return -1;
-	}
+    handleinfo* h = handle_Get(handle);
+    if (h == NULL) {
+        DEBUG("failed to get newly created Event\n");
+        PAUSE();
+        return -1;
+    }
+    if (type > LOCK_TYPE_MAX) {
+        DEBUG("unknown event type\n");
+        PAUSE();
+        return -1;
+    }
 
-	h->locked = true;
-	h->locktype = type;
-	arm11_SetR(1, handle); // handle_out
+    h->locked = true;
+    h->locktype = type;
+    arm11_SetR(1, handle); // handle_out
 
-	DEBUG("handleoriginal=%x, resettype=%x.\n", handleorigin, type);
+    DEBUG("handleoriginal=%x, resettype=%x.\n", handleorigin, type);
     PAUSE();
     return 0;
 }
 u32 Event_WaitSynchronization(handleinfo* h)
 {
-	DEBUG("waiting for event to happen..\n");
-	PAUSE();
+    DEBUG("waiting for event to happen..\n");
+    PAUSE();
 
-	while (h->locked);
-	if (h->subtype != LOCK_TYPE_STICKY)h->locked = true;
-	return 0;
+    while (h->locked);
+    if (h->subtype != LOCK_TYPE_STICKY)h->locked = true;
+    return 0;
 }

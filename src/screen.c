@@ -19,12 +19,14 @@
 
 #include "util.h"
 
-void screen_Free() {
+void screen_Free()
+{
     DEBUG("%s\n", __func__);
     SDL_Quit();
 }
 
-void screen_Init() {
+void screen_Init()
+{
     SDL_Init(SDL_INIT_VIDEO);
     //SDL_Surface* screen = SDL_SetVideoMode(640, 480, 16, SDL_SWSURFACE);
     SDL_SetVideoMode(400, 480, 16, SDL_SWSURFACE);

@@ -26,10 +26,10 @@
 #define SVCERROR_INVALID_PARAMS    0xE0E01BF5
 #define SVCERROR_INVALID_OPERATION 0xE0E01BEE
 
-#define CONTROL_OP_FREE    1
+#define CONTROL_OP_FREE    1 //unmap
 #define CONTROL_OP_RESERVE 2
-#define CONTROL_OP_COMMIT  3
-#define CONTROL_OP_MAP     4
+#define CONTROL_OP_COMMIT  3 //map
+#define CONTROL_OP_MAP     4 //mirror rw addr1 -> addr0
 #define CONTROL_OP_UNMAP   5
 #define CONTROL_OP_PROTECT 6
 

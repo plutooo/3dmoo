@@ -32,16 +32,21 @@ typedef int64_t s64;
 #define __func__ __FUNCTION__
 #endif
 
-#define DEBUG(...) do { \
-	fprintf(stdout, "%s: ", __func__); \
-	fprintf(stdout,  __VA_ARGS__);	   \
+#define DEBUG(...) do {                          \
+	fprintf(stdout, "%s: ", __func__);       \
+	fprintf(stdout,  __VA_ARGS__);           \
     } while(0);
+
 
 #define ERROR(...) do { \
 	fprintf(stderr, "%s:%d: ", __FILE__, __LINE__); \
 	fprintf(stderr, __VA_ARGS__);			\
     } while(0);
 
+#if 0
 #define PAUSE() fgetc(stdin);
+#else
+#define PAUSE()
+#endif
 
 #define ARRAY_SIZE(s) (sizeof(s)/sizeof((s)[0]))

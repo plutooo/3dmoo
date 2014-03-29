@@ -26,6 +26,7 @@
 
 u32 apt_u_SyncRequest();
 u32 gsp_gpu_SyncRequest();
+u32 hid_user_SyncRequest();
 
 static struct {
     const char* name;
@@ -45,6 +46,12 @@ static struct {
         SERVICE_TYPE_GSP_GPU,
         0,
         &gsp_gpu_SyncRequest
+    },
+    {
+        "hid:USER",
+        SERVICE_TYPE_HID_USER,
+        0,
+        &hid_user_SyncRequest
     }
 };
 

@@ -17,6 +17,8 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
+#include <string.h>
 #include <signal.h>
 
 #include "util.h"
@@ -37,11 +39,13 @@ void sig(int t) {
 
 int main(int argc, char* argv[])
 {
-    if(argc != 2) {
+    if(argc < 2) {
         printf("Usage:\n");
-        printf("%s <in.ncch>\n", argv[0]);
+        printf("%s <in.ncch> [-d]\n", argv[0]);
         return 1;
     }
+
+    bool disasm = (argc > 2) && (strcmp(argv[2], "-d") == 0);
 
     FILE* fd = fopen(argv[1], "rb");
     if(fd == NULL) {
@@ -63,6 +67,14 @@ int main(int argc, char* argv[])
     // Execute.
     while(running) {
         arm11_Step();
+
+        if(disasm) {
+            uint32_t pc = arm11_R(15);
+
+            printf("[%08x] ", pc);
+            arm11_Disasm32(pc);
+        }
+
     }
 
 

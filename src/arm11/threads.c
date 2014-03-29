@@ -15,7 +15,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include <stdio.h>
+#include <stdlib.h>
+
 #include "util.h"
+#include "handles.h"
 #include "arm11.h"
 
 typedef struct {
@@ -59,4 +62,19 @@ void threads_Switch(u32 from, u32 to)
     DEBUG("Thread switch %d->%d\n", from, to);
     arm11_SaveContext(threads[from].r);
     arm11_LoadContext(threads[to].r);
+}
+
+
+u32 svcCreateThread() {
+    u32 ent_pc = arm11_R(0);
+    u32 ent_r0 = arm11_R(1);
+    u32 ent_sp = arm11_R(2);
+    u32 prio = arm11_R(3);
+    u32 cpu  = arm11_R(4);
+
+    DEBUG("entrypoint=%08x, r0=%08x, sp=%08x, prio=%x, cpu=%x",
+          ent_pc, ent_r0, ent_sp, prio, cpu);
+    
+    arm11_SetR(1, handle_New(0, 0)); // r1 = handle_out
+    return 0;
 }

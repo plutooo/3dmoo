@@ -1,3 +1,3 @@
 #!/bin/bash
-./build.sh && ./3dmuu $1
+./build.sh && ./3dmuu $@
 exit $?

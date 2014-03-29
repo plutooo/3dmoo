@@ -28,7 +28,6 @@
 #include "mem.h"
 #include "svc.h"
 
-static void arm11_Disasm32(u32 a);
 
 #define LSL(x,y)(x << y)
 #define LSR(x,y)(x >> y)
@@ -437,9 +436,6 @@ static void Step32()
     u8 b4;
 
     opcode = mem_Read32(*pc);
-
-    printf("[%08x] ", *pc);
-    arm11_Disasm32(*pc);
 
     *pc += sizeof(opcode);
 
@@ -1190,7 +1186,7 @@ static void Step32()
     exit(1);
 }
 
-static void arm11_Disasm32(u32 a)
+void arm11_Disasm32(u32 a)
 {
     u32 opcode;
 

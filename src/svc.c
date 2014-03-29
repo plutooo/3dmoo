@@ -174,6 +174,9 @@ void svc_Execute(u8 num)
     } else if(num == 0x14) {
         arm11_SetR(0, svcReleaseMutex());
         return;
+    } else if(num == 8) {
+        arm11_SetR(0, svcCreateThread());
+        return;
     }
 
     // Stubs.

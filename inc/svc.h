@@ -20,6 +20,9 @@
 // svc.c
 void svc_Execute(u8 num);
 
+// arm11/threads.c
+u32 svcCreateThread();
+
 // svc/memory.c
 u32 svcControlMemory();
 u32 svcMapMemoryBlock();
@@ -38,4 +41,3 @@ u32 svcReleaseMutex();
 u32 svcSendSyncRequest();
 u32 svcCloseHandle();
 u32 svcWaitSynchronization1();
-

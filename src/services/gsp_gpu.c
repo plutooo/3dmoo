@@ -26,7 +26,9 @@
 
 u32 gsp_gpu_SyncRequest()
 {
-    DEBUG("STUBBED\n");
+    u32 cid = mem_Read32(0xFFFF0080);
+
+    DEBUG("STUBBED cid=%08x\n", cid);
     PAUSE();
 
     return 0;

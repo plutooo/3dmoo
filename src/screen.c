@@ -28,9 +28,6 @@ void screen_Free()
 void screen_Init()
 {
     SDL_Init(SDL_INIT_VIDEO);
-    //SDL_Surface* screen = SDL_SetVideoMode(640, 480, 16, SDL_SWSURFACE);
     SDL_SetVideoMode(400, 480, 16, SDL_SWSURFACE);
     SDL_WM_SetCaption("3dmoo", "3dmoo");
-
-    atexit(&screen_Free);
 }

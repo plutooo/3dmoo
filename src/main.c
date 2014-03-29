@@ -17,12 +17,23 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <signal.h>
 
 #include "util.h"
 #include "arm11.h"
 #include "screen.h"
 
 int loader_LoadFile(FILE* fd);
+
+static int running = 1;
+
+
+void sig(int t) {
+    running = 0;
+
+    screen_Free();
+    exit(1);
+}
 
 int main(int argc, char* argv[])
 {
@@ -38,6 +49,8 @@ int main(int argc, char* argv[])
         return 1;
     }
 
+    signal(SIGINT, sig);
+
     screen_Init();
     arm11_Init();
 
@@ -48,9 +61,13 @@ int main(int argc, char* argv[])
     }
 
     // Execute.
-    while(1)
+    while(running) {
         arm11_Step();
+    }
+
 
     fclose(fd);
+    screen_Free();
+
     return 0;
 }

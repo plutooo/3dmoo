@@ -132,6 +132,13 @@ u32 svcSendSyncRequest()
 u32 svcCloseHandle()
 {
     u32 handle = arm11_R(0);
+
+    if(handle == HANDLE_CURRENT_PROCESS) {
+        printf("Program exited successfully.\n");
+        PAUSE();
+        exit(0);
+    }
+
     handleinfo* hi = handle_Get(handle);
 
     if(hi == NULL) {

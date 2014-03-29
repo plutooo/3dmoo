@@ -39,6 +39,8 @@
 #define LOCK_TYPE_MAX   2
 
 
+#define HANDLE_CURRENT_PROCESS 0xFFFF8001
+
 typedef struct {
     bool taken;
     u32  type;

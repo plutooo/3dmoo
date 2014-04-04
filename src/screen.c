@@ -17,6 +17,8 @@
 
 #include <SDL.h>
 
+#include <stdio.h>
+
 #include "util.h"
 
 void screen_Free()

@@ -52,7 +52,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\inc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\inc;C:\devkitPro\SDL2-2.0.3\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -83,6 +83,7 @@
     <ClCompile Include="..\src\loader.c" />
     <ClCompile Include="..\src\main.c" />
     <ClCompile Include="..\src\mem.c" />
+    <ClCompile Include="..\src\screen.c" />
     <ClCompile Include="..\src\services\apt_u.c" />
     <ClCompile Include="..\src\services\gsp_gpu.c" />
     <ClCompile Include="..\src\services\srv.c" />

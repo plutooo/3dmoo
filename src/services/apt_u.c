@@ -96,7 +96,7 @@ u32 apt_u_SyncRequest()
         return 0;
     }
 
-    ERROR("NOT IMPLEMENTED\n");
+    ERROR("NOT IMPLEMENTED, cid=%08x\n", cid);
     arm11_Dump();
     PAUSE();
     return 0;

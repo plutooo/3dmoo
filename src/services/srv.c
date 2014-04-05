@@ -28,6 +28,7 @@ u32 apt_u_SyncRequest();
 u32 gsp_gpu_SyncRequest();
 u32 hid_user_SyncRequest();
 
+#ifndef _WIN32
 static size_t strnlen(const char* p, size_t n)
 {
     const char* q = p;
@@ -45,6 +46,7 @@ static size_t strnlen(const char* p, size_t n)
 
     return q-p;
 }
+#endif
 
 static struct {
     const char* name;

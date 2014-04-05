@@ -28,6 +28,23 @@ u32 apt_u_SyncRequest();
 u32 gsp_gpu_SyncRequest();
 u32 hid_user_SyncRequest();
 
+static size_t strnlen(const char* p, size_t n) {
+    const char* q = p;
+
+    if(n == 0)
+        return 0;
+
+    while(*q != '\0') {
+        q++;
+        n--;
+
+        if(n == 0)
+            break;
+    }
+
+    return q-p;
+}
+
 static struct {
     const char* name;
     u32 subtype;

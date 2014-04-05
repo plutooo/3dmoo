@@ -26,9 +26,9 @@ void screen_Free()
     DEBUG("%s\n", __func__);
     SDL_Quit();
 }
-static SDL_Window *win;
-static SDL_Renderer *ren;
+
 SDL_Texture *tex;
+
 void screen_Init()
 {
 	SDL_Init(SDL_INIT_EVERYTHING);

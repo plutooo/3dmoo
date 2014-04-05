@@ -31,60 +31,56 @@ SDL_Texture *tex;
 
 void screen_Init()
 {
-	SDL_Init(SDL_INIT_EVERYTHING);
+    SDL_Init(SDL_INIT_EVERYTHING);
 
-	SDL_Window *win = NULL;
-	SDL_Renderer *renderer = NULL;
-	SDL_Texture *bitmapTex = NULL;
-	SDL_Surface *bitmapSurface = NULL;
-	int posX = 100, posY = 100, width = 400, height = 240;
+    SDL_Window *win = NULL;
+    SDL_Renderer *renderer = NULL;
+    SDL_Texture *bitmapTex = NULL;
+    SDL_Surface *bitmapSurface = NULL;
+    int posX = 100, posY = 100, width = 400, height = 240;
 
-	win = SDL_CreateWindow("3dmoo", posX, posY, width, height, 0);
-	if (win == NULL)
-	{
-		DEBUG("error creating window");
-		return;
-	}
-	renderer = SDL_CreateRenderer(win, -1, SDL_RENDERER_ACCELERATED);
-	if (renderer == NULL)
-	{
-		DEBUG("error creating renderer");
-		return;
-	}
-	//bitmapSurface =  SDL_LoadBMP("img/hello.bmp");
-	Uint32 rmask, gmask, bmask, amask;
-	rmask = 0x000000ff;
-	gmask = 0x0000ff00;
-	bmask = 0x00ff0000;
-	amask = 0xff000000;
+    win = SDL_CreateWindow("3dmoo", posX, posY, width, height, 0);
+    if (win == NULL) {
+        DEBUG("error creating window");
+        return;
+    }
+    renderer = SDL_CreateRenderer(win, -1, SDL_RENDERER_ACCELERATED);
+    if (renderer == NULL) {
+        DEBUG("error creating renderer");
+        return;
+    }
+    //bitmapSurface =  SDL_LoadBMP("img/hello.bmp");
+    Uint32 rmask, gmask, bmask, amask;
+    rmask = 0x000000ff;
+    gmask = 0x0000ff00;
+    bmask = 0x00ff0000;
+    amask = 0xff000000;
 
-	bitmapSurface = SDL_CreateRGBSurface(0, width, height, 32, rmask, gmask, bmask, amask);
-	if (bitmapSurface == NULL) {
-		fprintf(stderr, "CreateRGBSurface failed: %s\n", SDL_GetError());
-		return;
-	}
+    bitmapSurface = SDL_CreateRGBSurface(0, width, height, 32, rmask, gmask, bmask, amask);
+    if (bitmapSurface == NULL) {
+        fprintf(stderr, "CreateRGBSurface failed: %s\n", SDL_GetError());
+        return;
+    }
 
-	SDL_LockSurface(bitmapSurface);
-	Uint32 *bitmapPixels = (Uint32 *)bitmapSurface->pixels;
-	int i = 0;
-	while (i < 0x1000)
-	{
-		bitmapPixels[i] = 0xFFFFFFFF;
-		i++;
-	}
+    SDL_LockSurface(bitmapSurface);
+    Uint32 *bitmapPixels = (Uint32 *)bitmapSurface->pixels;
+    int i = 0;
+    while (i < 0x1000) {
+        bitmapPixels[i] = 0xFFFFFFFF;
+        i++;
+    }
 
-	SDL_UnlockSurface(bitmapSurface);
+    SDL_UnlockSurface(bitmapSurface);
 
-	bitmapTex = SDL_CreateTextureFromSurface(renderer, bitmapSurface);
-	if (bitmapTex == NULL)
-	{
-		DEBUG("error creation bitmaptex");
-		return;
-	}
-	SDL_FreeSurface(bitmapSurface);
+    bitmapTex = SDL_CreateTextureFromSurface(renderer, bitmapSurface);
+    if (bitmapTex == NULL) {
+        DEBUG("error creation bitmaptex");
+        return;
+    }
+    SDL_FreeSurface(bitmapSurface);
 
-	SDL_RenderClear(renderer);
-	SDL_RenderCopy(renderer, bitmapTex, NULL, NULL);
-	SDL_RenderPresent(renderer);
+    SDL_RenderClear(renderer);
+    SDL_RenderCopy(renderer, bitmapTex, NULL, NULL);
+    SDL_RenderPresent(renderer);
 
 }

@@ -31,7 +31,8 @@ int loader_LoadFile(FILE* fd);
 static int running = 1;
 
 
-void sig(int t) {
+void sig(int t)
+{
     running = 0;
 
     screen_Free();
@@ -58,7 +59,7 @@ int main(int argc, char* argv[])
 
     screen_Init();
     arm11_Init();
-	initGPU();
+    initGPU();
 
     // Load file.
     if(loader_LoadFile(fd) != 0) {

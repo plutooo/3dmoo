@@ -28,7 +28,8 @@ u32 apt_u_SyncRequest();
 u32 gsp_gpu_SyncRequest();
 u32 hid_user_SyncRequest();
 
-static size_t strnlen(const char* p, size_t n) {
+static size_t strnlen(const char* p, size_t n)
+{
     const char* q = p;
 
     if(n == 0)

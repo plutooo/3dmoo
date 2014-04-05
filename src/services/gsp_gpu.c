@@ -23,6 +23,8 @@
 #include "arm11.h"
 #include "handles.h"
 #include "mem.h"
+#include "SrvtoIO.h"
+
 
 #define CPUsvcbuffer 0xFFFF0000
 
@@ -42,14 +44,14 @@ u32 gsp_gpu_SyncRequest()
 		lange = mem_Read32(CPUsvcbuffer + 0x88);
 		addr = mem_Read32(CPUsvcbuffer + 0x84);
 		if ((lange & 0x3) != 0) DEBUG("nicht surportete Länge");
-		for (int i = 0; i < lange; i += 4) GPUwritereg32((u32)(addr + i), mem_Read32((u32)(outaddr + i)));
+		for (u32 i = 0; i < lange; i += 4) GPUwritereg32((u32)(addr + i), mem_Read32((u32)(outaddr + i)));
 		return 0;
 	case 0x40080: //GSPGPU_ReadHWRegs(u32 regAddr, u32* data, u8 size)
 		outaddr = mem_Read32(CPUsvcbuffer + 0x184);
 		lange = mem_Read32(CPUsvcbuffer + 0x88);
 		addr = mem_Read32(CPUsvcbuffer + 0x84);
 		if ((lange & 0x3) != 0) DEBUG("nicht surportete Länge");
-		for (int i = 0; i < lange; i += 4) mem_Write32((u32)(outaddr + i), GPUreadreg32((u32)(addr + i)));
+		for (u32 i = 0; i < lange; i += 4) mem_Write32((u32)(outaddr + i), GPUreadreg32((u32)(addr + i)));
 		return 0;
 
 	case 0xC0000: //TriggerCmdReqQueue

@@ -24,6 +24,7 @@
 #include "util.h"
 #include "arm11.h"
 #include "screen.h"
+#include "SrvtoIO.h"
 
 int loader_LoadFile(FILE* fd);
 

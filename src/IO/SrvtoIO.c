@@ -15,7 +15,7 @@ void initGPU()
 
 void GPUwritereg32(u32 addr, u32 data)
 {
-	DEBUG("GPU write %08x to %08x",data,addr);
+	DEBUG("GPU write %08x to %08x\n",data,addr);
 	if (addr > 0x420000)
 	{
 		DEBUG("write out of range write");
@@ -28,13 +28,13 @@ void GPUwritereg32(u32 addr, u32 data)
 		break;
 	}
 }
-void GPUreadreg32(u32 addr)
+u32 GPUreadreg32(u32 addr)
 {
-	DEBUG("GPU read %08x", addr);
+	DEBUG("GPU read %08x\n", addr);
 	if (addr > 0x420000)
 	{
 		DEBUG("read out of range write");
-		return;
+		return 0;
 	}
 	return *(uint32_t*)(&IObuffer[addr]);
 }

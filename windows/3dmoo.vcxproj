@@ -85,7 +85,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\inc;C:\devkitPro\SDL2-2.0.3\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\inc;C:\devkitPro\SDL2-2.0.3\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -164,6 +164,7 @@
     <ClInclude Include="..\inc\arm11.h" />
     <ClInclude Include="..\inc\handles.h" />
     <ClInclude Include="..\inc\mem.h" />
+    <ClInclude Include="..\inc\SrvtoIO.h" />
     <ClInclude Include="..\inc\svc.h" />
     <ClInclude Include="..\inc\util.h" />
   </ItemGroup>

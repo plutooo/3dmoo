@@ -39,7 +39,7 @@ void screen_Init()
 	SDL_Surface *bitmapSurface = NULL;
 	int posX = 100, posY = 100, width = 400, height = 240;
 
-	win = SDL_CreateWindow("Hello World", posX, posY, width, height, 0);
+	win = SDL_CreateWindow("3dmoo", posX, posY, width, height, 0);
 	if (win == NULL)
 	{
 		DEBUG("error creating window");
@@ -53,17 +53,10 @@ void screen_Init()
 	}
 	//bitmapSurface =  SDL_LoadBMP("img/hello.bmp");
 	Uint32 rmask, gmask, bmask, amask;
-#if SDL_BYTEORDER == SDL_BIG_ENDIAN
-	rmask = 0xff000000;
-	gmask = 0x00ff0000;
-	bmask = 0x0000ff00;
-	amask = 0x000000ff;
-#else
 	rmask = 0x000000ff;
 	gmask = 0x0000ff00;
 	bmask = 0x00ff0000;
 	amask = 0xff000000;
-#endif
 
 	bitmapSurface = SDL_CreateRGBSurface(0, width, height, 32, rmask, gmask, bmask, amask);
 	if (bitmapSurface == NULL) {

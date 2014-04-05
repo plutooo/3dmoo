@@ -57,6 +57,7 @@ int main(int argc, char* argv[])
 
     screen_Init();
     arm11_Init();
+	initGPU();
 
     // Load file.
     if(loader_LoadFile(fd) != 0) {

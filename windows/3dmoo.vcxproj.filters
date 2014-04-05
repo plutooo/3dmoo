@@ -22,6 +22,9 @@
     <Filter Include="Source Files\services">
       <UniqueIdentifier>{74e8a173-e2cd-4853-b41a-c21e797869d0}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\IO">
+      <UniqueIdentifier>{0f570f85-e6b2-49ec-871e-e3f8f4b604b0}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\handles.c">
@@ -68,6 +71,12 @@
     </ClCompile>
     <ClCompile Include="..\src\screen.c">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\services\hid_user.c">
+      <Filter>Source Files\services</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\IO\SrvtoIO.c">
+      <Filter>Source Files\IO</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

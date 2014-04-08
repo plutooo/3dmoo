@@ -217,7 +217,7 @@ u32 mem_Read32(uint32_t addr)
 int mem_Read(uint8_t* buf_out, uint32_t addr, uint32_t size)
 {
 #ifdef MEM_TRACE
-    fprintf(stderr, "r0x%d %08x\n", size, addr);
+    fprintf(stderr, "r (sz=%08x) %08x\n", size, addr);
 #endif
 
     size_t i;

@@ -234,7 +234,7 @@ u32 *ainstr;
             case 0xE:	/* BLX */
             case 0xF:	/* BLX */
                 *ainstr = 0xE1200030	/* base */
-                    |(Rs << 0);	/* Rm */
+                          |(Rs << 0);	/* Rm */
                 break;
             }
         }

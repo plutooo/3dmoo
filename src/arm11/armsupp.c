@@ -215,7 +215,7 @@ ARMul_LDC (ARMul_State * state, u32 instr, u32 address)
         goto L_ldc_takeabort;
 
     BUSUSEDINCPCN;
-//chy 2004-05-25
+    //chy 2004-05-25
 
     cpab = (state->LDC[CPNum]) (state, ARMul_DATA, instr, data);
 
@@ -229,8 +229,8 @@ ARMul_LDC (ARMul_State * state, u32 instr, u32 address)
         cpab = (state->LDC[CPNum]) (state, ARMul_DATA, instr, data);
     }
 
-//chy 2004-05-25
-L_ldc_takeabort:
+    //chy 2004-05-25
+    L_ldc_takeabort:
     if (BIT (21)) {
         if (!
                 ((state->abortSig || state->Aborted)
@@ -240,7 +240,7 @@ L_ldc_takeabort:
 
     if (state->abortSig || state->Aborted)
         TAKEABORT;
-*/
+    */
 }
 
 /* This function does the work of generating the addresses used in an
@@ -262,9 +262,9 @@ ARMul_STC (ARMul_State * state, u32 instr, u32 address)
 
     //printf("SKYEYE ARMul_STC, CPnum is %x, instr %x, addr %x\n",CPNum, instr, address);
     //chy 2004-05-23 should update this function in the future,should concern dataabort
-//  skyeye_instr_debug=0;printf("SKYEYE  debug end!!!!\n");
-// chy 2004-05-25 , fix it now,so needn't printf
-//  printf("SKYEYE ARMul_STC, should update this function!!!!!\n");
+    //  skyeye_instr_debug=0;printf("SKYEYE  debug end!!!!\n");
+    // chy 2004-05-25 , fix it now,so needn't printf
+    //  printf("SKYEYE ARMul_STC, should update this function!!!!!\n");
 
     //exit(-1);
     cpab = (state->STC[CPNum]) (state, ARMul_FIRST, instr, &data);
@@ -283,12 +283,12 @@ ARMul_STC (ARMul_State * state, u32 instr, u32 address)
         CPTAKEABORT;
         return;
     }
-#ifndef MODE32
+    #ifndef MODE32
     if (ADDREXCEPT (address) || VECTORACCESS (address))
         INTERNALABORT (address);
-#endif
+    #endif
     BUSUSEDINCPCN;
-//chy 2004-05-25
+    //chy 2004-05-25
     cpab = (state->STC[CPNum]) (state, ARMul_DATA, instr, &data);
     ARMul_StoreWordN (state, address, data);
     //chy 2004-05-25
@@ -303,8 +303,8 @@ ARMul_STC (ARMul_State * state, u32 instr, u32 address)
         if (state->abortSig || state->Aborted)
             goto L_stc_takeabort;
     }
-//chy 2004-05-25
-L_stc_takeabort:
+    //chy 2004-05-25
+    L_stc_takeabort:
     if (BIT (21)) {
         if (!
                 ((state->abortSig || state->Aborted)

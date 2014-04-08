@@ -67,12 +67,12 @@ static struct {
         NULL,
         &mutex_WaitSynchronization
     },
-	{
-		"mem",
-		NULL,
-		NULL,
-		NULL
-	}
+    {
+        "mem",
+        NULL,
+        NULL,
+        NULL
+    }
 };
 
 #define NUM_HANDLE_TYPES ARRAY_SIZE(handle_types)

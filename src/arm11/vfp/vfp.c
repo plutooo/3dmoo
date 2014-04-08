@@ -63,7 +63,7 @@ VFPMRC (ARMul_State * state, unsigned type, u32 instr, u32 * value)
 #undef VFP_MRC_TRANS
     }
     DEBUG("Can't identify %x, CoProc %x, OPC_1 %x, Rt %x, CRn %x, CRm %x, OPC_2 %x\n",
-               instr, CoProc, OPC_1, Rt, CRn, CRm, OPC_2);
+          instr, CoProc, OPC_1, Rt, CRn, CRm, OPC_2);
 
     return ARMul_CANT;
 }
@@ -88,7 +88,7 @@ VFPMCR (ARMul_State * state, unsigned type, u32 instr, u32 value)
 #undef VFP_MCR_TRANS
     }
     DEBUG("Can't identify %x, CoProc %x, OPC_1 %x, Rt %x, CRn %x, CRm %x, OPC_2 %x\n",
-               instr, CoProc, OPC_1, Rt, CRn, CRm, OPC_2);
+          instr, CoProc, OPC_1, Rt, CRn, CRm, OPC_2);
 
     return ARMul_CANT;
 }
@@ -109,7 +109,7 @@ VFPMRRC (ARMul_State * state, unsigned type, u32 instr, u32 * value1, u32 * valu
 #undef VFP_MRRC_TRANS
     }
     DEBUG("Can't identify %x, CoProc %x, OPC_1 %x, Rt %x, Rt2 %x, CRm %x\n",
-               instr, CoProc, OPC_1, Rt, Rt2, CRm);
+          instr, CoProc, OPC_1, Rt, Rt2, CRm);
 
     return ARMul_CANT;
 }
@@ -134,7 +134,7 @@ VFPMCRR (ARMul_State * state, unsigned type, u32 instr, u32 value1, u32 value2)
 #undef VFP_MCRR_TRANS
     }
     DEBUG("Can't identify %x, CoProc %x, OPC_1 %x, Rt %x, Rt2 %x, CRm %x\n",
-               instr, CoProc, OPC_1, Rt, Rt2, CRm);
+          instr, CoProc, OPC_1, Rt, Rt2, CRm);
 
     return ARMul_CANT;
 }
@@ -176,7 +176,7 @@ VFPSTC (ARMul_State * state, unsigned type, u32 instr, u32 * value)
 #undef VFP_STC_TRANS
     }
     DEBUG("Can't identify %x, CoProc %x, CRd %x, Rn %x, imm8 %x, P %x, U %x, D %x, W %x\n",
-               instr, CoProc, CRd, Rn, imm8, P, U, D, W);
+          instr, CoProc, CRd, Rn, imm8, P, U, D, W);
 
     return ARMul_CANT;
 }
@@ -206,7 +206,7 @@ VFPLDC (ARMul_State * state, unsigned type, u32 instr, u32 value)
 #undef VFP_LDC_TRANS
     }
     DEBUG("Can't identify %x, CoProc %x, CRd %x, Rn %x, imm8 %x, P %x, U %x, D %x, W %x\n",
-               instr, CoProc, CRd, Rn, imm8, P, U, D, W);
+          instr, CoProc, CRd, Rn, imm8, P, U, D, W);
 
     return ARMul_CANT;
 }

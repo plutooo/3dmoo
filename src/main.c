@@ -57,7 +57,7 @@ int main(int argc, char* argv[])
 
     signal(SIGINT, sig);
 
-    screen_Init();
+    //screen_Init();
     arm11_Init();
     initGPU();
 
@@ -69,24 +69,22 @@ int main(int argc, char* argv[])
 
     // Execute.
     while(running) {
-		for (int i = 0; i < 0x1; i++) // todo
-		{
-			arm11_Step();
+        for (int i = 0; i < 0x1; i++) { // todo
+            arm11_Step();
 
-			if (disasm) {
-				uint32_t pc = arm11_R(15);
+            if (disasm) {
+                uint32_t pc = arm11_R(15);
 
-				printf("[%08x] ", pc);
-				arm11_Disasm32(pc);
-			}
-		}
-		cycelGPU();
-
+                printf("[%08x] ", pc);
+                arm11_Disasm32(pc);
+            }
+        }
+        //cycelGPU();
     }
 
 
     fclose(fd);
-    screen_Free();
+    //screen_Free();
 
     return 0;
 }

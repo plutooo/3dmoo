@@ -41,3 +41,6 @@ u32 svcReleaseMutex();
 u32 svcSendSyncRequest();
 u32 svcCloseHandle();
 u32 svcWaitSynchronization1();
+
+//mem
+u32 svcmapMemoryBlock();

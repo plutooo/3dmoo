@@ -76,4 +76,3 @@ u32 gsp_gpu_SyncRequest()
 
     return 0;
 }
-

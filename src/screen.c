@@ -21,22 +21,23 @@
 
 #include "util.h"
 
+#include "SrvtoIO.h"
+
 void screen_Free()
 {
     DEBUG("%s\n", __func__);
     SDL_Quit();
 }
 
-SDL_Texture *tex;
+SDL_Renderer *renderer = NULL;
+SDL_Texture *bitmapTex = NULL;
+SDL_Surface *bitmapSurface = NULL;
 
 void screen_Init()
 {
     SDL_Init(SDL_INIT_EVERYTHING);
 
     SDL_Window *win = NULL;
-    SDL_Renderer *renderer = NULL;
-    SDL_Texture *bitmapTex = NULL;
-    SDL_Surface *bitmapSurface = NULL;
     int posX = 100, posY = 100, width = 400, height = 240;
 
     win = SDL_CreateWindow("3dmoo", posX, posY, width, height, 0);
@@ -66,7 +67,7 @@ void screen_Init()
     Uint32 *bitmapPixels = (Uint32 *)bitmapSurface->pixels;
     int i = 0;
     while (i < 0x1000) {
-        bitmapPixels[i] = 0xFFFFFFFF;
+		bitmapPixels[i] = 0xFFFFFFFF;
         i++;
     }
 
@@ -77,10 +78,48 @@ void screen_Init()
         DEBUG("error creation bitmaptex");
         return;
     }
-    SDL_FreeSurface(bitmapSurface);
+    //SDL_FreeSurface(bitmapSurface);
 
     SDL_RenderClear(renderer);
     SDL_RenderCopy(renderer, bitmapTex, NULL, NULL);
     SDL_RenderPresent(renderer);
 
+	SDL_DestroyTexture(bitmapTex);
+
+}
+void cycelGPU()
+{
+	u32 addr = ((GPUreadreg32(frameselectoben) & 0x1) == 0) ? GPUreadreg32(RGBuponeleft) : GPUreadreg32(RGBuptwoleft);
+	u8* buffer = get_pymembuffer(addr);
+	if (buffer != NULL)
+	{
+		SDL_LockSurface(bitmapSurface);
+		Uint8 *bitmapPixels = (Uint8 *)bitmapSurface->pixels;
+
+		/*int i = 0;
+		while (i < 0x1000) {
+			bitmapPixels[i] = 0xFFFFFFFF;
+			i++;
+		}*/
+		for (int y = 0; y < 240; y++)
+		{
+			for (int x = 0; x < 400; x++)
+			{
+				u8* row = (u8*)(bitmapPixels + ((239 - y) * 400 * 4) + (x * 4));
+				*(row + 0) = buffer[((x * 240 + y) * 3) + 0];
+				*(row + 1) = buffer[((x * 240 + y) * 3) + 1];
+				*(row + 2) = buffer[((x * 240 + y) * 3) + 2];
+				*(row + 3) = 0xFF;
+			}
+		}
+		SDL_UnlockSurface(bitmapSurface);
+		bitmapTex = SDL_CreateTextureFromSurface(renderer, bitmapSurface);
+		if (bitmapTex == NULL) {
+			DEBUG("error creation bitmaptex");
+			return;
+		}
+		SDL_RenderClear(renderer);
+		SDL_RenderCopy(renderer, bitmapTex, NULL, NULL);
+		SDL_RenderPresent(renderer);
+	}
 }

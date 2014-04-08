@@ -177,7 +177,10 @@ void svc_Execute(u8 num)
     } else if(num == 8) {
         arm11_SetR(0, svcCreateThread());
         return;
-    }
+	} else if (num == 0x1E) {
+		arm11_SetR(0, svcmapMemoryBlock());
+		return;
+	}
 
     // Stubs.
     else if(num == 0x21) {

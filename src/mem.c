@@ -34,6 +34,8 @@ typedef struct {
 static memmap_t mappings[MAX_MAPPINGS];
 static size_t   num_mappings;
 
+//#define MEM_TRACE 1
+
 
 static int Overlaps(memmap_t* a, memmap_t* b)
 {
@@ -96,8 +98,11 @@ int mem_AddSegment(uint32_t base, uint32_t size, uint8_t* data)
 
 int mem_Write8(uint32_t addr, uint8_t w)
 {
-    size_t i;
+#ifdef MEM_TRACE
+    fprintf(stderr, "w8 %08x <- w=%02x\n", addr, w & 0xff);
+#endif
 
+    size_t i;
     for(i=0; i<num_mappings; i++) {
         if(Contains(&mappings[i], addr, 1)) {
             mappings[i].phys[addr - mappings[i].base] = w;
@@ -113,8 +118,11 @@ int mem_Write8(uint32_t addr, uint8_t w)
 
 uint8_t mem_Read8(uint32_t addr)
 {
-    size_t i;
+#ifdef MEM_TRACE
+    fprintf(stderr, "r8 %08x\n", addr);
+#endif
 
+    size_t i;
     for(i=0; i<num_mappings; i++) {
         if(Contains(&mappings[i], addr, 1)) {
             return mappings[i].phys[addr - mappings[i].base];
@@ -129,8 +137,11 @@ uint8_t mem_Read8(uint32_t addr)
 
 int mem_Write16(uint32_t addr, uint16_t w)
 {
-    size_t i;
+#ifdef MEM_TRACE
+    fprintf(stderr, "w16 %08x <- w=%04x\n", addr, w & 0xffff);
+#endif
 
+    size_t i;
     for(i=0; i<num_mappings; i++) {
         if(Contains(&mappings[i], addr, 2)) {
             *(uint16_t*) (&mappings[i].phys[addr - mappings[i].base]) = w;
@@ -146,8 +157,11 @@ int mem_Write16(uint32_t addr, uint16_t w)
 
 uint16_t mem_Read16(uint32_t addr)
 {
-    size_t i;
+#ifdef MEM_TRACE
+    fprintf(stderr, "r16 %08x\n", addr);
+#endif
 
+    size_t i;
     for(i=0; i<num_mappings; i++) {
         if(Contains(&mappings[i], addr, 2)) {
             return *(uint16_t*) (&mappings[i].phys[addr - mappings[i].base]);
@@ -162,8 +176,11 @@ uint16_t mem_Read16(uint32_t addr)
 
 int mem_Write32(uint32_t addr, uint32_t w)
 {
-    size_t i;
+#ifdef MEM_TRACE
+    fprintf(stderr, "w32 %08x <- w=%08x\n", addr, w);
+#endif
 
+    size_t i;
     for(i=0; i<num_mappings; i++) {
         if(Contains(&mappings[i], addr, 4)) {
             *(uint32_t*) (&mappings[i].phys[addr - mappings[i].base]) = w;
@@ -171,7 +188,7 @@ int mem_Write32(uint32_t addr, uint32_t w)
         }
     }
 
-    DEBUG("trying to write32 unmapped addr %08x, w=%04x\n", addr, w & 0xffff);
+    DEBUG("trying to write32 unmapped addr %08x, w=%08x\n", addr);
     arm11_Dump();
     exit(1);
     return 0;
@@ -179,8 +196,11 @@ int mem_Write32(uint32_t addr, uint32_t w)
 
 u32 mem_Read32(uint32_t addr)
 {
-    size_t i;
+#ifdef MEM_TRACE
+    fprintf(stderr, "r32 %08x\n", addr);
+#endif
 
+    size_t i;
     for(i=0; i<num_mappings; i++) {
         if(Contains(&mappings[i], addr, 4)) {
             return *(uint32_t*) (&mappings[i].phys[addr - mappings[i].base]);
@@ -195,8 +215,11 @@ u32 mem_Read32(uint32_t addr)
 
 int mem_Read(uint8_t* buf_out, uint32_t addr, uint32_t size)
 {
-    size_t i;
+#ifdef MEM_TRACE
+    fprintf(stderr, "r0x%d %08x\n", size, addr);
+#endif
 
+    size_t i;
     for(i=0; i<num_mappings; i++) {
         if(Contains(&mappings[i], addr, size)) {
             memcpy(buf_out, &mappings[i].phys[addr - mappings[i].base], size);

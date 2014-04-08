@@ -178,7 +178,7 @@ void svc_Execute(u8 num)
         arm11_SetR(0, svcCreateThread());
         return;
     } else if (num == 0x1E) {
-        arm11_SetR(0, svcmapMemoryBlock());
+        arm11_SetR(0, svcMapMemoryBlock());
         return;
     }
 

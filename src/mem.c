@@ -23,7 +23,6 @@
 #include "util.h"
 #include "arm11.h"
 #include "handles.h"
-#include "SrvtoIO.h"
 
 typedef struct {
     uint32_t base;
@@ -95,31 +94,6 @@ int mem_AddSegment(uint32_t base, uint32_t size, uint8_t* data)
 
     if(data != NULL)
         memcpy(mappings[num_mappings-1].phys, data, size);
-    return 0;
-}
-
-u32 svcmapMemoryBlock() //todo improve error codes etc
-{
-    u32 handle = arm11_R(0);
-    u32 addr = arm11_R(1);
-    u32 mypermissions = arm11_R(2);
-    u32 otherpermission = arm11_R(3);
-    handleinfo* h = handle_Get(handle);
-
-    if (h->type != HANDLE_TYPE_SHAREDMEM) {
-        DEBUG("error mapping unknown handle");
-        return 0xFFFFFFFF;
-    }
-
-    switch(h->subtype) {
-    case MEM_TYPE_GSP_0:
-        mem_AddSegment(addr, GSPsharebuffsize, GSPsharedbuff);
-        break;
-    default:
-        DEBUG("error mapping unknown mem");
-        return 0xFFFFFFFF;
-    }
-
     return 0;
 }
 

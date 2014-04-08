@@ -19,7 +19,9 @@
 
 #include "util.h"
 #include "mem.h"
+#include "handles.h"
 #include "arm11.h"
+#include "SrvtoIO.h"
 
 #define SVCERROR_ALIGN_ADDR        0xE0E01BF1
 #define SVCERROR_INVALID_SIZE      0xE0E01BF2
@@ -229,9 +231,25 @@ u32 svcMapMemoryBlock()
     u32 addr       = arm11_R(1);
     u32 my_perm    = arm11_R(2);
     u32 other_perm = arm11_R(3);
+    handleinfo* h  = handle_Get(handle);
 
-    DEBUG("STUBBED\nhandle=%x, addr=%08x, my_perm=%x, other_perm=%x\n",
-          handle, addr, my_perm, other_perm);
-    PAUSE();
+    if(h == NULL || h->type != HANDLE_TYPE_SHAREDMEM) {
+        DEBUG("Invalid handle.\n");
+        PAUSE();
+        return 0xFFFFFFFF;
+    }
+
+    switch(h->subtype) {
+    case MEM_TYPE_GSP_0:
+        mem_AddSegment(addr, GSPsharebuffsize, GSPsharedbuff);
+        break;
+
+    default:
+        DEBUG("Trying to map unknown mem\nhandle=%x, addr=%08x, my_perm=%x, other_perm=%x\n",
+              handle, addr, my_perm, other_perm);
+        PAUSE();
+        return 0xFFFFFFFF;
+    }
+
     return 0;
 }

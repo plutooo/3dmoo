@@ -6,6 +6,9 @@
 u8* IObuffer;
 u8* LINEmembuffer;
 u8* VRAMbuff;
+u8* GSPsharedbuff;
+
+#define GSPsharebuffsize 0x800 + 0xFF * 0x200
 
 void initGPU();
 void GPUwritereg32(u32 addr, u32 data);

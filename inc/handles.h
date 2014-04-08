@@ -21,6 +21,7 @@
 #define HANDLE_TYPE_SERVICE   2
 #define HANDLE_TYPE_EVENT     3
 #define HANDLE_TYPE_MUTEX     4
+#define HANDLE_TYPE_SHAREDMEM     5
 
 #define PORT_TYPE_SRV         0
 
@@ -38,6 +39,8 @@
 #define LOCK_TYPE_STICKY  1
 #define LOCK_TYPE_PULSE   2
 #define LOCK_TYPE_MAX   2
+
+#define MEM_TYPE_GSP_0   0
 
 
 #define HANDLE_CURRENT_PROCESS 0xFFFF8001

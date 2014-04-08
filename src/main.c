@@ -80,7 +80,7 @@ int main(int argc, char* argv[])
 				arm11_Disasm32(pc);
 			}
 		}
-		//cycelGPU();
+		cycelGPU();
 
     }
 

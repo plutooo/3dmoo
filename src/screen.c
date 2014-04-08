@@ -87,42 +87,39 @@ void screen_Init()
 	SDL_DestroyTexture(bitmapTex);
 
 }
-
-#define frameselectoben 0x400478
-#define RGBuponeleft 0x400468
-#define RGBuptwoleft 0x40046C
 void cycelGPU()
 {
 	u32 addr = ((GPUreadreg32(frameselectoben) & 0x1) == 0) ? GPUreadreg32(RGBuponeleft) : GPUreadreg32(RGBuptwoleft);
-	//addr -= 0x18000000; //todo convert address
-	addr = 0x100000;
-	SDL_LockSurface(bitmapSurface);
-	Uint8 *bitmapPixels = (Uint8 *)bitmapSurface->pixels;
-
-	/*int i = 0;
-	while (i < 0x1000) {
-		bitmapPixels[i] = 0xFFFFFFFF;
-		i++;
-	}*/
-
-	for (int y = 0; y < 240; y++)
+	u8* buffer = get_pymembuffer(addr);
+	if (buffer != NULL)
 	{
-		for (int x = 0; x < 400; x++)
+		SDL_LockSurface(bitmapSurface);
+		Uint8 *bitmapPixels = (Uint8 *)bitmapSurface->pixels;
+
+		/*int i = 0;
+		while (i < 0x1000) {
+			bitmapPixels[i] = 0xFFFFFFFF;
+			i++;
+		}*/
+		for (int y = 0; y < 240; y++)
 		{
-			u8* row = (u8*)(bitmapPixels + ((239 - y) * 400 * 4) + (x * 4));
-			*(row + 0) = 0xFF;//mem_Read8((addr + (x * 240 + y) * 3) + 0);
-			*(row + 1) = 0xFF;//mem_Read8((addr + (x * 240 + y) * 3) + 1);
-			*(row + 2) = 0xFF;//mem_Read8((addr + (x * 240 + y) * 3) + 2);
-			*(row + 3) = 0xFF;
+			for (int x = 0; x < 400; x++)
+			{
+				u8* row = (u8*)(bitmapPixels + ((239 - y) * 400 * 4) + (x * 4));
+				*(row + 0) = buffer[((x * 240 + y) * 3) + 0];
+				*(row + 1) = buffer[((x * 240 + y) * 3) + 1];
+				*(row + 2) = buffer[((x * 240 + y) * 3) + 2];
+				*(row + 3) = 0xFF;
+			}
 		}
+		SDL_UnlockSurface(bitmapSurface);
+		bitmapTex = SDL_CreateTextureFromSurface(renderer, bitmapSurface);
+		if (bitmapTex == NULL) {
+			DEBUG("error creation bitmaptex");
+			return;
+		}
+		SDL_RenderClear(renderer);
+		SDL_RenderCopy(renderer, bitmapTex, NULL, NULL);
+		SDL_RenderPresent(renderer);
 	}
-	SDL_UnlockSurface(bitmapSurface);
-	bitmapTex = SDL_CreateTextureFromSurface(renderer, bitmapSurface);
-	if (bitmapTex == NULL) {
-		DEBUG("error creation bitmaptex");
-		return;
-	}
-	SDL_RenderClear(renderer);
-	SDL_RenderCopy(renderer, bitmapTex, NULL, NULL);
-	SDL_RenderPresent(renderer);
 }

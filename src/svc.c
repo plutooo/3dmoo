@@ -147,60 +147,62 @@ void svc_Execute(u8 num)
 
     DEBUG("-- svc%s (0x%x) --\n", name, num);
 
-    if(num == 1) {
+    switch (num)
+    {
+    case 1: 
         arm11_SetR(0, svcControlMemory());
         return;
-    } else if(num == 0x2d) {
-        arm11_SetR(0, svcConnectToPort());
-        return;
-    } else if(num == 0x24) {
-        arm11_SetR(0, svcWaitSynchronization1());
-        return;
-    } else if(num == 0x32) {
-        arm11_SetR(0, svcSendSyncRequest());
-        return;
-    } else if(num == 0x23) {
-        arm11_SetR(0, svcCloseHandle());
-        return;
-    } else if(num == 0x17) {
-        arm11_SetR(0, svcCreateEvent());
-        return;
-    } else if(num == 0x1f) {
-        arm11_SetR(0, svcMapMemoryBlock());
-        return;
-    } else if(num == 0x13) {
-        arm11_SetR(0, svcCreateMutex());
-        return;
-    } else if(num == 0x14) {
-        arm11_SetR(0, svcReleaseMutex());
-        return;
-    } else if(num == 8) {
+    case 8:
         arm11_SetR(0, svcCreateThread());
         return;
-    } else if (num == 0x1E) {
+    case 0x13:
+        arm11_SetR(0, svcCreateMutex());
+        return;
+    case 0x14:
+        arm11_SetR(0, svcReleaseMutex());
+        return;
+    case 0x17:
+        arm11_SetR(0, svcCreateEvent());
+        return;
+    case 0x1E:
         arm11_SetR(0, svcMapMemoryBlock());
         return;
-    }
-
-    // Stubs.
-    else if(num == 0x21) {
+    case 0x1F:
+        arm11_SetR(0, svcMapMemoryBlock());
+        return;
+    case 0x21:
         DEBUG("STUBBED");
         arm11_SetR(0, 1);
         PAUSE();
         return;
-    } else if(num == 0x38) {
+    case 0x23:
+        arm11_SetR(0, svcCloseHandle());
+        return;
+    case 0x24:
+        arm11_SetR(0, svcWaitSynchronization1());
+        return;
+    case 0x2D:
+        arm11_SetR(0, svcConnectToPort());
+        return;
+    case 0x32:
+        arm11_SetR(0, svcSendSyncRequest());
+        return;
+    case 0x38:
         DEBUG("resourcelimit=%08x, handle=%08x\n", arm11_R(0), arm11_R(1));
         DEBUG("STUBBED");
         PAUSE();
         arm11_SetR(0, 1);
         return;
-    } else if(num == 0x3a) {
+    case 0x3A:
         DEBUG("values_ptr=%08x, handleResourceLimit=%08x, names_ptr=%08x, nameCount=%d\n",
-              arm11_R(0), arm11_R(1), arm11_R(2), arm11_R(3));
+            arm11_R(0), arm11_R(1), arm11_R(2), arm11_R(3));
         DEBUG("STUBBED");
         PAUSE();
         arm11_SetR(0, 1);
         return;
+
+    default:
+        break;
     }
 
     arm11_Dump();

@@ -17,3 +17,4 @@
 
 void screen_Init();
 void screen_Free();
+void screen_RenderGPU();

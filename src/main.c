@@ -79,7 +79,7 @@ int main(int argc, char* argv[])
         return 1;
     }
 
-    //Event handler
+    // Event handler
     SDL_Event e;
 
     // Execute.
@@ -104,7 +104,7 @@ int main(int argc, char* argv[])
             }
         }
 
-        for (int i = 0; i < 0x10000; i++) { // todo
+        for (int i = 0; i < 0x1000; i++) { // todo
             uint32_t pc = arm11_R(15);
 
             if (disasm) {
@@ -115,7 +115,7 @@ int main(int argc, char* argv[])
             arm11_Step();
         }
         if(!noscreen)
-            cycelGPU();
+            screen_RenderGPU();
     }
 
 

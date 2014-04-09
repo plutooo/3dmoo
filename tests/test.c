@@ -29,8 +29,21 @@ int main() {
 
     arm11_Step();
     ASSERT(arm11_R(0) == 0x31, "mov1 fail\n");
+
     arm11_Step();
     ASSERT(arm11_R(1) == 0x80000001, "mov2 fail\n");
 
+    arm11_Step();
+    arm11_Step();
+    ASSERT(arm11_R(3) == 0x33, "eor1 fail\n");
+
+    arm11_Step();
+    ASSERT(arm11_R(4) == 0x40000031, "eor2 fail\n");
+
+    arm11_Step();
+    ASSERT(arm11_R(5) == 0xC0000031, "eor3 fail\n");
+
+    arm11_Step();
+    ASSERT(arm11_R(6) == 0xC0000031, "eor4 fail\n");
     return 0;
 }

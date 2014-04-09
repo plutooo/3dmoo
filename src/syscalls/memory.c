@@ -44,19 +44,8 @@ u32 svcControlMemory()
     u32 addr0 = arm11_R(1);
     u32 addr1 = arm11_R(2);
     u32 size  = arm11_R(3);
-<<<<<<< HEAD
-    u32 perm  = arm11_R(4);
-=======
     u32 perm    = arm11_R(4);
     u32 outadr = mem_Read32(arm11_R(13));
-
-    if(op == 0x10003) {
-        DEBUG("Mapping GSP heap..\n");
-        arm11_SetR(1, 0x08000000); // outaddr is in R1
-        mem_Write32(outadr, 0x08000000);
-        return mem_AddSegment(0x08000000, size, NULL);
-    }
->>>>>>> Fix BLX to register.
 
     const char* ops;
     switch(op & 0xFF) {
@@ -237,7 +226,7 @@ u32 svcControlMemory()
     return -1;
 }
 
-extern u8 HIDsharedbuff;
+extern u8 HIDsharedbuff[0x2000];
 u32 svcMapMemoryBlock()
 {
     u32 handle     = arm11_R(0);
@@ -256,7 +245,7 @@ u32 svcMapMemoryBlock()
     {
         switch (h->subtype) {
         case SERVICE_TYPE_HID_USER:
-            mem_AddSegment(addr, 0x2000, &HIDsharedbuff);
+            mem_AddSegment(addr, 0x2000, &HIDsharedbuff[0]);
             break;
 
         default:

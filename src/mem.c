@@ -84,7 +84,7 @@ static int AddMapping(uint32_t base, uint32_t size)
     return 0;
 }
 
-int AddMappingshare(uint32_t base, uint32_t size,u8* data)
+int mem_AddMappingShared(uint32_t base, uint32_t size, u8* data)
 {
 	if (size == 0)
 		return 0;

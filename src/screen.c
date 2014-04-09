@@ -106,9 +106,9 @@ void DrawTopScreen()
         {
             for (int x = 0; x < 400; x++)
             {
-                u8 r = 0;
-                u8 g = 0;
                 u8 b = 0;
+                u8 g = 0;
+                u8 r = 0;
                 u32 temp = (addr + (x * 240 + y) * 3);
 
                 r = buffer[((x * 240 + y) * 3) + 0];

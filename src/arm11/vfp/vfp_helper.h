@@ -143,7 +143,7 @@ static u32 fls(int x);
 
 /* ---------------- */
 
-static inline u32 vfp_shiftright32jamming(u32 val, unsigned int shift)
+static __inline u32 vfp_shiftright32jamming(u32 val, unsigned int shift)
 {
 	if (shift) {
 		if (shift < 32)
@@ -154,7 +154,7 @@ static inline u32 vfp_shiftright32jamming(u32 val, unsigned int shift)
 	return val;
 }
 
-static inline u64 vfp_shiftright64jamming(u64 val, unsigned int shift)
+static __inline u64 vfp_shiftright64jamming(u64 val, unsigned int shift)
 {
 	if (shift) {
 		if (shift < 64)
@@ -165,7 +165,7 @@ static inline u64 vfp_shiftright64jamming(u64 val, unsigned int shift)
 	return val;
 }
 
-static inline u32 vfp_hi64to32jamming(u64 val)
+static __inline u32 vfp_hi64to32jamming(u64 val)
 {
 	u32 v;
 	u32 highval = val >> 32;
@@ -179,7 +179,7 @@ static inline u32 vfp_hi64to32jamming(u64 val)
 	return v;
 }
 
-static inline void add128(u64 *resh, u64 *resl, u64 nh, u64 nl, u64 mh, u64 ml)
+static __inline void add128(u64 *resh, u64 *resl, u64 nh, u64 nl, u64 mh, u64 ml)
 {
 	*resl = nl + ml;
 	*resh = nh + mh;
@@ -187,7 +187,7 @@ static inline void add128(u64 *resh, u64 *resl, u64 nh, u64 nl, u64 mh, u64 ml)
 		*resh += 1;
 }
 
-static inline void sub128(u64 *resh, u64 *resl, u64 nh, u64 nl, u64 mh, u64 ml)
+static __inline void sub128(u64 *resh, u64 *resl, u64 nh, u64 nl, u64 mh, u64 ml)
 {
 	*resl = nl - ml;
 	*resh = nh - mh;
@@ -195,19 +195,19 @@ static inline void sub128(u64 *resh, u64 *resl, u64 nh, u64 nl, u64 mh, u64 ml)
 		*resh -= 1;
 }
 
-static inline void mul64to128(u64 *resh, u64 *resl, u64 n, u64 m)
+static __inline void mul64to128(u64 *resh, u64 *resl, u64 n, u64 m)
 {
 	u32 nh, nl, mh, ml;
 	u64 rh, rma, rmb, rl;
 
-	nl = n;
-	ml = m;
+    nl = (u32)n;
+	ml = (u32)m;
 	rl = (u64)nl * ml;
 
-	nh = n >> 32;
+    nh = (u32)(n >> 32);
 	rma = (u64)nh * ml;
 
-	mh = m >> 32;
+    mh = (u32)(m >> 32);
 	rmb = (u64)nl * mh;
 	rma += rmb;
 
@@ -222,20 +222,20 @@ static inline void mul64to128(u64 *resh, u64 *resl, u64 n, u64 m)
 	*resh = rh;
 }
 
-static inline void shift64left(u64 *resh, u64 *resl, u64 n)
+static __inline void shift64left(u64 *resh, u64 *resl, u64 n)
 {
 	*resh = n >> 63;
 	*resl = n << 1;
 }
 
-static inline u64 vfp_hi64multiply64(u64 n, u64 m)
+static __inline u64 vfp_hi64multiply64(u64 n, u64 m)
 {
 	u64 rh, rl;
 	mul64to128(&rh, &rl, n, m);
 	return rh | (rl != 0);
 }
 
-static inline u64 vfp_estimate_div128to64(u64 nh, u64 nl, u64 m)
+static __inline u64 vfp_estimate_div128to64(u64 nh, u64 nl, u64 m)
 {
 	u64 mh, ml, remh, reml, termh, terml, z;
 
@@ -319,7 +319,7 @@ extern void vfp_put_float(ARMul_State * state, s32 val, unsigned int reg);
  * of the single-precision float mantissa with the 1. if necessary,
  * aligned to bit 30.
  */
-static inline void vfp_single_unpack(struct vfp_single *s, s32 val)
+static __inline void vfp_single_unpack(struct vfp_single *s, s32 val)
 {
 	u32 significand;
 
@@ -337,7 +337,7 @@ static inline void vfp_single_unpack(struct vfp_single *s, s32 val)
  * Re-pack a single-precision float.  This assumes that the float is
  * already normalised such that the MSB is bit 30, _not_ bit 31.
  */
-static inline s32 vfp_single_pack(struct vfp_single *s)
+static __inline s32 vfp_single_pack(struct vfp_single *s)
 {
 	u32 val;
 	val = (s->sign << 16) +
@@ -356,7 +356,7 @@ static inline s32 vfp_single_pack(struct vfp_single *s)
 #define VFP_QNAN		(VFP_NAN)
 #define VFP_SNAN		(VFP_NAN|VFP_NAN_SIGNAL)
 
-static inline int vfp_single_type(struct vfp_single *s)
+static __inline int vfp_single_type(struct vfp_single *s)
 {
 	int type = VFP_NUMBER;
 	if (s->exponent == 255) {
@@ -429,7 +429,7 @@ extern void vfp_put_double(ARMul_State * state, u64 val, unsigned int reg);
  * of the double-precision float mantissa with the 1. if necessary,
  * aligned to bit 62.
  */
-static inline void vfp_double_unpack(struct vfp_double *s, s64 val)
+static __inline void vfp_double_unpack(struct vfp_double *s, s64 val)
 {
 	u64 significand;
 
@@ -447,7 +447,7 @@ static inline void vfp_double_unpack(struct vfp_double *s, s64 val)
  * Re-pack a double-precision float.  This assumes that the float is
  * already normalised such that the MSB is bit 30, _not_ bit 31.
  */
-static inline s64 vfp_double_pack(struct vfp_double *s)
+static __inline s64 vfp_double_pack(struct vfp_double *s)
 {
 	u64 val;
 	val = ((u64)s->sign << 48) +
@@ -456,7 +456,7 @@ static inline s64 vfp_double_pack(struct vfp_double *s)
 	return (s64)val;
 }
 
-static inline int vfp_double_type(struct vfp_double *s)
+static __inline int vfp_double_type(struct vfp_double *s)
 {
 	int type = VFP_NUMBER;
 	if (s->exponent == 2047) {
@@ -509,7 +509,7 @@ struct op {
 	u32 flags;
 };
 
-static inline u32 fls(int x)
+static __inline u32 fls(int x)
 {
 	int r = 32;
 

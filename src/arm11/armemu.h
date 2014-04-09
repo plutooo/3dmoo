@@ -161,15 +161,15 @@
 #define PCWRAP(pc) ((pc) & R15PCBITS)
 #endif
 
-#define PC (state->Reg[15] & PCMASK)
-#define R15CCINTMODE (state->Reg[15] & (CCBITS | R15INTBITS | R15MODEBITS))
-#define R15INT (state->Reg[15] & R15INTBITS)
-#define R15INTPC (state->Reg[15] & (R15INTBITS | R15PCBITS))
-#define R15INTPCMODE (state->Reg[15] & (R15INTBITS | R15PCBITS | R15MODEBITS))
-#define R15INTMODE (state->Reg[15] & (R15INTBITS | R15MODEBITS))
-#define R15PC (state->Reg[15] & R15PCBITS)
-#define R15PCMODE (state->Reg[15] & (R15PCBITS | R15MODEBITS))
-#define R15MODE (state->Reg[15] & R15MODEBITS)
+#define PC ((state->Reg[15]+INSN_SIZE*2)  & PCMASK)
+#define R15CCINTMODE ((state->Reg[15]+INSN_SIZE*2)  & (CCBITS | R15INTBITS | R15MODEBITS))
+#define R15INT ((state->Reg[15]+INSN_SIZE*2)  & R15INTBITS)
+#define R15INTPC ((state->Reg[15]+INSN_SIZE*2)  & (R15INTBITS | R15PCBITS))
+#define R15INTPCMODE ((state->Reg[15]+INSN_SIZE*2)  & (R15INTBITS | R15PCBITS | R15MODEBITS))
+#define R15INTMODE ((state->Reg[15]+INSN_SIZE*2)  & (R15INTBITS | R15MODEBITS))
+#define R15PC ((state->Reg[15]+INSN_SIZE*2)  & R15PCBITS)
+#define R15PCMODE ((state->Reg[15]+INSN_SIZE*2) & (R15PCBITS | R15MODEBITS))
+#define R15MODE ((state->Reg[15]+INSN_SIZE*2) & R15MODEBITS)
 
 #define ECC ((NFLAG << 31) | (ZFLAG << 30) | (CFLAG << 29) | (VFLAG << 28) | (SFLAG << 27))
 #define EINT (IFFLAGS << 6)
@@ -275,8 +275,8 @@
 
 #define DEST (state->Reg[DESTReg])
 
-#define LHS ((LHSReg == 15) ? (state->Reg[15] & 0xFFFFFFFC) : (state->Reg[LHSReg]))
-#define RHS ((RHSReg == 15) ? (state->Reg[15] & 0xFFFFFFFC) : (state->Reg[RHSReg]))
+#define LHS ((LHSReg == 15) ? ((state->Reg[15]+INSN_SIZE*2) & 0xFFFFFFFC) : (state->Reg[LHSReg]))
+#define RHS ((RHSReg == 15) ? ((state->Reg[15]+INSN_SIZE*2) & 0xFFFFFFFC) : (state->Reg[RHSReg]))
 
 #define MULDESTReg (BITS (16, 19))
 #define MULLHSReg  (BITS ( 0,  3))

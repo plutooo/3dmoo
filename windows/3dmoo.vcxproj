@@ -88,7 +88,7 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;MODET;MODE32;_DEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>..\inc;$(SDL2)\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
@@ -120,7 +120,7 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;MODET;MODE32;NDEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>..\inc;$(SDL2)\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
@@ -149,8 +149,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\src\arm11\arm11.c" />
+    <ClCompile Include="..\src\arm11\armemu.c" />
+    <ClCompile Include="..\src\arm11\armsupp.c" />
     <ClCompile Include="..\src\arm11\threads.c" />
+    <ClCompile Include="..\src\arm11\thumbemu.c" />
+    <ClCompile Include="..\src\arm11\vfp\vfp.c" />
+    <ClCompile Include="..\src\arm11\vfp\vfpdouble.c" />
+    <ClCompile Include="..\src\arm11\vfp\vfpinstr.c" />
+    <ClCompile Include="..\src\arm11\vfp\vfpsingle.c" />
     <ClCompile Include="..\src\handles.c" />
     <ClCompile Include="..\src\IO\SrvtoIO.c" />
     <ClCompile Include="..\src\loader.c" />
@@ -168,12 +174,18 @@
     <ClCompile Include="..\src\syscalls\syn.c" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\inc\arm11.h" />
     <ClInclude Include="..\inc\handles.h" />
     <ClInclude Include="..\inc\mem.h" />
     <ClInclude Include="..\inc\SrvtoIO.h" />
     <ClInclude Include="..\inc\svc.h" />
     <ClInclude Include="..\inc\util.h" />
+    <ClInclude Include="..\src\arm11\armdefs.h" />
+    <ClInclude Include="..\src\arm11\armemu.h" />
+    <ClInclude Include="..\src\arm11\arm_arch_interface.h" />
+    <ClInclude Include="..\src\arm11\arm_regformat.h" />
+    <ClInclude Include="..\src\arm11\vfp\asm_vfp.h" />
+    <ClInclude Include="..\src\arm11\vfp\vfp.h" />
+    <ClInclude Include="..\src\arm11\vfp\vfp_helper.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

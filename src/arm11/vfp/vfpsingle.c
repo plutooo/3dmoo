@@ -320,7 +320,7 @@ u32 vfp_estimate_sqrt_significand(u32 exponent, u32 significand)
     {
         u64 v = (u64)a << 31;
         do_div(v, z);
-        return v + (z >> 1);
+        return (u32)(v + (z >> 1));
     }
 }
 
@@ -683,14 +683,14 @@ static u32 vfp_single_ftosi(ARMul_State* state, int sd, int unused, s32 m, u32 f
 
         if ((rem + incr) < rem && d < 0xffffffff)
             d += 1;
-        if (d > 0x7fffffff + (vsm.sign != 0)) {
-            d = 0x7fffffff + (vsm.sign != 0);
+        if (d > (0x7fffffffu + (vsm.sign != 0))) {
+            d = (0x7fffffffu + (vsm.sign != 0));
             exceptions |= FPSCR_IOC;
         } else if (rem)
             exceptions |= FPSCR_IXC;
 
         if (vsm.sign)
-            d = -d;
+            d = 0-d;
     } else {
         d = 0;
         if (vsm.exponent | vsm.significand) {
@@ -829,7 +829,7 @@ vfp_single_add(struct vfp_single *vsd, struct vfp_single *vsn,
         m_sig = vsn->significand - m_sig;
         if ((s32)m_sig < 0) {
             vsd->sign = vfp_sign_negate(vsd->sign);
-            m_sig = -m_sig;
+            m_sig = 0-m_sig;
         } else if (m_sig == 0) {
             vsd->sign = (fpscr & FPSCR_RMODE_MASK) ==
                         FPSCR_ROUND_MINUSINF ? 0x8000 : 0;
@@ -1134,7 +1134,7 @@ static u32 vfp_single_fdiv(ARMul_State* state, int sd, int sn, s32 m, u32 fpscr)
     {
         u64 significand = (u64)vsn.significand << 32;
         do_div(significand, vsm.significand);
-        vsd.significand = significand;
+        vsd.significand = (u32)significand;
     }
     if ((vsd.significand & 0x3f) == 0)
         vsd.significand |= ((u64)vsm.significand * vsd.significand != (u64)vsn.significand << 32);

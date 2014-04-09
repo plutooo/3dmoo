@@ -25,6 +25,15 @@
     <Filter Include="Source Files\IO">
       <UniqueIdentifier>{0f570f85-e6b2-49ec-871e-e3f8f4b604b0}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\arm11\vfp">
+      <UniqueIdentifier>{54c05846-2288-4705-aeb0-985bf860c2ab}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\arm11">
+      <UniqueIdentifier>{64e2bd91-1315-497e-b820-0ad2360de572}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\arm11\vfp">
+      <UniqueIdentifier>{e560d745-6e54-49c9-8f8c-ef5582d2363b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\handles.c">
@@ -41,9 +50,6 @@
     </ClCompile>
     <ClCompile Include="..\src\svc.c">
       <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\arm11\arm11.c">
-      <Filter>Source Files\arm11</Filter>
     </ClCompile>
     <ClCompile Include="..\src\arm11\threads.c">
       <Filter>Source Files\arm11</Filter>
@@ -78,11 +84,29 @@
     <ClCompile Include="..\src\IO\SrvtoIO.c">
       <Filter>Source Files\IO</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\arm11\armemu.c">
+      <Filter>Source Files\arm11</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\arm11\armsupp.c">
+      <Filter>Source Files\arm11</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\arm11\thumbemu.c">
+      <Filter>Source Files\arm11</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\arm11\vfp\vfp.c">
+      <Filter>Source Files\arm11\vfp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\arm11\vfp\vfpdouble.c">
+      <Filter>Source Files\arm11\vfp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\arm11\vfp\vfpinstr.c">
+      <Filter>Source Files\arm11\vfp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\arm11\vfp\vfpsingle.c">
+      <Filter>Source Files\arm11\vfp</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\inc\arm11.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\inc\handles.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -97,6 +121,27 @@
     </ClInclude>
     <ClInclude Include="..\inc\SrvtoIO.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\arm11\vfp\asm_vfp.h">
+      <Filter>Header Files\arm11\vfp</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\arm11\vfp\vfp.h">
+      <Filter>Header Files\arm11\vfp</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\arm11\vfp\vfp_helper.h">
+      <Filter>Header Files\arm11\vfp</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\arm11\arm_arch_interface.h">
+      <Filter>Header Files\arm11</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\arm11\arm_regformat.h">
+      <Filter>Header Files\arm11</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\arm11\armdefs.h">
+      <Filter>Header Files\arm11</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\arm11\armemu.h">
+      <Filter>Header Files\arm11</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -17,7 +17,7 @@
 
 #include "armdefs.h"
 #include "armemu.h"
-#include "ansidecl.h"
+//#include "ansidecl.h"
 
 unsigned xscale_cp15_cp_access_allowed (ARMul_State * state, unsigned reg,
                                         unsigned cpnum);
@@ -388,6 +388,17 @@ ARMul_MCRR (ARMul_State * state, u32 instr, u32 source1, u32 source2)
 u32
 ARMul_MRC (ARMul_State * state, u32 instr)
 {
+    int cm = BITS(0, 3) & 0xf;
+    int cp = BITS(5, 7) & 0x7;
+    int rd = BITS(12, 15) & 0xf;
+    int cn = BITS(16, 19) & 0xf;
+    int cpopc = BITS(21, 23) & 0x7;
+
+    if (cn == 13 && cm == 0 && cp == 3) //c13,c0,3; returns CPU svc buffer
+    {
+        return 0xFFFF0000;
+    }
+
     DEBUG("plutoo: MRC not implemented\n");
     exit(1);
 

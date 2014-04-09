@@ -67,10 +67,10 @@ void threads_Switch(u32 from, u32 to)
 
 u32 svcCreateThread()
 {
-    u32 ent_pc = arm11_R(0);
-    u32 ent_r0 = arm11_R(1);
-    u32 ent_sp = arm11_R(2);
-    u32 prio = arm11_R(3);
+    u32 prio = arm11_R(0);
+    u32 ent_pc = arm11_R(1);
+    u32 ent_r0 = arm11_R(2);
+    u32 ent_sp = arm11_R(3);
     u32 cpu  = arm11_R(4);
 
     DEBUG("entrypoint=%08x, r0=%08x, sp=%08x, prio=%x, cpu=%x",

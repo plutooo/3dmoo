@@ -3375,8 +3375,8 @@ mainswitch:
         case 0xed:
         case 0xef:
             if (BIT (4)) {
-                DEBUG("Unimplemnted MRC.\n");
-                return 1;
+                //DEBUG("Unimplemented MRC.\n");
+                //return 1;
                 /* MRC */
                 temp = ARMul_MRC (state, instr);
                 if (DESTReg == 15) {
@@ -3384,12 +3384,15 @@ mainswitch:
                     ASSIGNZ ((temp & ZBIT) != 0);
                     ASSIGNC ((temp & CBIT) != 0);
                     ASSIGNV ((temp & VBIT) != 0);
-                } else
+                } else  {
                     DEST = temp;
-            } else
+                }
+            }
+            else {
                 DASM("cdp\n");
-            /* CDP Part 2.  */
-            ARMul_CDP (state, instr);
+                /* CDP Part 2.  */
+                ARMul_CDP(state, instr);
+            }
             break;
 
 
@@ -3769,10 +3772,10 @@ LoadWord (ARMul_State * state, u32 instr, u32 address)
         INTERNALABORT (address);
 #endif
 
-    dest = ARMul_LoadWordN (state, address + 8);
+    dest = ARMul_LoadWordN (state, address);
 
     if (address & 3)
-        dest = ARMul_Align (state, address + 8, dest);
+        dest = ARMul_Align (state, address, dest);
 
     WRITEDESTB (dest);
     return (DESTReg != LHSReg);

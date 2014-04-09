@@ -84,6 +84,34 @@ static int AddMapping(uint32_t base, uint32_t size)
     return 0;
 }
 
+int AddMappingshare(uint32_t base, uint32_t size,u8* data)
+{
+	if (size == 0)
+		return 0;
+
+	if (num_mappings == MAX_MAPPINGS) {
+		DEBUG("too many mappings.\n");
+		return 1;
+	}
+
+	size_t i = num_mappings, j;
+	mappings[i].base = base;
+	mappings[i].size = size;
+
+	for (j = 0; j<num_mappings; j++) {
+		if (Overlaps(&mappings[j], &mappings[i])) {
+			DEBUG("trying to add overlapping mapping %08x, size=%08x.\n",
+				base, size);
+			return 2;
+		}
+	}
+
+	mappings[i].phys = data;
+
+	num_mappings++;
+	return 0;
+}
+
 int mem_AddSegment(uint32_t base, uint32_t size, uint8_t* data)
 {
     int rc;

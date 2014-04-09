@@ -245,7 +245,7 @@ u32 svcMapMemoryBlock()
     {
         switch (h->subtype) {
         case SERVICE_TYPE_HID_USER:
-            mem_AddSegment(addr, 0x2000, &HIDsharedbuff[0]);
+			AddMappingshare(addr, 0x2000, &HIDsharedbuff[0]);
             break;
 
         default:
@@ -259,7 +259,7 @@ u32 svcMapMemoryBlock()
     {
         switch (h->subtype) {
         case MEM_TYPE_GSP_0:
-            mem_AddSegment(addr, GSPsharebuffsize, GSPsharedbuff);
+			AddMappingshare(addr, GSPsharebuffsize, GSPsharedbuff);
             break;
 
         default:

@@ -2,7 +2,7 @@
 
 * arm11
 [0%] Implement media-instructions (with conditions!).
-[10%] Implement missing instructions.
+[80%] Implement missing instructions.
 [0%] Review arm11.c to make sure it is consistent.
 [0%] Add threading support.
 [0%] Add proper handling of MRC/MCR.
@@ -11,16 +11,13 @@
 [0%] Load modules according to exheader.
 
 * svc
-[50%] svcControlMemory
+[75%] svcControlMemory
 [1%] svcCreateAddressArbiter
-[1%] svcCloseHandle
-[1%] svcReleaseMutex
+[50%] svcReleaseMutex
 [1%] WaitSynchronization1
 
 * misc
-[0%] Generalize handling of all handle-related SVC's.
 [0%] Move ThreadCommandBuffer(s) to correct address (currently 0xFFFF0000).
 [0%] Implement a debugger.
-[0%] Implement SDL screen.
+[90%] Implement SDL screen.
 [0%] Better error-handling than exit(1).
-[0%] Add a proper Makefile.

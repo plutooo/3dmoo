@@ -23,12 +23,7 @@
 
 #include "SrvtoIO.h"
 
-void screen_Free()
-{
-    DEBUG("%s\n", __func__);
-    SDL_Quit();
-}
-
+SDL_Window *win = NULL;
 SDL_Renderer *renderer = NULL;
 SDL_Texture *bitmapTex = NULL;
 SDL_Surface *bitmapSurface = NULL;
@@ -37,7 +32,6 @@ void screen_Init()
 {
     SDL_Init(SDL_INIT_EVERYTHING);
 
-    SDL_Window *win = NULL;
     int posX = 100, posY = 100, width = 400, height = 240;
 
     win = SDL_CreateWindow("3dmoo", posX, posY, width, height, 0);
@@ -45,50 +39,97 @@ void screen_Init()
         DEBUG("error creating window");
         return;
     }
-    renderer = SDL_CreateRenderer(win, -1, SDL_RENDERER_ACCELERATED);
-    if (renderer == NULL) {
-        DEBUG("error creating renderer");
-        return;
-    }
-    //bitmapSurface =  SDL_LoadBMP("img/hello.bmp");
-    Uint32 rmask, gmask, bmask, amask;
-    rmask = 0x000000ff;
-    gmask = 0x0000ff00;
-    bmask = 0x00ff0000;
-    amask = 0xff000000;
-
-    bitmapSurface = SDL_CreateRGBSurface(0, width, height, 32, rmask, gmask, bmask, amask);
-    if (bitmapSurface == NULL) {
-        fprintf(stderr, "CreateRGBSurface failed: %s\n", SDL_GetError());
-        return;
-    }
-
-    SDL_LockSurface(bitmapSurface);
-    Uint32 *bitmapPixels = (Uint32 *)bitmapSurface->pixels;
-    int i = 0;
-    while (i < 0x1000) {
-        bitmapPixels[i] = 0xFFFFFFFF;
-        i++;
-    }
-
-    SDL_UnlockSurface(bitmapSurface);
-
-    bitmapTex = SDL_CreateTextureFromSurface(renderer, bitmapSurface);
-    if (bitmapTex == NULL) {
-        DEBUG("error creation bitmaptex");
-        return;
-    }
-    //SDL_FreeSurface(bitmapSurface);
-
-    SDL_RenderClear(renderer);
-    SDL_RenderCopy(renderer, bitmapTex, NULL, NULL);
-    SDL_RenderPresent(renderer);
-
-    SDL_DestroyTexture(bitmapTex);
-
+    bitmapSurface = SDL_GetWindowSurface(win);
 }
+
+void screen_Free()
+{
+    DEBUG("%s\n", __func__);
+
+    //Destroy window
+    SDL_DestroyWindow(win);
+    win = NULL;
+
+    //Quit SDL subsystems
+    SDL_Quit();
+}
+
+/*
+* Set the pixel at (x, y) to the given value
+* NOTE: The surface must be locked before calling this!
+*/
+void putpixel(SDL_Surface *surface, int x, int y, Uint32 pixel)
+{
+    int bpp = surface->format->BytesPerPixel;
+    /* Here p is the address to the pixel we want to set */
+    Uint8 *p = (Uint8 *)surface->pixels + y * surface->pitch + x * bpp;
+
+    switch (bpp) {
+    case 1:
+        *p = pixel;
+        break;
+
+    case 2:
+        *(Uint16 *)p = pixel;
+        break;
+
+    case 3:
+        if (SDL_BYTEORDER == SDL_BIG_ENDIAN) {
+            p[0] = (pixel >> 16) & 0xff;
+            p[1] = (pixel >> 8) & 0xff;
+            p[2] = pixel & 0xff;
+        }
+        else {
+            p[0] = pixel & 0xff;
+            p[1] = (pixel >> 8) & 0xff;
+            p[2] = (pixel >> 16) & 0xff;
+        }
+        break;
+
+    case 4:
+        *(Uint32 *)p = pixel;
+        break;
+
+    default:
+        break;           /* shouldn't happen, but avoids warnings */
+    } // switch
+}
+
+void DrawTopScreen()
+{
+    u32 addr = ((GPUreadreg32(frameselectoben) & 0x1) == 0) ? GPUreadreg32(RGBuponeleft) : GPUreadreg32(RGBuptwoleft);
+    u8* buffer = get_pymembuffer(addr);
+    if (buffer != NULL)
+    {
+        SDL_LockSurface(bitmapSurface);
+        for (int y = 0; y < 240; y++)
+        {
+            for (int x = 0; x < 400; x++)
+            {
+                u8 r = 0;
+                u8 g = 0;
+                u8 b = 0;
+                u32 temp = (addr + (x * 240 + y) * 3);
+
+                r = buffer[((x * 240 + y) * 3) + 0];
+                g = buffer[((x * 240 + y) * 3) + 1];
+                b = buffer[((x * 240 + y) * 3) + 2];
+
+                putpixel(bitmapSurface, x, (239 - y), SDL_MapRGB(bitmapSurface->format, r, g, b));
+            }
+        }
+        SDL_UnlockSurface(bitmapSurface);
+
+        //Update the surface
+        SDL_UpdateWindowSurface(win);
+    }
+}
+
 void cycelGPU()
 {
+    DrawTopScreen();
+    return;
+
     u32 addr = ((GPUreadreg32(frameselectoben) & 0x1) == 0) ? GPUreadreg32(RGBuponeleft) : GPUreadreg32(RGBuptwoleft);
     u8* buffer = get_pymembuffer(addr);
     if (buffer != NULL) {

@@ -75,3 +75,26 @@ void screen_RenderGPU()
         SDL_UpdateWindowSurface(win);
     }
 }
+
+void screen_HandleEvent() {
+    // Event handler
+    SDL_Event e;
+
+    while (SDL_PollEvent(&e) != 0)
+    {
+        switch (e.type)
+        {
+        case SDL_KEYUP:
+            hid_keyup(e.key);
+            break;
+        case SDL_KEYDOWN:
+            hid_keypress(e.key);
+            break;
+        case SDL_QUIT:
+            exit(0);
+            break;
+        default:
+            break;
+        }
+    }
+}

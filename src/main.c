@@ -79,30 +79,10 @@ int main(int argc, char* argv[])
         return 1;
     }
 
-    // Event handler
-    SDL_Event e;
-
     // Execute.
     while(running) {
-        if(!noscreen) {
-            while (SDL_PollEvent(&e) != 0)
-            {
-                switch (e.type)
-                {
-                case SDL_KEYUP:
-                    hid_keyup(e.key);
-                    break;
-                case SDL_KEYDOWN:
-                    hid_keypress(e.key);
-                    break;
-                case SDL_QUIT:
-                    running = 0;
-                    break;
-                default:
-                    break;
-                }
-            }
-        }
+        if(!noscreen)
+            screen_HandleEvent();
 
         for (int i = 0; i < 0x1000; i++) { // todo
             uint32_t pc = arm11_R(15);

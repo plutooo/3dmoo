@@ -40,18 +40,11 @@
 
 u32 svcControlMemory()
 {
-    u32 op = arm11_R(0);
+    u32 perm  = arm11_R(0);
     u32 addr0 = arm11_R(1);
     u32 addr1 = arm11_R(2);
     u32 size  = arm11_R(3);
-    u32 perm    = arm11_R(4);
-    u32 outadr = mem_Read32(arm11_R(13));
-
-    if(op == 0x10003) {
-        DEBUG("Mapping GSP heap..\n");
-        mem_Write32(outadr, 0x08000000);
-        return mem_AddSegment(0x08000000, size, NULL);
-    }
+    u32 op    = arm11_R(4);
 
     const char* ops;
     switch(op & 0xFF) {
@@ -196,6 +189,12 @@ u32 svcControlMemory()
         return SVCERROR_INVALID_OPERATION;
     }
     */
+
+    if(op == 0x10003) {
+        DEBUG("Mapping GSP heap..\n");
+        arm11_SetR(1, 0x08000000); // outaddr is in R1
+        return mem_AddSegment(0x08000000, size, NULL);
+    }
 
     DEBUG("STUBBED!\n");
     PAUSE();

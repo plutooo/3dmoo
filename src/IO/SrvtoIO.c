@@ -22,7 +22,9 @@ void initGPU()
     GSPsharedbuff = malloc(GSPsharebuffsize);
     GPUwritereg32(frameselectoben, 0);
     GPUwritereg32(RGBuponeleft, 0x18000000);
-    GPUwritereg32(RGBuptwoleft, 0x18046500);
+    GPUwritereg32(RGBuptwoleft, 0x18000000 + 0x46500 * 1);
+    GPUwritereg32(RGBdownoneleft, 0x18000000 + 0x46500 * 2);
+    GPUwritereg32(RGBdowntwoleft, 0x18000000 + 0x46500 * 3);
 }
 
 void GPUwritereg32(u32 addr, u32 data)

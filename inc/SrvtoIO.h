@@ -2,6 +2,9 @@
 #define RGBuponeleft 0x400468
 #define RGBuptwoleft 0x40046C
 
+#define RGBdownoneleft 0x400494
+#define RGBdowntwoleft 0x400498
+
 
 u8* IObuffer;
 u8* LINEmembuffer;

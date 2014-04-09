@@ -111,9 +111,9 @@ void DrawTopScreen()
                 u8 r = 0;
                 u32 temp = (addr + (x * 240 + y) * 3);
 
-                r = buffer[((x * 240 + y) * 3) + 0];
+                b = buffer[((x * 240 + y) * 3) + 0];
                 g = buffer[((x * 240 + y) * 3) + 1];
-                b = buffer[((x * 240 + y) * 3) + 2];
+                r = buffer[((x * 240 + y) * 3) + 2];
 
                 putpixel(bitmapSurface, x, (239 - y), SDL_MapRGB(bitmapSurface->format, r, g, b));
             }

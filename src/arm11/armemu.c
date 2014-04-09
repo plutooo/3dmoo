@@ -48,6 +48,7 @@ void arm11_SetPCSP(u32 pc, u32 sp)
 
 void arm11_Step()
 {
+	//DEBUG("%08X\n", s.Reg[15]);
     ARMul_Emulate32 (&s);
     s.Reg[15] += 4;
 }
@@ -3447,7 +3448,7 @@ GetDPRegRHS (ARMul_State * state, u32 instr)
     if (BIT (4)) {
         /* Shift amount in a register.  */
         UNDEF_Shift;
-        INCPC;
+        //INCPC; //ichfly wtf is this breaks some arm parts check if it is needed
 #ifndef MODE32
         if (base == 15)
             base = ECC | ER15INT | R15PC | EMODE;

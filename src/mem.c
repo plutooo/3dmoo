@@ -37,12 +37,13 @@ static size_t   num_mappings;
 
 //#define MEM_TRACE 1
 
+#define PRINT_ILLEGAL 1
 
 static int Overlaps(memmap_t* a, memmap_t* b)
 {
     if(a->base <= b->base && b->base < (a->base+a->size))
         return 1;
-    if(a->base <= (b->base+b->size) && (b->base+b->size) < (a->base+a->size))
+    if(a->base < (b->base+b->size) && (b->base+b->size) < (a->base+a->size))
         return 1;
     return 0;
 }
@@ -139,8 +140,10 @@ int mem_Write8(uint32_t addr, uint8_t w)
         }
     }
 
-    //DEBUG("trying to write8 unmapped addr %08x, w=%02x\n", addr, w & 0xff);
-    //arm11_Dump();
+#ifdef PRINT_ILLEGAL
+    DEBUG("trying to write8 unmapped addr %08x, w=%02x\n", addr, w & 0xff);
+    arm11_Dump();
+#endif
     //exit(1);
     return 1;
 }
@@ -157,9 +160,10 @@ uint8_t mem_Read8(uint32_t addr)
             return mappings[i].phys[addr - mappings[i].base];
         }
     }
-
-    //DEBUG("trying to read8 unmapped addr %08x\n", addr);
-    //arm11_Dump();
+#ifdef PRINT_ILLEGAL
+    DEBUG("trying to read8 unmapped addr %08x\n", addr);
+    arm11_Dump();
+#endif
     //exit(1);
     return 0;
 }
@@ -178,8 +182,10 @@ int mem_Write16(uint32_t addr, uint16_t w)
         }
     }
 
-    //DEBUG("trying to write16 unmapped addr %08x, w=%04x\n", addr, w & 0xffff);
-    //arm11_Dump();
+#ifdef PRINT_ILLEGAL
+    DEBUG("trying to write16 unmapped addr %08x, w=%04x\n", addr, w & 0xffff);
+    arm11_Dump();
+#endif
     //exit(1);
     return 1;
 }
@@ -197,8 +203,10 @@ uint16_t mem_Read16(uint32_t addr)
         }
     }
 
-    //DEBUG("trying to read16 unmapped addr %08x\n", addr);
-    //arm11_Dump();
+#ifdef PRINT_ILLEGAL
+    DEBUG("trying to read16 unmapped addr %08x\n", addr);
+    arm11_Dump();
+#endif
     //exit(1);
     return 0;
 }
@@ -216,9 +224,10 @@ int mem_Write32(uint32_t addr, uint32_t w)
             return 0;
         }
     }
-
-    //DEBUG("trying to write32 unmapped addr %08x, w=%08x\n", addr);
-    //arm11_Dump();
+#ifdef PRINT_ILLEGAL
+    DEBUG("trying to write32 unmapped addr %08x, w=%08x\n", addr);
+    arm11_Dump();
+#endif
     //exit(1);
     return 0;
 }
@@ -236,8 +245,10 @@ u32 mem_Read32(uint32_t addr)
         }
     }
 
-    //DEBUG("trying to read32 unmapped addr %08x\n", addr);
-    //arm11_Dump();
+#ifdef PRINT_ILLEGAL
+    DEBUG("trying to read32 unmapped addr %08x\n", addr);
+    arm11_Dump();
+#endif
     //exit(1);
     return 0;
 }
@@ -255,9 +266,10 @@ int mem_Read(uint8_t* buf_out, uint32_t addr, uint32_t size)
             return 0;
         }
     }
-
-    //DEBUG("trying to read 0x%x bytes unmapped addr %08x\n", size, addr);
-    //arm11_Dump();
+#ifdef PRINT_ILLEGAL
+    DEBUG("trying to read 0x%x bytes unmapped addr %08x\n", size, addr);
+    arm11_Dump();
+#endif
     //exit(1);
     return 0;
 }

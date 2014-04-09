@@ -72,15 +72,6 @@ void screen_RenderGPU()
         }
 
         SDL_UnlockSurface(bitmapSurface);
-        bitmapTex = SDL_CreateTextureFromSurface(renderer, bitmapSurface);
-
-        if (bitmapTex == NULL) {
-            DEBUG("Error creating bitmap texture\n");
-            exit(1);
-        }
-
-        SDL_RenderClear(renderer);
-        SDL_RenderCopy(renderer, bitmapTex, NULL, NULL);
-        SDL_RenderPresent(renderer);
+        SDL_UpdateWindowSurface(win);
     }
 }

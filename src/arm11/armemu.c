@@ -23,10 +23,11 @@
 #include "armdefs.h"
 #include "armemu.h"
 
-#define DASM(...) do {                           \
+#define DASM(...) 
+/*#define DASM(...) do {                           \
         fprintf(stderr, "%08x: ", pc);           \
         fprintf(stderr, __VA_ARGS__);            \
-    } while(0)
+    } while(0)*/
 
 
 // PLUTO: TODO
@@ -109,11 +110,11 @@ u32 ARMul_LoadWordN (ARMul_State * state, u32 address)
 }
 u32 ARMul_LoadHalfWord (ARMul_State * state, u32 address)
 {
-    return mem_Read16(address);
+    return (u16)mem_Read16(address);
 }
 u32 ARMul_LoadByte (ARMul_State * state, u32 address)
 {
-    return mem_Read8(address);
+    return (u8)mem_Read8(address);
 }
 void ARMul_StoreWordS (ARMul_State * state, u32 address, u32 data)
 {
@@ -3814,7 +3815,7 @@ LoadHalfWord (ARMul_State * state, u32 instr, u32 address,
 static unsigned
 LoadByte (ARMul_State * state, u32 instr, u32 address, int signextend)
 {
-    u32 dest;
+    u32 dest=0;
 
     BUSUSEDINCPCS;
 
@@ -4156,6 +4157,10 @@ LoadMult (ARMul_State * state, u32 instr, u32 address, u32 WBBase)
     if (BIT (15) && !state->Aborted)
         /* PC is in the reg list.  */
         WriteR15Branch (state, PC);
+
+    if (BIT(21) && LHSReg != 15) {
+        LSBase = WBBase;
+    }
 }
 
 /* This function does the work of loading the registers listed in an LDM
@@ -4234,8 +4239,7 @@ StoreMult (ARMul_State * state,
         if (BIT (temp)) {
             /* Save this register.  */
             address += 4;
-
-            ARMul_StoreWordS (state, address, state->Reg[temp]);
+            ARMul_StoreWordS(state, address, state->Reg[temp]);
         }
 
     if (BIT (21) && LHSReg != 15) {
@@ -4272,8 +4276,7 @@ StoreSMult (ARMul_State * state,
         if (BIT (temp)) {
             /* Save this register.  */
             address += 4;
-
-            ARMul_StoreWordS (state, address, state->Reg[temp]);
+            ARMul_StoreWordS(state, address, state->Reg[temp]);
         }
 
     if (BIT (21) && LHSReg != 15) {

@@ -161,7 +161,7 @@
 #define PCWRAP(pc) ((pc) & R15PCBITS)
 #endif
 
-#define PC ((state->Reg[15]+INSN_SIZE*2)  & PCMASK)
+#define PC ((state->Reg[15])  & PCMASK)
 #define R15CCINTMODE ((state->Reg[15]+INSN_SIZE*2)  & (CCBITS | R15INTBITS | R15MODEBITS))
 #define R15INT ((state->Reg[15]+INSN_SIZE*2)  & R15INTBITS)
 #define R15INTPC ((state->Reg[15]+INSN_SIZE*2)  & (R15INTBITS | R15PCBITS))
@@ -182,7 +182,7 @@
 #endif
 
 #ifdef MODE32
-#define PATCHR15
+#define PATCHR15 state->Reg[15] = R15PC
 #else
 #define PATCHR15 state->Reg[15] = ECC | ER15INT | EMODE | R15PC
 #endif

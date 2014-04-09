@@ -43,7 +43,7 @@ typedef int64_t s64;
 	fprintf(stderr, __VA_ARGS__);			\
     } while(0);
 
-#if 1
+#if 0
 #define PAUSE() fgetc(stdin);
 #else
 #define PAUSE()

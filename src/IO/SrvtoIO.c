@@ -8,10 +8,10 @@
 #include "mem.h"
 #include "SrvtoIO.h"
 
-u8* IObuffer;
+/*u8* IObuffer;
 u8* LINEmembuffer;
 u8* VRAMbuff;
-u8* GSPsharedbuff;
+u8* GSPsharedbuff;*/
 
 u32 numReqQueue = 1;
 void initGPU()
@@ -20,6 +20,12 @@ void initGPU()
     LINEmembuffer = malloc(0x8000000);
     VRAMbuff = malloc(0x600000);
     GSPsharedbuff = malloc(GSPsharebuffsize);
+
+    memset(IObuffer, 0, 0x420000);
+    memset(LINEmembuffer, 0, 0x8000000);
+    memset(VRAMbuff, 0, 0x600000);
+    memset(GSPsharedbuff, 0, GSPsharebuffsize);
+
     GPUwritereg32(frameselectoben, 0);
     GPUwritereg32(RGBuponeleft, 0x18000000);
     GPUwritereg32(RGBuptwoleft, 0x18000000 + 0x46500 * 1);
@@ -42,7 +48,7 @@ void GPUwritereg32(u32 addr, u32 data)
 }
 u32 GPUreadreg32(u32 addr)
 {
-    DEBUG("GPU read %08x\n", addr);
+    //DEBUG("GPU read %08x\n", addr);
     if (addr > 0x420000) {
         DEBUG("read out of range write");
         return 0;

@@ -1263,7 +1263,7 @@ mainswitch:
                 else
                     temp = pc + 4;
 
-                WriteR15Branch (state, state->Reg[RHSReg]);
+                WriteR15Branch (state, state->Reg[RHSReg]-4);
                 state->Reg[14] = temp;
                 break;
             }
@@ -3338,8 +3338,8 @@ mainswitch:
         case 0xec:
         case 0xee:
             if (BIT (4)) {
-                DEBUG("Unimplemnted MCR.\n");
-                return 1;
+                DEBUG("Unimplemnted MCR.  %08X\n", PC);
+                return 0;
                 /* MCR.  */
                 if (DESTReg == 15) {
                     UNDEF_MCRPC;
@@ -3361,6 +3361,8 @@ mainswitch:
             } else {
                 DASM("cdp\n");
                 /* CDP Part 1.  */
+                printf("cdp %08X\n", PC);
+                arm11_Dump();
                 ARMul_CDP (state, instr);
             }
             break;

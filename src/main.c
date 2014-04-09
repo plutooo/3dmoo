@@ -20,6 +20,7 @@
 #include <stdbool.h>
 #include <string.h>
 #include <signal.h>
+#include <SDL.h>
 
 #include "util.h"
 #include "arm11.h"
@@ -35,12 +36,19 @@ void sig(int t)
 {
     running = 0;
 
-    screen_Free();
+    //screen_Free();
     exit(1);
+}
+
+void AtExit()
+{
+    screen_Free();
+    printf("\nEXIT");
 }
 
 int main(int argc, char* argv[])
 {
+    atexit(AtExit);
     if(argc < 2) {
         printf("Usage:\n");
         printf("%s <in.ncch> [-d]\n", argv[0]);
@@ -57,7 +65,7 @@ int main(int argc, char* argv[])
 
     signal(SIGINT, sig);
 
-    //screen_Init();
+    screen_Init();
     arm11_Init();
     initGPU();
 
@@ -67,24 +75,44 @@ int main(int argc, char* argv[])
         return 1;
     }
 
+    //Event handler
+    SDL_Event e;
+
     // Execute.
     while(running) {
-        for (int i = 0; i < 0x1; i++) { // todo
-            arm11_Step();
+        // Handle events on queue
+        while (SDL_PollEvent(&e) != 0)
+        {
+            switch (e.type)
+            {
+            case SDL_KEYUP:
+            case SDL_KEYDOWN:
+                //input_helper(e.key);
+                break;
+            case SDL_QUIT:
+                running = 0;
+                break;
+            default:
+                break;
+            }
+        }
+
+        for (int i = 0; i < 0x10000; i++) { // todo
+            uint32_t pc = arm11_R(15);
 
             if (disasm) {
-                uint32_t pc = arm11_R(15);
-
                 printf("[%08x] ", pc);
                 arm11_Disasm32(pc);
             }
+
+            arm11_Step();
         }
-        //cycelGPU();
+        cycelGPU();
     }
 
 
     fclose(fd);
-    //screen_Free();
+    screen_Free();
 
     return 0;
 }

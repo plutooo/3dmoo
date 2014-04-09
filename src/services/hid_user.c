@@ -24,9 +24,12 @@
 #include "handles.h"
 #include "mem.h"
 
+u8 HIDsharedbuff[0x2000];
+
 u32 hid_user_SyncRequest()
 {
-    DEBUG("STUBBED\n");
+    u32 cid = mem_Read32(0xFFFF0080);
+    ERROR("STUBBED, cid=%08x\n", cid);
     PAUSE();
 
     return 0;

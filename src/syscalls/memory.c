@@ -40,11 +40,11 @@
 
 u32 svcControlMemory()
 {
-    u32 perm  = arm11_R(0);
+    u32 op    = arm11_R(0);
     u32 addr0 = arm11_R(1);
     u32 addr1 = arm11_R(2);
     u32 size  = arm11_R(3);
-    u32 op    = arm11_R(4);
+    u32 perm  = arm11_R(4);
 
     const char* ops;
     switch(op & 0xFF) {

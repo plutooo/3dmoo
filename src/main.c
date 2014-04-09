@@ -30,20 +30,21 @@
 int loader_LoadFile(FILE* fd);
 
 static int running = 1;
+static int noscreen = 0;
 
-
-void sig(int t)
+void AtSig(int t)
 {
     running = 0;
-
-    //screen_Free();
+    screen_Free();
     exit(1);
 }
 
 void AtExit()
 {
-    screen_Free();
-    printf("\nEXIT");
+    if(!noscreen)
+        screen_Free();
+
+    printf("\nEXIT\n");
 }
 
 int main(int argc, char* argv[])
@@ -51,11 +52,12 @@ int main(int argc, char* argv[])
     atexit(AtExit);
     if(argc < 2) {
         printf("Usage:\n");
-        printf("%s <in.ncch> [-d]\n", argv[0]);
+        printf("%s <in.ncch> [-d|-noscreen]\n", argv[0]);
         return 1;
     }
 
     bool disasm = (argc > 2) && (strcmp(argv[2], "-d") == 0);
+    noscreen =    (argc > 2) && (strcmp(argv[2], "-noscreen") == 0);
 
     FILE* fd = fopen(argv[1], "rb");
     if(fd == NULL) {
@@ -63,9 +65,11 @@ int main(int argc, char* argv[])
         return 1;
     }
 
-    signal(SIGINT, sig);
+    signal(SIGINT, AtSig);
 
-    screen_Init();
+    if(!noscreen)
+        screen_Init();
+
     arm11_Init();
     initGPU();
 
@@ -80,22 +84,23 @@ int main(int argc, char* argv[])
 
     // Execute.
     while(running) {
-        // Handle events on queue
-        while (SDL_PollEvent(&e) != 0)
-        {
-            switch (e.type)
+        if(!noscreen) {
+            while (SDL_PollEvent(&e) != 0)
             {
-            case SDL_KEYUP:
-				hid_keyup(e.key);
-				break;
-            case SDL_KEYDOWN:
-				hid_keypress(e.key);
-				break;
-            case SDL_QUIT:
-                running = 0;
-                break;
-            default:
-                break;
+                switch (e.type)
+                {
+                case SDL_KEYUP:
+                    hid_keyup(e.key);
+                    break;
+                case SDL_KEYDOWN:
+                    hid_keypress(e.key);
+                    break;
+                case SDL_QUIT:
+                    running = 0;
+                    break;
+                default:
+                    break;
+                }
             }
         }
 
@@ -109,12 +114,11 @@ int main(int argc, char* argv[])
 
             arm11_Step();
         }
-        cycelGPU();
+        if(!noscreen)
+            cycelGPU();
     }
 
 
     fclose(fd);
-    screen_Free();
-
     return 0;
 }

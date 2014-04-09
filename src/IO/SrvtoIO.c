@@ -63,16 +63,16 @@ void GPUTriggerCmdReqQueue() //todo
         //Console.WriteLine(Convert.ToString(header,0x10));
         u32 toprocess = (header >> 8) & 0xFF;
         for (u32 j = 0; j < toprocess; j++) {
-			*(u32*)baseaddr = 0;
-			u32 CMDID = *(u32*)(baseaddr + (j + 1) * 0x20);
+            *(u32*)baseaddr = 0;
+            u32 CMDID = *(u32*)(baseaddr + (j + 1) * 0x20);
             u32 src;
             u32 dest;
             u32 size;
             switch (CMDID & 0xFF) {
             case 0:
-				src = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x4);
-				dest = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x8);
-				size = *(u32*)(baseaddr + (j + 1) * 0x20 + 0xC);
+                src = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x4);
+                dest = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x8);
+                size = *(u32*)(baseaddr + (j + 1) * 0x20 + 0xC);
                 if (dest - 0x1f000000 > 0x600000)DEBUG("dma copy into non VRAM not suported");
 
 

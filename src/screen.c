@@ -15,12 +15,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <stdio.h>
 #include <SDL.h>
 
-#include <stdio.h>
-
 #include "util.h"
-
 #include "SrvtoIO.h"
 
 SDL_Window *win = NULL;
@@ -78,8 +76,7 @@ void putpixel(SDL_Surface *surface, int x, int y, Uint32 pixel)
             p[0] = (pixel >> 16) & 0xff;
             p[1] = (pixel >> 8) & 0xff;
             p[2] = pixel & 0xff;
-        }
-        else {
+        } else {
             p[0] = pixel & 0xff;
             p[1] = (pixel >> 8) & 0xff;
             p[2] = (pixel >> 16) & 0xff;
@@ -99,13 +96,10 @@ void DrawTopScreen()
 {
     u32 addr = ((GPUreadreg32(frameselectoben) & 0x1) == 0) ? GPUreadreg32(RGBuponeleft) : GPUreadreg32(RGBuptwoleft);
     u8* buffer = get_pymembuffer(addr);
-    if (buffer != NULL)
-    {
+    if (buffer != NULL) {
         SDL_LockSurface(bitmapSurface);
-        for (int y = 0; y < 240; y++)
-        {
-            for (int x = 0; x < 400; x++)
-            {
+        for (int y = 0; y < 240; y++) {
+            for (int x = 0; x < 400; x++) {
                 u8 b = 0;
                 u8 g = 0;
                 u8 r = 0;

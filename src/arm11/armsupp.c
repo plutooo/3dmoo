@@ -394,8 +394,7 @@ ARMul_MRC (ARMul_State * state, u32 instr)
     int cn = BITS(16, 19) & 0xf;
     int cpopc = BITS(21, 23) & 0x7;
 
-    if (cn == 13 && cm == 0 && cp == 3) //c13,c0,3; returns CPU svc buffer
-    {
+    if (cn == 13 && cm == 0 && cp == 3) { //c13,c0,3; returns CPU svc buffer
         return 0xFFFF0000;
     }
 

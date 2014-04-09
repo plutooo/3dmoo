@@ -34,9 +34,9 @@ all: $(FILES) $(MAIN_FILES) $(TEST_FILES) $(ARM_FILE) 3dmoo test $(ARM_OUT)
 	$(CC) $(CFLAGS) $< -o $@
 
 debug: all
-	./3dmoo $(f)
+	./3dmoo $(f) -noscreen
 run: all
-	gdb --args ./3dmoo $(f)
+	gdb --args ./3dmoo $(f) -noscreen
 
 # -- TEST EXECUTABLE ---
 

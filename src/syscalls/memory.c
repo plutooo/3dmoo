@@ -241,30 +241,27 @@ u32 svcMapMemoryBlock()
         return 0xFFFFFFFF;
     }
 
-    if (h->type == HANDLE_TYPE_SERVICE)
-    {
+    if (h->type == HANDLE_TYPE_SERVICE) {
         switch (h->subtype) {
         case SERVICE_TYPE_HID_USER:
-			mem_AddMappingShared(addr, 0x2000, &HIDsharedbuff[0]);
+            mem_AddMappingShared(addr, 0x2000, &HIDsharedbuff[0]);
             break;
 
         default:
             DEBUG("Trying to map unknown mem\nhandle=%x, addr=%08x, my_perm=%x, other_perm=%x\n",
-                handle, addr, my_perm, other_perm);
+                  handle, addr, my_perm, other_perm);
             PAUSE();
             return 0xFFFFFFFF;
         }
-    }
-    else
-    {
+    } else {
         switch (h->subtype) {
         case MEM_TYPE_GSP_0:
-			mem_AddMappingShared(addr, GSPsharebuffsize, GSPsharedbuff);
+            mem_AddMappingShared(addr, GSPsharebuffsize, GSPsharedbuff);
             break;
 
         default:
             DEBUG("Trying to map unknown mem\nhandle=%x, addr=%08x, my_perm=%x, other_perm=%x\n",
-                handle, addr, my_perm, other_perm);
+                  handle, addr, my_perm, other_perm);
             PAUSE();
             return 0xFFFFFFFF;
         }

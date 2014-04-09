@@ -147,9 +147,8 @@ void svc_Execute(u8 num)
 
     DEBUG("-- svc%s (0x%x) --\n", name, num);
 
-    switch (num)
-    {
-    case 1: 
+    switch (num) {
+    case 1:
         arm11_SetR(0, svcControlMemory());
         return;
     case 8:
@@ -195,7 +194,7 @@ void svc_Execute(u8 num)
         return;
     case 0x3A:
         DEBUG("values_ptr=%08x, handleResourceLimit=%08x, names_ptr=%08x, nameCount=%d\n",
-            arm11_R(0), arm11_R(1), arm11_R(2), arm11_R(3));
+              arm11_R(0), arm11_R(1), arm11_R(2), arm11_R(3));
         DEBUG("STUBBED");
         PAUSE();
         arm11_SetR(0, 1);

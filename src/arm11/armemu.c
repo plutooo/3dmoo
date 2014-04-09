@@ -23,7 +23,7 @@
 #include "armdefs.h"
 #include "armemu.h"
 
-#define DASM(...) 
+#define DASM(...)
 /*#define DASM(...) do {                           \
         fprintf(stderr, "%08x: ", pc);           \
         fprintf(stderr, __VA_ARGS__);            \
@@ -48,7 +48,7 @@ void arm11_SetPCSP(u32 pc, u32 sp)
 
 void arm11_Step()
 {
-	//DEBUG("%08X\n", s.Reg[15]);
+    //DEBUG("%08X\n", s.Reg[15]);
     ARMul_Emulate32 (&s);
     s.Reg[15] += 4;
 }
@@ -3391,8 +3391,7 @@ mainswitch:
                 } else  {
                     DEST = temp;
                 }
-            }
-            else {
+            } else {
                 DASM("cdp\n");
                 /* CDP Part 2.  */
                 ARMul_CDP(state, instr);

@@ -86,9 +86,11 @@ int main(int argc, char* argv[])
             switch (e.type)
             {
             case SDL_KEYUP:
+				hid_keyup(e.key);
+				break;
             case SDL_KEYDOWN:
-                //input_helper(e.key);
-                break;
+				hid_keypress(e.key);
+				break;
             case SDL_QUIT:
                 running = 0;
                 break;

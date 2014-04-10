@@ -105,6 +105,12 @@
     <ClCompile Include="..\src\arm11\vfp\vfpsingle.c">
       <Filter>Source Files\arm11\vfp</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\arm11\wrap.c">
+      <Filter>Source Files\arm11</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\arm11\arminit.c">
+      <Filter>Source Files\arm11</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\inc\handles.h">

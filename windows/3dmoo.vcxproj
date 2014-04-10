@@ -150,6 +150,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\src\arm11\armemu.c" />
+    <ClCompile Include="..\src\arm11\arminit.c" />
     <ClCompile Include="..\src\arm11\armsupp.c" />
     <ClCompile Include="..\src\arm11\threads.c" />
     <ClCompile Include="..\src\arm11\thumbemu.c" />
@@ -157,6 +158,7 @@
     <ClCompile Include="..\src\arm11\vfp\vfpdouble.c" />
     <ClCompile Include="..\src\arm11\vfp\vfpinstr.c" />
     <ClCompile Include="..\src\arm11\vfp\vfpsingle.c" />
+    <ClCompile Include="..\src\arm11\wrap.c" />
     <ClCompile Include="..\src\handles.c" />
     <ClCompile Include="..\src\IO\SrvtoIO.c" />
     <ClCompile Include="..\src\loader.c" />

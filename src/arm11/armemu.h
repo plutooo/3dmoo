@@ -17,8 +17,11 @@
 #ifndef __ARMEMU_H__
 #define __ARMEMU_H__
 
-#include "armdefs.h"
 
+#include "armdefs.h"
+//#include "skyeye.h"
+
+extern ARMword isize;
 
 /* Condition code values.  */
 #define EQ 0
@@ -161,19 +164,20 @@
 #define PCWRAP(pc) ((pc) & R15PCBITS)
 #endif
 
-#define PC ((state->Reg[15])  & PCMASK)
-#define R15CCINTMODE ((state->Reg[15]+INSN_SIZE*2)  & (CCBITS | R15INTBITS | R15MODEBITS))
-#define R15INT ((state->Reg[15]+INSN_SIZE*2)  & R15INTBITS)
-#define R15INTPC ((state->Reg[15]+INSN_SIZE*2)  & (R15INTBITS | R15PCBITS))
-#define R15INTPCMODE ((state->Reg[15]+INSN_SIZE*2)  & (R15INTBITS | R15PCBITS | R15MODEBITS))
-#define R15INTMODE ((state->Reg[15]+INSN_SIZE*2)  & (R15INTBITS | R15MODEBITS))
-#define R15PC ((state->Reg[15]+INSN_SIZE*2)  & R15PCBITS)
-#define R15PCMODE ((state->Reg[15]+INSN_SIZE*2) & (R15PCBITS | R15MODEBITS))
-#define R15MODE ((state->Reg[15]+INSN_SIZE*2) & R15MODEBITS)
+#define PC (state->Reg[15] & PCMASK)
+#define R15CCINTMODE (state->Reg[15] & (CCBITS | R15INTBITS | R15MODEBITS))
+#define R15INT (state->Reg[15] & R15INTBITS)
+#define R15INTPC (state->Reg[15] & (R15INTBITS | R15PCBITS))
+#define R15INTPCMODE (state->Reg[15] & (R15INTBITS | R15PCBITS | R15MODEBITS))
+#define R15INTMODE (state->Reg[15] & (R15INTBITS | R15MODEBITS))
+#define R15PC (state->Reg[15] & R15PCBITS)
+#define R15PCMODE (state->Reg[15] & (R15PCBITS | R15MODEBITS))
+#define R15MODE (state->Reg[15] & R15MODEBITS)
 
 #define ECC ((NFLAG << 31) | (ZFLAG << 30) | (CFLAG << 29) | (VFLAG << 28) | (SFLAG << 27))
 #define EINT (IFFLAGS << 6)
 #define ER15INT (IFFLAGS << 26)
+#define EMODE (state->Mode)
 
 #ifdef MODET
 #define CPSR (ECC | EINT | EMODE | (TFLAG << 5))
@@ -182,7 +186,7 @@
 #endif
 
 #ifdef MODE32
-#define PATCHR15 state->Reg[15] = R15PC
+#define PATCHR15
 #else
 #define PATCHR15 state->Reg[15] = ECC | ER15INT | EMODE | R15PC
 #endif
@@ -212,6 +216,61 @@
     }										\
   while (0)
 
+#define SETABORT(i, m, d)						\
+  do									\
+    { 									\
+      int SETABORT_mode = (m);						\
+									\
+      ARMul_SetSPSR (state, SETABORT_mode, ARMul_GetCPSR (state));	\
+      ARMul_SetCPSR (state, ((ARMul_GetCPSR (state) & ~(EMODE | TBIT))	\
+			     | (i) | SETABORT_mode));			\
+      state->Reg[14] = temp - (d);					\
+    }									\
+  while (0)
+
+#ifndef MODE32
+#define VECTORS 0x20
+#define LEGALADDR 0x03ffffff
+#define VECTORACCESS(address) (address < VECTORS && ARMul_MODE26BIT && state->prog32Sig)
+#define ADDREXCEPT(address)   (address > LEGALADDR && !state->data32Sig)
+#endif
+
+#define INTERNALABORT(address)			\
+  do						\
+    {						\
+      if (address < VECTORS)			\
+	state->Aborted = ARMul_DataAbortV;	\
+      else					\
+	state->Aborted = ARMul_AddrExceptnV;	\
+    }						\
+  while (0)
+
+#ifdef MODE32
+#define TAKEABORT ARMul_Abort (state, ARMul_DataAbortV)
+#else
+#define TAKEABORT 					\
+  do							\
+    {							\
+      if (state->Aborted == ARMul_AddrExceptnV) 	\
+	ARMul_Abort (state, ARMul_AddrExceptnV); 	\
+      else 						\
+	ARMul_Abort (state, ARMul_DataAbortV);		\
+    }							\
+  while (0)
+#endif
+
+#define CPTAKEABORT					\
+  do							\
+    {							\
+      if (!state->Aborted)				\
+	ARMul_Abort (state, ARMul_UndefinedInstrV); 	\
+      else if (state->Aborted == ARMul_AddrExceptnV) 	\
+	ARMul_Abort (state, ARMul_AddrExceptnV); 	\
+      else 						\
+	ARMul_Abort (state, ARMul_DataAbortV);		\
+    }							\
+  while (0);
+
 
 /* Different ways to start the next instruction.  */
 #define SEQ           0
@@ -230,20 +289,30 @@
 
 #define NORMALCYCLE state->NextInstr = 0
 #define BUSUSEDN    state->NextInstr |= 1	/* The next fetch will be an N cycle.  */
-#define BUSUSEDINCPCN					\
-  do							\
-    {							\
-        /* A standard PC inc and an N cycle.  */	\
-        /*state->Reg[15] += isize;*/			\
-    }							\
-  while (0)
-
 #define BUSUSEDINCPCS						\
   do								\
     {								\
-        /* A standard PC inc and an S cycle.  */		\
-        /*state->Reg[15] += isize;*/				\
+      if (! state->is_v4)					\
+        {							\
+	  /* A standard PC inc and an S cycle.  */		\
+	  state->Reg[15] += isize;				\
+	  state->NextInstr = (state->NextInstr & 0xff) | 2;	\
+	}							\
     }								\
+  while (0)
+
+#define BUSUSEDINCPCN					\
+  do							\
+    {							\
+      if (state->is_v4)					\
+	BUSUSEDN;					\
+      else						\
+	{						\
+	  /* A standard PC inc and an N cycle.  */	\
+	  state->Reg[15] += isize;			\
+	  state->NextInstr |= 3;			\
+	}						\
+    }							\
   while (0)
 
 #define INCPC 			\
@@ -251,13 +320,11 @@
     {				\
       /* A standard PC inc.  */	\
       state->Reg[15] += isize;	\
+      state->NextInstr |= 2;	\
     }				\
   while (0)
 
-#define TAKEABORT                               \
-    do {                                        \
-    DEBUG("ABORTED!\n");                        \
-    } while(0)
+#define FLUSHPIPE state->NextInstr |= PRIMEPIPE
 
 /* Cycle based emulation.  */
 
@@ -275,8 +342,18 @@
 
 #define DEST (state->Reg[DESTReg])
 
-#define LHS ((LHSReg == 15) ? ((state->Reg[15]+INSN_SIZE*2) & 0xFFFFFFFC) : (state->Reg[LHSReg]))
-#define RHS ((RHSReg == 15) ? ((state->Reg[15]+INSN_SIZE*2) & 0xFFFFFFFC) : (state->Reg[RHSReg]))
+#ifdef MODE32
+#ifdef MODET
+#define LHS ((LHSReg == 15) ? (state->Reg[15] & 0xFFFFFFFC) : (state->Reg[LHSReg]))
+#define RHS ((RHSReg == 15) ? (state->Reg[15] & 0xFFFFFFFC) : (state->Reg[RHSReg]))
+#else
+#define LHS (state->Reg[LHSReg])
+#define RHS (state->Reg[RHSReg])
+#endif
+#else
+#define LHS ((LHSReg == 15) ? R15PC : (state->Reg[LHSReg]))
+#define RHS ((RHSReg == 15) ? R15PC : (state->Reg[RHSReg]))
+#endif
 
 #define MULDESTReg (BITS (16, 19))
 #define MULLHSReg  (BITS ( 0,  3))
@@ -312,8 +389,8 @@
                                       : GetLSRegRHS (state, instr))
 #endif
 
-#define LSMNumRegs ((u32) ARMul_BitList[BITS (0, 7)] + \
-                    (u32) ARMul_BitList[BITS (8, 15)] )
+#define LSMNumRegs ((ARMword) ARMul_BitList[BITS (0, 7)] + \
+                    (ARMword) ARMul_BitList[BITS (8, 15)] )
 #define LSMBaseFirst ((LHSReg == 0 && BIT (0)) || \
                       (BIT (LHSReg) && BITS (0, LHSReg - 1) == 0))
 
@@ -332,9 +409,7 @@
      || (read_cp15_reg (15, 0, 1) & (1 << (CP))))
 */
 #define CP_ACCESS_ALLOWED(STATE, CP)			\
-    (   ((CP) >= 14)					\
-     || (! (STATE)->is_XScale)				\
-     || (xscale_cp15_cp_access_allowed(STATE,15,CP)))
+    (   ((CP) >= 14)	)				\
 
 /* Macro to rotate n right by b bits.  */
 #define ROTATER(n, b) (((n) >> (b)) | ((n) << (32 - (b))))
@@ -407,7 +482,7 @@
 
 /* Stuff that is shared across modes.  */
 extern unsigned ARMul_MultTable[];	/* Number of I cycles for a mult.  */
-extern u32 ARMul_ImmedTable[];	/* Immediate DP LHS values.  */
+extern ARMword ARMul_ImmedTable[];	/* Immediate DP LHS values.  */
 extern char ARMul_BitList[];	/* Number of bits in a byte table.  */
 
 #define EVENTLISTSIZE 1024L
@@ -426,8 +501,8 @@ tdstate;
  * out-of-updated with the newer ISA.
  * -- Michael.Kang
  ********************************************************************************/
-#define UNDEF_WARNING \
-    fprintf(stderr, "IN %s, [%d line]undefined or unpredicted behavior for arm instruction.\n", __func__, __LINE__);
+#define UNDEF_WARNING DEBUG("Undefined warning.\n")
+//SKYEYE_LOG_IN_CLR(RED, "IN %s, [%d line]undefined or unpredicted behavior for arm instruction.\n", __func__, __LINE__);
 
 /* Macros to scrutinize instructions.  */
 #define UNDEF_Test UNDEF_WARNING
@@ -503,53 +578,53 @@ tdstate;
 //#define UNDEF_Data32SigChange
 
 /* Prototypes for exported functions.  */
-extern unsigned ARMul_NthReg (u32, unsigned);
-extern int AddOverflow (u32, u32, u32);
-extern int SubOverflow (u32, u32, u32);
+extern unsigned ARMul_NthReg (ARMword, unsigned);
+extern int AddOverflow (ARMword, ARMword, ARMword);
+extern int SubOverflow (ARMword, ARMword, ARMword);
 /* Prototypes for exported functions.  */
 #ifdef __cplusplus
  extern "C" {
 #endif
-extern u32 ARMul_Emulate26 (ARMul_State *);
-extern u32 ARMul_Emulate32 (ARMul_State *);
+extern ARMword ARMul_Emulate26 (ARMul_State *);
+extern ARMword ARMul_Emulate32 (ARMul_State *);
 #ifdef __cplusplus
  }
 #endif
 extern unsigned IntPending (ARMul_State *);
 extern void ARMul_CPSRAltered (ARMul_State *);
 extern void ARMul_R15Altered (ARMul_State *);
-extern u32 ARMul_GetPC (ARMul_State *);
-extern u32 ARMul_GetNextPC (ARMul_State *);
-extern u32 ARMul_GetR15 (ARMul_State *);
-extern u32 ARMul_GetCPSR (ARMul_State *);
+extern ARMword ARMul_GetPC (ARMul_State *);
+extern ARMword ARMul_GetNextPC (ARMul_State *);
+extern ARMword ARMul_GetR15 (ARMul_State *);
+extern ARMword ARMul_GetCPSR (ARMul_State *);
 extern void ARMul_EnvokeEvent (ARMul_State *);
 extern unsigned int ARMul_Time (ARMul_State *);
-extern void ARMul_NegZero (ARMul_State *, u32);
-extern void ARMul_SetPC (ARMul_State *, u32);
-extern void ARMul_SetR15 (ARMul_State *, u32);
-extern void ARMul_SetCPSR (ARMul_State *, u32);
-extern u32 ARMul_GetSPSR (ARMul_State *, u32);
-extern void ARMul_Abort26 (ARMul_State *, u32);
-extern void ARMul_Abort32 (ARMul_State *, u32);
-extern u32 ARMul_MRC (ARMul_State *, u32);
-extern void ARMul_MRRC (ARMul_State *, u32, u32 *, u32 *);
-extern void ARMul_CDP (ARMul_State *, u32);
-extern void ARMul_LDC (ARMul_State *, u32, u32);
-extern void ARMul_STC (ARMul_State *, u32, u32);
-extern void ARMul_MCR (ARMul_State *, u32, u32);
-extern void ARMul_MCRR (ARMul_State *, u32, u32, u32);
-extern void ARMul_SetSPSR (ARMul_State *, u32, u32);
-extern u32 ARMul_SwitchMode (ARMul_State *, u32, u32);
-extern u32 ARMul_Align (ARMul_State *, u32, u32);
-extern u32 ARMul_SwitchMode (ARMul_State *, u32, u32);
-extern void ARMul_MSRCpsr (ARMul_State *, u32, u32);
-extern void ARMul_SubOverflow (ARMul_State *, u32, u32, u32);
-extern void ARMul_AddOverflow (ARMul_State *, u32, u32, u32);
-extern void ARMul_SubCarry (ARMul_State *, u32, u32, u32);
-extern void ARMul_AddCarry (ARMul_State *, u32, u32, u32);
-extern tdstate ARMul_ThumbDecode (ARMul_State *, u32, u32, u32 *);
-extern u32 ARMul_GetReg (ARMul_State *, unsigned, unsigned);
-extern void ARMul_SetReg (ARMul_State *, unsigned, unsigned, u32);
+extern void ARMul_NegZero (ARMul_State *, ARMword);
+extern void ARMul_SetPC (ARMul_State *, ARMword);
+extern void ARMul_SetR15 (ARMul_State *, ARMword);
+extern void ARMul_SetCPSR (ARMul_State *, ARMword);
+extern ARMword ARMul_GetSPSR (ARMul_State *, ARMword);
+extern void ARMul_Abort26 (ARMul_State *, ARMword);
+extern void ARMul_Abort32 (ARMul_State *, ARMword);
+extern ARMword ARMul_MRC (ARMul_State *, ARMword);
+extern void ARMul_MRRC (ARMul_State *, ARMword, ARMword *, ARMword *);
+extern void ARMul_CDP (ARMul_State *, ARMword);
+extern void ARMul_LDC (ARMul_State *, ARMword, ARMword);
+extern void ARMul_STC (ARMul_State *, ARMword, ARMword);
+extern void ARMul_MCR (ARMul_State *, ARMword, ARMword);
+extern void ARMul_MCRR (ARMul_State *, ARMword, ARMword, ARMword);
+extern void ARMul_SetSPSR (ARMul_State *, ARMword, ARMword);
+extern ARMword ARMul_SwitchMode (ARMul_State *, ARMword, ARMword);
+extern ARMword ARMul_Align (ARMul_State *, ARMword, ARMword);
+extern ARMword ARMul_SwitchMode (ARMul_State *, ARMword, ARMword);
+extern void ARMul_MSRCpsr (ARMul_State *, ARMword, ARMword);
+extern void ARMul_SubOverflow (ARMul_State *, ARMword, ARMword, ARMword);
+extern void ARMul_AddOverflow (ARMul_State *, ARMword, ARMword, ARMword);
+extern void ARMul_SubCarry (ARMul_State *, ARMword, ARMword, ARMword);
+extern void ARMul_AddCarry (ARMul_State *, ARMword, ARMword, ARMword);
+extern tdstate ARMul_ThumbDecode (ARMul_State *, ARMword, ARMword, ARMword *);
+extern ARMword ARMul_GetReg (ARMul_State *, unsigned, unsigned);
+extern void ARMul_SetReg (ARMul_State *, unsigned, unsigned, ARMword);
 extern void ARMul_ScheduleEvent (ARMul_State *, unsigned int,
 				 unsigned (*)(ARMul_State *));
 /* Coprocessor support functions.  */
@@ -560,21 +635,21 @@ extern void ARMul_CoProAttach (ARMul_State *, unsigned, ARMul_CPInits *,
 			       ARMul_MRCs *, ARMul_MCRs *, ARMul_MRRCs *, ARMul_MCRRs *, 
 			       ARMul_CDPs *, ARMul_CPReads *, ARMul_CPWrites *);
 extern void ARMul_CoProDetach (ARMul_State *, unsigned);
-extern u32 read_cp15_reg (unsigned, unsigned, unsigned);
+extern ARMword read_cp15_reg (unsigned, unsigned, unsigned);
 
-extern unsigned DSPLDC4 (ARMul_State *, unsigned, u32, u32);
-extern unsigned DSPMCR4 (ARMul_State *, unsigned, u32, u32);
-extern unsigned DSPMRC4 (ARMul_State *, unsigned, u32, u32 *);
-extern unsigned DSPSTC4 (ARMul_State *, unsigned, u32, u32 *);
-extern unsigned DSPCDP4 (ARMul_State *, unsigned, u32);
-extern unsigned DSPMCR5 (ARMul_State *, unsigned, u32, u32);
-extern unsigned DSPMRC5 (ARMul_State *, unsigned, u32, u32 *);
-extern unsigned DSPLDC5 (ARMul_State *, unsigned, u32, u32);
-extern unsigned DSPSTC5 (ARMul_State *, unsigned, u32, u32 *);
-extern unsigned DSPCDP5 (ARMul_State *, unsigned, u32);
-extern unsigned DSPMCR6 (ARMul_State *, unsigned, u32, u32);
-extern unsigned DSPMRC6 (ARMul_State *, unsigned, u32, u32 *);
-extern unsigned DSPCDP6 (ARMul_State *, unsigned, u32);
+extern unsigned DSPLDC4 (ARMul_State *, unsigned, ARMword, ARMword);
+extern unsigned DSPMCR4 (ARMul_State *, unsigned, ARMword, ARMword);
+extern unsigned DSPMRC4 (ARMul_State *, unsigned, ARMword, ARMword *);
+extern unsigned DSPSTC4 (ARMul_State *, unsigned, ARMword, ARMword *);
+extern unsigned DSPCDP4 (ARMul_State *, unsigned, ARMword);
+extern unsigned DSPMCR5 (ARMul_State *, unsigned, ARMword, ARMword);
+extern unsigned DSPMRC5 (ARMul_State *, unsigned, ARMword, ARMword *);
+extern unsigned DSPLDC5 (ARMul_State *, unsigned, ARMword, ARMword);
+extern unsigned DSPSTC5 (ARMul_State *, unsigned, ARMword, ARMword *);
+extern unsigned DSPCDP5 (ARMul_State *, unsigned, ARMword);
+extern unsigned DSPMCR6 (ARMul_State *, unsigned, ARMword, ARMword);
+extern unsigned DSPMRC6 (ARMul_State *, unsigned, ARMword, ARMword *);
+extern unsigned DSPCDP6 (ARMul_State *, unsigned, ARMword);
 
 
 #endif

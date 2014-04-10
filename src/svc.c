@@ -199,6 +199,9 @@ void svc_Execute(u8 num)
         PAUSE();
         arm11_SetR(0, 1);
         return;
+    case 0xFF:
+        fprintf(stdout, "%c", (u8)arm11_R(0));
+        return;
 
     default:
         break;

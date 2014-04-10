@@ -746,7 +746,8 @@ ARMword ARMul_MRC (ARMul_State * state, ARMword instr)
     }
 
     DEBUG("plutoo: MRC not implemented\n");
-    exit(1);
+    return;
+
 	unsigned cpab;
 	ARMword result = 0;
 

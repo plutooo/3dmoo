@@ -666,6 +666,10 @@ ARMul_MCR (ARMul_State * state, ARMword instr, ARMword source)
 		return;
 	}
 
+    DEBUG("plutoo: MCR not implemented\n");
+    //exit(1);
+    return;
+
 	cpab = (state->MCR[CPNum]) (state, ARMul_FIRST, instr, source);
 
 	while (cpab == ARMul_BUSY) {

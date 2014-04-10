@@ -217,6 +217,7 @@ ARMul_State s;
 void arm11_Disasm32(u32 opc) {
 
 }
+
 void arm11_Init() {
     ARMul_EmulateInit();
 
@@ -226,7 +227,7 @@ void arm11_Init() {
     s.abort_model = 0;
     s.bigendSig = LOW;
 
-    ARMul_SelectProcessor(&s, ARM_v7_Prop);
+    ARMul_SelectProcessor(&s, ARM_v6_Prop | ARM_v5_Prop | ARM_v5e_Prop);
     s.lateabtSig = LOW;
 
     ARMul_Reset (&s);

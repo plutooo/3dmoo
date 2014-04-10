@@ -37,7 +37,7 @@ static size_t   num_mappings;
 
 //#define MEM_TRACE 1
 
-#define PRINT_ILLEGAL 1
+//#define PRINT_ILLEGAL 1
 
 static int Overlaps(memmap_t* a, memmap_t* b)
 {

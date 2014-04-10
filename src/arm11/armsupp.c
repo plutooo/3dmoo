@@ -15,6 +15,8 @@
     along with this program; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. */
 
+#include <util.h>
+
 #include "armdefs.h"
 #include "armemu.h"
 //#include "ansidecl.h"
@@ -727,9 +729,20 @@ ARMul_MCRR (ARMul_State * state, ARMword instr, ARMword source1, ARMword source2
 
 /* This function does the Busy-Waiting for an MRC instruction.  */
 
-ARMword
-ARMul_MRC (ARMul_State * state, ARMword instr)
+ARMword ARMul_MRC (ARMul_State * state, ARMword instr)
 {
+    int cm = BITS(0, 3) & 0xf;
+    int cp = BITS(5, 7) & 0x7;
+    int rd = BITS(12, 15) & 0xf;
+    int cn = BITS(16, 19) & 0xf;
+    int cpopc = BITS(21, 23) & 0x7;
+
+    if (cn == 13 && cm == 0 && cp == 3) { //c13,c0,3; returns CPU svc buffer
+        return 0xFFFF0000;
+    }
+
+    DEBUG("plutoo: MRC not implemented\n");
+    exit(1);
 	unsigned cpab;
 	ARMword result = 0;
 

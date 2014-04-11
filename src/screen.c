@@ -30,7 +30,7 @@ void screen_Init()
 {
     SDL_Init(SDL_INIT_EVERYTHING);
 
-    int posX = 100, posY = 100, width = 400, height = 240;
+    int posX = 100, posY = 100, width = 400, height = 240*2;
 
     win = SDL_CreateWindow("3dmoo", posX, posY, width, height, 0);
     if (win == NULL) {
@@ -55,6 +55,7 @@ void screen_RenderGPU()
 {
     u32 addr = ((GPUreadreg32(frameselectoben) & 0x1) == 0) ? GPUreadreg32(RGBuponeleft) : GPUreadreg32(RGBuptwoleft);
     u8* buffer = get_pymembuffer(addr);
+    int updateSurface = 0;
 
     if (buffer != NULL) {
         SDL_LockSurface(bitmapSurface);
@@ -71,6 +72,34 @@ void screen_RenderGPU()
             }
         }
 
+        updateSurface = 1;
+    }
+
+    //Bottom Screen
+    //addr = ((GPUreadreg32(frameselectunten) & 0x1) == 0) ? GPUreadreg32(RGBdownoneleft) : GPUreadreg32(RGBdowntwoleft);
+    addr = GPUreadreg32(RGBdownoneleft);
+    buffer = get_pymembuffer(addr);
+    if (buffer != NULL) {
+        SDL_LockSurface(bitmapSurface);
+
+        u8 *bitmapPixels = (u8 *)bitmapSurface->pixels+(240*400*4);
+
+        for (int y = 0; y < 240; y++) {
+            for (int x = 0; x < 320; x++) {
+                u8* row = (u8*)(bitmapPixels + ((239 - y) * 400 * 4) + ((x + 40) * 4));
+                *(row + 0) = buffer[((x * 240 + y) * 3) + 0];
+                *(row + 1) = buffer[((x * 240 + y) * 3) + 1];
+                *(row + 2) = buffer[((x * 240 + y) * 3) + 2];
+                *(row + 3) = 0xFF;
+            }
+        }
+
+        updateSurface = 1;
+    }
+
+
+    if (updateSurface)
+    {
         SDL_UnlockSurface(bitmapSurface);
         SDL_UpdateWindowSurface(win);
     }

@@ -13,6 +13,8 @@ u8* LINEmembuffer;
 u8* VRAMbuff;
 u8* GSPsharedbuff;*/
 
+extern int noscreen;
+
 u32 numReqQueue = 1;
 void initGPU()
 {
@@ -29,8 +31,8 @@ void initGPU()
     GPUwritereg32(frameselectoben, 0);
     GPUwritereg32(RGBuponeleft, 0x18000000);
     GPUwritereg32(RGBuptwoleft, 0x18000000 + 0x46500 * 1);
-    GPUwritereg32(RGBdownoneleft, 0x18000000 + 0x46500 * 2);
-    GPUwritereg32(RGBdowntwoleft, 0x18000000 + 0x46500 * 3);
+    GPUwritereg32(RGBdownoneleft, 0x18000000 + 0x46500 * 4);
+    GPUwritereg32(RGBdowntwoleft, 0x18000000 + 0x46500 * 5);
 }
 
 void GPUwritereg32(u32 addr, u32 data)
@@ -76,8 +78,10 @@ void GPUTriggerCmdReqQueue() //todo
                 if (dest - 0x1f000000 > 0x600000)DEBUG("dma copy into non VRAM not suported");
 
 
-                for (u32 k = 0; k < size; k++)
-                    VRAMbuff[k + dest - 0x1F000000] = mem_Read8((src + k)); //todo speed up
+                //for (u32 k = 0; k < size; k++)
+                //    VRAMbuff[k + dest - 0x1F000000] = mem_Read8((src + k)); //todo speed up
+
+                mem_Read(&VRAMbuff[dest - 0x1F000000], src, size);
 
                 break;
             default:

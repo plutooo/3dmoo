@@ -3,6 +3,7 @@
 #include <mem.h>
 
 #include "armdefs.h"
+#include "armemu.h"
 
 /*ARMword ARMul_GetCPSR (ARMul_State * state) {
     return 0;
@@ -235,8 +236,15 @@ void arm11_Init() {
     s.Emulate = 3;
 }
 bool arm11_Step() {
+    s.NumInstrsToExecute = 1;
     ARMul_Emulate32(&s);
 }
+
+bool arm11_Run(int numInstructions) {
+    s.NumInstrsToExecute = numInstructions;
+    ARMul_Emulate32(&s);
+}
+
 u32 arm11_R(u32 n) {
     if(n >= 16) {
         DEBUG("Invalid n.\n");
@@ -254,7 +262,15 @@ void arm11_SetR(u32 n, u32 val) {
     s.Reg[n] = val;
 }
 void arm11_Dump() {
+    DEBUG("Reg dump:\n");
 
+    u32 i;
+    for (i = 0; i < 4; i++) {
+        DEBUG("r%02d: %08x r%02d: %08x r%02d: %08x r%02d: %08x\n",
+            4 * i, s.Reg[4 * i], 4 * i + 1, s.Reg[4 * i + 1], 4 * i + 2, s.Reg[4 * i + 2], 4 * i + 3, s.Reg[4 * i + 3]);
+    }
+
+    DEBUG("\n");
 }
 void arm11_SetPCSP(u32 pc, u32 sp) {
     s.Reg[13] = sp;

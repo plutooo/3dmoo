@@ -311,6 +311,29 @@ int ARMul_ICE_debug(ARMul_State *state,ARMword instr,ARMword addr)
     return 0;
 }
 
+ARMword ARMul_Debug(ARMul_State * state, ARMword pc, ARMword instr)
+{
+    /*printf("[%08x] ", pc);
+    arm11_Disasm32(pc);*/
+
+    /*if (pc >= 0x0010303C && pc <= 0x00103050)
+    {
+        printf("[%08x] = %08X = ", pc, instr);
+        arm11_Disasm32(pc);
+        arm11_Dump();
+    }*/
+
+    //fprintf(stderr,"[%08x]\n", pc);
+
+    arm11_Dump();
+
+    /*if (state->Reg[4] == 0x00105734)
+    {
+    printf("[%08x] ", pc);
+    arm11_Disasm32(pc);
+    }*/
+}
+
 /*
 void chy_debug()
 {
@@ -507,6 +530,7 @@ ARMul_Emulate26 (ARMul_State * state)
 	instr = ARMul_LoadInstrN (state, pc, isize);
 	state->last_instr = state->CurrInstr;
 	state->CurrInstr = instr;
+    ARMul_Debug(state, pc, instr);
 #if 0
 	if((state->NumInstrs % 10000000) == 0)
 		printf("---|%p|---  %lld\n", pc, state->NumInstrs);
@@ -1949,7 +1973,7 @@ ARMul_Emulate26 (ARMul_State * state)
 					/* Don't allow TBIT to be set by MSR.  */
 					temp &= ~TBIT;
 #endif
-					//ARMul_FixCPSR (state, instr, temp);
+					ARMul_FixCPSR (state, instr, temp);
 				}
 				else
 					UNDEF_Test;
@@ -2675,11 +2699,11 @@ ARMul_Emulate26 (ARMul_State * state)
 				break;
 
 			case 0x32:	/* TEQ immed and MSR immed to CPSR */
-				//if (DESTReg == 15)
+				if (DESTReg == 15)
 					/* MSR immed to CPSR.  */
-					/*ARMul_FixCPSR (state, instr,
-						       DPImmRHS);*/
-				//else
+					ARMul_FixCPSR (state, instr,
+						       DPImmRHS);
+				else
 					UNDEF_Test;
 				break;
 
@@ -4264,7 +4288,7 @@ TEST_EMULATE:
 		else if (state->Emulate != RUN)
 			break;
 	}
-	while (0);// (!state->stop_simulator);
+	while (state->NumInstrsToExecute--);
 
 	state->decoded = decoded;
 	state->loaded = loaded;

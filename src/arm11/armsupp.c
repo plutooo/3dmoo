@@ -211,13 +211,13 @@ ARMul_CPSRAltered (ARMul_State * state)
 
 	oldmode = state->Mode;
 
-	if (state->Mode != (state->Cpsr & MODEBITS)) {
+	/*if (state->Mode != (state->Cpsr & MODEBITS)) {
 		state->Mode =
 			ARMul_SwitchMode (state, state->Mode,
 					  state->Cpsr & MODEBITS);
 
 		state->NtransSig = (state->Mode & 3) ? HIGH : LOW;
-	}
+	}*/
 	//state->Cpsr &= ~MODEBITS;
 
 	ASSIGNINT (state->Cpsr & INTBITS);

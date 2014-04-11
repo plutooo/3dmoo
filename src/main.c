@@ -30,7 +30,11 @@
 int loader_LoadFile(FILE* fd);
 
 static int running = 1;
-static int noscreen = 0;
+int noscreen = 0;
+
+#define FPS  60
+#define interval 1000 / FPS // The unit of interval is ms.
+u32 NextTick;
 
 void AtSig(int t)
 {
@@ -45,6 +49,18 @@ void AtExit()
         screen_Free();
 
     printf("\nEXIT\n");
+}
+
+void FPS_Lock(void)
+{
+    if (NextTick > SDL_GetTicks())
+    {
+        u32 delay = NextTick - SDL_GetTicks();
+        //fprintf(stderr,"delay = %08X\n", delay);
+        SDL_Delay(delay);
+    }
+    NextTick = SDL_GetTicks() + interval;
+    return;
 }
 
 int main(int argc, char* argv[])
@@ -85,7 +101,7 @@ int main(int argc, char* argv[])
         if(!noscreen)
             screen_HandleEvent();
 
-        for (int i = 0; i < 0x1000; i++) { // todo
+        /*for (int i = 0; i < 0x20000; i++) { // todo
             uint32_t pc = arm11_R(15);
 
             if (disasm) {
@@ -94,9 +110,17 @@ int main(int argc, char* argv[])
             }
 
             arm11_Step();
+        }*/
+
+        for (int i = 0; i < 60; i++)
+        {
+            arm11_Run(0x80000/60);
         }
-        if(!noscreen)
+
+        if (!noscreen)
             screen_RenderGPU();
+
+        FPS_Lock();
     }
 
 

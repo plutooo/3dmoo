@@ -48,11 +48,14 @@ typedef int64_t s64;
 #define __func__ __FUNCTION__
 #endif
 
+#if 0
 #define DEBUG(...) do {                          \
-	fprintf(stdout, "%s: ", __func__);       \
-	fprintf(stdout,  __VA_ARGS__);           \
-    } while(0);
-
+    fprintf(stdout, "%s: ", __func__);       \
+    fprintf(stdout, __VA_ARGS__);           \
+} while (0);
+#else
+#define DEBUG(...)
+#endif
 
 #define ERROR(...) do { \
 	fprintf(stderr, "%s:%d: ", __FILE__, __LINE__); \

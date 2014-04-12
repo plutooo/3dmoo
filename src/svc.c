@@ -190,14 +190,16 @@ void svc_Execute(u8 num)
         DEBUG("resourcelimit=%08x, handle=%08x\n", arm11_R(0), arm11_R(1));
         DEBUG("STUBBED");
         PAUSE();
-        arm11_SetR(0, 1);
+        //arm11_SetR(0, 1);
+        arm11_SetR(1, handle_New(0, 0)); // r1 = handle_out
         return;
     case 0x3A:
         DEBUG("values_ptr=%08x, handleResourceLimit=%08x, names_ptr=%08x, nameCount=%d\n",
               arm11_R(0), arm11_R(1), arm11_R(2), arm11_R(3));
         DEBUG("STUBBED");
         PAUSE();
-        arm11_SetR(0, 1);
+        //arm11_SetR(0, 1);
+        mem_Write32(arm11_R(0), 0); //Set used memory to 0 for now
         return;
     case 0xFF:
         fprintf(stdout, "%c", (u8)arm11_R(0));

@@ -114,7 +114,12 @@ int main(int argc, char* argv[])
 
         for (int i = 0; i < 60; i++)
         {
-            arm11_Run(0x80000/60);
+            for (int t = 0; t <= threads_Count(); t++)
+            {
+                int from = t - 1 < 0 ? 0 : t - 1;
+                threads_Switch(from, t);
+                arm11_Run(0x80000 / 60);
+            }
         }
 
         if (!noscreen)

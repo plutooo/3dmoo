@@ -29,8 +29,7 @@ typedef struct {
 #define MAX_THREADS 32
 
 static thread threads[MAX_THREADS];
-static u32    num_threads;
-
+static u32    num_threads = 0;
 
 u32 threads_New()
 {
@@ -45,8 +44,18 @@ u32 threads_New()
     return num_threads++;
 }
 
+u32 threads_Count()
+{
+    return num_threads;
+}
+
 void threads_Switch(u32 from, u32 to)
 {
+    if (from == to) {
+        DEBUG("Trying to switch to current thread..\n");
+        return;
+    }
+
     if(from >= num_threads || to >= num_threads) {
         ERROR("Trying to switch nonexisting threads..\n");
         arm11_Dump();
@@ -64,7 +73,6 @@ void threads_Switch(u32 from, u32 to)
     arm11_LoadContext(threads[to].r);
 }
 
-
 u32 svcCreateThread()
 {
     u32 prio = arm11_R(0);
@@ -76,6 +84,13 @@ u32 svcCreateThread()
     DEBUG("entrypoint=%08x, r0=%08x, sp=%08x, prio=%x, cpu=%x",
           ent_pc, ent_r0, ent_sp, prio, cpu);
 
+    u32 numthread = threads_New() - 1;
+
+    threads[numthread].r[0] = ent_r0;
+    threads[numthread].r[13] = ent_sp;
+    threads[numthread].r[15] = ent_pc;
+
     arm11_SetR(1, handle_New(0, 0)); // r1 = handle_out
+
     return 0;
 }

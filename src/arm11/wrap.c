@@ -231,6 +231,8 @@ void arm11_Init() {
     ARMul_SelectProcessor(&s, ARM_v6_Prop | ARM_v5_Prop | ARM_v5e_Prop);
     s.lateabtSig = LOW;
 
+    ARMul_CoProInit(&s);
+
     ARMul_Reset (&s);
     s.NextInstr = RESUME;
     s.Emulate = 3;

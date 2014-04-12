@@ -485,7 +485,8 @@ ARMul_LDC (ARMul_State * state, ARMword instr, ARMword address)
 //  printf("SKYEYE ARMul_LDC, should update this function!!!!!\n");
 	//exit(-1);
 
-	if (!CP_ACCESS_ALLOWED (state, CPNum)) {
+	//if (!CP_ACCESS_ALLOWED (state, CPNum)) {
+    if (!state->LDC[CPNum]) {
 		/* 
 		   printf
 		   ("SKYEYE ARMul_LDC,NOT ALLOW, underinstr, CPnum is %x, instr %x, addr %x\n",
@@ -579,7 +580,8 @@ ARMul_STC (ARMul_State * state, ARMword instr, ARMword address)
 //  printf("SKYEYE ARMul_STC, should update this function!!!!!\n");
 
 	//exit(-1);
-	if (!CP_ACCESS_ALLOWED (state, CPNum)) {
+	//if (!CP_ACCESS_ALLOWED (state, CPNum)) {
+    if (!state->STC[CPNum]) {
 		/* 
 		   printf
 		   ("SKYEYE ARMul_STC,NOT ALLOW, undefinstr,  CPnum is %x, instr %x, addr %x\n",
@@ -657,18 +659,20 @@ void
 ARMul_MCR (ARMul_State * state, ARMword instr, ARMword source)
 {
 	unsigned cpab;
+    u32 num = CPNum;
 
 	//printf("SKYEYE ARMul_MCR, CPnum is %x, source %x\n",CPNum, source);
-	if (!CP_ACCESS_ALLOWED (state, CPNum)) {
+	//if (!CP_ACCESS_ALLOWED (state, CPNum)) {
+    if (!state->MCR[CPNum]) {
 		//chy 2004-07-19 should fix in the future ????!!!!
 		//printf("SKYEYE ARMul_MCR, ACCESS_not ALLOWed, UndefinedInstr  CPnum is %x, source %x\n",CPNum, source);
 		ARMul_UndefInstr (state, instr);
 		return;
 	}
 
-    DEBUG("plutoo: MCR not implemented\n");
+    //DEBUG("plutoo: MCR not implemented\n");
     //exit(1);
-    return;
+    //return;
 
 	cpab = (state->MCR[CPNum]) (state, ARMul_FIRST, instr, source);
 
@@ -702,7 +706,8 @@ ARMul_MCRR (ARMul_State * state, ARMword instr, ARMword source1, ARMword source2
 {
 	unsigned cpab;
 
-	if (!CP_ACCESS_ALLOWED (state, CPNum)) {
+	//if (!CP_ACCESS_ALLOWED (state, CPNum)) {
+    if (!state->MCRR[CPNum]) {
 		ARMul_UndefInstr (state, instr);
 		return;
 	}
@@ -745,14 +750,15 @@ ARMword ARMul_MRC (ARMul_State * state, ARMword instr)
         return 0xFFFF0000;
     }
 
-    DEBUG("plutoo: MRC not implemented\n");
-    return;
+    //DEBUG("plutoo: MRC not implemented\n");
+    //return;
 
 	unsigned cpab;
 	ARMword result = 0;
 
 	//printf("SKYEYE ARMul_MRC, CPnum is %x, instr %x\n",CPNum, instr);
-	if (!CP_ACCESS_ALLOWED (state, CPNum)) {
+	//if (!CP_ACCESS_ALLOWED (state, CPNum)) {
+    if (!state->MRC[CPNum]) {
 		//chy 2004-07-19 should fix in the future????!!!!
 		//printf("SKYEYE ARMul_MRC,NOT ALLOWed UndefInstr  CPnum is %x, instr %x\n",CPNum, instr);
 		ARMul_UndefInstr (state, instr);
@@ -795,7 +801,8 @@ ARMul_MRRC (ARMul_State * state, ARMword instr, ARMword * dest1, ARMword * dest2
 	ARMword result1 = 0;
 	ARMword result2 = 0;
 
-	if (!CP_ACCESS_ALLOWED (state, CPNum)) {
+	//if (!CP_ACCESS_ALLOWED (state, CPNum)) {
+    if (!state->MRRC[CPNum]) {
 		ARMul_UndefInstr (state, instr);
 		return;
 	}
@@ -833,7 +840,8 @@ ARMul_CDP (ARMul_State * state, ARMword instr)
 {
 	unsigned cpab;
 
-	if (!CP_ACCESS_ALLOWED (state, CPNum)) {
+	//if (!CP_ACCESS_ALLOWED (state, CPNum)) {
+    if (!state->CDP[CPNum]) {
 		ARMul_UndefInstr (state, instr);
 		return;
 	}

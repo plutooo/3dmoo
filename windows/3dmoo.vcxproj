@@ -149,6 +149,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\src\arm11\armcopro.c" />
     <ClCompile Include="..\src\arm11\armemu.c" />
     <ClCompile Include="..\src\arm11\arminit.c" />
     <ClCompile Include="..\src\arm11\armsupp.c" />

@@ -111,6 +111,9 @@
     <ClCompile Include="..\src\arm11\arminit.c">
       <Filter>Source Files\arm11</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\arm11\armcopro.c">
+      <Filter>Source Files\arm11</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\inc\handles.h">

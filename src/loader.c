@@ -260,7 +260,7 @@ clean:
 }
 
 
-static u32 load_elf_image(u8 *addr)
+static u32 LoadElfFile(u8 *addr)
 {
     u32 *header = (u32*) addr;
     u32 *phdr = (u32*) (addr + Read32((u8*) &header[7]));
@@ -286,6 +286,17 @@ static u32 load_elf_image(u8 *addr)
     return Read32((u8*) &header[6]);
 }
 
+static void CommonMemSetup()
+{
+    // Add thread command buffer.
+    mem_AddSegment(0xFFFF0000, 0x1000, NULL);
+
+    // Add Read Only Shared Info
+    mem_AddSegment(0x1FF80000, 0x100, NULL);
+    mem_Write8(0x1FF80014, 1); //Bit0 set for Retail
+    mem_Write32(0x1FF80040, 64 * 1024 * 1024); //Set App Memory Size to 64MB?
+}
+
 
 int loader_LoadFile(FILE* fd)
 {
@@ -302,9 +313,6 @@ int loader_LoadFile(FILE* fd)
         // Add stack segment.
         mem_AddSegment(0x10000000 - 0x100000, 0x100000, NULL);
 
-        // Add thread command buffer.
-        mem_AddSegment(0xFFFF0000, 0x1000, NULL);
-
         // Load elf.
         fseek(fd, 0, SEEK_END);
         u32 elfsize = ftell(fd);
@@ -313,14 +321,14 @@ int loader_LoadFile(FILE* fd)
         fread(data, elfsize, 1, fd);
 
         // Set entrypoint and stack ptr.
-        arm11_SetPCSP(load_elf_image(data),
-                      0x10000000);
+        arm11_SetPCSP(LoadElfFile(data), 0x10000000);
+        CommonMemSetup();
 
         free(data);
         return 0;
     }
 
-    if (Read32(h.signature) == CIA_MAGIC) {		// Load CIA
+    if (Read32(h.signature) == CIA_MAGIC) { // Load CIA
         cia_header* ch = (cia_header*)&h;
 
         ncch_off = 0x20 + ch->hdr_sz;
@@ -432,17 +440,10 @@ int loader_LoadFile(FILE* fd)
     u32 stack_size = Read32(ex.codesetinfo.stacksize);
     mem_AddSegment(0x10000000 - stack_size, stack_size, NULL);
 
-    // Add thread command buffer.
-    mem_AddSegment(0xFFFF0000, 0x1000, NULL);
-
     // Set entrypoint and stack ptr.
     arm11_SetPCSP(Read32(ex.codesetinfo.text.address),
                   0x10000000);
 
-    // Add Read Only Shared Info
-    mem_AddSegment(0x1FF80000, 0x100, NULL);
-    mem_Write8(0x1FF80014, 1); //Bit0 set for Retail
-    mem_Write32(0x1FF80040, 64 * 1024 * 1024); //Set App Memory Size to 64MB?\
-
+    CommonMemSetup();
     return 0;
 }

@@ -438,5 +438,11 @@ int loader_LoadFile(FILE* fd)
     // Set entrypoint and stack ptr.
     arm11_SetPCSP(Read32(ex.codesetinfo.text.address),
                   0x10000000);
+
+    // Add Read Only Shared Info
+    mem_AddSegment(0x1FF80000, 0x100, NULL);
+    mem_Write8(0x1FF80014, 1); //Bit0 set for Retail
+    mem_Write32(0x1FF80040, 64 * 1024 * 1024); //Set App Memory Size to 64MB?\
+
     return 0;
 }

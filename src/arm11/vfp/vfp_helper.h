@@ -400,8 +400,8 @@ struct vfp_double {
 #ifdef __cplusplus
  extern "C" {
 #endif
-extern u64 vfp_get_double(ARMul_State * state, unsigned int reg);
-extern void vfp_put_double(ARMul_State * state, u64 val, unsigned int reg);
+extern uint64_t vfp_get_double(ARMul_State * state, unsigned int reg);
+extern void vfp_put_double(ARMul_State * state, uint64_t val, unsigned int reg);
 #ifdef __cplusplus
  }
 #endif

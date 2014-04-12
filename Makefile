@@ -1,13 +1,13 @@
 ### 3dmoo Makefile ###
 
 CC=gcc
-CFLAGS=-c -std=c99 -Iinc -I/usr/include/SDL2/ -DMODET -DMODE32 -w
+CFLAGS=-c -std=c99 -Iinc -I/usr/include/SDL2/ -DMODET -DMODE32
 LDFLAGS=-lSDL2
 
 FILES=src/mem.c src/screen.c src/handles.c src/loader.c src/svc.c \
 	src/syscalls/events.c src/syscalls/memory.c src/syscalls/ports.c src/syscalls/syn.c \
 	src/services/apt_u.c src/services/gsp_gpu.c src/services/hid_user.c src/services/srv.c \
-	src/arm11/armemu.c src/arm11/armsupp.c src/arm11/arminit.c src/arm11/thumbemu.c \
+	src/arm11/armemu.c src/arm11/armsupp.c src/arm11/arminit.c src/arm11/thumbemu.c src/arm11/armcopro.c \
 	src/arm11/threads.c src/arm11/wrap.c \
 	src/arm11/vfp/vfp.c src/arm11/vfp/vfpdouble.c src/arm11/vfp/vfpinstr.c src/arm11/vfp/vfpsingle.c \
 	src/IO/SrvtoIO.c

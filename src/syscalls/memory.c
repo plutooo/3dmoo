@@ -191,10 +191,51 @@ u32 svcControlMemory()
     }
     */
 
-    if(op == 0x10003) {
+    /*if ((op&0xF) == 3) //COMMIT
+    {
+        arm11_SetR(1, addr0); // outaddr is in R1
+        return mem_AddSegment(addr0, size, NULL);
+    }*/
+
+    /*if(op == 0x10003) {
         DEBUG("Mapping GSP heap..\n");
         arm11_SetR(1, 0x08000000); // outaddr is in R1
         return mem_AddSegment(0x08000000, size, NULL);
+    }*/
+
+    if ((op & 0xF) == 0x3 || (op & 0xF) == 0x0) //COMMIT
+    {
+        if ((op & 0x10000) == 0x10000) //LINEAR
+        {
+            if (size > 0x2000000)
+            {
+                //Console.WriteLine("out of linear mem");
+                return 0xFFFFFFFF;
+            }
+        }
+        if (addr0 != 0)
+        {
+            if ((op & 0x10000) == 0x10000) //LINEAR
+            {
+                addr0 = 0x08000000;
+            }
+
+            arm11_SetR(1, addr0); // outaddr is in R1
+            return mem_AddSegment(addr0, size, NULL);
+        }
+        else
+        {
+            if ((op & 0x10000) == 0x10000) //LINEAR
+            {
+                addr0 = 0x14000000;
+            }
+            /*else
+            {
+                addr0 = mallocarm11(0x20000000, 0xFFFFF000, size);
+            }*/
+            arm11_SetR(1, addr0); // outaddr is in R1
+            return mem_AddSegment(addr0, size, NULL);
+        }
     }
 
     DEBUG("STUBBED!\n");

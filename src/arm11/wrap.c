@@ -232,7 +232,7 @@ void arm11_Init() {
     s.lateabtSig = LOW;
 
     ARMul_Reset (&s);
-    s.NextInstr = 0;
+    s.NextInstr = RESUME;
     s.Emulate = 3;
 }
 bool arm11_Step() {

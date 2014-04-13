@@ -311,6 +311,7 @@ int ARMul_ICE_debug(ARMul_State *state,ARMword instr,ARMword addr)
     return 0;
 }
 
+static int dump = 0;
 ARMword ARMul_Debug(ARMul_State * state, ARMword pc, ARMword instr)
 {
     /*printf("[%08x] ", pc);
@@ -325,7 +326,13 @@ ARMword ARMul_Debug(ARMul_State * state, ARMword pc, ARMword instr)
 
     //fprintf(stderr,"[%08x]\n", pc);
 
-    arm11_Dump();
+    if (dump)
+        arm11_Dump();
+
+    /*if (pc == 0x0022D168)
+    {
+        int j = 0;
+    }*/
 
     /*if (state->Reg[4] == 0x00105734)
     {
@@ -5610,12 +5617,15 @@ L_stm_s_takeabort:
         case 0x18: {	/* ORR reg */
             /* dyf add armv6 instr strex  2010.9.17 */
             if (BITS (4, 7) == 0x9) {
+                u32 l = LHSReg;
+                u32 r = RHSReg;
                 lhs = LHS;
                 ARMul_StoreWordS(state, lhs, RHS);
                 //StoreWord(state, lhs, RHS)
                 if (state->Aborted) {
                     TAKEABORT;
                 }
+                state->Reg[DESTReg] = 0; //Always succeed
 
                 return 1;
             }
@@ -5642,6 +5652,7 @@ L_stm_s_takeabort:
                     TAKEABORT;
                 }
 
+                state->Reg[DESTReg] = 0; //Always succeed
                 //printf("In %s, strexb not implemented\n", __FUNCTION__);
                 UNDEF_LSRBPC;
                 /* WRITESDEST (dest); */

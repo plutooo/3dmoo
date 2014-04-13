@@ -326,6 +326,9 @@ ARMword ARMul_Debug(ARMul_State * state, ARMword pc, ARMword instr)
 
     //fprintf(stderr,"[%08x]\n", pc);
 
+    //if (pc == 0x00240C88)
+    //    arm11_Dump();
+
     if (dump)
         arm11_Dump();
 
@@ -4718,14 +4721,16 @@ out:
             addr = base;
 
         /* The address must be aligned on a 8 byte boundary.  */
-        if (addr & 0x7) {
+        /*if (addr & 0x7) {
 #ifdef ABORTS
             ARMul_DATAABORT (addr);
 #else
             ARMul_UndefInstr (state, instr);
 #endif
             return;
-        }
+        }*/
+        /* Lets just forcibly align it for now */
+        //addr = (addr + 7) & ~7;
 
         /* For pre indexed or post indexed addressing modes,
            check that the destination registers do not overlap
@@ -4821,14 +4826,16 @@ out:
             addr = base;
 
         /* The address must be aligned on a 8 byte boundary.  */
-        if (addr & 0x7) {
+        /*if (addr & 0x7) {
 #ifdef ABORTS
             ARMul_DATAABORT (addr);
 #else
             ARMul_UndefInstr (state, instr);
 #endif
             return;
-        }
+        }*/
+        /* Lets just forcibly align it for now */
+        //addr = (addr + 7) & ~7;
 
         /* For pre indexed or post indexed addressing modes,
            check that the destination registers do not overlap

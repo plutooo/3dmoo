@@ -21,7 +21,7 @@
 #include "armdefs.h"
 //#include "skyeye.h"
 
-extern ARMword isize;
+//extern ARMword isize;
 
 /* Condition code values.  */
 #define EQ 0
@@ -295,7 +295,7 @@ extern ARMword isize;
       if (! state->is_v4)					\
         {							\
 	  /* A standard PC inc and an S cycle.  */		\
-	  state->Reg[15] += isize;				\
+      state->Reg[15] += INSN_SIZE;				\
 	  state->NextInstr = (state->NextInstr & 0xff) | 2;	\
 	}							\
     }								\
@@ -309,7 +309,7 @@ extern ARMword isize;
       else						\
 	{						\
 	  /* A standard PC inc and an N cycle.  */	\
-	  state->Reg[15] += isize;			\
+      state->Reg[15] += INSN_SIZE;			\
 	  state->NextInstr |= 3;			\
 	}						\
     }							\
@@ -319,7 +319,7 @@ extern ARMword isize;
   do				\
     {				\
       /* A standard PC inc.  */	\
-      state->Reg[15] += isize;	\
+      state->Reg[15] += INSN_SIZE;	\
       state->NextInstr |= 2;	\
     }				\
   while (0)

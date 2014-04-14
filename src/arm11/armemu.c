@@ -298,10 +298,6 @@ unsigned int mirror_register_file[39];
 
 /* EMULATION of ARM6.  */
 
-/* The PC pipeline value depends on whether ARM
-   or Thumb instructions are being executed.  */
-ARMword isize;
-
 extern int debugmode;
 int ARMul_ICE_debug(ARMul_State *state,ARMword instr,ARMword addr);
 #ifdef MODE32
@@ -342,6 +338,8 @@ ARMword ARMul_Debug(ARMul_State * state, ARMword pc, ARMword instr)
     printf("[%08x] ", pc);
     arm11_Disasm32(pc);
     }*/
+
+    return 0;
 }
 
 /*
@@ -357,6 +355,9 @@ ARMword
 ARMul_Emulate26 (ARMul_State * state)
 #endif
 {
+    /* The PC pipeline value depends on whether ARM
+    or Thumb instructions are being executed.  */
+    ARMword isize;
     ARMword instr;		/* The current instruction.  */
     ARMword dest = 0;	/* Almost the DestBus.  */
     ARMword temp;		/* Ubiquitous third hand.  */

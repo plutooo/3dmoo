@@ -246,6 +246,8 @@ bool arm11_Step()
 {
     s.NumInstrsToExecute = 1;
     ARMul_Emulate32(&s);
+
+    return true;
 }
 
 bool arm11_Run(int numInstructions)

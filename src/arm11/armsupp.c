@@ -74,9 +74,9 @@ ARMword
 ARMul_GetNextPC (ARMul_State * state)
 {
     if (state->Mode > SVC26MODE)
-        return state->Reg[15] + isize;
+        return state->Reg[15] + INSN_SIZE;
     else
-        return (state->Reg[15] + isize) & R15PCBITS;
+        return (state->Reg[15] + INSN_SIZE) & R15PCBITS;
 }
 
 /* This routine sets the value of the PC.  */

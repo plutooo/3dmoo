@@ -43,6 +43,7 @@
 #define MEM_TYPE_GSP_0   0
 
 
+#define HANDLE_CURRENT_THREAD  0xFFFF8000
 #define HANDLE_CURRENT_PROCESS 0xFFFF8001
 
 typedef struct {
@@ -51,6 +52,8 @@ typedef struct {
     u32  subtype;
     bool locked;
     u32  locktype;
+    u32 process;
+    u32 thread;
 } handleinfo;
 
 handleinfo* handle_Get(u32 handle);

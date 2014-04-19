@@ -683,8 +683,8 @@ ARMul_MCR (ARMul_State * state, ARMword instr, ARMword source)
     }
 
     if (cpab == ARMul_CANT) {
-        printf ("SKYEYE ARMul_MCR, CANT, UndefinedInstr %x CPnum is %x, source %x\n", instr, CPNum, source);
-        ARMul_Abort (state, ARMul_UndefinedInstrV);
+        printf ("SKYEYE ARMul_MCR, CANT, UndefinedInstr %x CPnum is %x, source %x\n", instr, CPNum, source); //ichfly todo
+        //ARMul_Abort (state, ARMul_UndefinedInstrV);
     } else {
         BUSUSEDINCPCN;
         ARMul_Ccycles (state, 1, 0);

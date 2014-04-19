@@ -88,6 +88,7 @@ int main(int argc, char* argv[])
         screen_Init();
 
     arm11_Init();
+	threads_New();
     if(!noscreen)
         initGPU();
 
@@ -115,9 +116,9 @@ int main(int argc, char* argv[])
 
         for (int i = 0; i < 60; i++)
         {
-            for (int t = 0; t <= threads_Count(); t++)
+            for (int t = 0; t < threads_Count(); t++)
             {
-                int from = t - 1 < 0 ? 0 : t - 1;
+				int from = t == 0 ? threads_Count() - 1 : t - 1;
                 threads_Switch(from, t);
                 arm11_Run(0x80000 / 60);
             }

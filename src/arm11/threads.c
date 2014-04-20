@@ -21,8 +21,11 @@
 #include "handles.h"
 #include "arm11.h"
 
+#include "armdefs.h"
+#include "armemu.h"
+
 typedef struct {
-    u32  r[18];
+    u32  r[0x12];
     bool active;
 } thread;
 
@@ -90,6 +93,7 @@ u32 svcCreateThread()
     threads[numthread].r[13] = ent_sp;
     threads[numthread].r[15] = ent_pc;
 	threads[numthread].r[0x10] = 0x1F; //usermode
+	threads[numthread].r[0x11] = RESUME;
 
     arm11_SetR(1, handle_New(0, 0)); // r1 = handle_out
 

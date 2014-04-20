@@ -84,11 +84,12 @@ u32 svcCreateThread()
     DEBUG("entrypoint=%08x, r0=%08x, sp=%08x, prio=%x, cpu=%x",
           ent_pc, ent_r0, ent_sp, prio, cpu);
 
-    u32 numthread = threads_New() - 1;
+    u32 numthread = threads_New();
 
     threads[numthread].r[0] = ent_r0;
     threads[numthread].r[13] = ent_sp;
     threads[numthread].r[15] = ent_pc;
+	threads[numthread].r[0x10] = 0x1F; //usermode
 
     arm11_SetR(1, handle_New(0, 0)); // r1 = handle_out
 

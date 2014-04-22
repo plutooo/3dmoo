@@ -29,6 +29,7 @@ typedef struct {
     bool active;
     u8* handellist;
     u32 waitall;
+    u32 handellistcount;
 } thread;
 
 #define MAX_THREADS 32
@@ -58,8 +59,9 @@ u32 threads_Count()
     return num_threads;
 }
 u32 currentthread = 0;
-void threads_Switch(u32 from, u32 to)
+void threads_Switch(/*u32 from,*/ u32 to)
 {
+    u32 from = currentthread;
     if (from == to) {
         DEBUG("Trying to switch to current thread..\n");
         return;
@@ -107,11 +109,12 @@ u32 svcCreateThread()
     return 0;
 }
 extern ARMul_State s;
-void lockcpu(u32* handelist, u32 waitAll)
+void lockcpu(u32* handelist, u32 waitAll,u32 count)
 {
     if (threads[currentthread].handellist != 0) free(threads[currentthread].handellist);
     threads[currentthread].handellist = handelist;
     threads[currentthread].active = false;
     threads[currentthread].waitall = waitAll;
+    threads[currentthread].handellistcount = count;
     s.NumInstrsToExecute = 0;
 }

@@ -91,10 +91,17 @@ void GPUTriggerCmdReqQueue() //todo
         }
     }
 }
-void GPURegisterInterruptRelayQueue(u32 Flags, u32 Kevent, u32*threadID, u32*outMemHandle)
+void GPURegisterInterruptRelayQueue(u32 flags, u32 Kevent, u32*threadID, u32*outMemHandle)
 {
     *threadID = ++numReqQueue;
     *outMemHandle = handle_New(HANDLE_TYPE_SHAREDMEM, 0);
+    handleinfo* h = handle_Get(Kevent);
+    if (h == NULL) {
+        DEBUG("failed to get Event\n");
+        PAUSE();
+        return -1;
+    }
+    h->locked = false; //unlock we are fast
 }
 u8* get_pymembuffer(u32 addr)
 {

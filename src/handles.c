@@ -199,7 +199,7 @@ u32 svcWaitSynchronization1() //todo timeout
         {
             u8* handelist = malloc(4);
             *(u32*)handelist = handle;
-            lockcpu(handelist, 1);
+            lockcpu(handelist, 1,1);
         }
         return temp;
     } else {
@@ -263,6 +263,6 @@ u32 svcWaitSynchronizationN() //todo timeout
     if (waitAll && allunlockde)return 0;
     handelist = malloc(handlecount*4);
     mem_Read(handelist, handles, handlecount * 4);
-    lockcpu(handelist,waitAll);
+    lockcpu(handelist, waitAll, handlecount);
     return 0;
 }

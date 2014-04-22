@@ -60,7 +60,7 @@ u32 gsp_gpu_SyncRequest()
     case 0x130042: {
         u32 threadID = 0;
         u32 outMemHandle = 0;
-        GPURegisterInterruptRelayQueue(mem_Read32(CPUsvcbuffer + 0x84), mem_Read32(CPUsvcbuffer + 0x88), &threadID, &outMemHandle);
+        GPURegisterInterruptRelayQueue(mem_Read32(CPUsvcbuffer + 0x84), mem_Read32(CPUsvcbuffer + 0x8C), &threadID, &outMemHandle);
         mem_Write32(CPUsvcbuffer + 0x84, 0); //no error
         mem_Write32(CPUsvcbuffer + 0x88, threadID);
         mem_Write32(CPUsvcbuffer + 0x90, outMemHandle);

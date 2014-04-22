@@ -12,7 +12,7 @@
 u32 mutex_SyncRequest(handleinfo* h, bool *locked)
 {
     // XXX: insert real mutex here!
-	mutex_WaitSynchronization(h,locked);
+    mutex_WaitSynchronization(h,locked);
 
     DEBUG("locking mutex..\n");
     PAUSE();
@@ -25,7 +25,7 @@ u32 mutex_WaitSynchronization(handleinfo* h, bool *locked)
     DEBUG("waiting for mutex to unlock..\n");
     PAUSE();
 
-	*locked = h->locked;
+    *locked = h->locked;
     return 0;
 }
 

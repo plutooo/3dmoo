@@ -294,14 +294,14 @@ void arm11_SetPCSP(u32 pc, u32 sp)
 }
 void arm11_SaveContext(u32 r_out[18])
 {
-	for (int i = 0; i < 0xF; i++) r_out[i] = s.Reg[i];
-	r_out[0x10] = s.Cpsr;
-	r_out[0x11] = s.NextInstr;
+    for (int i = 0; i < 0xF; i++) r_out[i] = s.Reg[i];
+    r_out[0x10] = s.Cpsr;
+    r_out[0x11] = s.NextInstr;
 }
 void arm11_LoadContext(u32 r_out[18])
 {
-	for (int i = 0; i < 0x10; i++)
-		s.Reg[i] = r_out[i];
-	s.Cpsr = r_out[0x10];
-	s.NextInstr = r_out[0x11];
+    for (int i = 0; i < 0x10; i++)
+        s.Reg[i] = r_out[i];
+    s.Cpsr = r_out[0x10];
+    s.NextInstr = r_out[0x11];
 }

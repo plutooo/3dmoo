@@ -32,7 +32,7 @@ static u32 handles_num;
 
 static struct {
     char* name;
-	u32(*fnSyncRequest)(handleinfo* h, bool *locked);
+    u32(*fnSyncRequest)(handleinfo* h, bool *locked);
     u32   (*fnCloseHandle)(handleinfo* h);
     u32   (*fnWaitSynchronization)(handleinfo* h,bool *locked);
 
@@ -124,20 +124,17 @@ u32 svcSendSyncRequest()
         PAUSE();
         exit(1);
     }
-	u32 temp;
-	bool locked = false;
+    u32 temp;
+    bool locked = false;
     // Lookup actual callback in table.
-	if (handle_types[hi->type].fnSyncRequest != NULL)
-	{
-		return handle_types[hi->type].fnSyncRequest(hi, &locked);
-	}
-	else
-	{
-		ERROR("svcSyncRequest undefined for handle-type \"%s\".\n",
-			handle_types[hi->type].name);
-		PAUSE();
-		exit(1);
-	}
+    if (handle_types[hi->type].fnSyncRequest != NULL) {
+        return handle_types[hi->type].fnSyncRequest(hi, &locked);
+    } else {
+        ERROR("svcSyncRequest undefined for handle-type \"%s\".\n",
+              handle_types[hi->type].name);
+        PAUSE();
+        exit(1);
+    }
 }
 
 u32 svcCloseHandle()
@@ -193,20 +190,17 @@ u32 svcWaitSynchronization1()
         exit(1);
     }
 
-	u32 temp;
-	bool locked = false;
+    u32 temp;
+    bool locked = false;
     // Lookup actual callback in table.
-	if (handle_types[hi->type].fnWaitSynchronization != NULL)
-	{
-		temp = handle_types[hi->type].fnWaitSynchronization(hi, &locked);
-		return temp;
-	}
-	else
-	{
-		ERROR("svcCloseHandle undefined for handle-type \"%s\".\n",
-			handle_types[hi->type].name);
-		PAUSE();
-		return 0;
-	}
+    if (handle_types[hi->type].fnWaitSynchronization != NULL) {
+        temp = handle_types[hi->type].fnWaitSynchronization(hi, &locked);
+        return temp;
+    } else {
+        ERROR("svcCloseHandle undefined for handle-type \"%s\".\n",
+              handle_types[hi->type].name);
+        PAUSE();
+        return 0;
+    }
 
 }

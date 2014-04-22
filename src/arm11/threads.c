@@ -92,8 +92,8 @@ u32 svcCreateThread()
     threads[numthread].r[0] = ent_r0;
     threads[numthread].r[13] = ent_sp;
     threads[numthread].r[15] = ent_pc;
-	threads[numthread].r[0x10] = 0x1F; //usermode
-	threads[numthread].r[0x11] = RESUME;
+    threads[numthread].r[0x10] = 0x1F; //usermode
+    threads[numthread].r[0x11] = RESUME;
 
     arm11_SetR(1, handle_New(0, 0)); // r1 = handle_out
 

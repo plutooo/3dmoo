@@ -180,9 +180,9 @@ void svc_Execute(u8 num)
     case 0x24:
         arm11_SetR(0, svcWaitSynchronization1());
         return;
-	case 0x25:
-		arm11_SetR(0, svcWaitSynchronizationN());
-		return;
+    case 0x25:
+        arm11_SetR(0, svcWaitSynchronizationN());
+        return;
     case 0x2D:
         arm11_SetR(0, svcConnectToPort());
         return;

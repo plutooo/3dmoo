@@ -4723,11 +4723,11 @@ out:
 
         /* The address must be aligned on a 8 byte boundary.  */
         /*if (addr & 0x7) {
-#ifdef ABORTS
+        #ifdef ABORTS
             ARMul_DATAABORT (addr);
-#else
+        #else
             ARMul_UndefInstr (state, instr);
-#endif
+        #endif
             return;
         }*/
         /* Lets just forcibly align it for now */
@@ -4828,11 +4828,11 @@ out:
 
         /* The address must be aligned on a 8 byte boundary.  */
         /*if (addr & 0x7) {
-#ifdef ABORTS
+        #ifdef ABORTS
             ARMul_DATAABORT (addr);
-#else
+        #else
             ARMul_UndefInstr (state, instr);
-#endif
+        #endif
             return;
         }*/
         /* Lets just forcibly align it for now */

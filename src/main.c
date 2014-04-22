@@ -54,8 +54,7 @@ void AtExit()
 
 void FPS_Lock(void)
 {
-    if (NextTick > SDL_GetTicks())
-    {
+    if (NextTick > SDL_GetTicks()) {
         u32 delay = NextTick - SDL_GetTicks();
         //fprintf(stderr,"delay = %08X\n", delay);
         SDL_Delay(delay);
@@ -88,7 +87,7 @@ int main(int argc, char* argv[])
         screen_Init();
 
     arm11_Init();
-	threads_New();
+    threads_New();
     if(!noscreen)
         initGPU();
 
@@ -114,11 +113,9 @@ int main(int argc, char* argv[])
             arm11_Step();
         }*/
 
-        for (int i = 0; i < 60; i++)
-        {
-            for (int t = 0; t < threads_Count(); t++)
-            {
-				int from = t == 0 ? threads_Count() - 1 : t - 1;
+        for (int i = 0; i < 60; i++) {
+            for (int t = 0; t < threads_Count(); t++) {
+                int from = t == 0 ? threads_Count() - 1 : t - 1;
                 threads_Switch(from, t);
                 arm11_Run(0x80000 / 60);
             }

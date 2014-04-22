@@ -59,7 +59,7 @@ void screen_RenderGPU()
 
     if (buffer != NULL) {
         SDL_LockSurface(bitmapSurface);
- 
+
         u8 *bitmapPixels = (u8 *)bitmapSurface->pixels;
 
         for (int y = 0; y < 240; y++) {
@@ -98,21 +98,19 @@ void screen_RenderGPU()
     }
 
 
-    if (updateSurface)
-    {
+    if (updateSurface) {
         SDL_UnlockSurface(bitmapSurface);
         SDL_UpdateWindowSurface(win);
     }
 }
 
-void screen_HandleEvent() {
+void screen_HandleEvent()
+{
     // Event handler
     SDL_Event e;
 
-    while (SDL_PollEvent(&e) != 0)
-    {
-        switch (e.type)
-        {
+    while (SDL_PollEvent(&e) != 0) {
+        switch (e.type) {
         case SDL_KEYUP:
             hid_keyup(e.key);
             break;

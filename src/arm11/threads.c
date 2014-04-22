@@ -27,6 +27,8 @@
 typedef struct {
     u32  r[0x12];
     bool active;
+    u8* handellist;
+    u32 waitall;
 } thread;
 
 #define MAX_THREADS 32
@@ -44,14 +46,18 @@ u32 threads_New()
     }
 
     threads[num_threads].active = true;
+    threads[num_threads].handellist = 0;
     return num_threads++;
 }
-
+bool islocked(u32 t)
+{
+    return !threads[t].active;
+}
 u32 threads_Count()
 {
     return num_threads;
 }
-
+u32 currentthread = 0;
 void threads_Switch(u32 from, u32 to)
 {
     if (from == to) {
@@ -65,7 +71,7 @@ void threads_Switch(u32 from, u32 to)
         exit(1);
     }
 
-    if(!threads[from].active || !threads[to].active) {
+    if(!threads[to].active) {
         ERROR("Trying to switch nonactive threads..\n");
         arm11_Dump();
         exit(1);
@@ -74,6 +80,7 @@ void threads_Switch(u32 from, u32 to)
     DEBUG("Thread switch %d->%d\n", from, to);
     arm11_SaveContext(threads[from].r);
     arm11_LoadContext(threads[to].r);
+    currentthread = to;
 }
 
 u32 svcCreateThread()
@@ -98,4 +105,13 @@ u32 svcCreateThread()
     arm11_SetR(1, handle_New(0, 0)); // r1 = handle_out
 
     return 0;
+}
+extern ARMul_State s;
+void lockcpu(u32* handelist, u32 waitAll)
+{
+    if (threads[currentthread].handellist != 0) free(threads[currentthread].handellist);
+    threads[currentthread].handellist = handelist;
+    threads[currentthread].active = false;
+    threads[currentthread].waitall = waitAll;
+    s.NumInstrsToExecute = 0;
 }

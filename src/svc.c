@@ -163,9 +163,9 @@ void svc_Execute(u8 num)
     case 0x17:
         arm11_SetR(0, svcCreateEvent());
         return;
-    case 0x1E:
+    /*case 0x1E:
         arm11_SetR(0, svcMapMemoryBlock());
-        return;
+        return;*/
     case 0x1F:
         arm11_SetR(0, svcMapMemoryBlock());
         return;

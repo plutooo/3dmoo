@@ -52,6 +52,7 @@ u32 svcCreateEvent()
 }
 u32 Event_WaitSynchronization(handleinfo* h, bool *locked)
 {
+    *locked = h->locked;
     DEBUG("waiting for event to happen..\n");
     PAUSE();
     return 0;

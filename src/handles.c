@@ -172,7 +172,7 @@ u32 svcCloseHandle()
     return 0;
 }
 
-u32 svcWaitSynchronization1()
+u32 svcWaitSynchronization1() //todo timeout
 {
     u32 handle = arm11_R(0);
     handleinfo* hi = handle_Get(handle);
@@ -195,6 +195,12 @@ u32 svcWaitSynchronization1()
     // Lookup actual callback in table.
     if (handle_types[hi->type].fnWaitSynchronization != NULL) {
         temp = handle_types[hi->type].fnWaitSynchronization(hi, &locked);
+        if (locked)
+        {
+            u8* handelist = malloc(4);
+            *(u32*)handelist = handle;
+            lockcpu(handelist, 1);
+        }
         return temp;
     } else {
         ERROR("svcCloseHandle undefined for handle-type \"%s\".\n",
@@ -204,13 +210,15 @@ u32 svcWaitSynchronization1()
     }
 
 }
-u32 svcWaitSynchronizationN()
+u32 svcWaitSynchronizationN() //todo timeout
 {
+    u8 *handelist;
     u32 nanoseconds1 = arm11_R(0);
     u32 handles = arm11_R(1);
     u32 handlecount = arm11_R(2);
     u32 waitAll = arm11_R(3);
     u32 nanoseconds2 = arm11_R(4);
+    bool allunlockde = true;
     for (u32 i = 0; i < handlecount; i++)
     {
         u32 curhandel = mem_Read32(handles + i * 4);
@@ -235,6 +243,14 @@ u32 svcWaitSynchronizationN()
         if (handle_types[hi->type].fnWaitSynchronization != NULL)
         {
             temp = handle_types[hi->type].fnWaitSynchronization(hi, &locked);
+            if (!locked && waitAll == 0)
+            {
+                arm11_SetR(1,i);
+            }
+            else
+            {
+                allunlockde = false;
+            }
         }
         else
         {
@@ -244,4 +260,9 @@ u32 svcWaitSynchronizationN()
             return 0;
         }
     }
+    if (waitAll && allunlockde)return 0;
+    handelist = malloc(handlecount*4);
+    mem_Read(handelist, handles, handlecount * 4);
+    lockcpu(handelist,waitAll);
+    return 0;
 }

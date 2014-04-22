@@ -204,3 +204,44 @@ u32 svcWaitSynchronization1()
     }
 
 }
+u32 svcWaitSynchronizationN()
+{
+    u32 nanoseconds1 = arm11_R(0);
+    u32 handles = arm11_R(1);
+    u32 handlecount = arm11_R(2);
+    u32 waitAll = arm11_R(3);
+    u32 nanoseconds2 = arm11_R(4);
+    for (u32 i = 0; i < handlecount; i++)
+    {
+        u32 curhandel = mem_Read32(handles + i * 4);
+        handleinfo* hi = handle_Get(curhandel);
+
+        if (hi == NULL) {
+            ERROR("handle %08x not found.\n", curhandel);
+            PAUSE();
+            exit(1);
+        }
+
+        if (hi->type >= NUM_HANDLE_TYPES) {
+            // This should never happen.
+            ERROR("handle %08x has non-defined type.\n", curhandel);
+            PAUSE();
+            exit(1);
+        }
+
+        u32 temp;
+        bool locked = false;
+        // Lookup actual callback in table.
+        if (handle_types[hi->type].fnWaitSynchronization != NULL)
+        {
+            temp = handle_types[hi->type].fnWaitSynchronization(hi, &locked);
+        }
+        else
+        {
+            ERROR("svcCloseHandle undefined for handle-type \"%s\".\n",
+                handle_types[hi->type].name);
+            PAUSE();
+            return 0;
+        }
+    }
+}

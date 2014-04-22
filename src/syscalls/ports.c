@@ -74,7 +74,7 @@ u32 svcConnectToPort()
     return 0;
 }
 
-u32 port_SyncRequest(handleinfo* h)
+u32 port_SyncRequest(handleinfo* h, bool *locked)
 {
     u32 i;
 

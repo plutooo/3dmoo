@@ -76,7 +76,7 @@ static struct {
 };
 
 
-u32 services_SyncRequest(handleinfo* h)
+u32 services_SyncRequest(handleinfo* h, bool *locked)
 {
     u32 i;
 

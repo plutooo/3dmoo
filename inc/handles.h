@@ -60,14 +60,14 @@ handleinfo* handle_Get(u32 handle);
 u32 handle_New(u32 type, u32 subtype);
 
 // services/srv.c
-u32 services_SyncRequest(handleinfo* h);
+u32 services_SyncRequest(handleinfo* h, bool *locked);
 
 // svc/syn.c
-u32 mutex_WaitSynchronization(handleinfo* h);
-u32 mutex_SyncRequest(handleinfo* h);
+u32 mutex_WaitSynchronization(handleinfo* h, bool *locked);
+u32 mutex_SyncRequest(handleinfo* h, bool *locked);
 
 // svc/ports.c
-u32 port_SyncRequest(handleinfo* h);
+u32 port_SyncRequest(handleinfo* h, bool *locked);
 
 //syscalls/events.c
-u32 Event_WaitSynchronization(handleinfo* h);
+u32 Event_WaitSynchronization(handleinfo* h, bool *locked);

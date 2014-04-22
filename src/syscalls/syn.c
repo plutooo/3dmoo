@@ -9,10 +9,10 @@
 #include "svc.h"
 
 
-u32 mutex_SyncRequest(handleinfo* h)
+u32 mutex_SyncRequest(handleinfo* h, bool *locked)
 {
     // XXX: insert real mutex here!
-    mutex_WaitSynchronization(h);
+	mutex_WaitSynchronization(h,locked);
 
     DEBUG("locking mutex..\n");
     PAUSE();
@@ -20,12 +20,12 @@ u32 mutex_SyncRequest(handleinfo* h)
     h->locked = true;
     return 0;
 }
-u32 mutex_WaitSynchronization(handleinfo* h)
+u32 mutex_WaitSynchronization(handleinfo* h, bool *locked)
 {
     DEBUG("waiting for mutex to unlock..\n");
     PAUSE();
 
-    while(h->locked);
+	*locked = h->locked;
     return 0;
 }
 

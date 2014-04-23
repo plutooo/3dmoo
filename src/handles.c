@@ -99,9 +99,12 @@ handleinfo* handle_Get(u32 handle)
 {
     u32 idx = handle - HANDLES_BASE;
 
-    if(idx < handles_num)
-        return &handles[idx];
-
+    if (idx < handles_num)
+    {
+        if (handles[idx].type == HANDLE_TYPE_REDIR)
+            return handle_Get(handles[idx].subtype);
+        else return &handles[idx];
+    }
     return NULL;
 }
 
@@ -246,6 +249,7 @@ u32 svcWaitSynchronizationN() //todo timeout
             if (!locked && waitAll == 0)
             {
                 arm11_SetR(1,i);
+                return 0;
             }
             else
             {

@@ -27,7 +27,11 @@
 #include "screen.h"
 #include "SrvtoIO.h"
 
+#include "handles.h"
+
 int loader_LoadFile(FILE* fd);
+
+u32 curprocesshandle;
 
 static int running = 1;
 int noscreen = 0;
@@ -90,7 +94,10 @@ int main(int argc, char* argv[])
         screen_Init();
 
     arm11_Init();
-    threads_New();
+    u32 hand = handle_New(HANDLE_TYPE_THREAD, 0);
+    threads_New(hand);
+    u32 handzwei = handle_New(HANDLE_TYPE_PROCESS, 0);
+    curprocesshandle = handzwei;
     if(!noscreen)
         initGPU();
 

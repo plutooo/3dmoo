@@ -21,7 +21,10 @@
 #define HANDLE_TYPE_SERVICE   2
 #define HANDLE_TYPE_EVENT     3
 #define HANDLE_TYPE_MUTEX     4
-#define HANDLE_TYPE_SHAREDMEM     5
+#define HANDLE_TYPE_SHAREDMEM 5
+#define HANDLE_TYPE_REDIR     6
+#define HANDLE_TYPE_THREAD    7
+#define HANDLE_TYPE_PROCESS   8
 
 #define PORT_TYPE_SRV         0
 
@@ -58,6 +61,8 @@ typedef struct {
 
 handleinfo* handle_Get(u32 handle);
 u32 handle_New(u32 type, u32 subtype);
+
+u32 curprocesshandle;
 
 // services/srv.c
 u32 services_SyncRequest(handleinfo* h, bool *locked);

@@ -30,6 +30,7 @@ typedef struct {
     u8* handellist;
     u32 waitall;
     u32 handellistcount;
+    u32 ownhand;
 } thread;
 
 #define MAX_THREADS 32
@@ -37,7 +38,7 @@ typedef struct {
 static thread threads[MAX_THREADS];
 static u32    num_threads = 0;
 
-u32 threads_New()
+u32 threads_New(u32 hand)
 {
     if(num_threads == MAX_THREADS) {
         ERROR("Too many threads..\n");
@@ -45,7 +46,7 @@ u32 threads_New()
         PAUSE();
         exit(1);
     }
-
+    threads[num_threads].ownhand = hand;
     threads[num_threads].active = true;
     threads[num_threads].handellist = 0;
     return num_threads++;
@@ -59,6 +60,10 @@ u32 threads_Count()
     return num_threads;
 }
 u32 currentthread = 0;
+u32 threads_getcurrenthandle()
+{
+    return threads[currentthread].ownhand;
+}
 void threads_Switch(/*u32 from,*/ u32 to)
 {
     u32 from = currentthread;
@@ -96,7 +101,8 @@ u32 svcCreateThread()
     DEBUG("entrypoint=%08x, r0=%08x, sp=%08x, prio=%x, cpu=%x",
           ent_pc, ent_r0, ent_sp, prio, cpu);
 
-    u32 numthread = threads_New();
+    u32 hand = handle_New(HANDLE_TYPE_THREAD, 0);
+    u32 numthread = threads_New(hand);
 
     threads[numthread].r[0] = ent_r0;
     threads[numthread].r[13] = ent_sp;
@@ -104,7 +110,7 @@ u32 svcCreateThread()
     threads[numthread].r[0x10] = 0x1F; //usermode
     threads[numthread].r[0x11] = RESUME;
 
-    arm11_SetR(1, handle_New(0, 0)); // r1 = handle_out
+    arm11_SetR(1, hand); // r1 = handle_out
 
     return 0;
 }

@@ -66,3 +66,17 @@ u32 svcReleaseMutex()
     h->locked = false;
     return 0;
 }
+u32 svcDuplicateHandle()
+{
+    u32 todclone = arm11_R(1);
+    u32 handle;
+    if (todclone == HANDLE_CURRENT_THREAD)todclone = threads_getcurrenthandle();
+    if (todclone == HANDLE_CURRENT_PROCESS)todclone = curprocesshandle;
+    handle = handle_New(HANDLE_TYPE_REDIR, todclone);
+    handleinfo* h = handle_Get(handle);
+    if (h == NULL) {
+        DEBUG("failed to get newly created copy\n");
+        PAUSE();
+        return -1;
+    }
+}

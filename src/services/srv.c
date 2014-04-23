@@ -92,10 +92,22 @@ u32 services_SyncRequest(handleinfo* h, bool *locked)
     return 0;
 }
 
+u32 mutexhandel;
+
 u32 srv_InitHandle()
 {
     // Create a handle for srv: port.
     arm11_SetR(1, handle_New(HANDLE_TYPE_PORT, PORT_TYPE_SRV));
+
+    mutexhandel = handle_New(HANDLE_TYPE_MUTEX, 0);
+    handleinfo* h = handle_Get(mutexhandel);
+    if (h == NULL) {
+        DEBUG("failed to get newly created mutex\n");
+        PAUSE();
+        return -1;
+    }
+
+    h->locked = true;
 
     // Create handles for all services.
     u32 i;
@@ -105,6 +117,8 @@ u32 srv_InitHandle()
 
     return 0;
 }
+
+#define CPUsvcbuffer 0xFFFF0000
 
 u32 srv_SyncRequest()
 {
@@ -119,7 +133,10 @@ u32 srv_SyncRequest()
         // XXX: check +4, flags?
         PAUSE();
         break;
-
+    case 0x20000:
+        mem_Write32(CPUsvcbuffer + 0x84, 0); //no error
+        mem_Write32(CPUsvcbuffer + 0x8C, mutexhandel);
+        return 0;
     case 0x50100:
         DEBUG("srv_GetServiceHandle\n");
 

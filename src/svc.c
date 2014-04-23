@@ -186,6 +186,9 @@ void svc_Execute(u8 num)
     case 0x25:
         arm11_SetR(0, svcWaitSynchronizationN());
         return;
+    case 0x27:
+        arm11_SetR(0, svcDuplicateHandle());
+        return;
     case 0x2D:
         arm11_SetR(0, svcConnectToPort());
         return;

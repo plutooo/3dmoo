@@ -154,6 +154,9 @@ void svc_Execute(u8 num)
     case 8:
         arm11_SetR(0, svcCreateThread());
         return;
+    case 0xa:
+        arm11_SetR(0, svcsleep());
+        return;
     case 0x13:
         arm11_SetR(0, svcCreateMutex());
         return;

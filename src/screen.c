@@ -125,3 +125,6 @@ void screen_HandleEvent()
         }
     }
 }
+void svcsleep()
+{
+}

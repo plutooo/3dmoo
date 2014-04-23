@@ -1,10 +1,8 @@
 #+STARTUP:showall
 
 * arm11
-[0%] Implement media-instructions (with conditions!).
-[80%] Implement missing instructions.
-[0%] Review arm11.c to make sure it is consistent.
-[0%] Add threading support.
+[?%] Implement media-instructions (with conditions!).
+[?%] Implement missing instructions.
 [0%] Add proper handling of MRC/MCR.
 
 * loader
@@ -19,5 +17,4 @@
 * misc
 [0%] Move ThreadCommandBuffer(s) to correct address (currently 0xFFFF0000).
 [0%] Implement a debugger.
-[90%] Implement SDL screen.
 [0%] Better error-handling than exit(1).

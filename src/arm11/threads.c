@@ -25,7 +25,7 @@
 #include "armemu.h"
 
 typedef struct {
-    u32  r[0x12];
+    u32  r[0x13];
     bool active;
     u8* handellist;
     u32 waitall;

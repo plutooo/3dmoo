@@ -77,3 +77,48 @@ u32 port_SyncRequest(handleinfo* h, bool *locked);
 
 //syscalls/events.c
 u32 Event_WaitSynchronization(handleinfo* h, bool *locked);
+
+static struct {
+    char* name;
+    u32(*fnSyncRequest)(handleinfo* h, bool *locked);
+    u32(*fnCloseHandle)(handleinfo* h);
+    u32(*fnWaitSynchronization)(handleinfo* h, bool *locked);
+
+} handle_types[] = {
+    {
+        "misc",
+        NULL,
+        NULL,
+        NULL
+    },
+    {
+        "port",
+        &port_SyncRequest,
+        NULL,
+        NULL
+    },
+    {
+        "service",
+        &services_SyncRequest,
+        NULL,
+        NULL
+    },
+    {
+        "event",
+        NULL,
+        NULL,
+        &Event_WaitSynchronization
+    },
+    {
+        "mutex",
+        &mutex_SyncRequest,
+        NULL,
+        &mutex_WaitSynchronization
+    },
+    {
+        "mem",
+        NULL,
+        NULL,
+        NULL
+    }
+};

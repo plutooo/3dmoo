@@ -30,50 +30,6 @@
 static handleinfo handles[MAX_NUM_HANDLES];
 static u32 handles_num;
 
-static struct {
-    char* name;
-    u32(*fnSyncRequest)(handleinfo* h, bool *locked);
-    u32   (*fnCloseHandle)(handleinfo* h);
-    u32   (*fnWaitSynchronization)(handleinfo* h,bool *locked);
-
-} handle_types[] = {
-    {
-        "misc",
-        NULL,
-        NULL,
-        NULL
-    },
-    {
-        "port",
-        &port_SyncRequest,
-        NULL,
-        NULL
-    },
-    {
-        "service",
-        &services_SyncRequest,
-        NULL,
-        NULL
-    },
-    {
-        "event",
-        NULL,
-        NULL,
-        &Event_WaitSynchronization
-    },
-    {
-        "mutex",
-        &mutex_SyncRequest,
-        NULL,
-        &mutex_WaitSynchronization
-    },
-    {
-        "mem",
-        NULL,
-        NULL,
-        NULL
-    }
-};
 
 #define NUM_HANDLE_TYPES ARRAY_SIZE(handle_types)
 

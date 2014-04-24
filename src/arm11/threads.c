@@ -26,6 +26,7 @@
 
 #include "threads.h"
 
+
 #define MAX_THREADS 32
 
 static thread threads[MAX_THREADS];
@@ -46,7 +47,39 @@ u32 threads_New(u32 hand)
 }
 bool islocked(u32 t)
 {
-    return !threads[t].active;
+    if (threads[t].active)
+    {
+        return false;
+    }
+    else
+    {
+        bool allunlockde = true;
+        for (int i = 0; i < threads[t].handellistcount; i++)
+        {
+            handleinfo* hi = handle_Get(*(u32*)(threads[t].handellist + 4 * i));
+            u32 temp;
+            bool locked = false;
+            // Lookup actual callback in table.
+            temp = handle_types[hi->type].fnWaitSynchronization(hi, &locked);
+            if (!locked && threads[t].waitall == 0)
+            {
+                threads[t].r[1] = i;
+                threads[t].active = true;
+                return false;
+            }
+            else
+            {
+                allunlockde = false;
+            }
+        }
+        if (allunlockde)
+        {
+            threads[t].r[1] = threads[t].handellistcount;
+            threads[t].active = true;
+            return false;
+        }
+        return true;
+    }
 }
 u32 threads_Count()
 {

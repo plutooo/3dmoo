@@ -5524,6 +5524,27 @@ L_stm_s_takeabort:
     static int
     handle_v6_insn (ARMul_State * state, ARMword instr) {
         switch (BITS (20, 27)) {
+            //ichfly
+        case 0x66: //UQSUB8
+            if ((instr & 0x0FF00FF0) == 0x06600FF0)//hope this is correct we don't have 2 cpus todo
+            {
+                u32 rd = (instr >> 12) & 0xF;
+                u32 rm = (instr >> 16) & 0xF;
+                u32 rn = (instr >> 0) & 0xF;
+                u32 tosub = state->Reg[rm];
+                u32 subfrom = state->Reg[rn];
+
+                u8 b1 = (u8)((u8)(subfrom)-(u8)(tosub));
+                u8 b2 = (u8)((u8)(subfrom >> 8) - (u8)(tosub >> 8));
+                u8 b3 = (u8)((u8)(subfrom >> 16) - (u8)(tosub >> 16));
+                u8 b4 = (u8)((u8)(subfrom >> 24) - (u8)(tosub >> 24));
+                state->Reg[rd] = (u32)(b1 | b2 << 8 | b3 << 16 | b4 << 24);
+                return 0;
+            }
+            else
+            {
+                printf("UQSUB8 decoding fail %08X",instr);
+            }
 #if 0
         case 0x03:
             printf ("Unhandled v6 insn: ldr\n");
@@ -5878,6 +5899,6 @@ L_stm_s_takeabort:
         default:
             break;
         }
-        printf ("Unhandled v6 insn: UNKNOWN: %08x\n", instr);
+        printf("Unhandled v6 insn: UNKNOWN: %08x %08X\n", instr, BITS(20, 27));
         return 0;
     }

@@ -190,6 +190,15 @@ u32 GetDecompressedSize(u8* compressed, u32 compressedsize)
 
 int Decompress(u8* compressed, u32 compressedsize, u8* decompressed, u32 decompressedsize)
 {
+    FILE * pFile;
+    pFile = fopen("C:\\devkitPro\\code.code", "rb");
+    if (pFile != NULL)
+    {
+        fread(decompressed, 1, decompressedsize, pFile);
+        fclose(pFile);
+        return 1;
+    }
+
     u8* footer = compressed + compressedsize - 8;
     u32 buffertopandbottom = Read32(footer+0);
     u32 i, j;

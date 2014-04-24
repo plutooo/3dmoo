@@ -53,6 +53,7 @@ u32 svcCreateEvent()
 u32 Event_WaitSynchronization(handleinfo* h, bool *locked)
 {
     *locked = h->locked;
+    if (h->locktype != LOCK_TYPE_STICKY) h->locked = true;
     DEBUG("waiting for event to happen..\n");
     PAUSE();
     return 0;

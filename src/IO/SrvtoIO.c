@@ -85,7 +85,7 @@ void GPUTriggerCmdReqQueue() //todo
 
                 break;
             default:
-                DEBUG("GX cmd 0x%08X 0x%08X 0x%08X 0x%08X 0x%08X 0x%08X 0x%08X 0x%08X\r\n", *(baseaddr + (j + 1) * 0x20), *((baseaddr + (j + 1) * 0x20) + 0x4), *((baseaddr + (j + 1) * 0x20) + 0x8), *((baseaddr + (j + 1) * 0x20) + 0xC), *((baseaddr + (j + 1) * 0x20) + 0x10), *((baseaddr + (j + 1) * 0x20) + 0x14), *((baseaddr + (j + 1) * 0x20) + 0x18), *((baseaddr + (j + 1) * 0x20)) + 0x1C);
+                DEBUG("GX cmd 0x%08X 0x%08X 0x%08X 0x%08X 0x%08X 0x%08X 0x%08X 0x%08X\r\n", *(u32*)(baseaddr + (j + 1) * 0x20), *(u32*)((baseaddr + (j + 1) * 0x20) + 0x4), *(u32*)((baseaddr + (j + 1) * 0x20) + 0x8), *(u32*)((baseaddr + (j + 1) * 0x20) + 0xC), *(u32*)((baseaddr + (j + 1) * 0x20) + 0x10), *(u32*)((baseaddr + (j + 1) * 0x20) + 0x14), *(u32*)((baseaddr + (j + 1) * 0x20) + 0x18), *(u32*)((baseaddr + (j + 1) * 0x20)) + 0x1C);
                 break;
             }
         }

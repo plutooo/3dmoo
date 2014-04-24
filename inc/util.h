@@ -15,6 +15,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#ifndef _UTIL_H_
+#define _UTIL_H_
+
 #include <stdint.h>
 #include <stdbool.h>
 
@@ -69,3 +72,5 @@ typedef int64_t s64;
 #endif
 
 #define ARRAY_SIZE(s) (sizeof(s)/sizeof((s)[0]))
+
+#endif

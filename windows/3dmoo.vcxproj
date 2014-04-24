@@ -177,10 +177,12 @@
     <ClCompile Include="..\src\syscalls\syn.c" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\inc\arm11.h" />
     <ClInclude Include="..\inc\handles.h" />
     <ClInclude Include="..\inc\mem.h" />
     <ClInclude Include="..\inc\SrvtoIO.h" />
     <ClInclude Include="..\inc\svc.h" />
+    <ClInclude Include="..\inc\threads.h" />
     <ClInclude Include="..\inc\util.h" />
     <ClInclude Include="..\src\arm11\armdefs.h" />
     <ClInclude Include="..\src\arm11\armemu.h" />

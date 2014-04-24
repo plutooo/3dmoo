@@ -138,7 +138,7 @@ static const char* names[256] = {
 };
 
 
-void svc_Execute(u8 num)
+void svc_Execute(ARMul_State * state, u8 num)
 {
     const char* name = names[num & 0xFF];
 
@@ -150,6 +150,11 @@ void svc_Execute(u8 num)
     switch (num) {
     case 1:
         arm11_SetR(0, svcControlMemory());
+        return;
+    case 2:
+        //Stubbed for now
+        //arm11_SetR(0, svcQueryMemory());
+        arm11_SetR(0, 0);
         return;
     case 8:
         arm11_SetR(0, svcCreateThread());
@@ -182,9 +187,11 @@ void svc_Execute(u8 num)
         return;
     case 0x24:
         arm11_SetR(0, svcWaitSynchronization1());
+        state->NumInstrsToExecute = 0;
         return;
     case 0x25:
         arm11_SetR(0, svcWaitSynchronizationN());
+        state->NumInstrsToExecute = 0;
         return;
     case 0x27:
         arm11_SetR(0, svcDuplicateHandle());
@@ -215,10 +222,12 @@ void svc_Execute(u8 num)
         return;
 
     default:
+        //Lets not error yet
+        arm11_SetR(0, 0);
         break;
     }
 
     arm11_Dump();
     PAUSE();
-    exit(1);
+    //exit(1);
 }

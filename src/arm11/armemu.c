@@ -3715,10 +3715,10 @@ mainswitch:
                 /* Co-Processor Register Transfers (MCR) and Data Ops.  */
 
                 case 0xe2:
-                    if (!CP_ACCESS_ALLOWED (state, CPNum)) {
+                    /*if (!CP_ACCESS_ALLOWED (state, CPNum)) {
                         ARMul_UndefInstr (state, instr);
                         break;
-                    }
+                    }*/
 
                 case 0xe0:
                 case 0xe4:
@@ -3786,7 +3786,7 @@ mainswitch:
                 case 0xfd:
                 case 0xfe:
                 case 0xff:
-                    svc_Execute(BITS (0, 23));
+                    svc_Execute(state, BITS(0, 23));
                     break;
                 }
             }

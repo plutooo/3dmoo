@@ -15,10 +15,15 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#ifndef _SVC_H_
+#define _SVC_H_
+
+#include "../src/arm11/armdefs.h"
+
 #define error_not_a_mutex 0x81234567 //correct me fixme
 
 // svc.c
-void svc_Execute(u8 num);
+void svc_Execute(ARMul_State * state, u8 num);
 
 // arm11/threads.c
 u32 svcCreateThread();
@@ -44,3 +49,5 @@ u32 svcWaitSynchronization1();
 
 //mem
 u32 svcmapMemoryBlock();
+
+#endif

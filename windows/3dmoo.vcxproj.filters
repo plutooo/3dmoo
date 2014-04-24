@@ -152,5 +152,11 @@
     <ClInclude Include="..\src\arm11\armemu.h">
       <Filter>Header Files\arm11</Filter>
     </ClInclude>
+    <ClInclude Include="..\inc\threads.h">
+      <Filter>Header Files\arm11</Filter>
+    </ClInclude>
+    <ClInclude Include="..\inc\arm11.h">
+      <Filter>Header Files\arm11</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

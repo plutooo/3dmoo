@@ -438,7 +438,7 @@ ARMul_DoInstr (ARMul_State * state)
 #endif
     }
 
-    else
+    //else
         //pc = ARMul_Emulate26 (state);
 
         return (pc);

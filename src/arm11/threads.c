@@ -24,14 +24,7 @@
 #include "armdefs.h"
 #include "armemu.h"
 
-typedef struct {
-    u32  r[0x13];
-    bool active;
-    u8* handellist;
-    u32 waitall;
-    u32 handellistcount;
-    u32 ownhand;
-} thread;
+#include "threads.h"
 
 #define MAX_THREADS 32
 
@@ -85,8 +78,8 @@ void threads_Switch(/*u32 from,*/ u32 to)
     }
 
     DEBUG("Thread switch %d->%d\n", from, to);
-    arm11_SaveContext(threads[from].r);
-    arm11_LoadContext(threads[to].r);
+    arm11_SaveContext(&threads[from]);
+    arm11_LoadContext(&threads[to]);
     currentthread = to;
 }
 
@@ -105,10 +98,10 @@ u32 svcCreateThread()
     u32 numthread = threads_New(hand);
 
     threads[numthread].r[0] = ent_r0;
-    threads[numthread].r[13] = ent_sp;
-    threads[numthread].r[15] = ent_pc;
-    threads[numthread].r[0x10] = 0x1F; //usermode
-    threads[numthread].r[0x11] = RESUME;
+    threads[numthread].sp = ent_sp;
+    threads[numthread].pc = ent_pc;
+    threads[numthread].cpsr = 0x1F; //usermode
+    threads[numthread].mode = RESUME;
 
     arm11_SetR(1, hand); // r1 = handle_out
 
@@ -118,7 +111,7 @@ extern ARMul_State s;
 void lockcpu(u32* handelist, u32 waitAll,u32 count)
 {
     if (threads[currentthread].handellist != 0) free(threads[currentthread].handellist);
-    threads[currentthread].handellist = handelist;
+    threads[currentthread].handellist = (u8*)handelist;
     threads[currentthread].active = false;
     threads[currentthread].waitall = waitAll;
     threads[currentthread].handellistcount = count;

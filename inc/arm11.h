@@ -15,14 +15,23 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#ifndef _ARM11_H_
+#define _ARM11_H_
+
+#include "threads.h"
+
+
 void arm11_Init();
 void arm11_SetPCSP(u32 pc, u32 sp);
 u32  arm11_R(u32 n);
 void arm11_SetR(u32 n, u32 val);
 bool arm11_Step();
+bool arm11_Run(int numInstructions);
 void arm11_Dump();
 
-void arm11_LoadContext(u32 r_in[18]);
-void arm11_SaveContext(u32 r_out[18]);
+void arm11_LoadContext(thread *t);
+void arm11_SaveContext(thread *t);
 
 void arm11_Disasm32(u32 opc);
+
+#endif

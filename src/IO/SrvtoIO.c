@@ -99,7 +99,7 @@ void GPURegisterInterruptRelayQueue(u32 flags, u32 Kevent, u32*threadID, u32*out
     if (h == NULL) {
         DEBUG("failed to get Event\n");
         PAUSE();
-        return -1;
+        return;// -1;
     }
     h->locked = false; //unlock we are fast
 }

@@ -39,7 +39,7 @@ void GPUwritereg32(u32 addr, u32 data)
 {
     DEBUG("GPU write %08x to %08x\n",data,addr);
     if (addr > 0x420000) {
-        DEBUG("write out of range write");
+        DEBUG("write out of range write\r\n");
         return;
     }
     *(uint32_t*)(&IObuffer[addr]) = data;
@@ -52,7 +52,7 @@ u32 GPUreadreg32(u32 addr)
 {
     //DEBUG("GPU read %08x\n", addr);
     if (addr > 0x420000) {
-        DEBUG("read out of range write");
+        DEBUG("read out of range write\r\n");
         return 0;
     }
     return *(uint32_t*)(&IObuffer[addr]);
@@ -75,7 +75,7 @@ void GPUTriggerCmdReqQueue() //todo
                 src = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x4);
                 dest = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x8);
                 size = *(u32*)(baseaddr + (j + 1) * 0x20 + 0xC);
-                if (dest - 0x1f000000 > 0x600000)DEBUG("dma copy into non VRAM not suported");
+                if (dest - 0x1f000000 > 0x600000)DEBUG("dma copy into non VRAM not suported\r\n");
 
 
                 //for (u32 k = 0; k < size; k++)
@@ -85,7 +85,7 @@ void GPUTriggerCmdReqQueue() //todo
 
                 break;
             default:
-                DEBUG("GX cmd 0x%08X 0x%08X 0x%08X 0x%08X 0x%08X 0x%08X 0x%08X 0x%08X", *(baseaddr + (j + 1) * 0x20), *((baseaddr + (j + 1) * 0x20) + 0x4), *((baseaddr + (j + 1) * 0x20) + 0x8), *((baseaddr + (j + 1) * 0x20) + 0xC), *((baseaddr + (j + 1) * 0x20) + 0x10), *((baseaddr + (j + 1) * 0x20) + 0x14), *((baseaddr + (j + 1) * 0x20) + 0x18), *((baseaddr + (j + 1) * 0x20)) + 0x1C);
+                DEBUG("GX cmd 0x%08X 0x%08X 0x%08X 0x%08X 0x%08X 0x%08X 0x%08X 0x%08X\r\n", *(baseaddr + (j + 1) * 0x20), *((baseaddr + (j + 1) * 0x20) + 0x4), *((baseaddr + (j + 1) * 0x20) + 0x8), *((baseaddr + (j + 1) * 0x20) + 0xC), *((baseaddr + (j + 1) * 0x20) + 0x10), *((baseaddr + (j + 1) * 0x20) + 0x14), *((baseaddr + (j + 1) * 0x20) + 0x18), *((baseaddr + (j + 1) * 0x20)) + 0x1C);
                 break;
             }
         }

@@ -158,6 +158,7 @@ uint8_t mem_Read8(uint32_t addr)
 #endif
 
     size_t i;
+
     for(i=0; i<num_mappings; i++) {
         if(Contains(&mappings[i], addr, 1)) {
             return mappings[i].phys[addr - mappings[i].base];
@@ -248,11 +249,22 @@ u32 mem_Read32(uint32_t addr)
 #ifdef MEM_TRACE
     fprintf(stderr, "r32 %08x\n", addr);
 #endif
-
     size_t i;
+
     for(i=0; i<num_mappings; i++) {
         if(Contains(&mappings[i], addr, 4)) {
-            return *(uint32_t*) (&mappings[i].phys[addr - mappings[i].base]);
+            u32 temp = *(uint32_t*) (&mappings[i].phys[addr - mappings[i].base]);
+            switch (addr & 3)
+            {
+            case 0:
+                return temp;
+            case 1:
+                return (temp & 0xFF) << 8 | ((temp & 0xFF00) >> 8) << 16 | ((temp & 0xFF0000) >> 16) << 24 | ((temp & 0xFF000000) >> 24) << 0;
+            case 2:
+                return (temp & 0xFFFF) << 16 | (temp & 0xFFFF0000) >> 16;
+            case 3:
+                return (temp & 0xFF) << 24 | ((temp & 0xFF00) >> 8) << 0 | ((temp & 0xFF0000) >> 16) << 8 | ((temp & 0xFF000000) >> 24) << 16;
+            }
         }
     }
 

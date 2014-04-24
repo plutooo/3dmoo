@@ -27,6 +27,7 @@
 u32 apt_u_SyncRequest();
 u32 gsp_gpu_SyncRequest();
 u32 hid_user_SyncRequest();
+u32 fs_user_SyncRequest();
 
 #ifndef _WIN32
 static size_t strnlen(const char* p, size_t n)
@@ -72,6 +73,12 @@ static struct {
         SERVICE_TYPE_HID_USER,
         0,
         &hid_user_SyncRequest
+    },
+    {
+        "fs:USER",
+        SERVICE_TYPE_HID_USER,
+        0,
+        &fs_user_SyncRequest
     }
 };
 

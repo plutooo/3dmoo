@@ -183,7 +183,13 @@ int mem_Write16(uint32_t addr, uint16_t w)
     size_t i;
     for(i=0; i<num_mappings; i++) {
         if(Contains(&mappings[i], addr, 2)) {
-            *(uint16_t*) (&mappings[i].phys[addr - mappings[i].base]) = w;
+            // Unaligned.
+            if (addr & 1) {
+                mappings[i].phys[addr - mappings[i].base] = w;
+                mappings[i].phys[addr - mappings[i].base + 1] = w >> 8;
+            }
+            else
+                *(uint16_t*)(&mappings[i].phys[addr - mappings[i].base]) = w;
             return 0;
         }
     }
@@ -207,6 +213,12 @@ uint16_t mem_Read16(uint32_t addr)
     size_t i;
     for(i=0; i<num_mappings; i++) {
         if(Contains(&mappings[i], addr, 2)) {
+            // Unaligned.
+            if (addr & 1) {
+                uint16_t ret = mappings[i].phys[addr - mappings[i].base + 1] << 8;
+                ret |= mappings[i].phys[addr - mappings[i].base];
+                return ret;
+            }
             return *(uint16_t*) (&mappings[i].phys[addr - mappings[i].base]);
         }
     }
@@ -230,7 +242,15 @@ int mem_Write32(uint32_t addr, uint32_t w)
     size_t i;
     for(i=0; i<num_mappings; i++) {
         if(Contains(&mappings[i], addr, 4)) {
-            *(uint32_t*) (&mappings[i].phys[addr - mappings[i].base]) = w;
+            // Unaligned.
+            if (addr & 3) {
+                mappings[i].phys[addr - mappings[i].base] = w;
+                mappings[i].phys[addr - mappings[i].base + 1] = w >> 8;
+                mappings[i].phys[addr - mappings[i].base + 2] = w >> 16;
+                mappings[i].phys[addr - mappings[i].base + 3] = w >> 24;
+            }
+            else
+                *(uint32_t*) (&mappings[i].phys[addr - mappings[i].base]) = w;
             return 0;
         }
     }
@@ -253,18 +273,16 @@ u32 mem_Read32(uint32_t addr)
 
     for(i=0; i<num_mappings; i++) {
         if(Contains(&mappings[i], addr, 4)) {
-            u32 temp = *(uint32_t*) (&mappings[i].phys[addr - mappings[i].base]);
-            switch (addr & 3)
-            {
-            case 0:
-                return temp;
-            case 1:
-                return (temp & 0xFF) << 8 | ((temp & 0xFF00) >> 8) << 16 | ((temp & 0xFF0000) >> 16) << 24 | ((temp & 0xFF000000) >> 24) << 0;
-            case 2:
-                return (temp & 0xFFFF) << 16 | (temp & 0xFFFF0000) >> 16;
-            case 3:
-                return (temp & 0xFF) << 24 | ((temp & 0xFF00) >> 8) << 0 | ((temp & 0xFF0000) >> 16) << 8 | ((temp & 0xFF000000) >> 24) << 16;
+            // Unaligned.
+            if (addr & 3) {
+                u32 ret = mappings[i].phys[addr - mappings[i].base + 3] << 24;
+                ret |= mappings[i].phys[addr - mappings[i].base + 2] << 16;
+                ret |= mappings[i].phys[addr - mappings[i].base + 1] << 8;
+                ret |= mappings[i].phys[addr - mappings[i].base];
+                return ret;
             }
+            else
+                return *(uint32_t*)(&mappings[i].phys[addr - mappings[i].base]);
         }
     }
 

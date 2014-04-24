@@ -301,6 +301,7 @@ void arm11_SaveContext(thread *t)
     t->pc = s.pc;
     t->cpsr = s.Cpsr;
     t->mode = s.NextInstr;
+    t->r15 = s.Reg[15];
 
     for (int i = 0; i < 32; i++) t->fpu_r[i] = s.ExtReg[i];
     t->fpscr = s.VFP[1];
@@ -314,6 +315,7 @@ void arm11_LoadContext(thread *t)
     s.pc = t->pc;
     s.Cpsr = t->cpsr;
     s.NextInstr = t->mode;
+    s.Reg[15] = t->r15;
 
     for (int i = 0; i < 32; i++) s.ExtReg[i] = t->fpu_r[i];
     s.VFP[1] = t->fpscr;

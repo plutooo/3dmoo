@@ -99,7 +99,7 @@ u32 svcCreateThread()
 
     threads[numthread].r[0] = ent_r0;
     threads[numthread].sp = ent_sp;
-    threads[numthread].pc = ent_pc;
+    threads[numthread].r15 = ent_pc;
     threads[numthread].cpsr = 0x1F; //usermode
     threads[numthread].mode = RESUME;
 

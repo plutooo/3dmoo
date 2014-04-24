@@ -28,6 +28,7 @@ typedef struct {
     u32 fpscr;
     u32 fpexc;
     u32 mode;
+    u32 r15;
 
     bool active;
     u8* handellist;

@@ -25,6 +25,7 @@
 #define HANDLE_TYPE_REDIR     6
 #define HANDLE_TYPE_THREAD    7
 #define HANDLE_TYPE_PROCESS   8
+#define HANDLE_TYPE_Arbiter   9
 
 #define PORT_TYPE_SRV         0
 

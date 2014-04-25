@@ -178,9 +178,10 @@ void svc_Execute(ARMul_State * state, u8 num)
         arm11_SetR(0, svcMapMemoryBlock());
         return;
     case 0x21:
-        DEBUG("STUBBED");
-        arm11_SetR(0, 1);
-        PAUSE();
+        arm11_SetR(0, svcCreateAddressArbiter());
+        return;
+    case 0x22:
+        arm11_SetR(0, svcArbitrateAddress());
         return;
     case 0x23:
         arm11_SetR(0, svcCloseHandle());

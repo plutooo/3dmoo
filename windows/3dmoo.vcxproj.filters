@@ -123,6 +123,9 @@
     <ClCompile Include="..\src\services\ns_s.c">
       <Filter>Source Files\services</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\syscalls\arb.c">
+      <Filter>Source Files\syscalls</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\inc\handles.h">

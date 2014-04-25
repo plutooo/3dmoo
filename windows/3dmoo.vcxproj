@@ -174,6 +174,7 @@
     <ClCompile Include="..\src\services\ns_s.c" />
     <ClCompile Include="..\src\services\srv.c" />
     <ClCompile Include="..\src\svc.c" />
+    <ClCompile Include="..\src\syscalls\arb.c" />
     <ClCompile Include="..\src\syscalls\events.c" />
     <ClCompile Include="..\src\syscalls\memory.c" />
     <ClCompile Include="..\src\syscalls\ports.c" />

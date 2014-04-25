@@ -98,6 +98,7 @@ int main(int argc, char* argv[])
     threads_New(hand);
     u32 handzwei = handle_New(HANDLE_TYPE_PROCESS, 0);
     curprocesshandle = handzwei;
+    hid_user_init();
     if(!noscreen)
         initGPU();
 

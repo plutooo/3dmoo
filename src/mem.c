@@ -274,15 +274,19 @@ u32 mem_Read32(uint32_t addr)
     for(i=0; i<num_mappings; i++) {
         if(Contains(&mappings[i], addr, 4)) {
             // Unaligned.
-            if (addr & 3) {
-                u32 ret = mappings[i].phys[addr - mappings[i].base + 3] << 24;
-                ret |= mappings[i].phys[addr - mappings[i].base + 2] << 16;
-                ret |= mappings[i].phys[addr - mappings[i].base + 1] << 8;
-                ret |= mappings[i].phys[addr - mappings[i].base];
-                return ret;
+            u32 temp = *(uint32_t*)(&mappings[i].phys[addr - mappings[i].base]);
+            switch (addr & 3)
+            {
+            case 0:
+                return temp;
+            case 1:
+                return (temp & 0xFF) << 8 | ((temp & 0xFF00) >> 8) << 16 | ((temp & 0xFF0000) >> 16) << 24 | ((temp & 0xFF000000) >> 24) << 0;
+            case 2:
+                return (temp & 0xFFFF) << 16 | (temp & 0xFFFF0000) >> 16;
+            case 3:
+                return (temp & 0xFF) << 24 | ((temp & 0xFF00) >> 8) << 0 | ((temp & 0xFF0000) >> 16) << 8 | ((temp & 0xFF000000) >> 24) << 16;
             }
-            else
-                return *(uint32_t*)(&mappings[i].phys[addr - mappings[i].base]);
+
         }
     }
 

@@ -45,6 +45,7 @@
 #define LOCK_TYPE_MAX   2
 
 #define MEM_TYPE_GSP_0   0
+#define MEM_TYPE_HID_0   1
 
 
 #define HANDLE_CURRENT_THREAD  0xFFFF8000

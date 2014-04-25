@@ -28,9 +28,33 @@
 
 u8 HIDsharedbuff[0x2000];
 
+#define CPUsvcbuffer 0xFFFF0000
+
+u32 memhandel;
+
+u32 hid_user_init()
+{
+    memhandel = handle_New(HANDLE_TYPE_SHAREDMEM, MEM_TYPE_HID_0);
+}
+
 u32 hid_user_SyncRequest()
 {
     u32 cid = mem_Read32(0xFFFF0080);
+    switch (cid)
+    {
+    case 0x000A0000:
+        mem_Write32(CPUsvcbuffer + 0x8C, memhandel);
+        mem_Write32(CPUsvcbuffer + 0x90, handle_New(HANDLE_TYPE_UNK, 0));
+        mem_Write32(CPUsvcbuffer + 0x94, handle_New(HANDLE_TYPE_UNK, 0));
+        mem_Write32(CPUsvcbuffer + 0x98, handle_New(HANDLE_TYPE_UNK, 0));
+        mem_Write32(CPUsvcbuffer + 0x9C, handle_New(HANDLE_TYPE_UNK, 0));
+        mem_Write32(CPUsvcbuffer + 0x100, handle_New(HANDLE_TYPE_UNK, 0));
+
+        mem_Write32(CPUsvcbuffer + 0x84, 0); //worked
+        return 0;
+    default:
+        break;
+    }
     ERROR("STUBBED, cid=%08x\n", cid);
     PAUSE();
 

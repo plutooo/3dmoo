@@ -66,7 +66,7 @@ u32 apt_u_SyncRequest()
         h->locktype = LOCK_TYPE_ONESHOT;
         event_handles[1] = handle_New(HANDLE_TYPE_EVENT, HANDLE_SUBEVENT_APTPAUSEEVENT);
         h = handle_Get(event_handles[1]);
-        h->locked = true;
+        h->locked = false; //fire start event
         h->locktype = LOCK_TYPE_ONESHOT;
 
         mem_Write32(0xFFFF008C, event_handles[0]); // some event handles

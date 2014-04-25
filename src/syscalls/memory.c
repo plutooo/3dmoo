@@ -276,9 +276,6 @@ u32 svcMapMemoryBlock()
 
     if (h->type == HANDLE_TYPE_SERVICE) {
         switch (h->subtype) {
-        case SERVICE_TYPE_HID_USER:
-            mem_AddMappingShared(addr, 0x2000, &HIDsharedbuff[0]);
-            break;
 
         default:
             DEBUG("Trying to map unknown mem\nhandle=%x, addr=%08x, my_perm=%x, other_perm=%x\n",
@@ -291,7 +288,9 @@ u32 svcMapMemoryBlock()
         case MEM_TYPE_GSP_0:
             mem_AddMappingShared(addr, GSPsharebuffsize, GSPsharedbuff);
             break;
-
+        case MEM_TYPE_HID_0:
+            mem_AddMappingShared(addr, 0x2000, HIDsharedbuff);
+            break;
         default:
             DEBUG("Trying to map unknown mem\nhandle=%x, addr=%08x, my_perm=%x, other_perm=%x\n",
                   handle, addr, my_perm, other_perm);

@@ -87,7 +87,14 @@ u32 svcSendSyncRequest()
     bool locked = false;
     // Lookup actual callback in table.
     if (handle_types[hi->type].fnSyncRequest != NULL) {
-        return handle_types[hi->type].fnSyncRequest(hi, &locked);
+        temp = handle_types[hi->type].fnSyncRequest(hi, &locked);
+        if (locked)
+        {
+            u8* handelist = malloc(4);
+            *(u32*)handelist = handle;
+            lockcpu(handelist, 1, 1);
+        }
+        return temp;
     } else {
         ERROR("svcSyncRequest undefined for handle-type \"%s\".\n",
               handle_types[hi->type].name);

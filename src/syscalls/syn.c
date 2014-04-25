@@ -26,6 +26,7 @@ u32 mutex_WaitSynchronization(handleinfo* h, bool *locked)
     PAUSE();
 
     *locked = h->locked;
+
     return 0;
 }
 

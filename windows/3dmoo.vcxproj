@@ -166,10 +166,12 @@
     <ClCompile Include="..\src\main.c" />
     <ClCompile Include="..\src\mem.c" />
     <ClCompile Include="..\src\screen.c" />
+    <ClCompile Include="..\src\services\am_u.c" />
     <ClCompile Include="..\src\services\apt_u.c" />
     <ClCompile Include="..\src\services\fs_user.c" />
     <ClCompile Include="..\src\services\gsp_gpu.c" />
     <ClCompile Include="..\src\services\hid_user.c" />
+    <ClCompile Include="..\src\services\ns_s.c" />
     <ClCompile Include="..\src\services\srv.c" />
     <ClCompile Include="..\src\svc.c" />
     <ClCompile Include="..\src\syscalls\events.c" />

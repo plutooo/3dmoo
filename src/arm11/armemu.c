@@ -5539,7 +5539,7 @@ L_stm_s_takeabort:
                 u8 b3 = (u8)((u8)(subfrom >> 16) - (u8)(tosub >> 16));
                 u8 b4 = (u8)((u8)(subfrom >> 24) - (u8)(tosub >> 24));
                 state->Reg[rd] = (u32)(b1 | b2 << 8 | b3 << 16 | b4 << 24);
-                return 0;
+                return 1;
             }
             else
             {

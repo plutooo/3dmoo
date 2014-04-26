@@ -132,6 +132,12 @@
     <ClCompile Include="..\src\services\cfg_u.c">
       <Filter>Source Files\services</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\services\frd_u.c">
+      <Filter>Source Files\services</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\services\ptm_u.c">
+      <Filter>Source Files\services</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\inc\handles.h">

@@ -16,39 +16,28 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _SVC_H_
-#define _SVC_H_
+#include <stdio.h>
+#include <stdlib.h>
 
-#include "../src/arm11/armdefs.h"
+#include "util.h"
+#include "handles.h"
+#include "mem.h"
+#include "arm11.h"
 
-#define error_not_a_mutex 0x81234567 //correct me fixme
+u32 lock_handle;
+u32 event_handles[2];
 
-// svc.c
-void svc_Execute(ARMul_State * state, u8 num);
+u32 ptm_u_SyncRequest()
+{
+    u32 cid = mem_Read32(0xFFFF0080);
 
-// arm11/threads.c
-u32 svcCreateThread();
+    // Read command-id.
+    switch(cid) {
 
-// svc/memory.c
-u32 svcControlMemory();
-u32 svcMapMemoryBlock();
+    }
 
-// svc/ports.c
-u32 svcConnectToPort();
-
-// svc/events.c
-u32 svcCreateEvent();
-
-// svc/syn.c
-u32 svcCreateMutex();
-u32 svcReleaseMutex();
-
-// Generics (handles.c)
-u32 svcSendSyncRequest();
-u32 svcCloseHandle();
-u32 svcWaitSynchronization1();
-
-//mem
-u32 svcmapMemoryBlock();
-
-#endif
+    ERROR("NOT IMPLEMENTED, cid=%08x\n", cid);
+    arm11_Dump();
+    PAUSE();
+    return 0;
+}

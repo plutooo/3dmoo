@@ -30,6 +30,8 @@ u32 hid_user_SyncRequest();
 u32 fs_user_SyncRequest();
 u32 am_u_SyncRequest();
 u32 ns_s_SyncRequest();
+u32 ndm_u_SyncRequest();
+u32 cfg_u_SyncRequest();
 
 #ifndef _WIN32
 static size_t strnlen(const char* p, size_t n)
@@ -93,6 +95,18 @@ static struct {
         SERVICE_TYPE_NINSHELL_S,
         0,
         &ns_s_SyncRequest
+    },
+    {
+        "ndm:u",
+        SERVICE_TYPE_NDM_USER,
+        0,
+        &ndm_u_SyncRequest
+    },
+    {
+        "cfg:u",
+        SERVICE_TYPE_CFG_USER,
+        0,
+        &cfg_u_SyncRequest
     }
 };
 

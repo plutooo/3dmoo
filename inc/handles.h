@@ -26,6 +26,7 @@
 #define HANDLE_TYPE_THREAD    7
 #define HANDLE_TYPE_PROCESS   8
 #define HANDLE_TYPE_Arbiter   9
+#define HANDLE_TYPE_FILE      10
 
 #define PORT_TYPE_SRV         0
 
@@ -67,6 +68,26 @@ typedef struct {
     u32 process;
     u32 thread;
 } handleinfo;
+
+typedef enum{
+    PATH_INVALID = 0,	// Specifies an invalid path.
+    PATH_EMPTY = 1,	// Specifies an empty path.
+    PATH_BINARY = 2,	// Specifies a binary path, which is non-text based.
+    PATH_CHAR = 3,	// Specifies a text based path with a 8-bit byte per character.
+    PATH_WCHAR = 4,	// Specifies a text based path with a 16-bit short per character.
+}FS_pathType;
+
+typedef struct{
+    FS_pathType type;
+    u32 size;
+    u8* data;
+}FS_path;
+
+typedef struct{
+    u32 id;
+    FS_path lowPath;
+    u32 handleLow, handleHigh;
+}FS_archive;
 
 handleinfo* handle_Get(u32 handle);
 u32 handle_New(u32 type, u32 subtype);

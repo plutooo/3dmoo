@@ -32,10 +32,55 @@
 
 u32 fs_user_SyncRequest()
 {
+    char cstring[0x200];
     u32 cid = mem_Read32(CPUsvcbuffer + 0x80);
 
     // Read command-id.
     switch (cid) {
+    case 0x080201C2:
+    {
+                       u32 handleHigh = mem_Read32(CPUsvcbuffer + 0x88);
+                       u32 handleLow = mem_Read32(CPUsvcbuffer + 0x8C);
+                       u32 type = mem_Read32(CPUsvcbuffer + 0x90);
+                       u32 size = mem_Read32(CPUsvcbuffer + 0x94);
+                       u32 openflags = mem_Read32(CPUsvcbuffer + 0x98);
+                       u32 attributes = mem_Read32(CPUsvcbuffer + 0x9C);
+                       u32 data = mem_Read32(CPUsvcbuffer + 0xA4);
+                       if (size > 0x100)
+                       {
+                           DEBUG("to big");
+                           return 0;
+                       }
+                       switch (type)
+                       {
+                       case PATH_WCHAR:
+                       {
+                                          int i = 0;
+                                          while (i < size)
+                                          {
+                                              cstring[i] = (char)mem_Read16(data + i * 2);
+                                              i++;
+                                          }
+                                          break;
+                       }
+                       default:
+                           DEBUG("unsupprtet type");
+
+                           return 0;
+                       }
+                       switch (handleHigh)
+                       {
+                       case 2://Gamecard???
+                       {
+                                 u32 handel = handle_New(HANDLE_TYPE_FILE, 0);
+                                 mem_Write32(CPUsvcbuffer + 0x8C, handel); //return handle
+                       }
+                       default:
+                           break;
+                       }
+                       mem_Write32(CPUsvcbuffer + 0x84, 0); //no error
+                       return 0;
+    }
     }
 
     ERROR("NOT IMPLEMENTED, cid=%08x\n", cid);

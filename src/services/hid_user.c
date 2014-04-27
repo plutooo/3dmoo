@@ -57,6 +57,7 @@ u32 hid_user_SyncRequest()
         break;
     }
     ERROR("STUBBED, cid=%08x\n", cid);
+    arm11_Dump();
     PAUSE();
 
     return 0;

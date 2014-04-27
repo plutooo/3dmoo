@@ -83,7 +83,7 @@ static struct {
     },
     {
         "fs:USER",
-        SERVICE_TYPE_HID_USER,
+        SERVICE_TYPE_FS_USER,
         0,
         &fs_user_SyncRequest
     },

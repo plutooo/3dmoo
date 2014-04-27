@@ -265,6 +265,18 @@ int mem_Write32(uint32_t addr, uint32_t w)
     return 0;
 }
 
+bool mem_test(uint32_t addr)
+{
+    size_t i;
+
+    for (i = 0; i<num_mappings; i++) {
+        if (Contains(&mappings[i], addr, 4)) {
+            return true;
+        }
+    }
+    return false;
+}
+
 u32 mem_Read32(uint32_t addr)
 {
 #ifdef MEM_TRACE

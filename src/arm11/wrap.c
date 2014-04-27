@@ -6,6 +6,10 @@
 #include "armemu.h"
 #include "threads.h"
 
+#define dumpstack 1
+#define dumpstacksize 50
+#define maxdmupaddr 0x0033a850
+
 /*ARMword ARMul_GetCPSR (ARMul_State * state) {
     return 0;
 }
@@ -275,16 +279,56 @@ void arm11_SetR(u32 n, u32 val)
 
     s.Reg[n] = val;
 }
+bool aufloeser(char* a,u32 addr)
+{
+    if (mem_test(addr) && maxdmupaddr > addr)
+    {
+        static const char filename[] = "C:\\devkitPro\\map.idc";
+        FILE *file = fopen(filename, "r");
+        if (file != NULL)
+        {
+            char line[256]; /* or other suitable maximum line size */
+            char scanned[256]; /* or other suitable maximum line size */
+            strcpy(scanned, "");
+            while (fgets(line, sizeof line, file) != NULL) /* read a line */
+            {
+                u32 addr2 = 0;
+                sscanf(line, "MakeName(0x%08x,\"%s\");", &addr2, scanned);
+                if (addr2 < addr && addr2 != 0)
+                    strcpy(a, scanned);
+                else
+                {
+                    int i = 0;
+                }
+            }
+            fclose(file);
+        }
+    }
+    else
+    {
+        sprintf(a, "");
+    }
+}
 void arm11_Dump()
 {
     DEBUG("Reg dump:\n");
-
+    char a[256];
     u32 i;
     for (i = 0; i < 4; i++) {
         DEBUG("r%02d: %08x r%02d: %08x r%02d: %08x r%02d: %08x\n",
               4 * i, s.Reg[4 * i], 4 * i + 1, s.Reg[4 * i + 1], 4 * i + 2, s.Reg[4 * i + 2], 4 * i + 3, s.Reg[4 * i + 3]);
     }
+    aufloeser(a, s.Reg[15]);
+    DEBUG("current pc %s\n",a);
+    for (int i = 0; i < dumpstacksize; i++)
+    {
 
+        if (mem_test(s.Reg[13] + i * 4))
+        {
+            aufloeser(a, mem_Read32(s.Reg[13] + i * 4));
+            DEBUG("%08X %08x %s\n", s.Reg[13] + i * 4, mem_Read32(s.Reg[13] + i * 4), a);
+        }
+    }
     DEBUG("\n");
 }
 void arm11_SetPCSP(u32 pc, u32 sp)

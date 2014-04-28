@@ -283,7 +283,7 @@ bool aufloeser(char* a,u32 addr)
 {
     if (mem_test(addr) && maxdmupaddr > addr)
     {
-        static const char filename[] = "C:\\devkitPro\\map.idc";
+        static const char filename[] = "map.idc";
         FILE *file = fopen(filename, "r");
         if (file != NULL)
         {
@@ -318,6 +318,7 @@ void arm11_Dump()
         DEBUG("r%02d: %08x r%02d: %08x r%02d: %08x r%02d: %08x\n",
               4 * i, s.Reg[4 * i], 4 * i + 1, s.Reg[4 * i + 1], 4 * i + 2, s.Reg[4 * i + 2], 4 * i + 3, s.Reg[4 * i + 3]);
     }
+    memset(a, 0, 256);
     aufloeser(a, s.Reg[15]);
     DEBUG("current pc %s\n",a);
     for (int i = 0; i < dumpstacksize; i++)

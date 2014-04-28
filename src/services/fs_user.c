@@ -29,7 +29,26 @@
 
 #define CPUsvcbuffer 0xFFFF0000
 
+FILE* filesevhand[0x10];
+bool fileisfree[0x10];
+#define filesevhandnumb 0x10
 
+void fsinit()
+{
+    for (int i = 0; i < filesevhandnumb; i++)
+    {
+        fileisfree[i] = true;
+    }
+}
+s32 findfree()
+{
+    s32 q = -1;
+    for (int i = 0; i < filesevhandnumb; i++)
+    {
+        if (fileisfree[i] = true)q = i;
+    }
+    return q;
+}
 u32 fs_user_SyncRequest()
 {
     char cstring[0x200];
@@ -72,7 +91,17 @@ u32 fs_user_SyncRequest()
                        {
                        case 2://Gamecard???
                        {
-                                 u32 handel = handle_New(HANDLE_TYPE_FILE, 0);
+                                 char fulladdr[0x500];
+                                 sprintf(fulladdr, "C:/devkitPro/ciaextract%s", cstring);
+                                 FILE *fileh = fopen(fulladdr, "r");
+                                 if (fileh == 0)
+                                 {
+                                     return 0xFFFFFFFF;
+                                 }
+                                 s32 j = findfree();
+                                 filesevhand[j] = fileh;
+                                 fileisfree[j] = false;
+                                 u32 handel = handle_New(HANDLE_TYPE_FILE, j);
                                  mem_Write32(CPUsvcbuffer + 0x8C, handel); //return handle
                        }
                        default:

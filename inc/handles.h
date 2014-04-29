@@ -107,6 +107,8 @@ u32 port_SyncRequest(handleinfo* h, bool *locked);
 //syscalls/events.c
 u32 Event_WaitSynchronization(handleinfo* h, bool *locked);
 
+u32 file_SyncRequest(handleinfo* h, bool *locked);
+
 static struct {
     char* name;
     u32(*fnSyncRequest)(handleinfo* h, bool *locked);
@@ -147,6 +149,36 @@ static struct {
     {
         "mem",
         NULL,
+        NULL,
+        NULL
+    },
+    {
+        "REDIR",
+        NULL,
+        NULL,
+        NULL
+    },
+    {
+        "THREAD",
+        NULL,
+        NULL,
+        NULL
+    },
+    {
+        "PROCESS",
+        NULL,
+        NULL,
+        NULL
+    },
+    {
+        "Arbiter",
+        NULL,
+        NULL,
+        NULL
+    },
+    {
+        "FILE",
+        &file_SyncRequest,
         NULL,
         NULL
     }

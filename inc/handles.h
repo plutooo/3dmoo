@@ -108,6 +108,7 @@ u32 port_SyncRequest(handleinfo* h, bool *locked);
 u32 Event_WaitSynchronization(handleinfo* h, bool *locked);
 
 u32 file_SyncRequest(handleinfo* h, bool *locked);
+u32 file_CloseHandle(handleinfo* h);
 
 static struct {
     char* name;
@@ -179,7 +180,7 @@ static struct {
     {
         "FILE",
         &file_SyncRequest,
-        NULL,
+        &file_CloseHandle,
         NULL
     }
 };

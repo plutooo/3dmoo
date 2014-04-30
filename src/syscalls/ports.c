@@ -71,6 +71,7 @@ u32 svcConnectToPort()
     }
 
     DEBUG("Port %s: NOT IMPLEMENTED!\n", name);
+    arm11_Dump();
     PAUSE();
     return 0;
 }

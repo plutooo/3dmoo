@@ -313,6 +313,29 @@ u32 mem_Read32(uint32_t addr)
     return 0;
 }
 
+int mem_Write(uint8_t* in_buff, uint32_t addr, uint32_t size)
+{
+#ifdef MEM_TRACE
+    fprintf(stderr, "w (sz=%08x) %08x\n", size, addr);
+#endif
+
+    size_t i;
+    for (i = 0; i<num_mappings; i++) {
+        if (Contains(&mappings[i], addr, size)) {
+            memcpy(&mappings[i].phys[addr - mappings[i].base],in_buff, size);
+            return 0;
+        }
+    }
+#ifdef PRINT_ILLEGAL
+    DEBUG("trying to write 0x%x bytes unmapped addr %08x\n", size, addr);
+    arm11_Dump();
+#endif
+#ifdef EXIT_ON_ILLEGAL
+    exit(1);
+#endif
+    return 0;
+}
+
 int mem_Read(uint8_t* buf_out, uint32_t addr, uint32_t size)
 {
 #ifdef MEM_TRACE

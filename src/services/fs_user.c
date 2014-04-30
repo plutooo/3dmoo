@@ -202,7 +202,8 @@ u32 fs_user_SyncRequest()
             char fulladdr[0x500];
             sprintf(cstring, "%s%s", cstring, cstringz);
             DEBUG("fs:USER:OpenFileDirect(%s);\n", cstring);
-            FILE *fileh = fopen(fulladdr, "r");
+            arm11_Dump();
+            FILE *fileh = fopen(cstring, "r");
             if (fileh == 0)
             {
                 mem_Write32(CPUsvcbuffer + 0x8C, 0); //return handle
@@ -300,6 +301,8 @@ u32 fs_user_SyncRequest()
             mem_Write32(CPUsvcbuffer + 0x84, 0); //no error
             return 0;
         }
+        default:
+            break;
     }
 
     ERROR("NOT IMPLEMENTED, cid=%08x\n", cid);
@@ -310,4 +313,35 @@ u32 fs_user_SyncRequest()
 u32 file_SyncRequest(handleinfo* h, bool *locked)
 {
     *locked = false;
+    u32 cid = mem_Read32(CPUsvcbuffer + 0x80);
+    switch (cid)
+    {
+    case 0x080200C2:
+    {
+                       u32 offseto = mem_Read32(CPUsvcbuffer + 0x84);
+                       u32 offsett = mem_Read32(CPUsvcbuffer + 0x88);
+                       u32 size = mem_Read32(CPUsvcbuffer + 0x8C);
+                       u32 pointer = mem_Read32(CPUsvcbuffer + 0x94);
+                       DEBUG("read");
+                       char* data = malloc(size);
+                       fseek(filesevhand[h->subtype], offseto + offsett << 32, SEEK_SET);
+                       u32 temp = fread(data, 1, size, filesevhand[h->subtype]);
+                       mem_Write32(CPUsvcbuffer + 0x88, temp); //no error
+                       mem_Write(data, pointer, temp);
+                       mem_Write32(CPUsvcbuffer + 0x84, 0); //no error
+                       free(data);
+                       break;
+    }
+    default:
+        break;
+    }
+    ERROR("NOT IMPLEMENTED, cid=%08x\n", cid);
+    arm11_Dump();
+    PAUSE();
+    return 0;
+}
+file_CloseHandle(handleinfo* h)
+{
+    fclose(filesevhand[h->subtype]);
+    return 0;
 }

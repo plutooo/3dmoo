@@ -35,6 +35,7 @@ u32 ndm_u_SyncRequest();
 u32 cfg_u_SyncRequest();
 u32 ptm_u_SyncRequest();
 u32 frd_u_SyncRequest();
+u32 ir_u_SyncRequest();
 
 #ifndef _WIN32
 static size_t strnlen(const char* p, size_t n)
@@ -122,6 +123,12 @@ static struct {
         SERVICE_TYPE_FRD_USER,
         0,
         &frd_u_SyncRequest
+    },
+    {
+        "ir:USER",
+        SERVICE_TYPE_IR_USER,
+        0,
+        &ir_u_SyncRequest
     }
 };
 

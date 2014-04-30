@@ -322,7 +322,7 @@ u32 file_SyncRequest(handleinfo* h, bool *locked)
                        u32 offsett = mem_Read32(CPUsvcbuffer + 0x88);
                        u32 size = mem_Read32(CPUsvcbuffer + 0x8C);
                        u32 pointer = mem_Read32(CPUsvcbuffer + 0x94);
-                       DEBUG("read");
+                       DEBUG("read %08X %08X %016X", pointer, size, offseto + offsett << 32);
                        char* data = malloc(size);
                        fseek(filesevhand[h->subtype], offseto + offsett << 32, SEEK_SET);
                        u32 temp = fread(data, 1, size, filesevhand[h->subtype]);
@@ -330,7 +330,7 @@ u32 file_SyncRequest(handleinfo* h, bool *locked)
                        mem_Write(data, pointer, temp);
                        mem_Write32(CPUsvcbuffer + 0x84, 0); //no error
                        free(data);
-                       break;
+                       return 0;
     }
     default:
         break;

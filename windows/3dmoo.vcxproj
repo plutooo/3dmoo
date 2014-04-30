@@ -173,6 +173,7 @@
     <ClCompile Include="..\src\services\fs_user.c" />
     <ClCompile Include="..\src\services\gsp_gpu.c" />
     <ClCompile Include="..\src\services\hid_user.c" />
+    <ClCompile Include="..\src\services\ir_u.c" />
     <ClCompile Include="..\src\services\ndm_u.c" />
     <ClCompile Include="..\src\services\ns_s.c" />
     <ClCompile Include="..\src\services\ptm_u.c" />

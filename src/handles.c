@@ -27,6 +27,8 @@
 #define MAX_NUM_HANDLES 0x1000
 #define HANDLES_BASE    0xDEADBABE
 
+#define exitonerror 1
+
 static handleinfo handles[MAX_NUM_HANDLES];
 static u32 handles_num;
 
@@ -74,7 +76,11 @@ u32 svcSendSyncRequest()
     if(hi == NULL) {
         ERROR("handle %08x not found.\n", handle);
         PAUSE();
+#ifdef exitonerror
         exit(1);
+#else
+        return 0;
+#endif
     }
 
     if(hi->type >= NUM_HANDLE_TYPES) {
@@ -118,7 +124,11 @@ u32 svcCloseHandle()
     if(hi == NULL) {
         ERROR("handle %08x not found.\n", handle);
         PAUSE();
+#ifdef exitonerror
         exit(1);
+#else
+        return 0;
+#endif
     }
 
     if(hi->type >= NUM_HANDLE_TYPES) {
@@ -146,7 +156,11 @@ u32 svcWaitSynchronization1() //todo timeout
     if(hi == NULL) {
         ERROR("handle %08x not found.\n", handle);
         PAUSE();
+#ifdef exitonerror
         exit(1);
+#else
+        return 0;
+#endif
     }
 
     if(hi->type >= NUM_HANDLE_TYPES) {
@@ -193,7 +207,11 @@ u32 svcWaitSynchronizationN() //todo timeout
         if (hi == NULL) {
             ERROR("handle %08x not found.\n", curhandel);
             PAUSE();
+#ifdef exitonerror
             exit(1);
+#else
+            return 0;
+#endif
         }
 
         if (hi->type >= NUM_HANDLE_TYPES) {

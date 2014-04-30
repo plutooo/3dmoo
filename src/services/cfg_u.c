@@ -31,7 +31,13 @@ u32 cfg_u_SyncRequest()
 
     // Read command-id.
     switch(cid) {
-
+        case 0x00020000: //Cfg:SecureInfoGetRegion
+            mem_Write32(0xFFFF0084, 0); //no error
+            mem_Write8(0xFFFF0088, 2); //europe
+            return 1;
+        default:
+            mem_Write32(0xFFFF0084, 0); //no error
+            break;
     }
 
     ERROR("NOT IMPLEMENTED, cid=%08x\n", cid);

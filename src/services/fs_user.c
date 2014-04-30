@@ -83,18 +83,77 @@ void getendfix(u32 numb, char* str)
     char temp[0x200];
     switch (numb)
     {
-    case 0x3: //Application RomFS
-        strcpy(temp, str);
-        sprintf(str, "romfs/%s", temp);
-        return;
-    case 0x7: //Shared ExtSaveData
-        strcpy(temp, str);
-        sprintf(str, "sex/%s", temp);
-        return;
+        case 0x3: //Application RomFS
+            strcpy(temp, str);
+            sprintf(str, "romfs/%s", temp);
+            break;
+        case 0x7: //Shared ExtSaveData
+            strcpy(temp, str);
+            sprintf(str, "sex/%s", temp);
+            break;
+        default:
+            strcpy(temp, str);
+            sprintf(str, "junko/%s", temp);
+            break;
+    }
+
+    if (strlen(temp) == 0)
+    {
+        str[strlen(str)-1] = 0;
+    }
+}
+
+int DecodePath(FS_pathType type, u32 data, u32 size, char *out)
+{
+    memset(out, 0, size + 1);
+
+    switch (type)
+    {
+    case PATH_CHAR:
+        mem_Read(out, data, size);
+        return 1;
+    case PATH_WCHAR:
+    {
+        int i = 0;
+        while (i < size)
+        {
+            out[i] = (char)mem_Read16(data + i * 2);
+            i++;
+        }
+        out[i] = 0;
+        return 1;
+    }
+    case PATH_BINARY:
+    {
+        int i = 0;
+        //out[0] = '/';
+        while (i < size)
+        {
+            u8 dat = mem_Read8(data + i);
+            sprintf(out, "%s%02X", out, dat);
+            i++;
+        }
+        return 1;
+    }
+    case PATH_EMPTY:
+    {
+        sprintf(out, "");
+        break;
+    }
     default:
-        strcpy(temp, str);
-        sprintf(str, "junko/%s", temp);
-        return;
+        //mem_Read(out, data, size);
+        DEBUG("unsupported type");
+
+        int i = 0;
+        while (i < size)
+        {
+            u8 dat = mem_Read8(data + i);
+            sprintf(&out[i * 2], "%02X", dat);
+            i++;
+        }
+        out[i] = 0;
+
+        return 0;
     }
 }
 
@@ -108,223 +167,139 @@ u32 fs_user_SyncRequest()
     // Read command-id.
     switch (cid)
     {
-    case 0x08030204:
-    {
-                       char cstringz[0x200];
-                       u32 archiveID = mem_Read32(CPUsvcbuffer + 0x88);
-                       u32 atype = mem_Read32(CPUsvcbuffer + 0x8C);
-                       u32 asize = mem_Read32(CPUsvcbuffer + 0x90);
-                       u32 ftype = mem_Read32(CPUsvcbuffer + 0x94);
-                       u32 fsize = mem_Read32(CPUsvcbuffer + 0x98);
-                       u32 oflags = mem_Read32(CPUsvcbuffer + 0x9C);
-                       u32 attr = mem_Read32(CPUsvcbuffer + 0xA0);
-                       u32 adata = mem_Read32(CPUsvcbuffer + 0xA8);
-                       u32 fdata = mem_Read32(CPUsvcbuffer + 0xB0);
+        case 0x08030204: //FS:OpenFileDirectly
+        {
+            char cstringz[0x200];
+            u32 archiveID = mem_Read32(CPUsvcbuffer + 0x88);
+            u32 atype = mem_Read32(CPUsvcbuffer + 0x8C);
+            u32 asize = mem_Read32(CPUsvcbuffer + 0x90);
+            u32 ftype = mem_Read32(CPUsvcbuffer + 0x94);
+            u32 fsize = mem_Read32(CPUsvcbuffer + 0x98);
+            u32 oflags = mem_Read32(CPUsvcbuffer + 0x9C);
+            u32 attr = mem_Read32(CPUsvcbuffer + 0xA0);
+            u32 adata = mem_Read32(CPUsvcbuffer + 0xA8);
+            u32 fdata = mem_Read32(CPUsvcbuffer + 0xB0);
+
+            if (asize > 0x100)
+            {
+                DEBUG("to big");
+                return 0;
+            }
+
+            DecodePath(atype,adata,asize,cstring);
+            getendfix(archiveID, cstring);
+            sprintf(cstring, "%s/", cstring);
 
 
-                       if (asize > 0x100)
-                       {
-                           DEBUG("to big");
-                           return 0;
-                       }
+            if (fsize > 0x100)
+            {
+                DEBUG("to big");
+                return 0;
+            }
 
-                       switch (atype)
-                       {
-                       case PATH_CHAR:
-                           mem_Read(cstring, adata, asize);
-                           break;
-                       case PATH_WCHAR:
-                       {
-                                          mem_Read(raw, adata, asize);
-                                          int i = 0;
-                                          while (i < asize)
-                                          {
-                                              cstring[i] = (char)mem_Read16(adata + i * 2);
-                                              i++;
-                                          }
-                                          cstring[i] = 0;
-                                          break;
-                       }
-                       case PATH_BINARY:
-                       {
+            DecodePath(ftype, fdata, fsize, cstringz);
 
-                                           for (int k = 0; k < asize; k++)
-                                               sprintf(cstring, "%s%02X", cstring, (char)mem_Read8(adata + k));
-                                           break;
-
-                       }
-                       case PATH_EMPTY:
-                       {
-                                          sprintf(cstring, "");
-                                          break;
-                       }
-                       default:
-                           mem_Read(raw, adata, asize);
-                           DEBUG("unsupported type");
-                           return 0;
-                       }
-                       getendfix(archiveID, cstring);
-                       sprintf(cstring, "%s/", cstring);
+            char fulladdr[0x500];
+            sprintf(cstring, "%s%s", cstring, cstringz);
+            DEBUG("fs:USER:OpenFileDirect(%s);\n", cstring);
+            FILE *fileh = fopen(fulladdr, "r");
+            if (fileh == 0)
+            {
+                mem_Write32(CPUsvcbuffer + 0x8C, 0); //return handle
+                mem_Write32(CPUsvcbuffer + 0x84, 0xFFFFFFFF); //error
+                return 0xFFFFFFFF;
+            }
+            s32 j = findfree();
+            filesevhand[j] = fileh;
+            fileisfree[j] = false;
+            u32 handel = handle_New(HANDLE_TYPE_FILE, j);
+            mem_Write32(CPUsvcbuffer + 0x8C, handel); //return handle
+            mem_Write32(CPUsvcbuffer + 0x84, 0); //no error
+            return 0;
 
 
-                       if (fsize > 0x100)
-                       {
-                           DEBUG("to big");
-                           return 0;
-                       }
+            break;
+        }
+        case 0x080201C2: //FS:OpenFile
+        {
+            u32 handleHigh = mem_Read32(CPUsvcbuffer + 0x88);
+            u32 handleLow = mem_Read32(CPUsvcbuffer + 0x8C);
+            u32 type = mem_Read32(CPUsvcbuffer + 0x90);
+            u32 size = mem_Read32(CPUsvcbuffer + 0x94);
+            u32 openflags = mem_Read32(CPUsvcbuffer + 0x98);
+            u32 attributes = mem_Read32(CPUsvcbuffer + 0x9C);
+            u32 data = mem_Read32(CPUsvcbuffer + 0xA4);
+            if (size > 0x100)
+            {
+                DEBUG("to big");
+                return 0;
+            }
 
-                       switch (ftype)
-                       {
-                       case PATH_CHAR:
-                           mem_Read(cstringz, fdata, fsize);
-                           break;
-                       case PATH_WCHAR:
-                       {
-                                          int i = 0;
-                                          while (i < fsize)
-                                          {
-                                              cstringz[i] = (char)mem_Read16(fdata + i * 2);
-                                              i++;
-                                          }
-                                          cstringz[i] = 0;
-                                          break;
-                       }
-                       default:
-                           mem_Read(raw, fdata, fsize);
-                           DEBUG("unsupported type");
-                           return 0;
-                       }
-                       char fulladdr[0x500];
-                       sprintf(cstring, "%s%s", cstring, cstringz);
-                       DEBUG("fs:USER:OpenFileDirect(%s);\n", cstring);
-                       FILE *fileh = fopen(fulladdr, "r");
-                       if (fileh == 0)
-                       {
-                           mem_Write32(CPUsvcbuffer + 0x8C, 0); //return handle
-                           mem_Write32(CPUsvcbuffer + 0x84, 0xFFFFFFFF); //error
-                           return 0xFFFFFFFF;
-                       }
-                       s32 j = findfree();
-                       filesevhand[j] = fileh;
-                       fileisfree[j] = false;
-                       u32 handel = handle_New(HANDLE_TYPE_FILE, j);
-                       mem_Write32(CPUsvcbuffer + 0x8C, handel); //return handle
-                       mem_Write32(CPUsvcbuffer + 0x84, 0); //no error
-                       return 0;
+            DecodePath(type, data, size, cstring);
 
+            char fulladdr[0x500];
+            DEBUG("fs:USER:OpenFile(%s);\n", cstring);
+            s32 p = findarch(handleLow, handleHigh);
+            sprintf(fulladdr, "%s%s", filearchhandst[p], cstring);
+            FILE *fileh = fopen(fulladdr, "r");
+            if (fileh == 0)
+            {
+                mem_Write32(CPUsvcbuffer + 0x8C, 0); //return handle
+                mem_Write32(CPUsvcbuffer + 0x84, 0xFFFFFFFF); //error
+                return 0xFFFFFFFF;
+            }
+            s32 j = findfree();
+            filesevhand[j] = fileh;
+            fileisfree[j] = false;
+            u32 handel = handle_New(HANDLE_TYPE_FILE, j);
+            mem_Write32(CPUsvcbuffer + 0x8C, handel); //return handle
+            mem_Write32(CPUsvcbuffer + 0x84, 0); //no error
+            return 0;
+        }
 
-                       break;
-    }
-    case 0x080201C2:
-    {
-                       u32 handleHigh = mem_Read32(CPUsvcbuffer + 0x88);
-                       u32 handleLow = mem_Read32(CPUsvcbuffer + 0x8C);
-                       u32 type = mem_Read32(CPUsvcbuffer + 0x90);
-                       u32 size = mem_Read32(CPUsvcbuffer + 0x94);
-                       u32 openflags = mem_Read32(CPUsvcbuffer + 0x98);
-                       u32 attributes = mem_Read32(CPUsvcbuffer + 0x9C);
-                       u32 data = mem_Read32(CPUsvcbuffer + 0xA4);
-                       if (size > 0x100)
-                       {
-                           DEBUG("to big");
-                           return 0;
-                       }
+        case 0x080C00C2: //FS:OpenArchive
+        {
+            u32 archiveID = mem_Read32(CPUsvcbuffer + 0x84);
+            FS_pathType type = (FS_pathType)mem_Read32(CPUsvcbuffer + 0x88);
+            u32 size = mem_Read32(CPUsvcbuffer + 0x8C);
+            u32 data = mem_Read32(CPUsvcbuffer + 0x94);
+            if (size > 0x100)
+            {
+                DEBUG("to big");
+                return 0;
+            }
 
-                       switch (type)
-                       {
-                       case PATH_CHAR:
-                           mem_Read(cstring, data, size);
-                           break;
-                       case PATH_WCHAR:
-                       {
-                                          int i = 0;
-                                          while (i < size)
-                                          {
-                                              cstring[i] = (char)mem_Read16(data + i * 2);
-                                              i++;
-                                          }
-                                          cstring[i] = 0;
-                                          break;
-                       }
-                       default:
-                           mem_Read(raw, data, size);
-                           DEBUG("unsupported type");
-                           return 0;
-                       }
-                       char fulladdr[0x500];
-                       DEBUG("fs:USER:OpenFile(%s);\n", cstring);
-                       s32 p = findarch(handleLow, handleHigh);
-                       sprintf(fulladdr, "%s%s", filearchhandst[p], cstring);
-                       FILE *fileh = fopen(fulladdr, "r");
-                       if (fileh == 0)
-                       {
-                           mem_Write32(CPUsvcbuffer + 0x8C, 0); //return handle
-                           mem_Write32(CPUsvcbuffer + 0x84, 0xFFFFFFFF); //error
-                           return 0xFFFFFFFF;
-                       }
-                       s32 j = findfree();
-                       filesevhand[j] = fileh;
-                       fileisfree[j] = false;
-                       u32 handel = handle_New(HANDLE_TYPE_FILE, j);
-                       mem_Write32(CPUsvcbuffer + 0x8C, handel); //return handle
-                       mem_Write32(CPUsvcbuffer + 0x84, 0); //no error
-                       return 0;
-    }
+            DecodePath(type, data, size, cstring);
 
-    case 0x080C00C2:
-    {
-                       u32 archiveID = mem_Read32(CPUsvcbuffer + 0x84);
-                       FS_pathType type = (FS_pathType)mem_Read32(CPUsvcbuffer + 0x88);
-                       u32 size = mem_Read32(CPUsvcbuffer + 0x8C);
-                       u32 data = mem_Read32(CPUsvcbuffer + 0x94);
-                       if (size > 0x100)
-                       {
-                           DEBUG("to big");
-                           return 0;
-                       }
+            s32 p = findfreearch();
+            getendfix(archiveID, cstring);
+            sprintf(cstring, "%s/", cstring);
+            filearchhandst[p] = malloc(0x200);
+            filearchisfree[p] = false;
+            strcpy_s(filearchhandst[p], 0x200, cstring);
+            mem_Write32(CPUsvcbuffer + 0x8C, (filearchhand[p] & 0xFFFFFFFF));
+            mem_Write32(CPUsvcbuffer + 0x88, ((filearchhand[p] >> 32) & 0xFFFFFFFF));
+            mem_Write32(CPUsvcbuffer + 0x84, 0); //no error
+            DEBUG("fs:USER:OpenArchive(%s);\n", cstring);
+            return 0;
+        }
+        case 0x080E0080: //FS:CloseArchive
+        {
+            u32 handleHigh = mem_Read32(CPUsvcbuffer + 0x84);
+            u32 handleLow = mem_Read32(CPUsvcbuffer + 0x88);
 
-                       switch (type)
-                       {
-                       case PATH_CHAR:
-                           mem_Read(cstring, data, size);
-                           break;
-                       case PATH_WCHAR:
-                       {
-                                          mem_Read(raw, data, size);
-                                          int i = 0;
-                                          while (i < size)
-                                          {
-                                              cstring[i] = (char)mem_Read16(data + i * 2);
-                                              i++;
-                                          }
-                                          cstring[i] = 0;
-                                          break;
-                       }
-                       case PATH_BINARY:
-                       {
+            s32 p = findarch(handleLow, handleHigh);
 
-                                           for (int k = 0; k < size; k++)
-                                               sprintf(cstring, "%s%02X", cstring, (char)mem_Read8(data + k));
-                                           break;
+            DEBUG("fs:USER:CloseArchive(%s);\n", filearchhandst[p]);
 
-                       }
-                       default:
-                           mem_Read(raw, data, size);
-                           DEBUG("unsupported type");
-                           return 0;
-                       }
-                       s32 p = findfreearch();
-                       getendfix(archiveID, cstring);
-                       sprintf(cstring, "%s/", cstring);
-                       filearchhandst[p] = malloc(0x200);
-                       filearchisfree[p] = false;
-                       strcpy_s(filearchhandst[p], 0x200, cstring);
-                       mem_Write32(CPUsvcbuffer + 0x8C, (filearchhand[p] & 0xFFFFFFFF));
-                       mem_Write32(CPUsvcbuffer + 0x88, ((filearchhand[p] >> 32) & 0xFFFFFFFF));
-                       mem_Write32(CPUsvcbuffer + 0x84, 0); //no error
-                       DEBUG("fs:USER:OpenArchive(%s);\n", cstring);
-                       return 0;
-    }
+            filearchhandst[p] = NULL;
+            filearchisfree[p] = true;
+
+            //TODO: Remove handle?
+
+            mem_Write32(CPUsvcbuffer + 0x84, 0); //no error
+            return 0;
+        }
     }
 
     ERROR("NOT IMPLEMENTED, cid=%08x\n", cid);

@@ -41,6 +41,19 @@ static size_t   num_mappings;
 #define PRINT_ILLEGAL 1
 //#define EXIT_ON_ILLEGAL 1
 
+void mem_Dbugdump()
+{
+    size_t i;
+    char name[0x200];
+    for (i = 0; i<num_mappings; i++) {
+        sprintf(name, "dump%08X %08X.bin", mappings[i].base, mappings[i].size);
+        FILE* data = fopen(name, "w");
+        fwrite(&mappings[i].phys[0], mappings[i].size, 1, data);
+        fclose(data);
+    }
+    return 0;
+}
+
 static int Overlaps(memmap_t* a, memmap_t* b)
 {
     if(a->base <= b->base && b->base < (a->base+a->size))
@@ -283,7 +296,12 @@ u32 mem_Read32(uint32_t addr)
     fprintf(stderr, "r32 %08x\n", addr);
 #endif
     size_t i;
-
+    if (addr > 0x8000000 && addr < 0xA000000)
+    {
+        DEBUG("r 32 %08x\n", addr);
+        arm11_Dump();
+        int pp = 0;
+    }
     for(i=0; i<num_mappings; i++) {
         if(Contains(&mappings[i], addr, 4)) {
             // Unaligned.
@@ -306,6 +324,7 @@ u32 mem_Read32(uint32_t addr)
 #ifdef PRINT_ILLEGAL
     DEBUG("trying to read32 unmapped addr %08x\n", addr);
     arm11_Dump();
+    mem_Dbugdump();
 #endif
 #ifdef EXIT_ON_ILLEGAL
     exit(1);

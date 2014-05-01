@@ -157,3 +157,5 @@ $RECYCLE.BIN/
 
 #ichfly
 windows/romfs
+windows/dump*
+windows/map.*

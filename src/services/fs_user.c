@@ -194,7 +194,7 @@ u32 fs_user_SyncRequest()
             if (fsize > 0x100)
             {
                 DEBUG("to big");
-                return 0;
+                return 0xFFFFFFFF;
             }
 
             DecodePath(ftype, fdata, fsize, cstringz);
@@ -207,6 +207,7 @@ u32 fs_user_SyncRequest()
             if (fileh == 0)
             {
                 mem_Write32(CPUsvcbuffer + 0x8C, 0); //return handle
+                mem_Write32(CPUsvcbuffer + 0x88, 0); //return handle
                 mem_Write32(CPUsvcbuffer + 0x84, 0xFFFFFFFF); //error
                 return 0xFFFFFFFF;
             }
@@ -215,6 +216,7 @@ u32 fs_user_SyncRequest()
             fileisfree[j] = false;
             u32 handel = handle_New(HANDLE_TYPE_FILE, j);
             mem_Write32(CPUsvcbuffer + 0x8C, handel); //return handle
+            mem_Write32(CPUsvcbuffer + 0x88, 0); //return handle
             mem_Write32(CPUsvcbuffer + 0x84, 0); //no error
             return 0;
 
@@ -246,6 +248,7 @@ u32 fs_user_SyncRequest()
             if (fileh == 0)
             {
                 mem_Write32(CPUsvcbuffer + 0x8C, 0); //return handle
+                mem_Write32(CPUsvcbuffer + 0x88, 0); //return handle
                 mem_Write32(CPUsvcbuffer + 0x84, 0xFFFFFFFF); //error
                 return 0xFFFFFFFF;
             }
@@ -254,6 +257,7 @@ u32 fs_user_SyncRequest()
             fileisfree[j] = false;
             u32 handel = handle_New(HANDLE_TYPE_FILE, j);
             mem_Write32(CPUsvcbuffer + 0x8C, handel); //return handle
+            mem_Write32(CPUsvcbuffer + 0x88, 0); //return handle
             mem_Write32(CPUsvcbuffer + 0x84, 0); //no error
             return 0;
         }
@@ -321,14 +325,25 @@ u32 file_SyncRequest(handleinfo* h, bool *locked)
                        u32 offseto = mem_Read32(CPUsvcbuffer + 0x84);
                        u32 offsett = mem_Read32(CPUsvcbuffer + 0x88);
                        u32 size = mem_Read32(CPUsvcbuffer + 0x8C);
+                       u32 alignedsize = mem_Read32(CPUsvcbuffer + 0x90);
                        u32 pointer = mem_Read32(CPUsvcbuffer + 0x94);
-                       DEBUG("read %08X %08X %016X", pointer, size, offseto + offsett << 32);
-                       char* data = malloc(size);
-                       fseek(filesevhand[h->subtype], offseto + offsett << 32, SEEK_SET);
+                       DEBUG("read %08X %08X %016X\n", pointer, size, offseto + (offsett << 32));
+                       u8* data = (u8*)malloc(size+1);
+                       fseek(filesevhand[h->subtype], offseto + (offsett << 32), SEEK_SET);
                        u32 temp = fread(data, 1, size, filesevhand[h->subtype]);
-                       mem_Write32(CPUsvcbuffer + 0x88, temp); //no error
+
+                       for (int i = 0; i < size; i++)
+                       {
+                           if (i % 16 == 0) printf("\n");
+                           printf("%02X ",data[i]);
+                       }
+
+                       printf("\n");
+
                        mem_Write(data, pointer, temp);
+                       mem_Write32(CPUsvcbuffer + 0x88, temp); //no error
                        mem_Write32(CPUsvcbuffer + 0x84, 0); //no error
+
                        free(data);
                        return 0;
     }

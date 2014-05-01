@@ -160,6 +160,11 @@ void svc_Execute(ARMul_State * state, u8 num)
     case 8:
         arm11_SetR(0, svcCreateThread());
         return;
+    case 9: //Exit Thread
+        arm11_SetR(0, 0);
+        state->NumInstrsToExecute = 0;
+        threads_removecurrent();
+        return;
     case 0xa:
         arm11_SetR(0, svcsleep());
         return;
@@ -198,6 +203,9 @@ void svc_Execute(ARMul_State * state, u8 num)
     case 0x27:
         arm11_SetR(0, svcDuplicateHandle());
         return;
+    case 0x28: //GetSystemTick
+        arm11_SetR(0, 1);
+        return;
     case 0x2D:
         arm11_SetR(0, svcConnectToPort());
         return;
@@ -219,6 +227,18 @@ void svc_Execute(ARMul_State * state, u8 num)
         //arm11_SetR(0, 1);
         mem_Write32(arm11_R(0), 0); //Set used memory to 0 for now
         return;
+    case 0x3C: //Break
+        exit(1);
+        return;
+    case 0x3D: //OutputDebugString
+    {
+        char temp[256];
+        memset(temp,0,256);
+        mem_Read(temp, arm11_R(0), arm11_R(1));
+        DEBUG("%s\n",temp);
+        //arm11_Dump();
+        return;
+    }
     case 0xFF:
         fprintf(stdout, "%c", (u8)arm11_R(0));
         return;

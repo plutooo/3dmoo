@@ -50,7 +50,7 @@ u32 mutex_WaitSynchronization(handleinfo* h, bool *locked)
 
 u32 svcCreateMutex()
 {
-    u32 locked = arm11_R(0);
+    u32 locked = arm11_R(1);
     u32 handle = handle_New(HANDLE_TYPE_MUTEX, 0);
 
     handleinfo* h = handle_Get(handle);

@@ -23,6 +23,7 @@ int mem_Write16(uint32_t addr, uint16_t w);
 u16 mem_Read16(uint32_t addr);
 int mem_Write32(uint32_t addr, uint32_t w);
 u32 mem_Read32(uint32_t addr);
+int mem_Write(uint8_t* in_buff, uint32_t addr, uint32_t size);
 int mem_Read(uint8_t* buf_out, uint32_t addr, uint32_t size);
 int mem_AddMappingShared(uint32_t base, uint32_t size, u8* data);
 bool mem_test(uint32_t addr);

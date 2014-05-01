@@ -90,6 +90,14 @@ u32 threads_getcurrenthandle()
 {
     return threads[currentthread].ownhand;
 }
+void threads_removecurrent()
+{
+    for (int i = currentthread; i < threads_Count(); i++)
+    {
+        threads[i] = threads[i+1];
+    }
+    num_threads--;
+}
 void threads_Switch(/*u32 from,*/ u32 to)
 {
     u32 from = currentthread;
@@ -98,11 +106,11 @@ void threads_Switch(/*u32 from,*/ u32 to)
         return;
     }
 
-    if(from >= num_threads || to >= num_threads) {
+    /*if(from >= num_threads || to >= num_threads) {
         ERROR("Trying to switch nonexisting threads..\n");
         arm11_Dump();
         exit(1);
-    }
+    }*/
 
     if(!threads[to].active) {
         ERROR("Trying to switch nonactive threads..\n");
@@ -111,7 +119,10 @@ void threads_Switch(/*u32 from,*/ u32 to)
     }
 
     DEBUG("Thread switch %d->%d\n", from, to);
-    arm11_SaveContext(&threads[from]);
+
+    if (from < num_threads)
+        arm11_SaveContext(&threads[from]);
+
     arm11_LoadContext(&threads[to]);
     currentthread = to;
 }

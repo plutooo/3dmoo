@@ -53,6 +53,12 @@ u32 hid_user_SyncRequest()
 
         mem_Write32(CPUsvcbuffer + 0x84, 0); //worked
         return 0;
+    case 0x00110000: //EnableAccelerometer
+        mem_Write32(CPUsvcbuffer + 0x84, 0); //worked
+        return 0;
+    case 0x00130000: //EnableGyroscopeLow
+        mem_Write32(CPUsvcbuffer + 0x84, 0); //worked
+        return 0;
     default:
         break;
     }

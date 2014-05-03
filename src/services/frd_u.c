@@ -33,7 +33,10 @@ u32 frd_u_SyncRequest()
 
     // Read command-id.
     switch(cid) {
-
+    case 0x00320042: //SetClientSdkVersion
+        mem_Write32(0xFFFF0084, 0); //no error
+        return 0;
+        break;
     }
 
     ERROR("NOT IMPLEMENTED, cid=%08x\n", cid);

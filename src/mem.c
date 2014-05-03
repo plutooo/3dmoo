@@ -296,12 +296,6 @@ u32 mem_Read32(uint32_t addr)
     fprintf(stderr, "r32 %08x\n", addr);
 #endif
     size_t i;
-    if (addr > 0x8000000 && addr < 0xA000000)
-    {
-        DEBUG("r 32 %08x\n", addr);
-        arm11_Dump();
-        int pp = 0;
-    }
     for(i=0; i<num_mappings; i++) {
         if(Contains(&mappings[i], addr, 4)) {
             // Unaligned.

@@ -202,7 +202,6 @@ u32 fs_user_SyncRequest()
             char fulladdr[0x500];
             sprintf(cstring, "%s%s", cstring, cstringz);
             DEBUG("fs:USER:OpenFileDirect(%s);\n", cstring);
-            arm11_Dump();
             FILE *fileh = fopen(cstring, "r");
             if (fileh == 0)
             {

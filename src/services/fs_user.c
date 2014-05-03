@@ -38,6 +38,8 @@ u64 filearchhand[0x10];
 bool filearchisfree[0x10];
 #define filearchhandnumb 0x10
 
+u32 Priority = 0;
+
 void fsinit()
 {
     for (int i = 0; i < filesevhandnumb; i++)
@@ -91,7 +93,12 @@ void getendfix(u32 numb, char* str)
             strcpy(temp, str);
             sprintf(str, "sex/%s", temp);
             break;
+        case 0x9: //SDMC 
+            strcpy(temp, str);
+            sprintf(str, "SDMC/%s", temp);
+            break;
         default:
+            DEBUG("unknown Archive idcode % 08X", numb);
             strcpy(temp, str);
             sprintf(str, "junko/%s", temp);
             break;
@@ -304,6 +311,17 @@ u32 fs_user_SyncRequest()
             mem_Write32(CPUsvcbuffer + 0x84, 0); //no error
             return 0;
         }
+        case 0x08610042: //InitializeWithSdkVersion
+            mem_Write32(CPUsvcbuffer + 0x84, 0); //no error
+            return 0;
+        case 0x08620040: //SetPriority
+            Priority = mem_Read32(CPUsvcbuffer + 0x84);
+            mem_Write32(CPUsvcbuffer + 0x84, 0); //no error
+            return 0;
+        case 0x08630000: //GetPriority
+            mem_Write32(CPUsvcbuffer + 0x88, Priority); //Priority
+            mem_Write32(CPUsvcbuffer + 0x84, 0); //no error
+            return 0;
         default:
             break;
     }

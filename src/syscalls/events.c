@@ -25,6 +25,19 @@
 #include "mem.h"
 #include "handles.h"
 
+u32 svcClearEvent()
+{
+    u32 handleorigin = arm11_R(0);
+    handleinfo* h = handle_Get(handleorigin);
+    if (h == NULL) {
+        DEBUG("failed to get Event\n");
+        PAUSE();
+        return -1;
+    }
+    h->locked = true;
+    return 0;
+}
+
 u32 svcCreateEvent()
 {
     u32 handleorigin = arm11_R(0);

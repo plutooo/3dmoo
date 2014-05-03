@@ -25,13 +25,18 @@
 #include "mem.h"
 #include "arm11.h"
 
+
+#define CPUsvcbuffer 0xFFFF0000
+
 u32 ndm_u_SyncRequest()
 {
     u32 cid = mem_Read32(0xFFFF0080);
 
     // Read command-id.
     switch(cid) {
-
+    case 0x00060040:
+        mem_Write32(CPUsvcbuffer + 0x84, 0); //worked
+        return 0;
     }
 
     ERROR("NOT IMPLEMENTED, cid=%08x\n", cid);

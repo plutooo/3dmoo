@@ -174,6 +174,12 @@ void svc_Execute(ARMul_State * state, u8 num)
     case 0x14:
         arm11_SetR(0, svcReleaseMutex());
         return;
+    case 0x15:
+        arm11_SetR(0, svcCreateSemaphore());
+        return;
+    case 0x16:
+        arm11_SetR(0, svcReleaseSemaphore());
+        return;
     case 0x17:
         arm11_SetR(0, svcCreateEvent());
         return;

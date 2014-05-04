@@ -29,6 +29,7 @@
 #define HANDLE_TYPE_PROCESS   8
 #define HANDLE_TYPE_Arbiter   9
 #define HANDLE_TYPE_FILE      10
+#define HANDLE_TYPE_SEMAPHORE 11
 
 #define PORT_TYPE_SRV         0
 
@@ -71,6 +72,8 @@ typedef struct {
     u32 process;
     u32 thread;
     u32 handle;
+
+    u32 misc[4];
 } handleinfo;
 
 typedef enum{
@@ -118,6 +121,10 @@ u32 file_CloseHandle(ARMul_State *state, handleinfo* h);
 u32 thread_SyncRequest(handleinfo* h, bool *locked);
 u32 thread_CloseHandle(ARMul_State *state, handleinfo* h);
 u32 thread_WaitSynchronization(handleinfo* h, bool *locked);
+
+// svc/syn.c
+u32 semaphore_WaitSynchronization(handleinfo* h, bool *locked);
+u32 semaphore_SyncRequest(handleinfo* h, bool *locked);
 
 static struct {
     char* name;
@@ -191,5 +198,11 @@ static struct {
         &file_SyncRequest,
         &file_CloseHandle,
         NULL
+    },
+    {
+        "semaphore",
+        &semaphore_SyncRequest,
+        NULL,
+        &semaphore_WaitSynchronization
     }
 };

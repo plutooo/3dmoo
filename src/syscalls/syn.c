@@ -85,6 +85,7 @@ u32 svcReleaseMutex()
     h->locked = false;
     return 0;
 }
+
 u32 svcDuplicateHandle()
 {
     u32 todclone = arm11_R(1);
@@ -98,4 +99,78 @@ u32 svcDuplicateHandle()
         PAUSE();
         return -1;
     }
+}
+
+///////////////////////////
+//Semaphores
+///////////////////////////
+
+//Result CreateSemaphore(Handle* semaphore, s32 initialCount, s32 maxCount)
+u32 svcCreateSemaphore()
+{
+    u32 initialCount = arm11_R(1);
+    u32 maxCount = arm11_R(2);
+    u32 handle = handle_New(HANDLE_TYPE_SEMAPHORE, 0);
+
+    handleinfo* h = handle_Get(handle);
+    if (h == NULL) {
+        DEBUG("failed to get newly created semaphore\n");
+        PAUSE();
+        return -1;
+    }
+
+    h->locked = true;
+
+    h->misc[0] = initialCount;
+    h->misc[1] = maxCount;
+
+    arm11_SetR(1, handle); // handle_out
+    return 0;
+}
+ //Result ReleaseSemaphore(s32* count, Handle semaphore, s32 releaseCount)
+u32 svcReleaseSemaphore()
+{
+    u32 count = arm11_R(0);
+    u32 handle = arm11_R(1);
+    u32 releaseCount = arm11_R(2);
+    handleinfo* h = handle_Get(handle);
+
+    if (h == NULL) {
+        ERROR("svcReleaseSemaphore on an invalid handle\n");
+        PAUSE();
+        return -1;
+    }
+
+    if (h->type != HANDLE_TYPE_SEMAPHORE) {
+        ERROR("svcReleaseSemaphore on a handle that is not a SEMAPHORE\n");
+        PAUSE();
+        return -1;
+    }
+
+    h->misc[0] += releaseCount;
+    h->locked = (h->misc[0] != h->misc[1]);
+    arm11_SetR(1, h->misc[0]); // count_out
+
+    return 0;
+}
+
+u32 semaphore_SyncRequest(handleinfo* h, bool *locked)
+{
+    // XXX: insert real mutex here!
+    mutex_WaitSynchronization(h, locked);
+
+    DEBUG("locking semaphore..\n");
+    PAUSE();
+
+    h->locked = true;
+    return 0;
+}
+u32 semaphore_WaitSynchronization(handleinfo* h, bool *locked)
+{
+    DEBUG("waiting for semaphore to unlock..\n");
+    PAUSE();
+
+    *locked = h->locked;
+
+    return 0;
 }

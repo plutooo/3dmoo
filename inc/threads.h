@@ -35,6 +35,8 @@ typedef struct {
     u32 waitall;
     u32 handellistcount;
     u32 ownhand;
+
+    bool delete;
 } thread;
 
 u32 threads_New(u32 hand);
@@ -44,5 +46,7 @@ u32 threads_getcurrenthandle();
 void threads_Switch(/*u32 from,*/ u32 to);
 u32 svcCreateThread();
 void lockcpu(u32* handelist, u32 waitAll, u32 count);
+void threads_Remove();
+void threads_removecurrent();
 
 #endif

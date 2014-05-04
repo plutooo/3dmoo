@@ -47,7 +47,11 @@ u32 threads_New(u32 hand)
 }
 bool islocked(u32 t)
 {
-    if (threads[t].active)
+    if (threads[t].delete)
+    {
+        return true;
+    }
+    else if (threads[t].active)
     {
         return false;
     }
@@ -90,13 +94,52 @@ u32 threads_getcurrenthandle()
 {
     return threads[currentthread].ownhand;
 }
+void threads_removethread(u32 threadid)
+{
+    threads[threadid].delete = true;
+    /*for (int i = threadid; i < threads_Count(); i++)
+    {
+        threads[i] = threads[i + 1];
+    }
+    num_threads--;*/
+}
 void threads_removecurrent()
 {
-    for (int i = currentthread; i < threads_Count(); i++)
+    threads_removethread(currentthread);
+}
+u32 threads_find(u32 handle)
+{
+    for (int i = 0; i < threads_Count(); i++)
     {
-        threads[i] = threads[i+1];
+        if (threads[i].ownhand == handle)
+        {
+            return i;
+        }
     }
-    num_threads--;
+    return -1;
+}
+u32 threads_NextToBeDeleted()
+{
+    for (int i = 0; i < threads_Count(); i++)
+    {
+        if (threads[i].delete)
+        {
+            return i;
+        }
+    }
+    return -1;
+}
+void threads_Remove()
+{
+    int id;
+    while ((id = threads_NextToBeDeleted()) != -1)
+    {
+        for (int i = id; i < threads_Count(); i++)
+        {
+            threads[i] = threads[i + 1];
+        }
+        num_threads--;
+    }
 }
 void threads_Switch(/*u32 from,*/ u32 to)
 {
@@ -160,4 +203,36 @@ void lockcpu(u32* handelist, u32 waitAll,u32 count)
     threads[currentthread].waitall = waitAll;
     threads[currentthread].handellistcount = count;
     s.NumInstrsToExecute = 0;
+}
+
+u32 thread_CloseHandle(ARMul_State *state, handleinfo* h)
+{
+    u32 id = threads_find(h->handle);
+    if (id == -1) return -1;
+
+    threads_removethread(id);
+    state->NumInstrsToExecute = 0;
+}
+
+u32 thread_SyncRequest(handleinfo* h, bool *locked)
+{
+    u32 cid = mem_Read32(0xFFFF0080);
+    switch (cid)
+    {
+    default:
+        break;
+    }
+    ERROR("STUBBED, cid=%08x\n", cid);
+    arm11_Dump();
+    PAUSE();
+}
+
+u32 thread_WaitSynchronization(handleinfo* h, bool *locked)
+{
+    DEBUG("waiting for thread to unlock..\n");
+    PAUSE();
+
+    *locked = h->locked;
+
+    return 0;
 }

@@ -16,6 +16,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "armdefs.h"
+
 #define HANDLE_TYPE_UNK       0
 #define HANDLE_TYPE_PORT      1
 #define HANDLE_TYPE_SERVICE   2
@@ -68,6 +70,7 @@ typedef struct {
     u32  locktype;
     u32 process;
     u32 thread;
+    u32 handle;
 } handleinfo;
 
 typedef enum{
@@ -109,12 +112,17 @@ u32 port_SyncRequest(handleinfo* h, bool *locked);
 u32 Event_WaitSynchronization(handleinfo* h, bool *locked);
 
 u32 file_SyncRequest(handleinfo* h, bool *locked);
-u32 file_CloseHandle(handleinfo* h);
+u32 file_CloseHandle(ARMul_State *state, handleinfo* h);
+
+//arm11/threads.c
+u32 thread_SyncRequest(handleinfo* h, bool *locked);
+u32 thread_CloseHandle(ARMul_State *state, handleinfo* h);
+u32 thread_WaitSynchronization(handleinfo* h, bool *locked);
 
 static struct {
     char* name;
     u32(*fnSyncRequest)(handleinfo* h, bool *locked);
-    u32(*fnCloseHandle)(handleinfo* h);
+    u32(*fnCloseHandle)(ARMul_State *state, handleinfo* h);
     u32(*fnWaitSynchronization)(handleinfo* h, bool *locked);
 
 } handle_types[] = {
@@ -162,9 +170,9 @@ static struct {
     },
     {
         "THREAD",
-        NULL,
-        NULL,
-        NULL
+        &thread_SyncRequest,
+        &thread_CloseHandle,
+        &thread_WaitSynchronization
     },
     {
         "PROCESS",

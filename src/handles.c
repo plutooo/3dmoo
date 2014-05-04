@@ -109,7 +109,7 @@ u32 svcSendSyncRequest()
     }
 }
 
-u32 svcCloseHandle()
+u32 svcCloseHandle(ARMul_State *state)
 {
     u32 handle = arm11_R(0);
 
@@ -140,7 +140,7 @@ u32 svcCloseHandle()
 
     // Lookup actual callback in table.
     if(handle_types[hi->type].fnCloseHandle != NULL)
-        return handle_types[hi->type].fnCloseHandle(hi);
+        return handle_types[hi->type].fnCloseHandle(state,hi);
 
     ERROR("svcCloseHandle undefined for handle-type \"%s\".\n",
           handle_types[hi->type].name);

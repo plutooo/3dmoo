@@ -174,6 +174,12 @@ u32 fs_user_SyncRequest()
     // Read command-id.
     switch (cid)
     {
+        case 0x08010002: //FS:Initialize
+        {
+            u32 processid = mem_Read32(CPUsvcbuffer + 0x88);
+            mem_Write32(CPUsvcbuffer + 0x84, 0); //no error
+            return 0;
+        }
         case 0x08030204: //FS:OpenFileDirectly
         {
             char cstringz[0x200];
@@ -337,43 +343,52 @@ u32 file_SyncRequest(handleinfo* h, bool *locked)
     u32 cid = mem_Read32(CPUsvcbuffer + 0x80);
     switch (cid)
     {
-    case 0x080200C2:
-    {
-                       u32 offseto = mem_Read32(CPUsvcbuffer + 0x84);
-                       u32 offsett = mem_Read32(CPUsvcbuffer + 0x88);
-                       u32 size = mem_Read32(CPUsvcbuffer + 0x8C);
-                       u32 alignedsize = mem_Read32(CPUsvcbuffer + 0x90);
-                       u32 pointer = mem_Read32(CPUsvcbuffer + 0x94);
-                       DEBUG("read %08X %08X %016X\n", pointer, size, offseto + (offsett << 32));
-                       u8* data = (u8*)malloc(size+1);
-                       fseek(filesevhand[h->subtype], offseto + (offsett << 32), SEEK_SET);
-                       u32 temp = fread(data, 1, size, filesevhand[h->subtype]);
+        case 0x080200C2:
+        {
+            u32 offseto = mem_Read32(CPUsvcbuffer + 0x84);
+            u32 offsett = mem_Read32(CPUsvcbuffer + 0x88);
+            u32 size = mem_Read32(CPUsvcbuffer + 0x8C);
+            u32 alignedsize = mem_Read32(CPUsvcbuffer + 0x90);
+            u32 pointer = mem_Read32(CPUsvcbuffer + 0x94);
+            DEBUG("read %08X %08X %016X\n", pointer, size, offseto + (offsett << 32));
+            u8* data = (u8*)malloc(size+1);
+            fseek(filesevhand[h->subtype], offseto + (offsett << 32), SEEK_SET);
+            u32 temp = fread(data, 1, size, filesevhand[h->subtype]);
 
-                       for (int i = 0; i < size; i++)
-                       {
-                           if (i % 16 == 0) printf("\n");
-                           printf("%02X ",data[i]);
-                       }
+            for (int i = 0; i < size; i++)
+            {
+                if (i % 16 == 0) printf("\n");
+                printf("%02X ",data[i]);
+            }
 
-                       printf("\n");
+            printf("\n");
 
-                       mem_Write(data, pointer, temp);
-                       mem_Write32(CPUsvcbuffer + 0x88, temp); //no error
-                       mem_Write32(CPUsvcbuffer + 0x84, 0); //no error
+            mem_Write(data, pointer, temp);
+            mem_Write32(CPUsvcbuffer + 0x88, temp); //no error
+            mem_Write32(CPUsvcbuffer + 0x84, 0); //no error
 
-                       free(data);
-                       return 0;
-    }
-    default:
-        break;
+            free(data);
+            return 0;
+        }
+        case 0x08080000:
+            fclose(filesevhand[h->subtype]);
+            filesevhand[h->subtype] = NULL;
+            mem_Write32(CPUsvcbuffer + 0x84, 0); //no error
+            return 0;
+        default:
+            break;
     }
     ERROR("NOT IMPLEMENTED, cid=%08x\n", cid);
     arm11_Dump();
     PAUSE();
     return 0;
 }
-file_CloseHandle(handleinfo* h)
+file_CloseHandle(ARMul_State *state, handleinfo* h)
 {
-    fclose(filesevhand[h->subtype]);
+    if (filesevhand[h->subtype] != NULL)
+    {
+        DEBUG("File not closed correctly so closing it now.")
+        fclose(filesevhand[h->subtype]);
+    }
     return 0;
 }

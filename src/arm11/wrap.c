@@ -259,6 +259,8 @@ bool arm11_Run(int numInstructions)
 {
     s.NumInstrsToExecute = numInstructions;
     ARMul_Emulate32(&s);
+
+    return true;
 }
 
 u32 arm11_R(u32 n)
@@ -274,7 +276,7 @@ void arm11_SetR(u32 n, u32 val)
 {
     if(n >= 16) {
         DEBUG("Invalid n.\n");
-        return 0;
+        return;
     }
 
     s.Reg[n] = val;
@@ -308,6 +310,8 @@ bool aufloeser(char* a,u32 addr)
     {
         sprintf(a, "");
     }
+
+    return true;
 }
 void arm11_Dump()
 {

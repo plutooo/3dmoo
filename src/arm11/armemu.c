@@ -315,9 +315,9 @@ ARMword ARMul_Debug(ARMul_State * state, ARMword pc, ARMword instr)
 
     /*if (pc >= 0x0010303C && pc <= 0x00103050)
     {
-        printf("[%08x] = %08X = ", pc, instr);
-        arm11_Disasm32(pc);
-        arm11_Dump();
+    printf("[%08x] = %08X = ", pc, instr);
+    arm11_Disasm32(pc);
+    arm11_Dump();
     }*/
 
     //fprintf(stderr,"[%08x]\n", pc);
@@ -325,12 +325,19 @@ ARMword ARMul_Debug(ARMul_State * state, ARMword pc, ARMword instr)
     //if (pc == 0x00240C88)
     //    arm11_Dump();
 
-    if (dump)
+    if (pc == 0x188e04)
+    {
+        DEBUG("read %08X %08X %016X %08X %08X from %08X", state->Reg[0], state->Reg[1], state->Reg[2] | state->Reg[3] << 32, mem_Read32(state->Reg[13]), mem_Read32(state->Reg[13] + 4), state->Reg[14]);
+    }
+        if (pc == 0x1348a0)
+    {
         arm11_Dump();
+    }
+
 
     /*if (pc == 0x0022D168)
     {
-        int j = 0;
+    int j = 0;
     }*/
 
     /*if (state->Reg[4] == 0x00105734)

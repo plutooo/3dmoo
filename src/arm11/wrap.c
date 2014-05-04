@@ -285,6 +285,7 @@ bool aufloeser(char* a,u32 addr)
 {
     if (mem_test(addr) && maxdmupaddr > addr)
     {
+#ifdef not
         static const char filename[] = "map.idc";
         FILE *file = fopen(filename, "r");
         if (file != NULL)
@@ -297,6 +298,28 @@ bool aufloeser(char* a,u32 addr)
                 u32 addr2 = 0;
                 sscanf(line, "MakeName(0x%08x,\"%s\");", &addr2, scanned);
                 if (addr2 < addr && addr2 != 0)
+                    strcpy(a, scanned);
+                else
+                {
+                    int i = 0;
+                }
+            }
+            fclose(file);
+        }
+#endif
+        static const char filename[] = "map";
+        FILE *file = fopen(filename, "r");
+        if (file != NULL)
+        {
+            char line[256]; /* or other suitable maximum line size */
+            char scanned[256]; /* or other suitable maximum line size */
+            strcpy(scanned, "");
+            while (fgets(line, sizeof line, file) != NULL) /* read a line */
+            {
+                u32 addr2 = 0;
+                u32 size = 0;
+                sscanf(line, "0x%08x %08u %s", &addr2, &size, scanned);
+                if (addr2 <= addr && addr2 + size >= addr)
                     strcpy(a, scanned);
                 else
                 {

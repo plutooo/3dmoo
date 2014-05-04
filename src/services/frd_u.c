@@ -41,7 +41,7 @@ u32 frd_u_SyncRequest()
         mem_Write32(0xFFFF0084, 0); //no error
         u32 wtfs = mem_Read32(0xFFFF0180);
         u32 pointer = mem_Read32(0xFFFF0184);
-        DEBUG("GetMyPresence %08X,%08X", wtfs, pointer);
+        DEBUG("GetMyPresence %08X,%08X\n", wtfs, pointer);
         return 0;
         break;
     }

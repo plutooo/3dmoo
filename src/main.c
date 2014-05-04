@@ -133,6 +133,7 @@ int main(int argc, char* argv[])
                 threads_Switch(/*from,*/ t);
                 arm11_Run(0x8000000 / 60);
             }
+            threads_save();
             threads_Remove();
         }
 

@@ -27,6 +27,9 @@
 u32 lock_handle;
 u32 event_handles[2];
 
+
+#define CPUsvcbuffer 0xFFFF0000
+
 u32 apt_u_SyncRequest()
 {
     u32 cid = mem_Read32(0xFFFF0080);
@@ -94,6 +97,27 @@ u32 apt_u_SyncRequest()
 
         mem_Write32(0xFFFF0084, 0);
         return 0;
+
+    case 0x4b00c2: //AppletUtility
+    {
+                       u32 unk = mem_Read32(CPUsvcbuffer + 0x84);
+                       u32 pointeresize = mem_Read32(CPUsvcbuffer + 0x88);
+                       u32 pointerzsize = mem_Read32(CPUsvcbuffer + 0x8C);
+                       u32 pointere = mem_Read32(CPUsvcbuffer + 0x94);
+                       u32 pointerz = mem_Read32(CPUsvcbuffer + 0x184);
+                       u8* data = (u8*)malloc(pointeresize + 1);
+                       DEBUG("AppletUtility %08X (%08X %08X,%08X %08X)\n", unk, pointere, pointeresize, pointerz, pointerzsize);
+                       mem_Read(data, pointere, pointeresize);
+                       for (int i = 0; i < pointeresize; i++)
+                       {
+                           if (i % 16 == 0) printf("\n");
+                           printf("%02X ", data[i]);
+                       }
+                       free(data);
+                       mem_Write32(CPUsvcbuffer + 0x84, 0); //worked
+                       //arm11_Dump();
+                       return 0;
+    }
     }
 
     ERROR("NOT IMPLEMENTED, cid=%08x\n", cid);

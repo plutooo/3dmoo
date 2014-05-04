@@ -228,6 +228,9 @@ void svc_Execute(ARMul_State * state, u8 num)
         //arm11_SetR(0, 1);
         arm11_SetR(1, handle_New(0, 0)); // r1 = handle_out
         return;
+    case 0x37:
+        arm11_SetR(0, svcGetThreadId());
+        return;
     case 0x3A:
         DEBUG("values_ptr=%08x, handleResourceLimit=%08x, names_ptr=%08x, nameCount=%d\n",
               arm11_R(0), arm11_R(1), arm11_R(2), arm11_R(3));

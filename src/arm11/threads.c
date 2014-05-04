@@ -32,6 +32,8 @@
 static thread threads[MAX_THREADS];
 static u32    num_threads = 0;
 
+#define DSidoffset 0xC
+
 u32 threads_New(u32 hand)
 {
     if(num_threads == MAX_THREADS) {
@@ -89,7 +91,7 @@ u32 threads_Count()
 {
     return num_threads;
 }
-u32 currentthread = 0;
+s32 currentthread = 0;
 u32 threads_getcurrenthandle()
 {
     return threads[currentthread].ownhand;
@@ -163,11 +165,32 @@ void threads_Switch(/*u32 from,*/ u32 to)
 
     DEBUG("Thread switch %d->%d\n", from, to);
 
-    if (from < num_threads)
+    if (currentthread != -1)
         arm11_SaveContext(&threads[from]);
 
     arm11_LoadContext(&threads[to]);
     currentthread = to;
+}
+void threads_save()
+{
+    if (currentthread != -1)
+    {
+        arm11_SaveContext(&threads[currentthread]);
+        currentthread = -1;
+    }
+}
+
+u32 svcGetThreadId()
+{
+    u32 hand = arm11_R(1);
+    if (hand == 0xffff8000)
+    {
+        return DSidoffset + currentthread;
+    }
+    else
+    {
+        DEBUG("svcGetThreadId not supported");
+    }
 }
 
 u32 svcCreateThread()

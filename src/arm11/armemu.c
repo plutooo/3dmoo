@@ -21,6 +21,11 @@
 #include "arm_regformat.h"
 #include "armdefs.h"
 #include "armemu.h"
+
+//ichfly
+#define callstacker 1
+
+
 //#include "armos.h"
 
 //#include "skyeye_callback.h"
@@ -377,6 +382,9 @@ ARMul_Emulate26 (ARMul_State * state)
     ARMword loaded_addr=0;
     ARMword have_bp=0;
 
+#ifdef callstacker
+    char a[256];
+#endif
     /* shenoubang */
     static instr_sum = 0;
     int reg_index = 0;
@@ -3560,6 +3568,7 @@ mainswitch:
                 case 0xb5:
                 case 0xb6:
                 case 0xb7:
+
                     /* Put PC into Link.  */
 #ifdef MODE32
                     state->Reg[14] = pc + 4;
@@ -3568,6 +3577,14 @@ mainswitch:
 #endif
                     state->Reg[15] = pc + 8 + POSBRANCH;
                     FLUSHPIPE;
+
+#ifdef callstacker
+                    memset(a, 0, 256);
+                    aufloeser(a, state->Reg[15]);
+                    DEBUG("call %08X %08X %s\n", state->Reg[14], state->Reg[15], a);
+#endif
+
+
                     break;
 
 
@@ -3588,6 +3605,16 @@ mainswitch:
 #endif
                     state->Reg[15] = pc + 8 + NEGBRANCH;
                     FLUSHPIPE;
+
+
+#ifdef callstacker
+                    memset(a, 0, 256);
+                    aufloeser(a, state->Reg[15]);
+                    DEBUG("call %08X %s\n", state->Reg[15], a);
+#endif
+
+
+
                     break;
 
 

@@ -219,7 +219,6 @@ u32 fs_user_SyncRequest()
             if (fileh == 0)
             {
                 mem_Write32(CPUsvcbuffer + 0x8C, 0); //return handle
-                mem_Write32(CPUsvcbuffer + 0x88, 0); //return handle
                 mem_Write32(CPUsvcbuffer + 0x84, 0xFFFFFFFF); //error
                 return 0xFFFFFFFF;
             }
@@ -228,8 +227,8 @@ u32 fs_user_SyncRequest()
             fileisfree[j] = false;
             u32 handel = handle_New(HANDLE_TYPE_FILE, j);
             mem_Write32(CPUsvcbuffer + 0x8C, handel); //return handle
-            mem_Write32(CPUsvcbuffer + 0x88, 0); //return handle
-            mem_Write32(CPUsvcbuffer + 0x84, 0); //no error
+            mem_Write32(CPUsvcbuffer + 0x84, 0x1000); //todo ichfly important todo important
+            arm11_Dump();
             return 0;
 
 
@@ -260,7 +259,6 @@ u32 fs_user_SyncRequest()
             if (fileh == 0)
             {
                 mem_Write32(CPUsvcbuffer + 0x8C, 0); //return handle
-                mem_Write32(CPUsvcbuffer + 0x88, 0); //return handle
                 mem_Write32(CPUsvcbuffer + 0x84, 0xFFFFFFFF); //error
                 return 0xFFFFFFFF;
             }
@@ -269,8 +267,7 @@ u32 fs_user_SyncRequest()
             fileisfree[j] = false;
             u32 handel = handle_New(HANDLE_TYPE_FILE, j);
             mem_Write32(CPUsvcbuffer + 0x8C, handel); //return handle
-            mem_Write32(CPUsvcbuffer + 0x88, 0); //return handle
-            mem_Write32(CPUsvcbuffer + 0x84, 0); //no error
+            mem_Write32(CPUsvcbuffer + 0x84, 0x1000); //todo ichfly important todo important
             return 0;
         }
 
@@ -296,7 +293,7 @@ u32 fs_user_SyncRequest()
             strcpy_s(filearchhandst[p], 0x200, cstring);
             mem_Write32(CPUsvcbuffer + 0x8C, (filearchhand[p] & 0xFFFFFFFF));
             mem_Write32(CPUsvcbuffer + 0x88, ((filearchhand[p] >> 32) & 0xFFFFFFFF));
-            mem_Write32(CPUsvcbuffer + 0x84, 0); //no error
+            mem_Write32(CPUsvcbuffer + 0x84, 0x1000); //todo ichfly important todo important
             DEBUG("fs:USER:OpenArchive(%s);\n", cstring);
             return 0;
         }
@@ -376,6 +373,11 @@ u32 file_SyncRequest(handleinfo* h, bool *locked)
             filesevhand[h->subtype] = NULL;
             mem_Write32(CPUsvcbuffer + 0x84, 0); //no error
             return 0;
+        case 0x08040000:
+            fseek(filesevhand[h->subtype], 0, SEEK_END);
+            mem_Write32(CPUsvcbuffer + 0x88, ftell(filesevhand[h->subtype]) & 0xFFFFFFFF);
+            mem_Write32(CPUsvcbuffer + 0x8C, (ftell(filesevhand[h->subtype]) >> 32) & 0xFFFFFFFF);
+            mem_Write32(CPUsvcbuffer + 0x84, 0); //no error
         default:
             break;
     }

@@ -9,7 +9,8 @@
 [0%] Load modules according to exheader.
 
 * svc
-[75%] svcControlMemory
+[75%] svcControlMemorysvc
+[?%] CreateMemoryBlock
 [1%] svcCreateAddressArbiter
 [50%] svcReleaseMutex
 [1%] WaitSynchronization1

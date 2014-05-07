@@ -24,8 +24,14 @@
 #include "mem.h"
 #include "arm11.h"
 
-u32 lock_handle;
-u32 event_handles[2];
+u32 event_handles;
+
+#define CPUsvcbuffer 0xFFFF0000
+
+ir_u_init()
+{
+    event_handles = handle_New(HANDLE_TYPE_EVENT, 0);
+}
 
 u32 ir_u_SyncRequest()
 {
@@ -33,7 +39,11 @@ u32 ir_u_SyncRequest()
 
     // Read command-id.
     switch(cid) {
-
+    case 0x000c0000: //GetConnectionStatusEvent
+        mem_Write32(CPUsvcbuffer + 0x8C, event_handles);
+        mem_Write32(CPUsvcbuffer + 0x84, 0); //no error
+        return 0;
+        break;
     }
 
     ERROR("NOT IMPLEMENTED, cid=%08x\n", cid);

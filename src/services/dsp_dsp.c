@@ -43,7 +43,7 @@ u32 dsp_dsp_SyncRequest()
                          u32 buffer = mem_Read32(CPUsvcbuffer + 0x94);
                          DEBUG("LoadComponent %08X %08X %08X %08X", size, buffer, unk1, unk2);
                          mem_Write32(CPUsvcbuffer + 0x84, 0x0); //error out
-                         mem_Write32(CPUsvcbuffer + 0x88, 0x1); //loaded
+                         mem_Write32(CPUsvcbuffer + 0x88, 0x0); //ichfly todo what is that ??? sound_marker
                          return 0;
                          break;
     }

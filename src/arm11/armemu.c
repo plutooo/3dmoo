@@ -2276,6 +2276,19 @@ mainswitch:
 
                 case 0x1e:	/* MVN reg */
 #ifdef MODET
+                    if ((instr & 0x00000FF0) == 0x00000F90){//if ((instr & 0x0FF00FF0) == 0x01e00f90) { //todo make that better ichfly
+                        /* strexh ichfly */
+                        u32 l = LHSReg;
+                        u32 r = RHSReg;
+                        lhs = LHS;
+                        ARMul_StoreHalfWord(state, lhs, RHS);
+                        //StoreWord(state, lhs, RHS)
+                        if (state->Aborted) {
+                            TAKEABORT;
+                        }
+                        state->Reg[DESTReg] = 0; //Always succeed
+                        break;
+                    }
                     if (BITS (4, 7) == 0xB) {
                         /* STRH immediate offset, write-back, up, pre indexed.  */
                         SHPREUPWB ();
@@ -2289,20 +2302,6 @@ mainswitch:
                         Handle_Store_Double (state, instr);
                         break;
                     }
-                    if (BITS(4, 7) == 0x9) {
-                        /* strexh ichfly */
-                        u32 l = LHSReg;
-                        u32 r = RHSReg;
-                        lhs = LHS;
-                        ARMul_StoreHalfWord(state, lhs, RHS);
-                        //StoreWord(state, lhs, RHS)
-                        if (state->Aborted) {
-                            TAKEABORT;
-                        }
-                        state->Reg[DESTReg] = 0; //Always succeed
-
-                        break;
-                    }
 #endif
                     dest = ~DPRegRHS;
                     WRITEDEST (dest);
@@ -2310,6 +2309,14 @@ mainswitch:
 
                 case 0x1f:	/* MVNS reg */
 #ifdef MODET
+
+                    if ((instr & 0x00000FF0) == 0x00000F90){ //(instr & 0x0FF00FF0) == 0x01f00f90)//if ((instr & 0x0FF00FF0) == 0x01f00f90) {
+                        /* ldrexh ichfly */
+                        lhs = LHS;
+                        LoadHalfWord(state, instr, lhs,0);
+                        break;
+                    }
+
                     if ((BITS (4, 7) & 0x9) == 0x9)
                         /* LDR immediate offset, write-back, up, pre indexed.  */
                         LHPREUPWB ();

@@ -2289,6 +2289,20 @@ mainswitch:
                         Handle_Store_Double (state, instr);
                         break;
                     }
+                    if (BITS(4, 7) == 0x9) {
+                        /* strexh ichfly */
+                        u32 l = LHSReg;
+                        u32 r = RHSReg;
+                        lhs = LHS;
+                        ARMul_StoreHalfWord(state, lhs, RHS);
+                        //StoreWord(state, lhs, RHS)
+                        if (state->Aborted) {
+                            TAKEABORT;
+                        }
+                        state->Reg[DESTReg] = 0; //Always succeed
+
+                        break;
+                    }
 #endif
                     dest = ~DPRegRHS;
                     WRITEDEST (dest);

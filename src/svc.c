@@ -186,9 +186,9 @@ void svc_Execute(ARMul_State * state, u8 num)
     case 0x19:
         arm11_SetR(0, svcClearEvent());
         return;
-    /*case 0x1E:
-        arm11_SetR(0, svcMapMemoryBlock());
-        return;*/
+    case 0x1E:
+        arm11_SetR(0, svcCreateMemoryBlock());
+        return;
     case 0x1F:
         arm11_SetR(0, svcMapMemoryBlock());
         return;

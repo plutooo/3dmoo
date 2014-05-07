@@ -169,6 +169,7 @@
     <ClCompile Include="..\src\services\am_u.c" />
     <ClCompile Include="..\src\services\apt_u.c" />
     <ClCompile Include="..\src\services\cfg_u.c" />
+    <ClCompile Include="..\src\services\dsp_dsp.c" />
     <ClCompile Include="..\src\services\frd_u.c" />
     <ClCompile Include="..\src\services\fs_user.c" />
     <ClCompile Include="..\src\services\gsp_gpu.c" />

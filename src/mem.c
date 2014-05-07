@@ -46,9 +46,10 @@ void mem_Dbugdump()
     size_t i;
     char name[0x200];
     for (i = 0; i<num_mappings; i++) {
-        sprintf(name, "dump%08X %08X.bin", mappings[i].base, mappings[i].size);
-        FILE* data = fopen(name, "w");
-        fwrite(&mappings[i].phys[0], mappings[i].size, 1, data);
+        u32 schei = mappings[i].size;
+        sprintf(name, "dump%08X %08X.bin", mappings[i].base, schei);
+        FILE* data = fopen(name, "wb");
+        fwrite(mappings[i].phys, 1, schei, data);
         fclose(data);
     }
     return 0;

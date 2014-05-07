@@ -23,7 +23,7 @@
 #include "armemu.h"
 
 //ichfly
-#define callstacker 1
+//#define callstacker 1
 
 
 //#include "armos.h"
@@ -330,14 +330,15 @@ ARMword ARMul_Debug(ARMul_State * state, ARMword pc, ARMword instr)
     //if (pc == 0x00240C88)
     //    arm11_Dump();
 
-    if (pc == 0x188e04)
+    /*if (pc == 0x188e04)
     {
         DEBUG("read %08X %08X %016X %08X %08X from %08X", state->Reg[0], state->Reg[1], state->Reg[2] | state->Reg[3] << 32, mem_Read32(state->Reg[13]), mem_Read32(state->Reg[13] + 4), state->Reg[14]);
     }
-        if (pc == 0x1348a0)
+    if (pc == 0x21222c)
     {
         arm11_Dump();
-    }
+        mem_Dbugdump();
+    }*/
 
 
     /*if (pc == 0x0022D168)
@@ -3581,7 +3582,7 @@ mainswitch:
 #ifdef callstacker
                     memset(a, 0, 256);
                     aufloeser(a, state->Reg[15]);
-                    DEBUG("call %08X %08X %s\n", state->Reg[14], state->Reg[15], a);
+                    printf("call %08X %08X %s(%08X %08X %08X %08X %08X %08X %08X)\n", state->Reg[14], state->Reg[15], a, state->Reg[0], state->Reg[1], state->Reg[2], state->Reg[3], mem_Read32(state->Reg[13]), mem_Read32(state->Reg[13] - 4),mem_Read32(state->Reg[13] - 8));
 #endif
 
 
@@ -3610,7 +3611,7 @@ mainswitch:
 #ifdef callstacker
                     memset(a, 0, 256);
                     aufloeser(a, state->Reg[15]);
-                    DEBUG("call %08X %s\n", state->Reg[15], a);
+                    printf("call %08X %08X %s(%08X %08X %08X %08X %08X %08X %08X)\n", state->Reg[14], state->Reg[15], a, state->Reg[0], state->Reg[1], state->Reg[2], state->Reg[3], mem_Read32(state->Reg[13]), mem_Read32(state->Reg[13] - 4),mem_Read32(state->Reg[13] - 8));
 #endif
 
 

@@ -301,3 +301,7 @@ u32 svcMapMemoryBlock()
 
     return 0;
 }
+svcCreateMemoryBlock()
+{
+
+}

@@ -215,7 +215,7 @@ u32 fs_user_SyncRequest()
             char fulladdr[0x500];
             sprintf(cstring, "%s%s", cstring, cstringz);
             DEBUG("fs:USER:OpenFileDirect(%s);\n", cstring);
-            FILE *fileh = fopen(cstring, "r");
+            FILE *fileh = fopen(cstring, "rb");
             if (fileh == 0)
             {
                 mem_Write32(CPUsvcbuffer + 0x8C, 0); //return handle
@@ -255,7 +255,7 @@ u32 fs_user_SyncRequest()
             DEBUG("fs:USER:OpenFile(%s);\n", cstring);
             s32 p = findarch(handleLow, handleHigh);
             sprintf(fulladdr, "%s%s", filearchhandst[p], cstring);
-            FILE *fileh = fopen(fulladdr, "r");
+            FILE *fileh = fopen(fulladdr, "rb");
             if (fileh == 0)
             {
                 mem_Write32(CPUsvcbuffer + 0x8C, 0); //return handle
@@ -378,6 +378,7 @@ u32 file_SyncRequest(handleinfo* h, bool *locked)
             mem_Write32(CPUsvcbuffer + 0x88, ftell(filesevhand[h->subtype]) & 0xFFFFFFFF);
             mem_Write32(CPUsvcbuffer + 0x8C, (ftell(filesevhand[h->subtype]) >> 32) & 0xFFFFFFFF);
             mem_Write32(CPUsvcbuffer + 0x84, 0); //no error
+            return 0;
         default:
             break;
     }

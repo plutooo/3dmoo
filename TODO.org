@@ -4,6 +4,7 @@
 [?%] Implement media-instructions (with conditions!).
 [?%] Implement missing instructions.
 [0%] Add proper handling of MRC/MCR.
+[?%] Add ldrexh
 
 * loader
 [0%] Load modules according to exheader.

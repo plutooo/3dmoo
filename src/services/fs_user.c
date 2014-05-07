@@ -92,6 +92,9 @@ void getendfix(u32 numb, char* str)
         case 0x4: //SaveData
             sprintf(str, "save/%s", temp);
             break;
+        case 0x6: //ExtSaveData
+            sprintf(str, "extsave/%s", temp);
+            break;
         case 0x7: //Shared ExtSaveData
             sprintf(str, "sex/%s", temp);
             break;
@@ -255,7 +258,26 @@ u32 fs_user_SyncRequest()
             DEBUG("fs:USER:OpenFile(%s);\n", cstring);
             s32 p = findarch(handleLow, handleHigh);
             sprintf(fulladdr, "%s%s", filearchhandst[p], cstring);
-            FILE *fileh = fopen(fulladdr, "rb");
+
+            char openmode[10];
+            memset(openmode, 0, 10);
+
+            switch (openflags)
+            {
+                case 1: //R
+                    strcpy(openmode, "rb");
+                    break;
+                case 2: //W
+                case 3: //RW
+                    strcpy(openmode, "rb+");
+                    break;
+                case 4: //C
+                case 6: //W+C
+                    strcpy(openmode, "wb");
+                    break;
+            }
+
+            FILE *fileh = fopen(fulladdr, openmode);
             if (fileh == 0)
             {
                 mem_Write32(CPUsvcbuffer + 0x8C, 0); //return handle
@@ -270,7 +292,39 @@ u32 fs_user_SyncRequest()
             mem_Write32(CPUsvcbuffer + 0x84, 0x1000); //todo ichfly important todo important
             return 0;
         }
+        case 0x08080202: //FS:CreateFile
+        {
+            u32 handleHigh = mem_Read32(CPUsvcbuffer + 0x88);
+            u32 handleLow = mem_Read32(CPUsvcbuffer + 0x8C);
+            u32 type = mem_Read32(CPUsvcbuffer + 0x90);
+            u32 size = mem_Read32(CPUsvcbuffer + 0x94);
+            u32 openflags = mem_Read32(CPUsvcbuffer + 0x98);
+            u32 attributes = mem_Read32(CPUsvcbuffer + 0x9C);
+            u32 unk0 = mem_Read32(CPUsvcbuffer + 0xA0);
+            u32 unk1 = mem_Read32(CPUsvcbuffer + 0xA4);
+            u32 data = mem_Read32(CPUsvcbuffer + 0xA8);
+            u32 unk2 = mem_Read32(CPUsvcbuffer + 0xAC);
+            u32 unk3 = mem_Read32(CPUsvcbuffer + 0xB0);
+            u32 unk4 = mem_Read32(CPUsvcbuffer + 0xB4);
+            u32 unk5 = mem_Read32(CPUsvcbuffer + 0xB8);
+            u32 unk6 = mem_Read32(CPUsvcbuffer + 0xBC);
+            if (size > 0x100)
+            {
+                DEBUG("to big");
+                return 0;
+            }
 
+            DecodePath(type, data, size, cstring);
+
+            char fulladdr[0x500];
+            DEBUG("fs:USER:OpenFile(%s);\n", cstring);
+            s32 p = findarch(handleLow, handleHigh);
+            sprintf(fulladdr, "%s%s", filearchhandst[p], cstring);
+
+            FILE *fileh = fopen(fulladdr, "wb");
+            fclose(fileh);
+            return 0;
+        }
         case 0x080C00C2: //FS:OpenArchive
         {
             u32 archiveID = mem_Read32(CPUsvcbuffer + 0x84);
@@ -368,12 +422,47 @@ u32 file_SyncRequest(handleinfo* h, bool *locked)
             free(data);
             return 0;
         }
-        case 0x08080000:
+        case 0x08030102: //Write
+        {
+            u32 offseto = mem_Read32(CPUsvcbuffer + 0x84);
+            u32 offsett = mem_Read32(CPUsvcbuffer + 0x88);
+            u32 size = mem_Read32(CPUsvcbuffer + 0x8C);
+            u32 flushflags = mem_Read32(CPUsvcbuffer + 0x90);
+            u32 alignedsize = mem_Read32(CPUsvcbuffer + 0x94);
+            u32 pointer = mem_Read32(CPUsvcbuffer + 0x98);
+            DEBUG("write %08X %08X %016X\n", pointer, size, offseto + (offsett << 32));
+
+            u8* data = (u8*)malloc(size + 1);
+            mem_Read(data, pointer, size);
+
+            fseek(filesevhand[h->subtype], offseto + (offsett << 32), SEEK_SET);
+            u32 temp = fwrite(data, 1, size, filesevhand[h->subtype]);
+
+            if (flushflags == 0x10001)
+            {
+                fflush(filesevhand[h->subtype]);
+            }
+
+            for (int i = 0; i < size; i++)
+            {
+                if (i % 16 == 0) printf("\n");
+                printf("%02X ", data[i]);
+            }
+
+            printf("\n");
+
+            mem_Write32(CPUsvcbuffer + 0x88, temp); //no error
+            mem_Write32(CPUsvcbuffer + 0x84, 0); //no error
+
+            free(data);
+            return 0;
+        }
+        case 0x08080000: //Close
             fclose(filesevhand[h->subtype]);
             filesevhand[h->subtype] = NULL;
             mem_Write32(CPUsvcbuffer + 0x84, 0); //no error
             return 0;
-        case 0x08040000:
+        case 0x08040000: //GetSize
             fseek(filesevhand[h->subtype], 0, SEEK_END);
             mem_Write32(CPUsvcbuffer + 0x88, ftell(filesevhand[h->subtype]) & 0xFFFFFFFF);
             mem_Write32(CPUsvcbuffer + 0x8C, (ftell(filesevhand[h->subtype]) >> 32) & 0xFFFFFFFF);

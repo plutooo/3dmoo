@@ -157,6 +157,10 @@ void svc_Execute(ARMul_State * state, u8 num)
         //arm11_SetR(0, svcQueryMemory());
         arm11_SetR(0, 0);
         return;
+    case 3: //Exit Process
+        state->NumInstrsToExecute = 0;
+        exit(1);
+        return;
     case 8:
         arm11_SetR(0, svcCreateThread());
         return;

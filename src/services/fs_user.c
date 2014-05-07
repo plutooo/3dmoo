@@ -83,23 +83,23 @@ s32 findarch(u32 low ,u32 high)
 void getendfix(u32 numb, char* str)
 {
     char temp[0x200];
+    strcpy(temp, str);
     switch (numb)
     {
         case 0x3: //Application RomFS
-            strcpy(temp, str);
             sprintf(str, "romfs/%s", temp);
             break;
+        case 0x4: //SaveData
+            sprintf(str, "save/%s", temp);
+            break;
         case 0x7: //Shared ExtSaveData
-            strcpy(temp, str);
             sprintf(str, "sex/%s", temp);
             break;
         case 0x9: //SDMC 
-            strcpy(temp, str);
             sprintf(str, "SDMC/%s", temp);
             break;
         default:
             DEBUG("unknown Archive idcode % 08X", numb);
-            strcpy(temp, str);
             sprintf(str, "junko/%s", temp);
             break;
     }

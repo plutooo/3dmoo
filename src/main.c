@@ -131,7 +131,8 @@ int main(int argc, char* argv[])
                 //int from = t == 0 ? threads_Count() - 1 : t - 1;
                 if (islocked(t))continue;
                 threads_Switch(/*from,*/ t);
-                arm11_Run(0x8000000 / 60);
+                //arm11_Run(0x8000000 / 60);
+                arm11_Run(0x80000 / 60);
             }
             threads_save();
             threads_Remove();

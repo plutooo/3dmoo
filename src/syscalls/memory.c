@@ -301,10 +301,11 @@ u32 svcMapMemoryBlock()
 
     return 0;
 }
-svcCreateMemoryBlock() //todo ichfly 
+u32 svcCreateMemoryBlock() //todo ichfly 
 {
     u32 memblock = arm11_R(0);
     u32 addr = arm11_R(1);
     u32 size = arm11_R(2);
     arm11_SetR(1, 0); //for tests //handle_New(HANDLE_TYPE_SHAREDMEM, 0)); // is this realy what it is I am not sure
+    return 0;
 }

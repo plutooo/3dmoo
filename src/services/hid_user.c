@@ -33,7 +33,7 @@ u8 HIDsharedbuff[0x2000];
 
 u32 memhandel;
 
-u32 hid_user_init()
+void hid_user_init()
 {
     memhandel = handle_New(HANDLE_TYPE_SHAREDMEM, MEM_TYPE_HID_0);
 }

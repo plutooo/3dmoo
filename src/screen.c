@@ -22,6 +22,8 @@
 #include "util.h"
 #include "SrvtoIO.h"
 
+#include "hid_user.h"
+
 SDL_Window *win = NULL;
 SDL_Renderer *renderer = NULL;
 SDL_Texture *bitmapTex = NULL;
@@ -126,6 +128,7 @@ void screen_HandleEvent()
         }
     }
 }
-void svcsleep()
+u32 svcsleep()
 {
+    return 0;
 }

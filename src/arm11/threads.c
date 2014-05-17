@@ -26,6 +26,8 @@
 
 #include "threads.h"
 
+#include "mem.h"
+
 
 #define MAX_THREADS 32
 
@@ -60,7 +62,7 @@ bool islocked(u32 t)
     else
     {
         bool allunlockde = true;
-        for (int i = 0; i < threads[t].handellistcount; i++)
+        for (unsigned int i = 0; i < threads[t].handellistcount; i++)
         {
             handleinfo* hi = handle_Get(*(u32*)(threads[t].handellist + 4 * i));
             u32 temp;
@@ -111,7 +113,7 @@ void threads_removecurrent()
 }
 u32 threads_find(u32 handle)
 {
-    for (int i = 0; i < threads_Count(); i++)
+    for (unsigned int i = 0; i < threads_Count(); i++)
     {
         if (threads[i].ownhand == handle)
         {
@@ -122,7 +124,7 @@ u32 threads_find(u32 handle)
 }
 u32 threads_NextToBeDeleted()
 {
-    for (int i = 0; i < threads_Count(); i++)
+    for (unsigned int i = 0; i < threads_Count(); i++)
     {
         if (threads[i].delete)
         {
@@ -133,10 +135,10 @@ u32 threads_NextToBeDeleted()
 }
 void threads_Remove()
 {
-    int id;
+    unsigned int id;
     while ((id = threads_NextToBeDeleted()) != -1)
     {
-        for (int i = id; i < threads_Count(); i++)
+        for (unsigned int i = id; i < threads_Count(); i++)
         {
             threads[i] = threads[i + 1];
         }
@@ -190,6 +192,7 @@ u32 svcGetThreadId()
     else
     {
         DEBUG("svcGetThreadId not supported");
+        return 0;
     }
 }
 
@@ -235,6 +238,7 @@ u32 thread_CloseHandle(ARMul_State *state, handleinfo* h)
 
     threads_removethread(id);
     state->NumInstrsToExecute = 0;
+    return 0;
 }
 
 u32 thread_SyncRequest(handleinfo* h, bool *locked)
@@ -248,6 +252,7 @@ u32 thread_SyncRequest(handleinfo* h, bool *locked)
     ERROR("STUBBED, cid=%08x\n", cid);
     arm11_Dump();
     PAUSE();
+    return 0;
 }
 
 u32 thread_WaitSynchronization(handleinfo* h, bool *locked)

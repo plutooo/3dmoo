@@ -30,6 +30,8 @@
 
 #include "handles.h"
 
+#include "init.h"
+
 int loader_LoadFile(FILE* fd);
 
 u32 curprocesshandle;
@@ -127,7 +129,7 @@ int main(int argc, char* argv[])
         }*/
 
         for (int i = 0; i < 60; i++) {
-            for (int t = 0; t < threads_Count(); t++) {
+            for (unsigned int t = 0; t < threads_Count(); t++) {
                 //int from = t == 0 ? threads_Count() - 1 : t - 1;
                 if (islocked(t))continue;
                 threads_Switch(/*from,*/ t);

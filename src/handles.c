@@ -24,6 +24,8 @@
 #include "handles.h"
 #include "svc.h"
 
+#include "mem.h"
+
 #define MAX_NUM_HANDLES 0x1000
 #define HANDLES_BASE    0xDEADBABE
 
@@ -96,8 +98,8 @@ u32 svcSendSyncRequest()
         temp = handle_types[hi->type].fnSyncRequest(hi, &locked);
         if (locked)
         {
-            u8* handelist = malloc(4);
-            *(u32*)handelist = handle;
+            u32* handelist = malloc(4);
+            *handelist = handle;
             lockcpu(handelist, 1, 1);
         }
         return temp;
@@ -177,8 +179,8 @@ u32 svcWaitSynchronization1() //todo timeout
         temp = handle_types[hi->type].fnWaitSynchronization(hi, &locked);
         if (locked)
         {
-            u8* handelist = malloc(4);
-            *(u32*)handelist = handle;
+            u32* handelist = (u32*)malloc(4);
+            *handelist = handle;
             lockcpu(handelist, 1,1);
         }
         return temp;
@@ -192,7 +194,7 @@ u32 svcWaitSynchronization1() //todo timeout
 }
 u32 svcWaitSynchronizationN() //todo timeout
 {
-    u8 *handelist;
+    u32 *handelist;
     u32 nanoseconds1 = arm11_R(0);
     u32 handles = arm11_R(1);
     u32 handlecount = arm11_R(2);
@@ -247,7 +249,7 @@ u32 svcWaitSynchronizationN() //todo timeout
     }
     if (waitAll && allunlockde)return 0;
     handelist = malloc(handlecount*4);
-    mem_Read(handelist, handles, handlecount * 4);
+    mem_Read((u8*)handelist, handles, handlecount * 4);
     lockcpu(handelist, waitAll, handlecount);
     return 0;
 }

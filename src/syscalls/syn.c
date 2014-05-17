@@ -99,6 +99,7 @@ u32 svcDuplicateHandle()
         PAUSE();
         return -1;
     }
+    return 0;
 }
 
 ///////////////////////////

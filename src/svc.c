@@ -24,6 +24,8 @@
 #include "handles.h"
 #include "svc.h"
 
+#include "mem.h"
+
 static const char* names[256] = {
     NULL,
     "ControlMemory",

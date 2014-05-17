@@ -46,6 +46,7 @@ u32 threads_getcurrenthandle();
 void threads_Switch(/*u32 from,*/ u32 to);
 u32 svcCreateThread();
 void lockcpu(u32* handelist, u32 waitAll, u32 count);
+void threads_save();
 void threads_Remove();
 void threads_removecurrent();
 

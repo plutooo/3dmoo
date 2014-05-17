@@ -188,5 +188,14 @@
     <ClInclude Include="..\inc\arm11.h">
       <Filter>Header Files\arm11</Filter>
     </ClInclude>
+    <ClInclude Include="..\inc\init.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\inc\hid_user.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\inc\screen.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

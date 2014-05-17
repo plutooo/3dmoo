@@ -28,27 +28,41 @@ void svc_Execute(ARMul_State * state, u8 num);
 
 // arm11/threads.c
 u32 svcCreateThread();
+u32 svcGetThreadId();
 
 // svc/memory.c
 u32 svcControlMemory();
 u32 svcMapMemoryBlock();
+u32 svcCreateMemoryBlock();
 
 // svc/ports.c
 u32 svcConnectToPort();
 
 // svc/events.c
 u32 svcCreateEvent();
+u32 svcClearEvent();
 
 // svc/syn.c
 u32 svcCreateMutex();
 u32 svcReleaseMutex();
+u32 svcCreateSemaphore();
+u32 svcReleaseSemaphore();
+
+// svc/arb.c
+u32 svcCreateAddressArbiter();
+u32 svcArbitrateAddress();
 
 // Generics (handles.c)
 u32 svcSendSyncRequest();
 u32 svcCloseHandle();
 u32 svcWaitSynchronization1();
+u32 svcWaitSynchronizationN();
+u32 svcDuplicateHandle();
 
 //mem
 u32 svcmapMemoryBlock();
+
+//screen.c
+u32 svcsleep();
 
 #endif

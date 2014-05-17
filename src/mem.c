@@ -52,7 +52,6 @@ void mem_Dbugdump()
         fwrite(mappings[i].phys, 1, schei, data);
         fclose(data);
     }
-    return 0;
 }
 
 static int Overlaps(memmap_t* a, memmap_t* b)
@@ -200,8 +199,8 @@ int mem_Write16(uint32_t addr, uint16_t w)
         if(Contains(&mappings[i], addr, 2)) {
             // Unaligned.
             if (addr & 1) {
-                mappings[i].phys[addr - mappings[i].base] = w;
-                mappings[i].phys[addr - mappings[i].base + 1] = w >> 8;
+                mappings[i].phys[addr - mappings[i].base] = (u8)w;
+                mappings[i].phys[addr - mappings[i].base + 1] = (u8)(w >> 8);
             }
             else
                 *(uint16_t*)(&mappings[i].phys[addr - mappings[i].base]) = w;

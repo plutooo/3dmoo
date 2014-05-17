@@ -124,7 +124,7 @@ int DecodePath(FS_pathType type, u32 data, u32 size, char *out)
         return 1;
     case PATH_WCHAR:
     {
-        int i = 0;
+        unsigned int i = 0;
         while (i < size)
         {
             out[i] = (char)mem_Read16(data + i * 2);
@@ -135,7 +135,7 @@ int DecodePath(FS_pathType type, u32 data, u32 size, char *out)
     }
     case PATH_BINARY:
     {
-        int i = 0;
+        unsigned int i = 0;
         //out[0] = '/';
         while (i < size)
         {
@@ -154,7 +154,7 @@ int DecodePath(FS_pathType type, u32 data, u32 size, char *out)
         //mem_Read(out, data, size);
         DEBUG("unsupported type");
 
-        int i = 0;
+        unsigned int i = 0;
         while (i < size)
         {
             u8 dat = mem_Read8(data + i);
@@ -165,11 +165,11 @@ int DecodePath(FS_pathType type, u32 data, u32 size, char *out)
 
         return 0;
     }
+    return -1;
 }
 
 u32 fs_user_SyncRequest()
 {
-    char raw[0x200];
     char cstring[0x200];
     cstring[0] = 0;
     u32 cid = mem_Read32(CPUsvcbuffer + 0x80);
@@ -215,7 +215,6 @@ u32 fs_user_SyncRequest()
 
             DecodePath(ftype, fdata, fsize, cstringz);
 
-            char fulladdr[0x500];
             sprintf(cstring, "%s%s", cstring, cstringz);
             DEBUG("fs:USER:OpenFileDirect(%s);\n", cstring);
             FILE *fileh = fopen(cstring, "rb");
@@ -401,13 +400,13 @@ u32 file_SyncRequest(handleinfo* h, bool *locked)
             u32 size = mem_Read32(CPUsvcbuffer + 0x8C);
             u32 alignedsize = mem_Read32(CPUsvcbuffer + 0x90);
             u32 pointer = mem_Read32(CPUsvcbuffer + 0x94);
-            DEBUG("read %08X %08X %016X\n", pointer, size, offseto + (offsett << 32));
+            DEBUG("read %08X %08X %016X\n", pointer, size, offseto + ((u64)offsett >> 32));
 
             u8* data = (u8*)malloc(size+1);
-            fseek(filesevhand[h->subtype], offseto + (offsett << 32), SEEK_SET);
+            fseek(filesevhand[h->subtype], offseto + ((u64)offsett >> 32), SEEK_SET);
             u32 temp = fread(data, 1, size, filesevhand[h->subtype]);
 
-            for (int i = 0; i < size; i++)
+            for (unsigned int i = 0; i < size; i++)
             {
                 if (i % 16 == 0) printf("\n");
                 printf("%02X ",data[i]);
@@ -430,12 +429,12 @@ u32 file_SyncRequest(handleinfo* h, bool *locked)
             u32 flushflags = mem_Read32(CPUsvcbuffer + 0x90);
             u32 alignedsize = mem_Read32(CPUsvcbuffer + 0x94);
             u32 pointer = mem_Read32(CPUsvcbuffer + 0x98);
-            DEBUG("write %08X %08X %016X\n", pointer, size, offseto + (offsett << 32));
+            DEBUG("write %08X %08X %016X\n", pointer, size, offseto + ((u64)offsett >> 32));
 
             u8* data = (u8*)malloc(size + 1);
             mem_Read(data, pointer, size);
 
-            fseek(filesevhand[h->subtype], offseto + (offsett << 32), SEEK_SET);
+            fseek(filesevhand[h->subtype], offseto + ((u64)offsett >> 32), SEEK_SET);
             u32 temp = fwrite(data, 1, size, filesevhand[h->subtype]);
 
             if (flushflags == 0x10001)
@@ -443,7 +442,7 @@ u32 file_SyncRequest(handleinfo* h, bool *locked)
                 fflush(filesevhand[h->subtype]);
             }
 
-            for (int i = 0; i < size; i++)
+            for (unsigned int i = 0; i < size; i++)
             {
                 if (i % 16 == 0) printf("\n");
                 printf("%02X ", data[i]);
@@ -465,7 +464,8 @@ u32 file_SyncRequest(handleinfo* h, bool *locked)
         case 0x08040000: //GetSize
             fseek(filesevhand[h->subtype], 0, SEEK_END);
             mem_Write32(CPUsvcbuffer + 0x88, ftell(filesevhand[h->subtype]) & 0xFFFFFFFF);
-            mem_Write32(CPUsvcbuffer + 0x8C, (ftell(filesevhand[h->subtype]) >> 32) & 0xFFFFFFFF);
+            //mem_Write32(CPUsvcbuffer + 0x8C, (ftell(filesevhand[h->subtype]) << 32) & 0xFFFFFFFF);
+            mem_Write32(CPUsvcbuffer + 0x8C, 0); //ichfly todo this are the uppern 32 bit of the file size 
             mem_Write32(CPUsvcbuffer + 0x84, 0); //no error
             return 0;
         default:
@@ -476,7 +476,7 @@ u32 file_SyncRequest(handleinfo* h, bool *locked)
     PAUSE();
     return 0;
 }
-file_CloseHandle(ARMul_State *state, handleinfo* h)
+u32 file_CloseHandle(ARMul_State *state, handleinfo* h)
 {
     if (filesevhand[h->subtype] != NULL)
     {

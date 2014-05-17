@@ -108,7 +108,7 @@ u32 apt_u_SyncRequest()
                        u8* data = (u8*)malloc(pointeresize + 1);
                        DEBUG("AppletUtility %08X (%08X %08X,%08X %08X)\n", unk, pointere, pointeresize, pointerz, pointerzsize);
                        mem_Read(data, pointere, pointeresize);
-                       for (int i = 0; i < pointeresize; i++)
+                       for (unsigned int i = 0; i < pointeresize; i++)
                        {
                            if (i % 16 == 0) printf("\n");
                            printf("%02X ", data[i]);

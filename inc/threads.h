@@ -36,6 +36,8 @@ typedef struct {
     u32 handellistcount;
     u32 ownhand;
 
+    s32 priority;
+
     bool delete;
 } thread;
 

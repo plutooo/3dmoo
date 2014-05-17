@@ -247,6 +247,12 @@ void arm11_Init()
     s.NextInstr = RESUME;
     s.Emulate = 3;
 }
+
+void arm11_SkipToNextThread()
+{
+    s.NumInstrsToExecute = 0;
+}
+
 bool arm11_Step()
 {
     s.NumInstrsToExecute = 1;

@@ -23,10 +23,9 @@
 
 #include "armdefs.h"
 #include "armemu.h"
+#include "mem.h"
 
 #include "threads.h"
-
-#include "mem.h"
 
 
 #define MAX_THREADS 32
@@ -113,7 +112,11 @@ void threads_removecurrent()
 }
 u32 threads_find(u32 handle)
 {
-    for (unsigned int i = 0; i < threads_Count(); i++)
+    if (handle == 0xffff8000)
+    {
+        return currentthread;
+    }
+
     {
         if (threads[i].ownhand == handle)
         {
@@ -178,8 +181,42 @@ void threads_save()
     if (currentthread != -1)
     {
         arm11_SaveContext(&threads[currentthread]);
-        currentthread = -1;
+        if (num_threads > 1)
+            currentthread = -1;
     }
+}
+
+u32 svcGetThreadPriority()
+{
+    u32 out = arm11_R(0);
+    u32 hand = arm11_R(1);
+    s32 prio = 0;
+
+    u32 threadid = threads_find(hand);
+
+    if (threadid != -1)
+    {
+        prio = threads[threadid].priority;
+    }
+
+    mem_Write32(out, prio);
+
+    return 0;
+}
+
+u32 svcSetThreadPriority()
+{
+    u32 hand = arm11_R(0);
+    s32 prio = arm11_R(1);
+
+    u32 threadid = threads_find(hand);
+
+    if (threadid != -1)
+    {
+        threads[threadid].priority = prio;
+    }
+
+    return 0;
 }
 
 u32 svcGetThreadId()

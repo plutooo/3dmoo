@@ -79,6 +79,7 @@ u32 apt_u_SyncRequest()
         return 0;
 
     case 0x30040:
+    {
         (void) 0;
 
         u32 unk = mem_Read32(0xFFFF0084);
@@ -87,7 +88,16 @@ u32 apt_u_SyncRequest()
 
         mem_Write32(0xFFFF0084, 0);
         return 0;
+    }
+    case 0x3E0080:
+    {
+        u32 unk = mem_Read32(0xFFFF0084);
+        DEBUG("apt_u_ReplySleepQuery, unk=%08x\n", unk);
+        PAUSE();
 
+        mem_Write32(0xFFFF0084, 0);
+        return 0;
+    }
     case 0x430040:
         (void) 0;
 

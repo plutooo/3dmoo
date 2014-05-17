@@ -51,7 +51,7 @@ typedef int64_t s64;
 #define __func__ __FUNCTION__
 #endif
 
-#if 1
+#if 0
 #define DEBUG(...) do {                          \
     fprintf(stdout, "%s: ", __func__);       \
     fprintf(stdout, __VA_ARGS__);           \

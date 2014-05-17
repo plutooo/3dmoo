@@ -269,7 +269,7 @@ int mem_Write32(uint32_t addr, uint32_t w)
         }
     }
 #ifdef PRINT_ILLEGAL
-    DEBUG("trying to write32 unmapped addr %08x, w=%08x\n", addr);
+    DEBUG("trying to write32 unmapped addr %08x, w=%08x\n", addr, w);
     arm11_Dump();
 #endif
 #ifdef EXIT_ON_ILLEGAL

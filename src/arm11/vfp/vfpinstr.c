@@ -21,7 +21,7 @@
 /* Notice: this file should not be compiled as is, and is meant to be
    included in other files only. */
    
-#undef DEBUG(...)
+#undef DEBUG
 #define DEBUG(...) 
 
 /* ----------------------------------------------------------------------- */

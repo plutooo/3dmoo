@@ -102,7 +102,7 @@ void getendfix(u32 numb, char* str)
             sprintf(str, "SDMC/%s", temp);
             break;
         default:
-            DEBUG("unknown Archive idcode % 08X", numb);
+            DEBUG("unknown Archive idcode %08X", numb);
             sprintf(str, "junko/%s", temp);
             break;
     }
@@ -147,7 +147,7 @@ int DecodePath(FS_pathType type, u32 data, u32 size, char *out)
     }
     case PATH_EMPTY:
     {
-        sprintf(out, "");
+        out[0] = '\0';
         break;
     }
     default:
@@ -343,7 +343,7 @@ u32 fs_user_SyncRequest()
             sprintf(cstring, "%s/", cstring);
             filearchhandst[p] = malloc(0x200);
             filearchisfree[p] = false;
-            strcpy_s(filearchhandst[p], 0x200, cstring);
+            strncpy(filearchhandst[p], cstring, 0x200);
             mem_Write32(CPUsvcbuffer + 0x8C, (filearchhand[p] & 0xFFFFFFFF));
             mem_Write32(CPUsvcbuffer + 0x88, ((filearchhand[p] >> 32) & 0xFFFFFFFF));
             mem_Write32(CPUsvcbuffer + 0x84, 0x1000); //todo ichfly important todo important
@@ -400,7 +400,7 @@ u32 file_SyncRequest(handleinfo* h, bool *locked)
             u32 size = mem_Read32(CPUsvcbuffer + 0x8C);
             u32 alignedsize = mem_Read32(CPUsvcbuffer + 0x90);
             u32 pointer = mem_Read32(CPUsvcbuffer + 0x94);
-            DEBUG("read %08X %08X %016X\n", pointer, size, offseto + ((u64)offsett >> 32));
+            DEBUG("read %08X %08X %016llX\n", pointer, size, offseto + ((u64)offsett >> 32));
 
             u8* data = (u8*)malloc(size+1);
             fseek(filesevhand[h->subtype], offseto + ((u64)offsett >> 32), SEEK_SET);
@@ -429,7 +429,7 @@ u32 file_SyncRequest(handleinfo* h, bool *locked)
             u32 flushflags = mem_Read32(CPUsvcbuffer + 0x90);
             u32 alignedsize = mem_Read32(CPUsvcbuffer + 0x94);
             u32 pointer = mem_Read32(CPUsvcbuffer + 0x98);
-            DEBUG("write %08X %08X %016X\n", pointer, size, offseto + ((u64)offsett >> 32));
+            DEBUG("write %08X %08X %016llX\n", pointer, size, offseto + ((u64)offsett >> 32));
 
             u8* data = (u8*)malloc(size + 1);
             mem_Read(data, pointer, size);

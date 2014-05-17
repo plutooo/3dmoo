@@ -450,33 +450,37 @@ int loader_LoadFile(FILE* fd)
         }
     }
 
-    u32 romfs_off = (Read32(h.romfsoffset) * 0x200) + 0x1000;
-    u32 romfs_sz = (Read32(h.romfssize) * 0x200) - 0x1000;
-    DEBUG("RomFS offset:    %08x\n", romfs_off);
-    DEBUG("RomFS size:      %08x\n", romfs_sz);
+    if (Read32(h.romfsoffset) != 0 && Read32(h.romfsoffset) != 0)
+    {
+        u32 romfs_off = (Read32(h.romfsoffset) * 0x200) + 0x1000;
+        u32 romfs_sz = (Read32(h.romfssize) * 0x200) - 0x1000;
 
-    uint8_t* romfslvl3 = malloc(romfs_sz);
-    if (romfslvl3 == NULL) {
-        ERROR("romfslvl3 malloc failed.\n");
-        return 1;
+        DEBUG("RomFS offset:    %08x\n", romfs_off);
+        DEBUG("RomFS size:      %08x\n", romfs_sz);
+
+        uint8_t* romfslvl3 = malloc(romfs_sz);
+        if (romfslvl3 == NULL) {
+            ERROR("romfslvl3 malloc failed.\n");
+            return 1;
+        }
+
+        fseek(fd, romfs_off + ncch_off, SEEK_SET);
+
+        if (fread(romfslvl3, romfs_sz, 1, fd) != 1) {
+            ERROR("romfslvl3 fread failed.\n");
+            return 1;
+        }
+
+        FILE *romfs_out = fopen("romfs/000000000000000000000000", "wb");
+
+        if (fwrite(romfslvl3, romfs_sz, 1, romfs_out) != 1) {
+            ERROR("romfslvl3 fwrite failed.\n");
+            return 1;
+        }
+
+        fclose(romfs_out);
+        free(romfslvl3);
     }
-
-    fseek(fd, romfs_off + ncch_off, SEEK_SET);
-
-    if (fread(romfslvl3, romfs_sz, 1, fd) != 1) {
-        ERROR("romfslvl3 fread failed.\n");
-        return 1;
-    }
-
-    FILE *romfs_out = fopen("romfs/000000000000000000000000","wb");
-
-    if (fwrite(romfslvl3, romfs_sz, 1, romfs_out) != 1) {
-        ERROR("romfslvl3 fwrite failed.\n");
-        return 1;
-    }
-
-    fclose(romfs_out);
-    free(romfslvl3);
 
     // Add .bss segment.
     u32 bss_off = AlignPage(Read32(ex.codesetinfo.data.address) +

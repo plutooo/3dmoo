@@ -117,6 +117,7 @@ u32 threads_find(u32 handle)
         return currentthread;
     }
 
+    for (unsigned int i = 0; i < threads_Count(); i++)
     {
         if (threads[i].ownhand == handle)
         {

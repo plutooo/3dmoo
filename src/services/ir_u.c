@@ -28,7 +28,7 @@ u32 event_handles;
 
 #define CPUsvcbuffer 0xFFFF0000
 
-ir_u_init()
+void ir_u_init()
 {
     event_handles = handle_New(HANDLE_TYPE_EVENT, 0);
 }

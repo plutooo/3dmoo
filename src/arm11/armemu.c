@@ -21,6 +21,7 @@
 #include "arm_regformat.h"
 #include "armdefs.h"
 #include "armemu.h"
+#include "svc.h"
 
 //ichfly
 //#define callstacker 1
@@ -387,7 +388,7 @@ ARMul_Emulate26 (ARMul_State * state)
     char a[256];
 #endif
     /* shenoubang */
-    static instr_sum = 0;
+    static int instr_sum = 0;
     int reg_index = 0;
 #if DIFF_STATE
 //initialize all mirror register for follow mode

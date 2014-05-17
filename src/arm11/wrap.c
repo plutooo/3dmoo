@@ -337,7 +337,7 @@ bool aufloeser(char* a,u32 addr)
     }
     else
     {
-        sprintf(a, "");
+        a = '\0';
     }
 
     return true;

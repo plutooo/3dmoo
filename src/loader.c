@@ -318,6 +318,16 @@ int loader_LoadFile(FILE* fd)
         return 1;
     }
 
+    // Load NCSD
+    if (memcmp(&h.magic, "NCSD", 4) == 0) {
+        ncch_off = 0x4000;
+        fseek(fd, ncch_off, SEEK_SET);
+        if (fread(&h, sizeof(h), 1, fd) != 1) {
+            ERROR("failed to read header.\n");
+            return 1;
+        }
+    }
+
     if (Read32(h.signature) == 0x464c457f) { // Load ELF
         // Add stack segment.
         mem_AddSegment(0x10000000 - 0x100000, 0x100000, NULL);
@@ -439,6 +449,34 @@ int loader_LoadFile(FILE* fd)
             mem_AddSegment(Read32(ex.codesetinfo.text.address), sec_size, sec);
         }
     }
+
+    u32 romfs_off = (Read32(h.romfsoffset) * 0x200) + 0x1000;
+    u32 romfs_sz = (Read32(h.romfssize) * 0x200) - 0x1000;
+    DEBUG("RomFS offset:    %08x\n", romfs_off);
+    DEBUG("RomFS size:      %08x\n", romfs_sz);
+
+    uint8_t* romfslvl3 = malloc(romfs_sz);
+    if (romfslvl3 == NULL) {
+        ERROR("romfslvl3 malloc failed.\n");
+        return 1;
+    }
+
+    fseek(fd, romfs_off + ncch_off, SEEK_SET);
+
+    if (fread(romfslvl3, romfs_sz, 1, fd) != 1) {
+        ERROR("romfslvl3 fread failed.\n");
+        return 1;
+    }
+
+    FILE *romfs_out = fopen("romfs/000000000000000000000000","wb");
+
+    if (fwrite(romfslvl3, romfs_sz, 1, romfs_out) != 1) {
+        ERROR("romfslvl3 fwrite failed.\n");
+        return 1;
+    }
+
+    fclose(romfs_out);
+    free(romfslvl3);
 
     // Add .bss segment.
     u32 bss_off = AlignPage(Read32(ex.codesetinfo.data.address) +

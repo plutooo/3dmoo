@@ -61,7 +61,7 @@ typedef int64_t s64;
 #endif
 
 #define ERROR(...) do { \
-	fprintf(stderr, "%s:%d: ", __FILE__, __LINE__); \
+	fprintf(stderr, "intern:%d: ", /*__FILE__,*/ __LINE__); \
 	fprintf(stderr, __VA_ARGS__);			\
     } while(0);
 

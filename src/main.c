@@ -128,7 +128,7 @@ int main(int argc, char* argv[])
             arm11_Step();
         }*/
 
-        for (int i = 0; i < 60; i++) {
+        for (int i = 0; i < 6; i++) {
             for (unsigned int t = 0; t < threads_Count(); t++) {
                 //int from = t == 0 ? threads_Count() - 1 : t - 1;
                 if (islocked(t))continue;

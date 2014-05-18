@@ -406,11 +406,11 @@ u32 file_SyncRequest(handleinfo* h, bool *locked)
             fseek(filesevhand[h->subtype], offseto + ((u64)offsett >> 32), SEEK_SET);
             u32 temp = fread(data, 1, size, filesevhand[h->subtype]);
 
-            for (unsigned int i = 0; i < size; i++)
+            /*for (unsigned int i = 0; i < size; i++)
             {
                 if (i % 16 == 0) printf("\n");
                 printf("%02X ",data[i]);
-            }
+            }*/
 
             printf("\n");
 
@@ -442,11 +442,11 @@ u32 file_SyncRequest(handleinfo* h, bool *locked)
                 fflush(filesevhand[h->subtype]);
             }
 
-            for (unsigned int i = 0; i < size; i++)
+            /*for (unsigned int i = 0; i < size; i++)
             {
                 if (i % 16 == 0) printf("\n");
                 printf("%02X ", data[i]);
-            }
+            }*/
 
             printf("\n");
 

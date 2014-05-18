@@ -334,6 +334,10 @@ bool aufloeser(char* a,u32 addr)
             }
             fclose(file);
         }
+        else
+        {
+            a = '\0';
+        }
     }
     else
     {

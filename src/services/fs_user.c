@@ -402,6 +402,8 @@ u32 file_SyncRequest(handleinfo* h, bool *locked)
             u32 pointer = mem_Read32(CPUsvcbuffer + 0x94);
             DEBUG("read %08X %08X %016llX\n", pointer, size, offseto + ((u64)offsett >> 32));
 
+            filemonaufloesen(offseto,size);
+
             u8* data = (u8*)malloc(size+1);
             fseek(filesevhand[h->subtype], offseto + ((u64)offsett >> 32), SEEK_SET);
             u32 temp = fread(data, 1, size, filesevhand[h->subtype]);

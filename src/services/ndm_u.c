@@ -34,7 +34,7 @@ u32 ndm_u_SyncRequest()
 
     // Read command-id.
     switch(cid) {
-    case 0x00060040:
+    case 0x00060040: //SuspendDaemons
         mem_Write32(CPUsvcbuffer + 0x84, 0); //worked
         return 0;
     }

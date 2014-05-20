@@ -471,6 +471,8 @@ int loader_LoadFile(FILE* fd)
             return 1;
         }
 
+        initfilemon(romfslvl3);
+
         FILE *romfs_out = fopen("romfs/000000000000000000000000", "wb");
 
         if (fwrite(romfslvl3, romfs_sz, 1, romfs_out) != 1) {

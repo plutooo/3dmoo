@@ -9,14 +9,16 @@
 #include "filemon.h"
 
 
-aufloeseentry* aufloeserfeld = 0;
-u32 anzaufloeserfeld = 0;
+aufloeseentry* translaterfild = 0;
+u32 translaterfildcount = 0;
 
-u32 dirrealoffset = 0x84; //todo read form rom (guess at 0xC)
-u32 filerealoffset = 0x1660; //todo read form rom (guess at 0x1C)
-u32 dataoffset = 0x16DE0; //data offset (guess at 0x28)
+u32 dirrealoffset;
+u32 filerealoffset;
+u32 dataoffset;
 u8* dirblock;
-//u32 dirblocksize = 0x1000; //not sure if that is OK but I guess so
+
+u8* foldername;
+u32 foldernamelen = 2;
 
 u32 getle32(const u8* p)
 {
@@ -65,19 +67,25 @@ int romfs_fileblock_readentry(u32 fileoffset, romfs_fileentry* entry)
     memset(entry->name + namesize, 0, 2);
     if (!romfs_fileblock_read(fileoffset + size_without_name, namesize, entry->name))
         return 0;
-    anzaufloeserfeld++;
-    aufloeserfeld = realloc(aufloeserfeld, anzaufloeserfeld * sizeof(aufloeseentry));
-    aufloeserfeld[anzaufloeserfeld - 1].start = getle32(entry->dataoffset) + dataoffset;
-    aufloeserfeld[anzaufloeserfeld - 1].size = getle32(entry->datasize);
-    u8* namenfeld = malloc(getle32(entry->namesize) + 3);
-    memcpy(namenfeld, entry->name, getle32(entry->namesize));
-    namenfeld[getle32(entry->namesize)] = 0;
-    namenfeld[getle32(entry->namesize) + 1] = 0;
-    aufloeserfeld[anzaufloeserfeld - 1].name = namenfeld;
+
+    memcpy(foldername + foldernamelen, entry->name, namesize);
+    foldername[foldernamelen + namesize] = 0;
+    foldername[foldernamelen + namesize + 1] = 0;
+
+    DEBUG("%ls\n", foldername);
+
+    translaterfildcount++;
+    translaterfild = realloc(translaterfild, translaterfildcount * sizeof(aufloeseentry));
+    translaterfild[translaterfildcount - 1].start = getle32(entry->dataoffset) + dataoffset;
+    translaterfild[translaterfildcount - 1].size = getle32(entry->datasize);
+    u8* namenfeld = malloc(foldernamelen + namesize + 5);
+    memcpy(namenfeld, foldername, foldernamelen + namesize + 4);
+    translaterfild[translaterfildcount - 1].name = namenfeld;
     return 1;
 }
 void fileana(u32 fileoffset)
 {
+
     u32 siblingoffset = 0;
     romfs_fileentry entry;
 
@@ -85,7 +93,7 @@ void fileana(u32 fileoffset)
     if (!romfs_fileblock_readentry(fileoffset, &entry))
         return;
 
-    DEBUG("%ls\n", entry.name);
+
     siblingoffset = getle32(entry.siblingoffset);
 
     if (siblingoffset != (~0))
@@ -93,10 +101,21 @@ void fileana(u32 fileoffset)
 }
 void dirana(u32 offset) // romfs_visit_dir(romfs_context* ctx, u32 diroffset, u32 depth, u32 actions, filepath* rootpath)
 {
+    u32 foldernamelentemp = foldernamelen;
     romfs_direntry entry;
+    u32 namesize;
     if (!romfs_dirblock_readentry(offset, &entry))
         return;
-    DEBUG("%ls\n", entry.name);
+    namesize = getle32(entry.namesize);
+    memcpy(foldername + foldernamelen, entry.name, namesize);
+    foldernamelen += namesize;
+    foldername[foldernamelen] = '/';
+    foldername[foldernamelen + 1] = 0;
+    foldername[foldernamelen + 2] = 0;
+    foldername[foldernamelen + 3] = 0;
+
+    foldernamelen += 2;
+    DEBUG("%ls\n", foldername);
 
     u32 siblingoffset = getle32(entry.siblingoffset);
     u32 childoffset = getle32(entry.childoffset);
@@ -107,6 +126,7 @@ void dirana(u32 offset) // romfs_visit_dir(romfs_context* ctx, u32 diroffset, u3
 
     if (childoffset != (~0))
         dirana(childoffset);
+    foldernamelen = foldernamelentemp;
 
     if (siblingoffset != (~0))
         dirana(siblingoffset);
@@ -114,6 +134,11 @@ void dirana(u32 offset) // romfs_visit_dir(romfs_context* ctx, u32 diroffset, u3
 
 void initfilemon(u8* level3buffer)
 {
+    foldername = (u8*)malloc(0x1000); //this is enough
+    foldername[0] = '/';
+    foldername[1] = 0;
+    foldername[2] = 0;
+    foldername[3] = 0;
     romfs_header fs_header;
     memcpy(&fs_header, level3buffer, sizeof(fs_header));
     dirrealoffset = getle32(fs_header.dirrealoffset);
@@ -128,13 +153,13 @@ static int Contains(aufloeseentry* m, uint32_t addr, uint32_t sz)
     return (m->start <= addr && (addr + sz) <= (m->start + m->size));
 }
 
-void filemonaufloesen(u32 addr, u32 size)
+void filemontranslate(u32 addr, u32 size)
 {
-    for (int i = 0; i < anzaufloeserfeld; i++)
+    for (unsigned int i = 0; i < translaterfildcount; i++)
     {
-        if(Contains(&aufloeserfeld[i], addr, 1))
+        if (Contains(&translaterfild[i], addr, 1))
         {
-            DEBUG("%ls offset %08X size %08X\n", aufloeserfeld[i].name, addr - aufloeserfeld[i].start,size);
+            DEBUG("%ls offset %08X size %08X\n", translaterfild[i].name, addr - translaterfild[i].start, size);
         }
     }
 }

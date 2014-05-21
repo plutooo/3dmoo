@@ -68,6 +68,36 @@ u32 dsp_dsp_SyncRequest()
                          return 0;
                          break;
     }
+    case 0x00170040: //SetSemaphoreMask
+    {
+                       u32 mask = mem_Read16(CPUsvcbuffer + 0x84);
+                       DEBUG("SetSemaphoreMask %04X\n", mask);
+                       mem_Write32(CPUsvcbuffer + 0x84, 0); //no error
+                       return 0;
+    }
+    case 0x000D0082: //WriteProcessPipe
+    {
+                         u32 numb = mem_Read32(CPUsvcbuffer + 0x84);
+                         u32 size = mem_Read32(CPUsvcbuffer + 0x88);
+                         u32 buffer = mem_Read32(CPUsvcbuffer + 0x90);
+                         DEBUG("WriteProcessPipe %08X %08X %08X\n", numb, size, buffer);
+                         for (unsigned int i = 0; i < size; i++)
+                         {
+                             if (i % 16 == 0) printf("\n");
+                             printf("%02X ", mem_Read8(buffer + i));
+                         }
+                         mem_Write32(CPUsvcbuffer + 0x84, 0); //no error
+                         return 0;
+    }
+    case 0x00070040: //WriteReg0x10
+    {
+                         u32 numb = mem_Read16(CPUsvcbuffer + 0x84);
+                         DEBUG("WriteReg0x10 %04X\n", numb);
+                         handleinfo* h = handle_Get(mutex_handle);
+                         h->locked = false;
+                         mem_Write32(CPUsvcbuffer + 0x84, 0); //no error
+                         return 0;
+    }
     }
 
     ERROR("NOT IMPLEMENTED, cid=%08x\n", cid);

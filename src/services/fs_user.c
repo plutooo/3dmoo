@@ -230,7 +230,6 @@ u32 fs_user_SyncRequest()
             u32 handel = handle_New(HANDLE_TYPE_FILE, j);
             mem_Write32(CPUsvcbuffer + 0x8C, handel); //return handle
             mem_Write32(CPUsvcbuffer + 0x84, 0x1000); //todo ichfly important todo important
-            arm11_Dump();
             return 0;
 
 

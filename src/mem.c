@@ -292,6 +292,10 @@ bool mem_test(uint32_t addr)
 
 u32 mem_Read32(uint32_t addr)
 {
+    if((addr &0xFFFF0000) == 0x1FF80000)
+    {
+        DEBUG("read %08X\n",addr);
+    }
 #ifdef MEM_TRACE
     fprintf(stderr, "r32 %08x\n", addr);
 #endif

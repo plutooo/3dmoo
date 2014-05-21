@@ -304,6 +304,11 @@ static void CommonMemSetup()
     mem_AddSegment(0x1FF80000, 0x100, NULL);
     mem_Write8(0x1FF80014, 1); //Bit0 set for Retail
     mem_Write32(0x1FF80040, 64 * 1024 * 1024); //Set App Memory Size to 64MB?
+    
+    //Shared Memory Page For ARM11 Processes 
+    mem_AddSegment(0x1FF81000, 0x100, NULL);
+    mem_Write8(0x1FF800c0, 1); //headset connected
+
 }
 
 

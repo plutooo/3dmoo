@@ -24,10 +24,14 @@
 #include "mem.h"
 #include "arm11.h"
 
-u32 lock_handle;
-u32 event_handles[2];
+u32 mutex_handle;
 
 #define CPUsvcbuffer 0xFFFF0000
+
+void initDSP()
+{
+    mutex_handle = handle_New(HANDLE_TYPE_EVENT, 0);
+}
 
 u32 dsp_dsp_SyncRequest()
 {
@@ -41,9 +45,9 @@ u32 dsp_dsp_SyncRequest()
                          u32 unk1 = mem_Read32(CPUsvcbuffer + 0x88);
                          u32 unk2 = mem_Read32(CPUsvcbuffer + 0x8C);
                          u32 buffer = mem_Read32(CPUsvcbuffer + 0x94);
-                         DEBUG("LoadComponent %08X %08X %08X %08X", size, buffer, unk1, unk2);
+                         DEBUG("LoadComponent %08X %08X %08X %08X\n", size, buffer, unk1, unk2);
                          mem_Write32(CPUsvcbuffer + 0x84, 0x0); //error out
-                         mem_Write32(CPUsvcbuffer + 0x88, 0x0); //ichfly todo what is that ??? sound_marker
+                         mem_Write32(CPUsvcbuffer + 0x88, 0xFF); //ichfly todo what is that ??? sound_marker
                          return 0;
                          break;
     }
@@ -52,7 +56,14 @@ u32 dsp_dsp_SyncRequest()
                          u32 param0 = mem_Read32(CPUsvcbuffer + 0x84);
                          u32 param1 = mem_Read32(CPUsvcbuffer + 0x88);
                          u32 eventhandle = mem_Read32(CPUsvcbuffer + 0x94);
-                         DEBUG("RegisterInterruptEvents %08X %08X %08X", param0, param1, eventhandle);
+                         DEBUG("RegisterInterruptEvents %08X %08X %08X\n", param0, param1, eventhandle);
+                         mem_Write32(CPUsvcbuffer + 0x84, 0); //no error
+                         return 0;
+                         break;
+    }
+    case 0x00160000: //GetSemaphoreEventHandle
+    {
+                         mem_Write32(CPUsvcbuffer + 0x8C, mutex_handle);
                          mem_Write32(CPUsvcbuffer + 0x84, 0); //no error
                          return 0;
                          break;

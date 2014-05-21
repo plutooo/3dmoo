@@ -7,7 +7,7 @@
 #include "threads.h"
 
 #define dumpstack 1
-#define dumpstacksize 0
+#define dumpstacksize 0x100
 #define maxdmupaddr 0x0033a850
 
 /*ARMword ARMul_GetCPSR (ARMul_State * state) {
@@ -289,6 +289,7 @@ void arm11_SetR(u32 n, u32 val)
 }
 bool aufloeser(char* a,u32 addr)
 {
+    a[0] = 0;
     if (mem_test(addr) && maxdmupaddr > addr)
     {
 #ifdef not
@@ -334,14 +335,6 @@ bool aufloeser(char* a,u32 addr)
             }
             fclose(file);
         }
-        else
-        {
-            a = '\0';
-        }
-    }
-    else
-    {
-        a = '\0';
     }
 
     return true;
@@ -358,6 +351,9 @@ void arm11_Dump()
     memset(a, 0, 256);
     aufloeser(a, s.Reg[15]);
     DEBUG("current pc %s\n",a);
+    memset(a, 0, 256);
+    aufloeser(a, s.Reg[14]);
+    DEBUG("current lr %s\n", a);
     for (int i = 0; i < dumpstacksize; i++)
     {
 

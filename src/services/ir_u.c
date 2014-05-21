@@ -44,6 +44,19 @@ u32 ir_u_SyncRequest()
         mem_Write32(CPUsvcbuffer + 0x84, 0); //no error
         return 0;
         break;
+    case 0x00180182: //InitializeIrnopShared
+    {
+                         u32 unk1 = mem_Read32(CPUsvcbuffer + 0x84);
+                         u32 unk2 = mem_Read32(CPUsvcbuffer + 0x88);
+                         u32 unk3 = mem_Read32(CPUsvcbuffer + 0x8C);
+                         u32 unk4 = mem_Read32(CPUsvcbuffer + 0x90);
+                         u32 unk5 = mem_Read32(CPUsvcbuffer + 0x94);
+                         u8 unk6 = mem_Read8(CPUsvcbuffer + 0x98);
+                         u8 unk7 = mem_Read32(CPUsvcbuffer + 0xA0);
+                         DEBUG("InitializeIrnopShared %08X %08X %08X %08X %08X %02X %08X", unk1, unk2, unk3, unk4, unk5, unk6, unk7);
+                         mem_Write32(CPUsvcbuffer + 0x84, 0); //no error
+                         return 0;
+    }
     }
 
     ERROR("NOT IMPLEMENTED, cid=%08x\n", cid);

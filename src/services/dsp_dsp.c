@@ -26,6 +26,8 @@
 
 u32 mutex_handle;
 
+u32 myeventhandel = 0;
+
 #define CPUsvcbuffer 0xFFFF0000
 
 void initDSP()
@@ -56,6 +58,7 @@ u32 dsp_dsp_SyncRequest()
                          u32 param0 = mem_Read32(CPUsvcbuffer + 0x84);
                          u32 param1 = mem_Read32(CPUsvcbuffer + 0x88);
                          u32 eventhandle = mem_Read32(CPUsvcbuffer + 0x94);
+                         myeventhandel = mem_Read32(eventhandle);
                          DEBUG("RegisterInterruptEvents %08X %08X %08X\n", param0, param1, eventhandle);
                          mem_Write32(CPUsvcbuffer + 0x84, 0); //no error
                          return 0;
@@ -89,12 +92,10 @@ u32 dsp_dsp_SyncRequest()
                          mem_Write32(CPUsvcbuffer + 0x84, 0); //no error
                          return 0;
     }
-    case 0x00070040: //WriteReg0x10
+    case 0x00070040: //WriteReg0x10 todo something unlock
     {
                          u32 numb = mem_Read16(CPUsvcbuffer + 0x84);
                          DEBUG("WriteReg0x10 %04X\n", numb);
-                         handleinfo* h = handle_Get(mutex_handle);
-                         h->locked = false;
                          mem_Write32(CPUsvcbuffer + 0x84, 0); //no error
                          return 0;
     }

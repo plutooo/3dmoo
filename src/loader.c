@@ -309,6 +309,9 @@ static void CommonMemSetup()
     mem_AddSegment(0x1FF81000, 0x100, NULL);
     mem_Write8(0x1FF800c0, 1); //headset connected
 
+    //DSP
+    mem_AddSegment(0x1FF00000, 0x80000, NULL);
+
 }
 
 

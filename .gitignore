@@ -160,3 +160,4 @@ windows/romfs
 windows/dump*
 windows/map.*
 windows/map
+windows/dspfirm.bin

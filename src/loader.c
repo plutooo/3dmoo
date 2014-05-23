@@ -481,14 +481,14 @@ int loader_LoadFile(FILE* fd)
 
         initfilemon(romfslvl3);
 
-        FILE *romfs_out = fopen("romfs/000000000000000000000000", "wb");
+        /*FILE *romfs_out = fopen("romfs/000000000000000000000000", "wb");
 
         if (fwrite(romfslvl3, romfs_sz, 1, romfs_out) != 1) {
             ERROR("romfslvl3 fwrite failed.\n");
             return 1;
         }
 
-        fclose(romfs_out);
+        fclose(romfs_out);*/
         free(romfslvl3);
     }
 

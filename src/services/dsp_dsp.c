@@ -55,6 +55,10 @@ u32 dsp_dsp_SyncRequest()
                          mem_Read(outbuff, buffer, size);
                          fwrite(outbuff, size, 1, out);
                          fclose(out);
+
+                         loadDSP(outbuff);
+
+                         free(outbuff);
                          mem_Write32(CPUsvcbuffer + 0x84, 0x0); //error out
                          mem_Write32(CPUsvcbuffer + 0x88, 0xFF); //ichfly todo what is that ??? sound_marker
                          return 0;

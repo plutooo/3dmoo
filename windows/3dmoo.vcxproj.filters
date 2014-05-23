@@ -34,6 +34,12 @@
     <Filter Include="Header Files\arm11\vfp">
       <UniqueIdentifier>{e560d745-6e54-49c9-8f8c-ef5582d2363b}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\DSPcore">
+      <UniqueIdentifier>{1f229012-b158-4754-a39c-19832d774397}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\DSP">
+      <UniqueIdentifier>{7874e0ae-9265-401a-b064-76491a3f0b0d}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\handles.c">
@@ -147,6 +153,9 @@
     <ClCompile Include="..\src\filemon.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\DSPemu\DSPmain.c">
+      <Filter>Source Files\DSPcore</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\inc\handles.h">
@@ -202,6 +211,9 @@
     </ClInclude>
     <ClInclude Include="..\inc\filemon.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\inc\DSP.h">
+      <Filter>Header Files\DSP</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

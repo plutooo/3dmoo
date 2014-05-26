@@ -14,9 +14,10 @@
 [?%] CreateMemoryBlock
 [1%] svcCreateAddressArbiter
 [50%] svcReleaseMutex
-[1%] WaitSynchronization1
+[50%] WaitSynchronization1
 
 * misc
 [0%] Move ThreadCommandBuffer(s) to correct address (currently 0xFFFF0000).
+[0%] Switch ThreadCommandBuffer upon context switch.
 [0%] Implement a debugger.
 [0%] Better error-handling than exit(1).

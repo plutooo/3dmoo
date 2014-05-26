@@ -27,9 +27,10 @@
 #include "svc.h"
 
 
+// -- Mutexes --
+
 u32 mutex_SyncRequest(handleinfo* h, bool *locked)
 {
-    // XXX: insert real mutex here!
     mutex_WaitSynchronization(h,locked);
 
     DEBUG("locking mutex..\n");
@@ -38,6 +39,7 @@ u32 mutex_SyncRequest(handleinfo* h, bool *locked)
     h->locked = true;
     return 0;
 }
+
 u32 mutex_WaitSynchronization(handleinfo* h, bool *locked)
 {
     DEBUG("waiting for mutex to unlock..\n");
@@ -61,6 +63,7 @@ u32 svcCreateMutex()
     }
 
     h->locked = !!locked;
+
     arm11_SetR(1, handle); // handle_out
     return 0;
 }
@@ -88,25 +91,30 @@ u32 svcReleaseMutex()
 
 u32 svcDuplicateHandle()
 {
-    u32 todclone = arm11_R(1);
+    u32 to_clone = arm11_R(1);
     u32 handle;
-    if (todclone == HANDLE_CURRENT_THREAD)todclone = threads_getcurrenthandle();
-    if (todclone == HANDLE_CURRENT_PROCESS)todclone = curprocesshandle;
-    handle = handle_New(HANDLE_TYPE_REDIR, todclone);
+
+    if (to_clone == HANDLE_CURRENT_THREAD)
+        to_clone = threads_GetCurrentThreadHandle();
+
+    if (to_clone == HANDLE_CURRENT_PROCESS)
+        to_clone = curprocesshandle;
+
+    handle = handle_New(HANDLE_TYPE_REDIR, to_clone);
+
     handleinfo* h = handle_Get(handle);
     if (h == NULL) {
         DEBUG("failed to get newly created copy\n");
         PAUSE();
         return -1;
     }
+
     return 0;
 }
 
-///////////////////////////
-//Semaphores
-///////////////////////////
+// -- Semaphores --
 
-//Result CreateSemaphore(Handle* semaphore, s32 initialCount, s32 maxCount)
+// Result CreateSemaphore(Handle* semaphore, s32 initialCount, s32 maxCount)
 u32 svcCreateSemaphore()
 {
     u32 initialCount = arm11_R(1);
@@ -128,7 +136,8 @@ u32 svcCreateSemaphore()
     arm11_SetR(1, handle); // handle_out
     return 0;
 }
-//Result ReleaseSemaphore(s32* count, Handle semaphore, s32 releaseCount)
+
+// Result ReleaseSemaphore(s32* count, Handle semaphore, s32 releaseCount)
 u32 svcReleaseSemaphore()
 {
     u32 count = arm11_R(0);
@@ -157,7 +166,6 @@ u32 svcReleaseSemaphore()
 
 u32 semaphore_SyncRequest(handleinfo* h, bool *locked)
 {
-    // XXX: insert real mutex here!
     mutex_WaitSynchronization(h, locked);
 
     DEBUG("locking semaphore..\n");
@@ -166,6 +174,7 @@ u32 semaphore_SyncRequest(handleinfo* h, bool *locked)
     h->locked = true;
     return 0;
 }
+
 u32 semaphore_WaitSynchronization(handleinfo* h, bool *locked)
 {
     DEBUG("waiting for semaphore to unlock..\n");

@@ -119,26 +119,8 @@ int main(int argc, char* argv[])
         if(!noscreen)
             screen_HandleEvent();
 
-        /*for (int i = 0; i < 0x20000; i++) { // todo
-            uint32_t pc = arm11_R(15);
-
-            if (disasm) {
-                printf("[%08x] ", pc);
-                arm11_Disasm32(pc);
-            }
-
-            arm11_Step();
-        }*/
-
         for (int i = 0; i < 6; i++) {
-            for (unsigned int t = 0; t < threads_Count(); t++) {
-                //int from = t == 0 ? threads_Count() - 1 : t - 1;
-                if (islocked(t))continue;
-                threads_Switch(/*from,*/ t);
-                arm11_Run(0x8000000 / 60);
-            }
-            threads_save();
-            threads_Remove();
+            threads_Execute();
         }
 
         if (!noscreen)

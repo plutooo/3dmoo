@@ -29,7 +29,7 @@
 #define MAX_NUM_HANDLES 0x1000
 #define HANDLES_BASE    0xDEADBABE
 
-#define exitonerror 1
+#define EXIT_ON_ERROR 1
 
 static handleinfo handles[MAX_NUM_HANDLES];
 static u32 handles_num;
@@ -62,6 +62,7 @@ handleinfo* handle_Get(u32 handle)
     if (idx < handles_num) {
         if (handles[idx].type == HANDLE_TYPE_REDIR)
             return handle_Get(handles[idx].subtype);
+
         else return &handles[idx];
     }
     return NULL;
@@ -77,7 +78,7 @@ u32 svcSendSyncRequest()
     if(hi == NULL) {
         ERROR("handle %08x not found.\n", handle);
         PAUSE();
-#ifdef exitonerror
+#ifdef EXIT_ON_ERROR
         exit(1);
 #else
         return 0;
@@ -90,18 +91,25 @@ u32 svcSendSyncRequest()
         PAUSE();
         exit(1);
     }
-    u32 temp;
-    bool locked = false;
+
     // Lookup actual callback in table.
     if (handle_types[hi->type].fnSyncRequest != NULL) {
-        temp = handle_types[hi->type].fnSyncRequest(hi, &locked);
+        u32 ret;
+        bool locked = false;
+
+        ret = handle_types[hi->type].fnSyncRequest(hi, &locked);
+
+        // Handle is locked so we put thread into WAITING state.
         if (locked) {
-            u32* handelist = malloc(4);
-            *handelist = handle;
-            lockcpu(handelist, 1, 1);
+            u32* wait_list = malloc(4);
+            wait_list[0] = handle;
+
+            threads_SetCurrentThreadWaitList(wait_list, true, 1);
         }
-        return temp;
-    } else {
+
+        return ret;
+    }
+    else {
         ERROR("svcSyncRequest undefined for handle-type \"%s\".\n",
               handle_types[hi->type].name);
         PAUSE();
@@ -124,7 +132,7 @@ u32 svcCloseHandle(ARMul_State *state)
     if(hi == NULL) {
         ERROR("handle %08x not found.\n", handle);
         PAUSE();
-#ifdef exitonerror
+#ifdef EXIT_ON_ERROR
         exit(1);
 #else
         return 0;
@@ -140,7 +148,7 @@ u32 svcCloseHandle(ARMul_State *state)
 
     // Lookup actual callback in table.
     if(handle_types[hi->type].fnCloseHandle != NULL)
-        return handle_types[hi->type].fnCloseHandle(state,hi);
+        return handle_types[hi->type].fnCloseHandle(state, hi);
 
     ERROR("svcCloseHandle undefined for handle-type \"%s\".\n",
           handle_types[hi->type].name);
@@ -156,7 +164,7 @@ u32 svcWaitSynchronization1() //todo timeout
     if(hi == NULL) {
         ERROR("handle %08x not found.\n", handle);
         PAUSE();
-#ifdef exitonerror
+#ifdef EXIT_ON_ERROR
         exit(1);
 #else
         return 0;
@@ -170,66 +178,74 @@ u32 svcWaitSynchronization1() //todo timeout
         exit(1);
     }
 
-    u32 temp;
-    bool locked = false;
     // Lookup actual callback in table.
     if (handle_types[hi->type].fnWaitSynchronization != NULL) {
-        temp = handle_types[hi->type].fnWaitSynchronization(hi, &locked);
+        u32 ret;
+        bool locked = false;
+
+        ret = handle_types[hi->type].fnWaitSynchronization(hi, &locked);
+
         if (locked) {
-            u32* handelist = (u32*)malloc(4);
-            *handelist = handle;
-            lockcpu(handelist, 1,1);
+            // If handle is locked we put thread in WAITING state.
+            u32* wait_list = (u32*) malloc(4);
+            wait_list[0] = handle;
+
+            threads_SetCurrentThreadWaitList(wait_list, true, 1);
         }
-        return temp;
-    } else {
-        ERROR("svcCloseHandle undefined for handle-type \"%s\".\n",
+
+        return ret;
+    }
+    else {
+        ERROR("WaitSynchronization undefined for handle-type \"%s\".\n",
               handle_types[hi->type].name);
         PAUSE();
         return 0;
     }
 
 }
-u32 svcWaitSynchronizationN() //todo timeout
+u32 svcWaitSynchronizationN() // TODO: timeouts
 {
-    u32 *handelist;
-    u32 nanoseconds1 = arm11_R(0);
-    u32 handles = arm11_R(1);
-    u32 handlecount = arm11_R(2);
-    u32 waitAll = arm11_R(3);
-    u32 nanoseconds2 = arm11_R(4);
-    bool allunlockde = true;
-    for (u32 i = 0; i < handlecount; i++) {
-        u32 curhandel = mem_Read32(handles + i * 4);
-        handleinfo* hi = handle_Get(curhandel);
+    u32 nanoseconds1  = arm11_R(0);
+    u32 handles_ptr   = arm11_R(1);
+    u32 handles_count = arm11_R(2);
+    u32 wait_all      = arm11_R(3);
+    u32 nanoseconds2  = arm11_R(4);
+
+    bool all_unlocked = true;
+
+    for (u32 i = 0; i < handles_count; i++) {
+        u32 handle = mem_Read32(handles_ptr + i * 4);
+        handleinfo* hi = handle_Get(handle);
 
         if (hi == NULL) {
-            ERROR("handle %08x not found.\n", curhandel);
+            ERROR("handle %08x not found.\n", handle);
             PAUSE();
-#ifdef exitonerror
+#ifdef EXIT_ON_ERROR
             exit(1);
-#else
-            return 0;
 #endif
+            return -1;
         }
 
         if (hi->type >= NUM_HANDLE_TYPES) {
             // This should never happen.
-            ERROR("handle %08x has non-defined type.\n", curhandel);
+            ERROR("handle %08x has non-defined type.\n", handle);
             PAUSE();
             exit(1);
         }
 
-        u32 temp;
-        bool locked = false;
         // Lookup actual callback in table.
         if (handle_types[hi->type].fnWaitSynchronization != NULL) {
-            temp = handle_types[hi->type].fnWaitSynchronization(hi, &locked);
-            if (!locked && waitAll == 0) {
-                arm11_SetR(1,i);
+            bool locked = false;
+
+            handle_types[hi->type].fnWaitSynchronization(hi, &locked);
+
+            if (!locked && !wait_all) {
+                arm11_SetR(1, i);
                 return 0;
-            } else {
-                allunlockde = false;
             }
+            else
+                all_unlocked = false;
+
         } else {
             ERROR("svcCloseHandle undefined for handle-type \"%s\".\n",
                   handle_types[hi->type].name);
@@ -237,9 +253,17 @@ u32 svcWaitSynchronizationN() //todo timeout
             return 0;
         }
     }
-    if (waitAll && allunlockde)return 0;
-    handelist = malloc(handlecount*4);
-    mem_Read((u8*)handelist, handles, handlecount * 4);
-    lockcpu(handelist, waitAll, handlecount);
+
+    if(wait_all && all_unlocked) {
+        arm11_SetR(1, handles_count);
+        return 0;
+    }
+
+    // Put thread in WAITING state if not all handles were unlocked.
+
+    u32* wait_list = malloc(handles_count*4);
+    mem_Read((u8 *) wait_list, handles_ptr, handles_count * 4);
+
+    threads_SetCurrentThreadWaitList(wait_list, wait_all, handles_count);
     return 0;
 }

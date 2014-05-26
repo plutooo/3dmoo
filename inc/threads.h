@@ -18,6 +18,12 @@
 #ifndef _THREADS_H_
 #define _THREADS_H_
 
+typedef enum {
+    RUNNING,
+    STOPPED,
+    WAITING
+} thread_state;
+
 typedef struct {
     u32  r[13];
     u32 sp;
@@ -30,26 +36,31 @@ typedef struct {
     u32 mode;
     u32 r15;
 
-    bool active;
-    u8* handellist;
-    u32 waitall;
-    u32 handellistcount;
-    u32 ownhand;
+    thread_state state;
 
+    u32* wait_list;
+    u32  wait_list_size;
+    bool wait_all;
+
+    u32 handle;
     s32 priority;
-
-    bool delete;
 } thread;
 
-u32 threads_New(u32 hand);
-bool islocked(u32 t);
-u32 threads_Count();
-u32 threads_getcurrenthandle();
-void threads_Switch(/*u32 from,*/ u32 to);
+
+u32  threads_New(u32 handle);
+bool threads_IsThreadActive(u32 id);
+void threads_Execute();
+u32  threads_Count();
+u32  threads_GetCurrentThreadHandle();
+void threads_StopThread(u32 threadid);
+void threads_StopCurrentThread();
+u32  threads_FindIdByHandle(u32 handle);
+void threads_SaveContextCurrentThread();
+void threads_SetCurrentThreadWaitList(u32* wait_list, bool wait_all, u32 num);
+
+u32 svcGetThreadPriority();
+u32 svcSetThreadPriority();
+u32 svcGetThreadId();
 u32 svcCreateThread();
-void lockcpu(u32* handelist, u32 waitAll, u32 count);
-void threads_save();
-void threads_Remove();
-void threads_removecurrent();
 
 #endif

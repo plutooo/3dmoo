@@ -32,10 +32,13 @@
 
 static thread threads[MAX_THREADS];
 static u32    num_threads = 0;
+static s32    current_thread = 0;
 
-#define DSidoffset 0xC
 
-u32 threads_New(u32 hand)
+#define THREAD_ID_OFFSET 0xC
+
+
+u32 threads_New(u32 handle)
 {
     if(num_threads == MAX_THREADS) {
         ERROR("Too many threads..\n");
@@ -43,131 +46,190 @@ u32 threads_New(u32 hand)
         PAUSE();
         exit(1);
     }
-    threads[num_threads].ownhand = hand;
-    threads[num_threads].active = true;
-    threads[num_threads].handellist = 0;
+
+    threads[num_threads].handle = handle;
+    threads[num_threads].state = RUNNING;
+    threads[num_threads].wait_list = NULL;
     return num_threads++;
 }
-bool islocked(u32 t)
+
+// Returns true if given thread is ready to execute.
+bool threads_IsThreadActive(u32 id)
 {
-    if (threads[t].delete) {
+    u32 i;
+
+    switch(threads[i].state) {
+    case RUNNING:
         return true;
-    } else if (threads[t].active) {
+
+    case STOPPED:
         return false;
-    } else {
-        bool allunlockde = true;
-        for (unsigned int i = 0; i < threads[t].handellistcount; i++) {
-            handleinfo* hi = handle_Get(*(u32*)(threads[t].handellist + 4 * i));
-            u32 temp;
-            bool locked = false;
-            // Lookup actual callback in table.
-            temp = handle_types[hi->type].fnWaitSynchronization(hi, &locked);
-            if (!locked && threads[t].waitall == 0) {
-                threads[t].r[1] = i;
-                threads[t].active = true;
-                return false;
-            } else {
-                allunlockde = false;
+
+    case WAITING:
+        if(threads[i].wait_all) {
+            for(i=0; i<threads[i].wait_list_size; i++) {
+                u32 handle = threads[i].wait_list[i];
+
+                handleinfo* hi = handle_Get(handle);
+                if(hi == NULL)
+                    continue;
+
+                bool is_waiting = false;
+                handle_types[hi->type].fnWaitSynchronization(hi, &is_waiting);
+
+                if(is_waiting) 
+                    return false;
             }
+
+            threads[i].r[1] = threads[i].wait_list_size;
+            threads[i].state = RUNNING;
+            return true;
         }
-        if (allunlockde) {
-            threads[t].r[1] = threads[t].handellistcount;
-            threads[t].active = true;
+        else {
+            for(i=0; i<threads[i].wait_list_size; i++) {
+                u32 handle = threads[i].wait_list[i];
+
+                handleinfo* hi = handle_Get(handle);
+                if(hi == NULL)
+                    continue;
+
+                bool is_waiting = false;
+                handle_types[hi->type].fnWaitSynchronization(hi, &is_waiting);
+
+                if(is_waiting) {
+                    threads[i].r[1] = i;
+                    threads[i].state = RUNNING;
+                    return true;
+                }
+            }
             return false;
         }
-        return true;
     }
 }
-u32 threads_Count()
-{
-    return num_threads;
-}
-s32 currentthread = 0;
-u32 threads_getcurrenthandle()
-{
-    return threads[currentthread].ownhand;
-}
-void threads_removethread(u32 threadid)
-{
-    threads[threadid].delete = true;
-    /*for (int i = threadid; i < threads_Count(); i++)
-    {
-        threads[i] = threads[i + 1];
-    }
-    num_threads--;*/
-}
-void threads_removecurrent()
-{
-    threads_removethread(currentthread);
-}
-u32 threads_find(u32 handle)
-{
-    if (handle == 0xffff8000) {
-        return currentthread;
-    }
 
-    for (unsigned int i = 0; i < threads_Count(); i++) {
-        if (threads[i].ownhand == handle) {
+u32 threads_NextIdToBeDeleted()
+{
+    u32 i;
+
+    for (i=0; i<threads_Count(); i++) {
+        if (threads[i].state == STOPPED)
             return i;
-        }
     }
     return -1;
 }
-u32 threads_NextToBeDeleted()
+
+void threads_RemoveZombies()
 {
-    for (unsigned int i = 0; i < threads_Count(); i++) {
-        if (threads[i].delete) {
-            return i;
-        }
-    }
-    return -1;
-}
-void threads_Remove()
-{
-    unsigned int id;
-    while ((id = threads_NextToBeDeleted()) != -1) {
-        for (unsigned int i = id; i < threads_Count(); i++) {
+    u32 id;
+    u32 i;
+
+    while ((id = threads_NextIdToBeDeleted()) != -1) {
+        for(i=id; i<threads_Count(); i++)
             threads[i] = threads[i + 1];
-        }
+
         num_threads--;
     }
 }
+
 void threads_Switch(/*u32 from,*/ u32 to)
 {
-    u32 from = currentthread;
+    u32 from = current_thread;
+
     if (from == to) {
         DEBUG("Trying to switch to current thread..\n");
         return;
     }
 
-    /*if(from >= num_threads || to >= num_threads) {
-        ERROR("Trying to switch nonexisting threads..\n");
-        arm11_Dump();
-        exit(1);
-    }*/
-
-    if(!threads[to].active) {
-        ERROR("Trying to switch nonactive threads..\n");
+    if(!threads[to].state == STOPPED) {
+        ERROR("Trying to switch to a stopped thread..\n");
         arm11_Dump();
         exit(1);
     }
 
     DEBUG("Thread switch %d->%d\n", from, to);
 
-    if (currentthread != -1)
+    if (current_thread != -1)
         arm11_SaveContext(&threads[from]);
 
     arm11_LoadContext(&threads[to]);
-    currentthread = to;
+    current_thread = to;
 }
-void threads_save()
+
+void threads_Execute() {
+    u32 t;
+
+    for (t=0; t<threads_Count(); t++) {
+        if(threads_IsThreadActive(t))
+            continue;
+
+        threads_Switch(/*from,*/ t);
+        arm11_Run(0x8000000 / 60);
+    }
+
+    threads_SaveContextCurrentThread();
+    threads_RemoveZombies();
+}
+
+u32 threads_Count()
 {
-    if (currentthread != -1) {
-        arm11_SaveContext(&threads[currentthread]);
+    return num_threads;
+}
+
+u32 threads_GetCurrentThreadHandle()
+{
+    return threads[current_thread].handle;
+}
+
+void threads_StopThread(u32 threadid)
+{
+    threads[threadid].state = STOPPED;
+}
+
+void threads_StopCurrentThread()
+{
+    threads_StopThread(current_thread);
+}
+
+u32 threads_FindIdByHandle(u32 handle)
+{
+    u32 i;
+
+    if (handle == 0xffff8000)
+        return current_thread;
+
+    for(i=0; i<threads_Count(); i++) {
+        if (threads[i].handle == handle)
+            return i;
+    }
+    return -1;
+}
+
+void threads_SaveContextCurrentThread()
+{
+    if (current_thread != -1) {
+        arm11_SaveContext(&threads[current_thread]);
+
         if (num_threads > 1)
-            currentthread = -1;
+            current_thread = -1;
     }
 }
+
+extern ARMul_State s;
+
+void threads_SetCurrentThreadWaitList(u32* wait_list, bool wait_all, u32 num)
+{
+    if(threads[current_thread].wait_list != NULL)
+        free(threads[current_thread].wait_list);
+
+    threads[current_thread].wait_list = wait_list;
+    threads[current_thread].state = WAITING;
+    threads[current_thread].wait_all = wait_all;
+    threads[current_thread].wait_list_size = num;
+
+    s.NumInstrsToExecute = 0;
+}
+
+// -- Syscall implementations --
 
 u32 svcGetThreadPriority()
 {
@@ -175,7 +237,7 @@ u32 svcGetThreadPriority()
     u32 hand = arm11_R(1);
     s32 prio = 0;
 
-    u32 threadid = threads_find(hand);
+    u32 threadid = threads_FindIdByHandle(hand);
 
     if (threadid != -1) {
         prio = threads[threadid].priority;
@@ -191,7 +253,7 @@ u32 svcSetThreadPriority()
     u32 hand = arm11_R(0);
     s32 prio = arm11_R(1);
 
-    u32 threadid = threads_find(hand);
+    u32 threadid = threads_FindIdByHandle(hand);
 
     if (threadid != -1) {
         threads[threadid].priority = prio;
@@ -202,11 +264,12 @@ u32 svcSetThreadPriority()
 
 u32 svcGetThreadId()
 {
-    u32 hand = arm11_R(1);
-    if (hand == 0xffff8000) {
-        return DSidoffset + currentthread;
-    } else {
-        DEBUG("svcGetThreadId not supported");
+    u32 handle = arm11_R(1);
+
+    if (handle == 0xffff8000)
+        return THREAD_ID_OFFSET + current_thread;
+    else {
+        DEBUG("svcGetThreadId not supported\n");
         return 0;
     }
 }
@@ -235,23 +298,16 @@ u32 svcCreateThread()
 
     return 0;
 }
-extern ARMul_State s;
-void lockcpu(u32* handelist, u32 waitAll,u32 count)
-{
-    if (threads[currentthread].handellist != 0) free(threads[currentthread].handellist);
-    threads[currentthread].handellist = (u8*)handelist;
-    threads[currentthread].active = false;
-    threads[currentthread].waitall = waitAll;
-    threads[currentthread].handellistcount = count;
-    s.NumInstrsToExecute = 0;
-}
+
+// --- Thread handle callbacks ---
 
 u32 thread_CloseHandle(ARMul_State *state, handleinfo* h)
 {
-    u32 id = threads_find(h->handle);
-    if (id == -1) return -1;
+    u32 id = threads_FindIdByHandle(h->handle);
+    if (id == -1)
+        return -1;
 
-    threads_removethread(id);
+    threads_StopThread(id);
     state->NumInstrsToExecute = 0;
     return 0;
 }
@@ -259,10 +315,12 @@ u32 thread_CloseHandle(ARMul_State *state, handleinfo* h)
 u32 thread_SyncRequest(handleinfo* h, bool *locked)
 {
     u32 cid = mem_Read32(0xFFFF0080);
+
     switch (cid) {
     default:
         break;
     }
+
     ERROR("STUBBED, cid=%08x\n", cid);
     arm11_Dump();
     PAUSE();

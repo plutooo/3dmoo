@@ -169,7 +169,8 @@ void svc_Execute(ARMul_State * state, u8 num)
     case 9: //Exit Thread
         arm11_SetR(0, 0);
         state->NumInstrsToExecute = 0;
-        threads_removecurrent();
+
+        threads_StopCurrentThread();
         return;
     case 0xa:
         arm11_SetR(0, svcsleep());

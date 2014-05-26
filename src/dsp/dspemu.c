@@ -100,7 +100,8 @@ const char* rrrrr[] = {
     "ext0", "ext1"
 };
 
-int HasOp3(u16 op) {
+int HasOp3(u16 op)
+{
     u16 opc = (op >> 9) & 0x7;
 
     if(opc != 4 && opc != 5)
@@ -165,19 +166,17 @@ void DSP_Step()
             // ALM (rN)
             DEBUG("%s (r%d), a%d (modifier=%s)\n", ops[(op >> 9) & 0xF], op & 0x7, ax, mm[(op >> 3) & 3]);
             break;
-        }
-        else if((op >> 6) & 0x7 == 5) {
+        } else if((op >> 6) & 0x7 == 5) {
             // ALM register
             u16 r = op & 0x1F;
-            
+
             if(r < 22) {
                 DEBUG("%s %s, a%d\n", ops[(op >> 9) & 0xF], rrrrr[r], ax);
                 break;
             }
 
             DEBUG("?\n");
-        }
-        else if((op >> 6) & 0x7 == 7) {
+        } else if((op >> 6) & 0x7 == 7) {
             u16 extra = FetchWord(pc+2);
             pc+=2;
 
@@ -185,11 +184,10 @@ void DSP_Step()
                 // ALB (rN)
                 DEBUG("%s (r%d), %04x (modifier=%s)\n", alb_ops[(op >> 9) & 0x7], op & 0x7,
                       extra & 0xFFFF, mm[(op >> 3) & 3]);
-            }
-            else {
+            } else {
                 // ALB register
                 u16 r = op & 0x1F;
-           
+
                 if(r < 22) {
                     DEBUG("%s %s, %04x\n", alb_ops[(op >> 9) & 0x7], rrrrr[r], extra & 0xFFFF);
                     break;
@@ -198,8 +196,7 @@ void DSP_Step()
                 DEBUG("?\n");
             }
             break;
-        }
-        else if((op & 0xF0FF) == 0x80C0) {
+        } else if((op & 0xF0FF) == 0x80C0) {
             u16 op3 = HasOp3(op);
 
             if(op3 != -1) {
@@ -213,16 +210,14 @@ void DSP_Step()
 
             DEBUG("?\n");
             break;
-        }
-        else if((op & 0xFF70) == 0x8A60) {
+        } else if((op & 0xFF70) == 0x8A60) {
             // TODO: norm
             u16 extra = FetchWord(pc+1);
             pc+=2;
 
             DEBUG("norm??\n");
             break;
-        }
-        else if((op & 0xF8E7) == 0x8060) {
+        } else if((op & 0xF8E7) == 0x8060) {
             // maxd
             int d = op & (1 << 10);
             int f = op & (1 << 9);
@@ -265,11 +260,10 @@ void DSP_Step()
                           extra & 0xFFFF,
                           op & (0x1000) ? 1 : 0);
                     break;
-                }
-                else { // ALU (rb + ##offset),ax
+                } else { // ALU (rb + ##offset),ax
                     DEBUG("%s (rb + %04x), a%d\n",
                           ops3[op3],
-                          extra & 0xFFFF, 
+                          extra & 0xFFFF,
                           op & (0x1000) ? 1 : 0);
                     break;
                 }

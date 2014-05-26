@@ -58,7 +58,7 @@ bool threads_IsThreadActive(u32 id)
 {
     u32 i;
 
-    switch(threads[i].state) {
+    switch(threads[id].state) {
     case RUNNING:
         return true;
 
@@ -66,9 +66,9 @@ bool threads_IsThreadActive(u32 id)
         return false;
 
     case WAITING:
-        if(threads[i].wait_all) {
-            for(i=0; i<threads[i].wait_list_size; i++) {
-                u32 handle = threads[i].wait_list[i];
+        if(threads[id].wait_all) {
+            for(i=0; i<threads[id].wait_list_size; i++) {
+                u32 handle = threads[id].wait_list[i];
 
                 handleinfo* hi = handle_Get(handle);
                 if(hi == NULL)
@@ -81,13 +81,13 @@ bool threads_IsThreadActive(u32 id)
                     return false;
             }
 
-            threads[i].r[1] = threads[i].wait_list_size;
-            threads[i].state = RUNNING;
+            threads[id].r[1] = threads[id].wait_list_size;
+            threads[id].state = RUNNING;
             return true;
         }
         else {
-            for(i=0; i<threads[i].wait_list_size; i++) {
-                u32 handle = threads[i].wait_list[i];
+            for(i=0; i<threads[id].wait_list_size; i++) {
+                u32 handle = threads[id].wait_list[i];
 
                 handleinfo* hi = handle_Get(handle);
                 if(hi == NULL)
@@ -97,8 +97,8 @@ bool threads_IsThreadActive(u32 id)
                 handle_types[hi->type].fnWaitSynchronization(hi, &is_waiting);
 
                 if(is_waiting) {
-                    threads[i].r[1] = i;
-                    threads[i].state = RUNNING;
+                    threads[id].r[1] = i;
+                    threads[id].state = RUNNING;
                     return true;
                 }
             }

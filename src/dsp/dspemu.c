@@ -25,7 +25,7 @@
 #include "arm11.h"
 #include "dsp.h"
 
-#define disarm 1
+#define DISASM 1
 
 u8 ram[0x20000];
 
@@ -51,11 +51,13 @@ static u32 Read32fromaddr(uint8_t p[4])
     u32 temp = p[0] | p[1] << 8 | p[2] << 16 | p[3] << 24;
     return temp;
 }
+
 static u16 fetch(u16 addr)
 {
     u16 temp = ram[addr*2] | ram[addr*2 + 1] << 8;
     return temp;
 }
+
 setregtyperrrrr(u8 type,u16 data)
 {
     switch (type) {
@@ -152,20 +154,20 @@ inter INT0 0x6
 inter INT1 0xE
 inter INT2 0x16
 */
-void stepdsp()
+void DSP_Step()
 {
     u16 op = fetch(pc);
     if ((op & 0xFFF0) == 0x4180) { //br
         if (condmet(op & 0xF)) {
             pc = fetch(pc + 1);
-#ifdef disarm
+#ifdef DISASM
             DEBUG("b%01X %04X\n",op&0xF,pc);
 #endif
         }
         return;
     }
     if (op == 0) {
-#ifdef disarm
+#ifdef DISASM
         DEBUG("nop\n");
 #endif
         pc++;
@@ -173,7 +175,7 @@ void stepdsp()
     }
     if ((op & 0xFF00) == 0x400) { //load page 00000100vvvvvvvv
         st[1] = st[1] & 0XFF00 | op & 0xFF;
-#ifdef disarm
+#ifdef DISASM
         DEBUG("ldr page 0x%02X\n",op&0xFF);
 #endif
         pc++;
@@ -224,32 +226,38 @@ void stepdsp()
     pc++;
     DEBUG("unknown op %04X\n",op);
 }
-void runDSP()
+
+void DSP_Run()
 {
-    pc = 0x0; //rest
-    while (1)stepdsp();
+    pc = 0x0; //reset
+    while (1)
+        DSP_Step();
     return;
 }
 
-void loadDSP(u8* bin) //todo check sha256
+void DSP_LoadFirm(u8* bin) //todo check sha256
 {
-    DEBUG("genocider:\"hello\"\n");
-    DSPhead head;
+    dsp_header head;
     memcpy(&head, bin, sizeof(head));
+
     u32 magic = Read32fromaddr(head.magic);
-    u32 contsize = Read32fromaddr(head.contentsize);
+    u32 contsize = Read32fromaddr(head.content_sz);
     u32 unk1 = Read32fromaddr(head.unk1);
     u32 unk6 = Read32fromaddr(head.unk6);
     u32 unk7 = Read32fromaddr(head.unk7);
-    DEBUG("head %08X %08X %08X %08X %08X %02X %02X %02X %02X\n", magic, contsize, unk1, unk6, unk7, head.unk2, head.unk3, head.numsec, head.unk5);
 
-    for (int i = 0; i < head.numsec; i++) {
-        u32 dataoffset = Read32fromaddr(head.sement[i].dataoffset);
-        u32 destoffset = Read32fromaddr(head.sement[i].destoffset);
-        u32 size = Read32fromaddr(head.sement[i].size);
-        u32 select = Read32fromaddr(head.sement[i].select);
+    DEBUG("head %08X %08X %08X %08X %08X %02X %02X %02X %02X\n",
+          magic, contsize, unk1, unk6, unk7, head.unk2, head.unk3, head.num_sec, head.unk5);
+
+    for (int i = 0; i < head.num_sec; i++) {
+        u32 dataoffset = Read32fromaddr(head.segment[i].data_offset);
+        u32 destoffset = Read32fromaddr(head.segment[i].dest_offset);
+        u32 size = Read32fromaddr(head.segment[i].size);
+        u32 select = Read32fromaddr(head.segment[i].select);
+
         DEBUG("segment %08X %08X %08X %08X\n", dataoffset, destoffset, size, select);
         memcpy(ram + destoffset * 2, bin + dataoffset, size * 2);
     }
-    runDSP();
+
+    DSP_Run();
 }

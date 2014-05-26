@@ -55,7 +55,7 @@ u32 dsp_dsp_SyncRequest()
         fwrite(outbuff, size, 1, out);
         fclose(out);
 
-        loadDSP(outbuff);
+        DSP_LoadFirm(outbuff);
 
         free(outbuff);
         mem_Write32(CPUsvcbuffer + 0x84, 0x0); //error out

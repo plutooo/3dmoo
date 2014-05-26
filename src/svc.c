@@ -248,8 +248,7 @@ void svc_Execute(ARMul_State * state, u8 num)
     case 0x3C: //Break
         exit(1);
         return;
-    case 0x3D: //OutputDebugString
-    {
+    case 0x3D: { //OutputDebugString
         char temp[256];
         memset(temp,0,256);
         mem_Read(temp, arm11_R(0), arm11_R(1));

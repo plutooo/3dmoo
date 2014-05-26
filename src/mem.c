@@ -201,8 +201,7 @@ int mem_Write16(uint32_t addr, uint16_t w)
             if (addr & 1) {
                 mappings[i].phys[addr - mappings[i].base] = (u8)w;
                 mappings[i].phys[addr - mappings[i].base + 1] = (u8)(w >> 8);
-            }
-            else
+            } else
                 *(uint16_t*)(&mappings[i].phys[addr - mappings[i].base]) = w;
             return 0;
         }
@@ -262,8 +261,7 @@ int mem_Write32(uint32_t addr, uint32_t w)
                 mappings[i].phys[addr - mappings[i].base + 1] = w >> 8;
                 mappings[i].phys[addr - mappings[i].base + 2] = w >> 16;
                 mappings[i].phys[addr - mappings[i].base + 3] = w >> 24;
-            }
-            else
+            } else
                 *(uint32_t*) (&mappings[i].phys[addr - mappings[i].base]) = w;
             return 0;
         }
@@ -292,8 +290,7 @@ bool mem_test(uint32_t addr)
 
 u32 mem_Read32(uint32_t addr)
 {
-    if((addr &0xFFFF0000) == 0x1FF80000)
-    {
+    if((addr &0xFFFF0000) == 0x1FF80000) {
         DEBUG("read %08X\n",addr);
     }
 #ifdef MEM_TRACE
@@ -304,8 +301,7 @@ u32 mem_Read32(uint32_t addr)
         if(Contains(&mappings[i], addr, 4)) {
             // Unaligned.
             u32 temp = *(uint32_t*)(&mappings[i].phys[addr - mappings[i].base]);
-            switch (addr & 3)
-            {
+            switch (addr & 3) {
             case 0:
                 return temp;
             case 1:

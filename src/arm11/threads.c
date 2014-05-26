@@ -50,37 +50,27 @@ u32 threads_New(u32 hand)
 }
 bool islocked(u32 t)
 {
-    if (threads[t].delete)
-    {
+    if (threads[t].delete) {
         return true;
-    }
-    else if (threads[t].active)
-    {
+    } else if (threads[t].active) {
         return false;
-    }
-    else
-    {
+    } else {
         bool allunlockde = true;
-        for (unsigned int i = 0; i < threads[t].handellistcount; i++)
-        {
+        for (unsigned int i = 0; i < threads[t].handellistcount; i++) {
             handleinfo* hi = handle_Get(*(u32*)(threads[t].handellist + 4 * i));
             u32 temp;
             bool locked = false;
             // Lookup actual callback in table.
             temp = handle_types[hi->type].fnWaitSynchronization(hi, &locked);
-            if (!locked && threads[t].waitall == 0)
-            {
+            if (!locked && threads[t].waitall == 0) {
                 threads[t].r[1] = i;
                 threads[t].active = true;
                 return false;
-            }
-            else
-            {
+            } else {
                 allunlockde = false;
             }
         }
-        if (allunlockde)
-        {
+        if (allunlockde) {
             threads[t].r[1] = threads[t].handellistcount;
             threads[t].active = true;
             return false;
@@ -112,15 +102,12 @@ void threads_removecurrent()
 }
 u32 threads_find(u32 handle)
 {
-    if (handle == 0xffff8000)
-    {
+    if (handle == 0xffff8000) {
         return currentthread;
     }
 
-    for (unsigned int i = 0; i < threads_Count(); i++)
-    {
-        if (threads[i].ownhand == handle)
-        {
+    for (unsigned int i = 0; i < threads_Count(); i++) {
+        if (threads[i].ownhand == handle) {
             return i;
         }
     }
@@ -128,10 +115,8 @@ u32 threads_find(u32 handle)
 }
 u32 threads_NextToBeDeleted()
 {
-    for (unsigned int i = 0; i < threads_Count(); i++)
-    {
-        if (threads[i].delete)
-        {
+    for (unsigned int i = 0; i < threads_Count(); i++) {
+        if (threads[i].delete) {
             return i;
         }
     }
@@ -140,10 +125,8 @@ u32 threads_NextToBeDeleted()
 void threads_Remove()
 {
     unsigned int id;
-    while ((id = threads_NextToBeDeleted()) != -1)
-    {
-        for (unsigned int i = id; i < threads_Count(); i++)
-        {
+    while ((id = threads_NextToBeDeleted()) != -1) {
+        for (unsigned int i = id; i < threads_Count(); i++) {
             threads[i] = threads[i + 1];
         }
         num_threads--;
@@ -179,8 +162,7 @@ void threads_Switch(/*u32 from,*/ u32 to)
 }
 void threads_save()
 {
-    if (currentthread != -1)
-    {
+    if (currentthread != -1) {
         arm11_SaveContext(&threads[currentthread]);
         if (num_threads > 1)
             currentthread = -1;
@@ -195,8 +177,7 @@ u32 svcGetThreadPriority()
 
     u32 threadid = threads_find(hand);
 
-    if (threadid != -1)
-    {
+    if (threadid != -1) {
         prio = threads[threadid].priority;
     }
 
@@ -212,8 +193,7 @@ u32 svcSetThreadPriority()
 
     u32 threadid = threads_find(hand);
 
-    if (threadid != -1)
-    {
+    if (threadid != -1) {
         threads[threadid].priority = prio;
     }
 
@@ -223,12 +203,9 @@ u32 svcSetThreadPriority()
 u32 svcGetThreadId()
 {
     u32 hand = arm11_R(1);
-    if (hand == 0xffff8000)
-    {
+    if (hand == 0xffff8000) {
         return DSidoffset + currentthread;
-    }
-    else
-    {
+    } else {
         DEBUG("svcGetThreadId not supported");
         return 0;
     }
@@ -282,8 +259,7 @@ u32 thread_CloseHandle(ARMul_State *state, handleinfo* h)
 u32 thread_SyncRequest(handleinfo* h, bool *locked)
 {
     u32 cid = mem_Read32(0xFFFF0080);
-    switch (cid)
-    {
+    switch (cid) {
     default:
         break;
     }

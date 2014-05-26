@@ -301,7 +301,7 @@ u32 svcMapMemoryBlock()
 
     return 0;
 }
-u32 svcCreateMemoryBlock() //todo ichfly 
+u32 svcCreateMemoryBlock() //todo ichfly
 {
     u32 memblock = arm11_R(0);
     u32 addr = arm11_R(1);

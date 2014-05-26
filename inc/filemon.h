@@ -1,7 +1,6 @@
 #define ROMFS_MAXNAMESIZE	254		// limit set by ichfly
 
-typedef struct
-{
+typedef struct {
     u8 parentoffset[4];
     u8 siblingoffset[4];
     u8 childoffset[4];
@@ -11,8 +10,7 @@ typedef struct
     u8 name[ROMFS_MAXNAMESIZE];
 } romfs_direntry;
 
-typedef struct
-{
+typedef struct {
     u8 parentdiroffset[4];
     u8 siblingoffset[4];
     u8 dataoffset[8];
@@ -22,15 +20,13 @@ typedef struct
     u8 name[ROMFS_MAXNAMESIZE];
 } romfs_fileentry;
 
-typedef struct
-{
+typedef struct {
     u32 start;
     u32 size;
     u8* name;
 } aufloeseentry;
 
-typedef struct
-{
+typedef struct {
     u8 unk1[4];
     u8 unk2[4];
     u8 unk3[4];

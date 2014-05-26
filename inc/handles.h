@@ -77,25 +77,25 @@ typedef struct {
     u32 misc[4];
 } handleinfo;
 
-typedef enum{
+typedef enum {
     PATH_INVALID = 0,	// Specifies an invalid path.
     PATH_EMPTY = 1,	// Specifies an empty path.
     PATH_BINARY = 2,	// Specifies a binary path, which is non-text based.
     PATH_CHAR = 3,	// Specifies a text based path with a 8-bit byte per character.
     PATH_WCHAR = 4,	// Specifies a text based path with a 16-bit short per character.
-}FS_pathType;
+} FS_pathType;
 
-typedef struct{
+typedef struct {
     FS_pathType type;
     u32 size;
     u8* data;
-}FS_path;
+} FS_path;
 
-typedef struct{
+typedef struct {
     u32 id;
     FS_path lowPath;
     u32 handleLow, handleHigh;
-}FS_archive;
+} FS_archive;
 
 handleinfo* handle_Get(u32 handle);
 u32 handle_New(u32 type, u32 subtype);

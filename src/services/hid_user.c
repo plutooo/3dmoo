@@ -41,8 +41,7 @@ void hid_user_init()
 u32 hid_user_SyncRequest()
 {
     u32 cid = mem_Read32(0xFFFF0080);
-    switch (cid)
-    {
+    switch (cid) {
     case 0x000A0000:
         mem_Write32(CPUsvcbuffer + 0x8C, memhandel);
         mem_Write32(CPUsvcbuffer + 0x90, handle_New(HANDLE_TYPE_UNK, 0));

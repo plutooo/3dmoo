@@ -128,7 +128,7 @@ u32 svcCreateSemaphore()
     arm11_SetR(1, handle); // handle_out
     return 0;
 }
- //Result ReleaseSemaphore(s32* count, Handle semaphore, s32 releaseCount)
+//Result ReleaseSemaphore(s32* count, Handle semaphore, s32 releaseCount)
 u32 svcReleaseSemaphore()
 {
     u32 count = arm11_R(0);

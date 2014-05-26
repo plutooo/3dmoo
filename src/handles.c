@@ -59,8 +59,7 @@ handleinfo* handle_Get(u32 handle)
 {
     u32 idx = handle - HANDLES_BASE;
 
-    if (idx < handles_num)
-    {
+    if (idx < handles_num) {
         if (handles[idx].type == HANDLE_TYPE_REDIR)
             return handle_Get(handles[idx].subtype);
         else return &handles[idx];
@@ -96,8 +95,7 @@ u32 svcSendSyncRequest()
     // Lookup actual callback in table.
     if (handle_types[hi->type].fnSyncRequest != NULL) {
         temp = handle_types[hi->type].fnSyncRequest(hi, &locked);
-        if (locked)
-        {
+        if (locked) {
             u32* handelist = malloc(4);
             *handelist = handle;
             lockcpu(handelist, 1, 1);
@@ -177,8 +175,7 @@ u32 svcWaitSynchronization1() //todo timeout
     // Lookup actual callback in table.
     if (handle_types[hi->type].fnWaitSynchronization != NULL) {
         temp = handle_types[hi->type].fnWaitSynchronization(hi, &locked);
-        if (locked)
-        {
+        if (locked) {
             u32* handelist = (u32*)malloc(4);
             *handelist = handle;
             lockcpu(handelist, 1,1);
@@ -201,8 +198,7 @@ u32 svcWaitSynchronizationN() //todo timeout
     u32 waitAll = arm11_R(3);
     u32 nanoseconds2 = arm11_R(4);
     bool allunlockde = true;
-    for (u32 i = 0; i < handlecount; i++)
-    {
+    for (u32 i = 0; i < handlecount; i++) {
         u32 curhandel = mem_Read32(handles + i * 4);
         handleinfo* hi = handle_Get(curhandel);
 
@@ -226,23 +222,17 @@ u32 svcWaitSynchronizationN() //todo timeout
         u32 temp;
         bool locked = false;
         // Lookup actual callback in table.
-        if (handle_types[hi->type].fnWaitSynchronization != NULL)
-        {
+        if (handle_types[hi->type].fnWaitSynchronization != NULL) {
             temp = handle_types[hi->type].fnWaitSynchronization(hi, &locked);
-            if (!locked && waitAll == 0)
-            {
+            if (!locked && waitAll == 0) {
                 arm11_SetR(1,i);
                 return 0;
-            }
-            else
-            {
+            } else {
                 allunlockde = false;
             }
-        }
-        else
-        {
+        } else {
             ERROR("svcCloseHandle undefined for handle-type \"%s\".\n",
-                handle_types[hi->type].name);
+                  handle_types[hi->type].name);
             PAUSE();
             return 0;
         }

@@ -155,10 +155,8 @@ static int Contains(aufloeseentry* m, uint32_t addr, uint32_t sz)
 
 void filemontranslate(u32 addr, u32 size)
 {
-    for (unsigned int i = 0; i < translaterfildcount; i++)
-    {
-        if (Contains(&translaterfild[i], addr, 1))
-        {
+    for (unsigned int i = 0; i < translaterfildcount; i++) {
+        if (Contains(&translaterfild[i], addr, 1)) {
             DEBUG("%ls offset %08X size %08X\n", translaterfild[i].name, addr - translaterfild[i].start, size);
         }
     }

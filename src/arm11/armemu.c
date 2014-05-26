@@ -2277,7 +2277,7 @@ mainswitch:
 
                 case 0x1e:	/* MVN reg */
 #ifdef MODET
-                    if ((instr & 0x00000FF0) == 0x00000F90){//if ((instr & 0x0FF00FF0) == 0x01e00f90) { //todo make that better ichfly
+                    if ((instr & 0x00000FF0) == 0x00000F90) { //if ((instr & 0x0FF00FF0) == 0x01e00f90) { //todo make that better ichfly
                         /* strexh ichfly */
                         u32 l = LHSReg;
                         u32 r = RHSReg;
@@ -2311,7 +2311,7 @@ mainswitch:
                 case 0x1f:	/* MVNS reg */
 #ifdef MODET
 
-                    if ((instr & 0x00000FF0) == 0x00000F90){ //(instr & 0x0FF00FF0) == 0x01f00f90)//if ((instr & 0x0FF00FF0) == 0x01f00f90) {
+                    if ((instr & 0x00000FF0) == 0x00000F90) { //(instr & 0x0FF00FF0) == 0x01f00f90)//if ((instr & 0x0FF00FF0) == 0x01f00f90) {
                         /* ldrexh ichfly */
                         lhs = LHS;
                         LoadHalfWord(state, instr, lhs,0);
@@ -3772,10 +3772,10 @@ mainswitch:
                 /* Co-Processor Register Transfers (MCR) and Data Ops.  */
 
                 case 0xe2:
-                    /*if (!CP_ACCESS_ALLOWED (state, CPNum)) {
-                        ARMul_UndefInstr (state, instr);
-                        break;
-                    }*/
+                /*if (!CP_ACCESS_ALLOWED (state, CPNum)) {
+                    ARMul_UndefInstr (state, instr);
+                    break;
+                }*/
 
                 case 0xe0:
                 case 0xe4:
@@ -5581,10 +5581,9 @@ L_stm_s_takeabort:
     static int
     handle_v6_insn (ARMul_State * state, ARMword instr) {
         switch (BITS (20, 27)) {
-            //ichfly
+        //ichfly
         case 0x66: //UQSUB8
-            if ((instr & 0x0FF00FF0) == 0x06600FF0)//hope this is correct we don't have 2 cpus todo
-            {
+            if ((instr & 0x0FF00FF0) == 0x06600FF0) { //hope this is correct we don't have 2 cpus todo
                 u32 rd = (instr >> 12) & 0xF;
                 u32 rm = (instr >> 16) & 0xF;
                 u32 rn = (instr >> 0) & 0xF;
@@ -5597,9 +5596,7 @@ L_stm_s_takeabort:
                 u8 b4 = (u8)((u8)(subfrom >> 24) - (u8)(tosub >> 24));
                 state->Reg[rd] = (u32)(b1 | b2 << 8 | b3 << 16 | b4 << 24);
                 return 1;
-            }
-            else
-            {
+            } else {
                 printf("UQSUB8 decoding fail %08X",instr);
             }
 #if 0

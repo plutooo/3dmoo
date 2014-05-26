@@ -46,100 +46,18 @@ u16 sv = 0;
 u32 onec = 0; //wtf is that I don't know
 
 
-static u32 Read32fromaddr(uint8_t p[4])
+static u32 Read32(uint8_t p[4])
 {
     u32 temp = p[0] | p[1] << 8 | p[2] << 16 | p[3] << 24;
     return temp;
 }
 
-static u16 fetch(u16 addr)
+static u16 FetchWord(u16 addr)
 {
     u16 temp = ram[addr*2] | ram[addr*2 + 1] << 8;
     return temp;
 }
 
-setregtyperrrrr(u8 type,u16 data)
-{
-    switch (type) {
-    case 0:
-        r[0] = data;
-        break;
-    case 1:
-        r[1] = data;
-        break;
-    case 2:
-        r[2] = data;
-        break;
-    case 3:
-        r[3] = data;
-        break;
-    case 4:
-        r[4] = data;
-        break;
-    case 5:
-        r[5] = data;
-        break;
-    case 6:
-        rb = data;
-        break;
-    case 7:
-        y = data;
-        break;
-    case 8:
-        st[0] = data;
-        break;
-    case 9:
-        st[1] = data;
-        break;
-    case 10:
-        st[2] = data;
-        break;
-    case 11:
-        ph = data;
-        break;
-    case 12:
-        pc = data;
-        break;
-    case 13:
-        cfgi = data;
-        break;
-    case 14:
-        cfgj = data;
-        break;
-    case 15:
-        b[0] = data;
-        break;
-    case 16:
-        b[1] = data;
-        break;
-    case 17:
-        b[2] = data;
-        break;
-    case 18:
-        b[3] = data;
-        break;
-    case 19:
-        ext[0] = data;
-        break;
-    case 20:
-        ext[1] = data;
-        break;
-    case 21:
-        ext[2] = data;
-        break;
-    case 22:
-        ext[3] = data;
-        break;
-    default:
-        DEBUG("set unknown reg %02X",type);
-        break;
-
-    }
-}
-bool condmet(u8 con) //todo
-{
-    return true;
-}
 /*Modification of rN:
 mm = 00 No modification
 01 +1
@@ -193,7 +111,10 @@ int HasOp3(u16 op) {
 
 void DSP_Step()
 {
-    u16 op = fetch(pc);
+    // Currently a disassembler.
+    // Implemented up to MUL y, (rN).
+
+    u16 op = FetchWord(pc);
     u8 ax = op & (0x100) ? 1 : 0; // use a0 or a1
 
     switch(op >> 12) {
@@ -213,8 +134,28 @@ void DSP_Step()
                 DEBUG("%s (rb + %02), a%d\n", ops3[op3], op & 0x7F, ax);
                 break;
             }
-            DEBUG("?\n");
         }
+
+        if((op & 0xFFFC) == 0x421C) {
+            // lim
+            switch(op & 3) {
+            case 0:
+                DEBUG("lim a0\n");
+                break;
+            case 1:
+                DEBUG("lim a0, a1\n");
+                break;
+            case 2:
+                DEBUG("lim a1, a0\n");
+                break;
+            case 3:
+                DEBUG("lim a1\n");
+                break;
+            }
+
+            break;
+        }
+
         DEBUG("?\n");
         break;
 
@@ -237,7 +178,8 @@ void DSP_Step()
             DEBUG("?\n");
         }
         else if((op >> 6) & 0x7 == 7) {
-            u16 extra = fetch(pc+1);
+            u16 extra = FetchWord(pc+2);
+            pc+=2;
 
             if(!(op & 0x100)) {
                 // ALB (rN)
@@ -262,7 +204,8 @@ void DSP_Step()
 
             if(op3 != -1) {
                 // ALU ##long immediate
-                u16 extra = fetch(pc+1);
+                u16 extra = FetchWord(pc+1);
+                pc+=2;
 
                 DEBUG("%s %04x, a%d\n", ops3[op3], extra & 0xFFFF, ax);
                 break;
@@ -273,9 +216,20 @@ void DSP_Step()
         }
         else if((op & 0xFF70) == 0x8A60) {
             // TODO: norm
+            u16 extra = FetchWord(pc+1);
+            pc+=2;
+
             DEBUG("norm??\n");
             break;
         }
+        else if((op & 0xF8E7) == 0x8060) {
+            // maxd
+            int d = op & (1 << 10);
+            int f = op & (1 << 9);
+            DEBUG("max%s %s, a%d\n", d ? "d" : "", f ? "gt" : "ge", ax);
+        }
+
+        DEBUG("?\n");
         break;
 
     case 0xA:
@@ -302,7 +256,9 @@ void DSP_Step()
             u16 op3 = HasOp3(op);
 
             if(op3 != -1) {
-                u16 extra = fetch(pc+1);
+                u16 extra = FetchWord(pc+1);
+                pc+=2;
+
                 if(op & (1 << 5)) {  // ALU [##direct add.],ax
                     DEBUG("%s [%04x], a%d\n",
                           ops3[op3],
@@ -319,11 +275,14 @@ void DSP_Step()
                 }
             }
         }
+        DEBUG("?\n");
+        break;
 
     case 0xE:
         // ALB direct
         if(op & (1 << 8)) {
-            u16 extra = fetch(pc+1);
+            u16 extra = FetchWord(pc+2);
+            pc+=2;
 
             DEBUG("%s %02x, %04x\n", alb_ops[(op >> 9) & 0x7], op & 0xFF, extra & 0xFFFF);
             break;
@@ -334,7 +293,8 @@ void DSP_Step()
     default:
         DEBUG("?\n");
     }
-    pc++;
+
+    pc+=2;
 }
 
 void DSP_Run()
@@ -342,31 +302,30 @@ void DSP_Run()
     pc = 0x0; //reset
     while (1)
         DSP_Step();
-    return;
 }
 
-void DSP_LoadFirm(u8* bin) //todo check sha256
+void DSP_LoadFirm(u8* bin)
 {
     dsp_header head;
     memcpy(&head, bin, sizeof(head));
 
-    u32 magic = Read32fromaddr(head.magic);
-    u32 contsize = Read32fromaddr(head.content_sz);
-    u32 unk1 = Read32fromaddr(head.unk1);
-    u32 unk6 = Read32fromaddr(head.unk6);
-    u32 unk7 = Read32fromaddr(head.unk7);
+    u32 magic = Read32(head.magic);
+    u32 contsize = Read32(head.content_sz);
+    u32 unk1 = Read32(head.unk1);
+    u32 unk6 = Read32(head.unk6);
+    u32 unk7 = Read32(head.unk7);
 
     DEBUG("head %08X %08X %08X %08X %08X %02X %02X %02X %02X\n",
           magic, contsize, unk1, unk6, unk7, head.unk2, head.unk3, head.num_sec, head.unk5);
 
     for (int i = 0; i < head.num_sec; i++) {
-        u32 dataoffset = Read32fromaddr(head.segment[i].data_offset);
-        u32 destoffset = Read32fromaddr(head.segment[i].dest_offset);
-        u32 size = Read32fromaddr(head.segment[i].size);
-        u32 select = Read32fromaddr(head.segment[i].select);
+        u32 dataoffset = Read32(head.segment[i].data_offset);
+        u32 destoffset = Read32(head.segment[i].dest_offset);
+        u32 size = Read32(head.segment[i].size);
+        u32 select = Read32(head.segment[i].select);
 
         DEBUG("segment %08X %08X %08X %08X\n", dataoffset, destoffset, size, select);
-        memcpy(ram + destoffset * 2, bin + dataoffset, size * 2);
+        memcpy(ram + destoffset, bin + dataoffset, size);
     }
 
     DSP_Run();

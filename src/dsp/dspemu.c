@@ -23,7 +23,7 @@
 #include "handles.h"
 #include "mem.h"
 #include "arm11.h"
-#include "DSP.h"
+#include "dsp.h"
 
 #define disarm 1
 

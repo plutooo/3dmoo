@@ -20,7 +20,7 @@
 #include <SDL.h>
 
 #include "util.h"
-#include "SrvtoIO.h"
+#include "gpu.h"
 
 #include "hid_user.h"
 

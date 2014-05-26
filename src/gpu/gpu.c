@@ -6,7 +6,7 @@
 #include "arm11.h"
 #include "handles.h"
 #include "mem.h"
-#include "SrvtoIO.h"
+#include "gpu.h"
 
 /*u8* IObuffer;
 u8* LINEmembuffer;

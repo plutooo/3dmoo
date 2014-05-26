@@ -21,7 +21,7 @@
 #include "mem.h"
 #include "handles.h"
 #include "arm11.h"
-#include "SrvtoIO.h"
+#include "gpu.h"
 
 #define SVCERROR_ALIGN_ADDR        0xE0E01BF1
 #define SVCERROR_INVALID_SIZE      0xE0E01BF2

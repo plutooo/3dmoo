@@ -24,8 +24,7 @@
 #include "arm11.h"
 #include "handles.h"
 #include "mem.h"
-#include "SrvtoIO.h"
-
+#include "gpu.h"
 
 #define CPUsvcbuffer 0xFFFF0000
 

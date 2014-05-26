@@ -54,7 +54,7 @@ static u32 Read32(uint8_t p[4])
 
 static u16 FetchWord(u16 addr)
 {
-    u16 temp = ram[addr*2] | ram[addr*2 + 1] << 8;
+    u16 temp = ram[addr] | (ram[addr + 1] << 8);
     return temp;
 }
 

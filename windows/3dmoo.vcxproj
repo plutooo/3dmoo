@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -160,10 +160,10 @@
     <ClCompile Include="..\src\arm11\vfp\vfpinstr.c" />
     <ClCompile Include="..\src\arm11\vfp\vfpsingle.c" />
     <ClCompile Include="..\src\arm11\wrap.c" />
-    <ClCompile Include="..\src\DSPemu\DSPmain.c" />
+    <ClCompile Include="..\src\dsp\dspemu.c" />
     <ClCompile Include="..\src\filemon.c" />
     <ClCompile Include="..\src\handles.c" />
-    <ClCompile Include="..\src\IO\SrvtoIO.c" />
+    <ClCompile Include="..\src\gpu\gpu.c" />
     <ClCompile Include="..\src\loader.c" />
     <ClCompile Include="..\src\main.c" />
     <ClCompile Include="..\src\mem.c" />
@@ -190,14 +190,14 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\inc\arm11.h" />
-    <ClInclude Include="..\inc\DSP.h" />
+    <ClInclude Include="..\inc\dsp.h" />
     <ClInclude Include="..\inc\filemon.h" />
     <ClInclude Include="..\inc\handles.h" />
     <ClInclude Include="..\inc\hid_user.h" />
     <ClInclude Include="..\inc\init.h" />
     <ClInclude Include="..\inc\mem.h" />
     <ClInclude Include="..\inc\screen.h" />
-    <ClInclude Include="..\inc\SrvtoIO.h" />
+    <ClInclude Include="..\inc\gpu.h" />
     <ClInclude Include="..\inc\svc.h" />
     <ClInclude Include="..\inc\threads.h" />
     <ClInclude Include="..\inc\util.h" />

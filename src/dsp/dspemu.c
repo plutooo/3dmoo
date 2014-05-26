@@ -154,77 +154,187 @@ inter INT0 0x6
 inter INT1 0xE
 inter INT2 0x16
 */
+const char* ops[] = {
+    "or", "and", "xor", "add", "tst0_a", "tst1_a",
+    "cmp", "sub", "msu", "addh", "addl", "subh", "subl",
+    "sqr", "sqra", "cmpu"
+};
+
+const char* ops3[] = {
+    "or", "and", "xor", "add",
+    "invalid!", "invalid!", "cmp", "sub"
+};
+
+const char* alb_ops[] = {
+    "set", "rst", "chng", "addv", "tst0_mask1", "tst0_mask2", "cmpv", "subv"
+};
+
+const char* mm[] = {
+    "nothing", "+1", "-1", "+step"
+};
+
+const char* rrrrr[] = {
+    "r0", "r1", "r2", "r3",
+    "r4", "r5", "rb", "y",
+    "st0", "st1", "st2", "p/ph",
+    "pc", "sp", "cfgi", "cfgj",
+    "b0h", "b1h", "b0l", "b1l",
+    "ext0", "ext1"
+};
+
+int HasOp3(u16 op) {
+    u16 opc = (op >> 9) & 0x7;
+
+    if(opc != 4 && opc != 5)
+        return opc;
+
+    return -1;
+}
+
 void DSP_Step()
 {
     u16 op = fetch(pc);
-    if ((op & 0xFFF0) == 0x4180) { //br
-        if (condmet(op & 0xF)) {
-            pc = fetch(pc + 1);
-#ifdef DISASM
-            DEBUG("b%01X %04X\n",op&0xF,pc);
-#endif
-        }
-        return;
-    }
-    if (op == 0) {
-#ifdef DISASM
-        DEBUG("nop\n");
-#endif
-        pc++;
-        return;
-    }
-    if ((op & 0xFF00) == 0x400) { //load page 00000100vvvvvvvv
-        st[1] = st[1] & 0XFF00 | op & 0xFF;
-#ifdef DISASM
-        DEBUG("ldr page 0x%02X\n",op&0xFF);
-#endif
-        pc++;
-        return;
-    }
-    if ((op & 0xF000) == 0x6000) { //ALU #short immediate 1100XXXAvvvvvvv
-        u16 temp = a[0];
-        if (op & 0x0100)temp = a[1];
-        u8 var = op & 0xFF;
-        switch (op & 0x0E00) {
-        case 0x0: //or
-            temp = temp | var;
-            break;
-        case 0x200: //and
-            temp = temp & var;
-            break;
-        case 0x400: //xor
-            temp = temp ^ var;
-            break;
-        case 0x600: //add
-            temp = temp + var;
-            break;
-        case 0x800:
-            DEBUG("unknown op %04X\n", op);
-            break;
-        case 0xA00:
-            DEBUG("unknown op %04X\n", op);
-            break;
-        case 0xC00: //cmp
-            DEBUG("unsupported cmp %04X\n", op);
-            break;
-        case 0xE00: //sub
-            temp = temp - var;
-            break;
-        }
-        if (op & 0x0100) {
-            a[1] = temp;
-        } else {
-            a[0] = temp;
-        }
-        pc++;
-        return;
-    }
-    /*if ((op & 0xFF80) == 0x100)//movs register, AB 000000010abrrrrr
-    {
+    u8 ax = op & (0x100) ? 1 : 0; // use a0 or a1
 
-    }*/
+    switch(op >> 12) {
+    case 0:
+        if((op & 0xFE00) == 0x0E00) {
+            // TODO: divs
+            DEBUG("divs??\n");
+        }
+        break;
+
+    case 4:
+        if(!(op & 0x8000)) {
+            u16 op3 = HasOp3(op);
+
+            if(op3 != -1) {
+                // ALU (rb + #offset7), ax
+                DEBUG("%s (rb + %02), a%d\n", ops3[op3], op & 0x7F, ax);
+                break;
+            }
+            DEBUG("?\n");
+        }
+        DEBUG("?\n");
+        break;
+
+    case 0x8:
+    case 0x9:
+        if((op >> 6) & 0x7 == 4) {
+            // ALM (rN)
+            DEBUG("%s (r%d), a%d (modifier=%s)\n", ops[(op >> 9) & 0xF], op & 0x7, ax, mm[(op >> 3) & 3]);
+            break;
+        }
+        else if((op >> 6) & 0x7 == 5) {
+            // ALM register
+            u16 r = op & 0x1F;
+            
+            if(r < 22) {
+                DEBUG("%s %s, a%d\n", ops[(op >> 9) & 0xF], rrrrr[r], ax);
+                break;
+            }
+
+            DEBUG("?\n");
+        }
+        else if((op >> 6) & 0x7 == 7) {
+            u16 extra = fetch(pc+1);
+
+            if(!(op & 0x100)) {
+                // ALB (rN)
+                DEBUG("%s (r%d), %04x (modifier=%s)\n", alb_ops[(op >> 9) & 0x7], op & 0x7,
+                      extra & 0xFFFF, mm[(op >> 3) & 3]);
+            }
+            else {
+                // ALB register
+                u16 r = op & 0x1F;
+           
+                if(r < 22) {
+                    DEBUG("%s %s, %04x\n", alb_ops[(op >> 9) & 0x7], rrrrr[r], extra & 0xFFFF);
+                    break;
+                }
+
+                DEBUG("?\n");
+            }
+            break;
+        }
+        else if((op & 0xF0FF) == 0x80C0) {
+            u16 op3 = HasOp3(op);
+
+            if(op3 != -1) {
+                // ALU ##long immediate
+                u16 extra = fetch(pc+1);
+
+                DEBUG("%s %04x, a%d\n", ops3[op3], extra & 0xFFFF, ax);
+                break;
+            }
+
+            DEBUG("?\n");
+            break;
+        }
+        else if((op & 0xFF70) == 0x8A60) {
+            // TODO: norm
+            DEBUG("norm??\n");
+            break;
+        }
+        break;
+
+    case 0xA:
+    case 0xB:
+        // ALM direct
+        DEBUG("%s %02x, a%d\n", ops[(op >> 9) & 0xF], op & 0xFF, ax);
+        break;
+
+    case 0xC: {
+        u16 op3 = HasOp3(op);
+
+        if(op3 != -1) {
+            // ALU #short immediate
+            DEBUG("%s %02x, a%d\n", ops3[op3], op & 0xFF, ax);
+            break;
+        }
+        DEBUG("?\n");
+        break;
+    }
+
+
+    case 0xD:
+        if(op & 0xFED8 == 0xD4D8) {
+            u16 op3 = HasOp3(op);
+
+            if(op3 != -1) {
+                u16 extra = fetch(pc+1);
+                if(op & (1 << 5)) {  // ALU [##direct add.],ax
+                    DEBUG("%s [%04x], a%d\n",
+                          ops3[op3],
+                          extra & 0xFFFF,
+                          op & (0x1000) ? 1 : 0);
+                    break;
+                }
+                else { // ALU (rb + ##offset),ax
+                    DEBUG("%s (rb + %04x), a%d\n",
+                          ops3[op3],
+                          extra & 0xFFFF, 
+                          op & (0x1000) ? 1 : 0);
+                    break;
+                }
+            }
+        }
+
+    case 0xE:
+        // ALB direct
+        if(op & (1 << 8)) {
+            u16 extra = fetch(pc+1);
+
+            DEBUG("%s %02x, %04x\n", alb_ops[(op >> 9) & 0x7], op & 0xFF, extra & 0xFFFF);
+            break;
+        }
+
+        DEBUG("?\n");
+        break;
+    default:
+        DEBUG("?\n");
+    }
     pc++;
-    DEBUG("unknown op %04X\n",op);
 }
 
 void DSP_Run()

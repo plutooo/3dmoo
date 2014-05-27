@@ -68,6 +68,11 @@ inter INT0 0x6
 inter INT1 0xE
 inter INT2 0x16
 */
+const char* mulXXX[] = {
+    "mpy", "mpysu", "mac", "macus",
+    "maa", "macuu", "macuu", "macsu", "maasu"
+};
+
 const char* ops[] = {
     "or", "and", "xor", "add", "tst0_a", "tst1_a",
     "cmp", "sub", "msu", "addh", "addl", "subh", "subl",
@@ -157,6 +162,22 @@ void DSP_Step()
         break;
 
     case 0x8:
+        if ((op & 0xE0) == 0x60) {
+            //MUL y, (rN)
+            DEBUG("%s y, (a%d),(r%d) (modifier=%s)", mulXXX[(op >> 8) & 0x7], (op >> 11) & 0x1, mm[(op >> 3) & 3]);
+            break;
+        }
+        if ((op & 0xE0) == 0x40) {
+            //MUL y, register
+            DEBUG("%s y, (a%d),%s", mulXXX[(op >> 8) & 0x7], (op >> 11) & 0x1, rrrrr[op & 0x1F]);
+            break;
+        }
+        if ((op & 0xE0) == 0x00) {
+            //MUL (rN), ##long immediate
+            u16 longim = FetchWord(pc + 2);
+            DEBUG("%s %s, (a%d),%04x", mulXXX[(op >> 8) & 0x7], rrrrr[op & 0x1F], (op >> 11) & 0x1, longim);
+            break;
+        }
     case 0x9:
         if(((op >> 6) & 0x7) == 4) {
             // ALM (rN)
@@ -243,6 +264,11 @@ void DSP_Step()
 
 
     case 0xD:
+        if (!(op & 0x80)) {
+            //MUL (rJ), (rI) 1101AXXX0jjiiwqq
+            DEBUG("%s r%d (modifier=%s),r%d (modifier=%s) a%d", mulXXX[(op >> 8) & 0x7], op & 0x3, mm[(op >> 5) & 0x3], 3 + (op >> 2) & 0x1, mm[(op >> 3) & 0x3], (op >> 11) & 0x1);
+            break;
+        }
         if((op & 0xFED8) == 0xD4D8) {
             u16 op3 = HasOp3(op);
 

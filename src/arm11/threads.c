@@ -140,7 +140,7 @@ void threads_Switch(/*u32 from,*/ u32 to)
         return;
     }
 
-    if(!threads[to].state == STOPPED) {
+    if(threads[to].state == STOPPED) {
         ERROR("Trying to switch to a stopped thread..\n");
         arm11_Dump();
         exit(1);
@@ -159,7 +159,7 @@ void threads_Execute() {
     u32 t;
 
     for (t=0; t<threads_Count(); t++) {
-        if(threads_IsThreadActive(t))
+        if(!threads_IsThreadActive(t))
             continue;
 
         threads_Switch(/*from,*/ t);

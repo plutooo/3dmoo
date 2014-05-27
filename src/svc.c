@@ -148,7 +148,9 @@ void svc_Execute(ARMul_State * state, u8 num)
     if(name == NULL)
         name = "Unknown";
 
-    fprintf(stdout, "\n\033[0;36m>> svc%s (0x%x)\033[0m\n", name, num);
+    int old = color_teal();
+    fprintf(stdout, "\n>> svc%s (0x%x)\n", name, num);
+    color_restore(old);
 
     switch (num) {
     case 1:

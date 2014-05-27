@@ -123,7 +123,7 @@ void DSP_Step()
         break;
 
     case 4:
-        if(!(op & 0x8000)) {
+        if(!(op & 0x80)) {
             u16 op3 = HasOp3(op);
 
             if(op3 != -1) {

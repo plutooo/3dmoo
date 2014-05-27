@@ -16,6 +16,9 @@
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#define LCDCOLORFILLMAIN 0x202204
+#define LCDCOLORFILLSUB 0x202A04
+
 #define frameselectoben 0x400478
 #define RGBuponeleft 0x400468
 #define RGBuptwoleft 0x40046C

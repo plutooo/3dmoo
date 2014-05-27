@@ -105,6 +105,8 @@ bool threads_IsThreadActive(u32 id)
             return false;
         }
     }
+
+    return false;
 }
 
 u32 threads_NextIdToBeDeleted()

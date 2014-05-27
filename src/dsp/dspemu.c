@@ -162,11 +162,11 @@ void DSP_Step()
 
     case 0x8:
     case 0x9:
-        if((op >> 6) & 0x7 == 4) {
+        if(((op >> 6) & 0x7) == 4) {
             // ALM (rN)
             DEBUG("%s (r%d), a%d (modifier=%s)\n", ops[(op >> 9) & 0xF], op & 0x7, ax, mm[(op >> 3) & 3]);
             break;
-        } else if((op >> 6) & 0x7 == 5) {
+        } else if(((op >> 6) & 0x7) == 5) {
             // ALM register
             u16 r = op & 0x1F;
 
@@ -176,7 +176,7 @@ void DSP_Step()
             }
 
             DEBUG("?\n");
-        } else if((op >> 6) & 0x7 == 7) {
+        } else if(((op >> 6) & 0x7) == 7) {
             u16 extra = FetchWord(pc+2);
             pc+=2;
 
@@ -247,7 +247,7 @@ void DSP_Step()
 
 
     case 0xD:
-        if(op & 0xFED8 == 0xD4D8) {
+        if((op & 0xFED8) == 0xD4D8) {
             u16 op3 = HasOp3(op);
 
             if(op3 != -1) {

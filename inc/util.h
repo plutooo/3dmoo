@@ -18,6 +18,10 @@
 #ifndef _UTIL_H_
 #define _UTIL_H_
 
+#ifdef _WIN32
+#include <Windows.h>
+#endif
+
 #include <stdint.h>
 #include <stdbool.h>
 #include <string.h>
@@ -53,23 +57,67 @@ typedef int64_t s64;
 #define __func__ __FUNCTION__
 #endif
 
-static void color_red() {
+static int color_red() {
+#ifdef _WIN32
+    CONSOLE_SCREEN_BUFFER_INFO csbiInfo;
+    GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE),
+        &csbiInfo);
+
+    SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE),
+        FOREGROUND_RED | FOREGROUND_INTENSITY);
+
+    return csbiInfo.wAttributes;
+#else
     fprintf(stdout, "\033[0;31m");
+    return 0;
+#endif
 }
 
-static void color_green() {
+static int color_green() {
+#ifdef _WIN32
+    CONSOLE_SCREEN_BUFFER_INFO csbiInfo;
+    GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE),
+        &csbiInfo);
+
+    SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE),
+        FOREGROUND_GREEN | FOREGROUND_INTENSITY);
+    
+    return csbiInfo.wAttributes;
+#else
     fprintf(stdout, "\033[0;32m");
+    return 0;
+#endif
 }
 
-static void color_restore() {
+static int color_teal() {
+#ifdef _WIN32
+    CONSOLE_SCREEN_BUFFER_INFO csbiInfo;
+    GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE),
+        &csbiInfo);
+
+    SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE),
+        FOREGROUND_BLUE | FOREGROUND_INTENSITY);
+
+    return csbiInfo.wAttributes;
+#else
+    fprintf(stdout, "\036[0;32m");
+    return 0;
+#endif
+}
+
+static void color_restore(int old) {
+#ifdef _WIN32
+    SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), old);
+#else
     fprintf(stdout, "\033[0m");
+#endif
 }
 
 #if 1
 #define DEBUG(...) do {                                 \
-        color_green();                                  \
+        int old = color_green();                        \
         fprintf(stdout, "%s: ", __func__);              \
-        color_restore();                                \
+        color_restore(old);                             \
         fprintf(stdout, __VA_ARGS__);                   \
 } while (0);
 #else
@@ -77,10 +125,10 @@ static void color_restore() {
 #endif
 
 #define ERROR(...) do {                                 \
-        color_red();                                    \
+        int old = color_red();                          \
         fprintf(stdout, "%s: ", __func__);              \
-        color_restore();                                \
-	fprintf(stdout, __VA_ARGS__);			\
+        color_restore(old);                             \
+        fprintf(stdout, __VA_ARGS__);       			\
     } while(0);
 
 #if 0

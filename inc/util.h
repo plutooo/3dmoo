@@ -107,7 +107,7 @@ static int color_teal() {
 
     return csbiInfo.wAttributes;
 #else
-    fprintf(stdout, "\036[0;32m");
+    fprintf(stdout, "\033[0;36m");
     return 0;
 #endif
 }

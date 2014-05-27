@@ -38,7 +38,6 @@ u32 mutex_SyncRequest(handleinfo* h, bool *locked)
 
 u32 mutex_WaitSynchronization(handleinfo* h, bool *locked)
 {
-    DEBUG("waiting for mutex to unlock..\n");
     PAUSE();
 
     *locked = h->locked;
@@ -173,7 +172,6 @@ u32 semaphore_SyncRequest(handleinfo* h, bool *locked)
 
 u32 semaphore_WaitSynchronization(handleinfo* h, bool *locked)
 {
-    DEBUG("waiting for semaphore to unlock..\n");
     PAUSE();
 
     *locked = h->locked;

@@ -45,6 +45,8 @@
 #define SERVICE_TYPE_FRD_USER  10
 #define SERVICE_TYPE_IR_USER   11
 #define SERVICE_TYPE_DSP_DSP   12
+#define SERVICE_TYPE_CECD_U    13
+#define SERVICE_TYPE_BOSS_U    14
 
 #define HANDLE_SUBEVENT_USER          0
 #define HANDLE_SUBEVENT_APTMENUEVENT  1
@@ -171,31 +173,31 @@ static struct {
         NULL
     },
     {
-        "REDIR",
+        "redir",
         NULL,
         NULL,
         NULL
     },
     {
-        "THREAD",
+        "thread",
         &thread_SyncRequest,
         &thread_CloseHandle,
         &thread_WaitSynchronization
     },
     {
-        "PROCESS",
+        "process",
         NULL,
         NULL,
         NULL
     },
     {
-        "Arbiter",
+        "arbiter",
         NULL,
         NULL,
         NULL
     },
     {
-        "FILE",
+        "file",
         &file_SyncRequest,
         &file_CloseHandle,
         NULL

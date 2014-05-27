@@ -272,14 +272,16 @@ u32 svcMapMemoryBlock()
         return 0xFFFFFFFF;
     }
 
+    DEBUG("handle=%x, addr=%08x, my_perm=%x, other_perm=%x\n",
+          handle, addr, my_perm, other_perm);
+
     if (h->type == HANDLE_TYPE_SERVICE) {
         switch (h->subtype) {
 
         default:
-            DEBUG("Trying to map unknown mem\nhandle=%x, addr=%08x, my_perm=%x, other_perm=%x\n",
-                  handle, addr, my_perm, other_perm);
+            ERROR("Trying to map unknown memory\n");
             PAUSE();
-            return 0xFFFFFFFF;
+            return -1;
         }
     } else {
         switch (h->subtype) {
@@ -290,10 +292,9 @@ u32 svcMapMemoryBlock()
             mem_AddMappingShared(addr, 0x2000, HIDsharedbuff);
             break;
         default:
-            DEBUG("Trying to map unknown mem\nhandle=%x, addr=%08x, my_perm=%x, other_perm=%x\n",
-                  handle, addr, my_perm, other_perm);
+            ERROR("Trying to map unknown memory\n");
             PAUSE();
-            return 0xFFFFFFFF;
+            return -1;
         }
     }
 

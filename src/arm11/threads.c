@@ -48,6 +48,8 @@ u32 threads_New(u32 handle)
     threads[num_threads].handle = handle;
     threads[num_threads].state = RUNNING;
     threads[num_threads].wait_list = NULL;
+    threads[num_threads].wait_list_size = 0;
+
     return num_threads++;
 }
 
@@ -55,6 +57,7 @@ u32 threads_New(u32 handle)
 bool threads_IsThreadActive(u32 id)
 {
     u32 i;
+    bool ret;
 
     switch(threads[id].state) {
     case RUNNING:
@@ -64,7 +67,11 @@ bool threads_IsThreadActive(u32 id)
         return false;
 
     case WAITING:
+        DEBUG("Wait-list for thread %d:\n", id);
+
         if(threads[id].wait_all) {
+            ret = true;
+
             for(i=0; i<threads[id].wait_list_size; i++) {
                 u32 handle = threads[id].wait_list[i];
 
@@ -75,15 +82,20 @@ bool threads_IsThreadActive(u32 id)
                 bool is_waiting = false;
                 handle_types[hi->type].fnWaitSynchronization(hi, &is_waiting);
 
+                DEBUG("    %08x, type=%s, waiting=%s\n", handle, handle_types[hi->type].name,
+                      is_waiting ? "true" : "false");
+
                 if(is_waiting) 
-                    return false;
+                    ret = false;
             }
 
             threads[id].r[1] = threads[id].wait_list_size;
             threads[id].state = RUNNING;
-            return true;
+            return ret;
         }
         else {
+            ret = false;
+
             for(i=0; i<threads[id].wait_list_size; i++) {
                 u32 handle = threads[id].wait_list[i];
 
@@ -94,13 +106,16 @@ bool threads_IsThreadActive(u32 id)
                 bool is_waiting = false;
                 handle_types[hi->type].fnWaitSynchronization(hi, &is_waiting);
 
-                if(is_waiting) {
+                DEBUG("    %08x, type=%s, waiting=%s\n", handle, handle_types[hi->type].name,
+                      is_waiting ? "true" : "false");
+
+                if(!ret && !is_waiting) {
                     threads[id].r[1] = i;
                     threads[id].state = RUNNING;
-                    return true;
+                    ret = true;
                 }
             }
-            return false;
+            return ret;
         }
     }
 
@@ -160,8 +175,10 @@ void threads_Execute() {
     u32 t;
 
     for (t=0; t<threads_Count(); t++) {
-        if(!threads_IsThreadActive(t))
+        if(!threads_IsThreadActive(t)) {
+            DEBUG("Skipping thread %d..\n", t);
             continue;
+        }
 
         threads_Switch(/*from,*/ t);
         arm11_Run(0x8000000 / 60);

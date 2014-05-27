@@ -21,24 +21,41 @@
 #include "mem.h"
 #include "handles.h"
 
-u32 svcCreateAddressArbiter()//(uint arbiter, ref uint output)
+
+u32 svcCreateAddressArbiter()//(ref uint output)
 {
-    DEBUG("Create AddressArbiter %08X \r\n", arm11_R(0));
-    u32 newhandelu = handle_New(HANDLE_TYPE_Arbiter, 0);
-    arm11_SetR(1, newhandelu);
+    arm11_SetR(1, handle_New(HANDLE_TYPE_Arbiter, 0));
     return 0;
 }
+
 u32 svcArbitrateAddress()//(uint arbiter, uint addr, uint type, uint value)
 {
-    u32 arbiter = arm11_R(0);
-    u32 addr = arm11_R(1);
-    u32 type = arm11_R(2);
-    u32 val = arm11_R(3);
-    u32 val2 = arm11_R(4);
-    u32 val3 = arm11_R(5);
+    u32 arbiter   = arm11_R(0);
+    u32 addr      = arm11_R(1);
+    u32 type      = arm11_R(2);
+    u32 low_limit = arm11_R(3);
+    u32 val2      = arm11_R(4);
+    u32 val3      = arm11_R(5);
 
-    DEBUG("ArbitrateAddress %08X %08X %08X %08X %08X %08X ", arbiter, addr, type, val, val2, val3);
+    DEBUG("handle=%08x addr=%08x type=%08x low_limit=%08x timeout=%08x,%08x\n",
+          arbiter, addr, type, low_limit, val2, val3);
 
-    mem_Write32(addr, type); //stfu
+    switch(type) {
+    case 0:
+        mem_Write32(addr, type); // this is wrong
+        break;
+    case 1: // USER
+    case 2: // KERNEL
+        mem_Write32(addr, type); // this is wrong
+        break;
+    case 3: // USER
+    case 4: // KERNEL
+        mem_Write32(addr, type); // this is wrong
+        break;
+    default:
+        ERROR("invalid type %d\n", type);
+        return -1;
+    }
+
     return 0;
 }

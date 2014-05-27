@@ -18,7 +18,8 @@ SYSCALLS_FILES= src/syscalls/events.c src/syscalls/memory.c \
 SERVICES_FILES = src/services/am_u.c src/services/apt_u.c src/services/cfg_u.c \
 	src/services/dsp_dsp.c src/services/frd_u.c src/services/fs_user.c \
 	src/services/gsp_gpu.c src/services/hid_user.c src/services/ir_u.c \
-	src/services/ndm_u.c src/services/ns_s.c src/services/ptm_u.c src/services/srv.c
+	src/services/ndm_u.c src/services/ns_s.c src/services/ptm_u.c \
+	src/services/cecd_u.c src/services/boss_u.c src/services/srv.c
 
 GPU_FILES = src/gpu/gpu.c
 

@@ -62,6 +62,7 @@ u32 svcConnectToPort()
 
     for(i=0; i<ARRAY_SIZE(ports); i++) {
         if(strcmp(name, ports[i].name) == 0) {
+            DEBUG("Found port %s!\n", name);
             return ports[i].fnInitHandle();
         }
     }

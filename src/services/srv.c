@@ -33,6 +33,8 @@ u32 ptm_u_SyncRequest();
 u32 frd_u_SyncRequest();
 u32 ir_u_SyncRequest();
 u32 dsp_dsp_SyncRequest();
+u32 cecd_u_SyncRequest();
+u32 boss_u_SyncRequest();
 
 #ifndef _WIN32
 static size_t strnlen(const char* p, size_t n)
@@ -132,6 +134,18 @@ static struct {
         SERVICE_TYPE_DSP_DSP,
         0,
         &dsp_dsp_SyncRequest
+    },
+    {
+        "cecd:u",
+        SERVICE_TYPE_CECD_U,
+        0,
+        &cecd_u_SyncRequest
+    },
+    {
+        "boss:U",
+        SERVICE_TYPE_BOSS_U,
+        0,
+        &boss_u_SyncRequest
     }
 };
 
@@ -248,6 +262,10 @@ u32 srv_SyncRequest()
         mem_Write32(CPUsvcbuffer + 0x84, 0);
         return 0;
 
+    case 0xB0000: // GetNotificationType
+        mem_Write32(CPUsvcbuffer + 0x84, 0);
+        return 0;
+        
     default:
         ERROR("Unimplemented command %08x in \"srv:\"\n", cid);
         arm11_Dump();

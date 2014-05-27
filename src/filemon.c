@@ -3,9 +3,11 @@
 #include <stdbool.h>
 #include <string.h>
 #include <signal.h>
-#include <SDL.h>
-#include "util.h"
+#include <wchar.h>
 
+#include <SDL.h>
+
+#include "util.h"
 #include "filemon.h"
 
 
@@ -53,6 +55,7 @@ int romfs_dirblock_readentry( u32 diroffset, romfs_direntry* entry)
 
     return 1;
 }
+
 int romfs_fileblock_readentry(u32 fileoffset, romfs_fileentry* entry)
 {
     u32 size_without_name = sizeof(romfs_fileentry)-ROMFS_MAXNAMESIZE;
@@ -72,7 +75,7 @@ int romfs_fileblock_readentry(u32 fileoffset, romfs_fileentry* entry)
     foldername[foldernamelen + namesize] = 0;
     foldername[foldernamelen + namesize + 1] = 0;
 
-    DEBUG("%ls\n", foldername);
+    wprintf(L"%ls\n", foldername);
 
     translaterfildcount++;
     translaterfild = realloc(translaterfild, translaterfildcount * sizeof(aufloeseentry));
@@ -83,22 +86,21 @@ int romfs_fileblock_readentry(u32 fileoffset, romfs_fileentry* entry)
     translaterfild[translaterfildcount - 1].name = namenfeld;
     return 1;
 }
+
 void fileana(u32 fileoffset)
 {
-
     u32 siblingoffset = 0;
     romfs_fileentry entry;
 
-
     if (!romfs_fileblock_readentry(fileoffset, &entry))
         return;
-
 
     siblingoffset = getle32(entry.siblingoffset);
 
     if (siblingoffset != (~0))
         fileana(siblingoffset);
 }
+
 void dirana(u32 offset) // romfs_visit_dir(romfs_context* ctx, u32 diroffset, u32 depth, u32 actions, filepath* rootpath)
 {
     u32 foldernamelentemp = foldernamelen;
@@ -107,15 +109,17 @@ void dirana(u32 offset) // romfs_visit_dir(romfs_context* ctx, u32 diroffset, u3
     if (!romfs_dirblock_readentry(offset, &entry))
         return;
     namesize = getle32(entry.namesize);
+
     memcpy(foldername + foldernamelen, entry.name, namesize);
     foldernamelen += namesize;
+
     foldername[foldernamelen] = '/';
     foldername[foldernamelen + 1] = 0;
     foldername[foldernamelen + 2] = 0;
     foldername[foldernamelen + 3] = 0;
 
     foldernamelen += 2;
-    DEBUG("%ls\n", foldername);
+    wprintf(L"%ls\n", foldername);
 
     u32 siblingoffset = getle32(entry.siblingoffset);
     u32 childoffset = getle32(entry.childoffset);
@@ -139,11 +143,14 @@ void initfilemon(u8* level3buffer)
     foldername[1] = 0;
     foldername[2] = 0;
     foldername[3] = 0;
+
     romfs_header fs_header;
     memcpy(&fs_header, level3buffer, sizeof(fs_header));
+
     dirrealoffset = getle32(fs_header.dirrealoffset);
     filerealoffset = getle32(fs_header.filerealoffset);
     dataoffset = getle32(fs_header.dataoffset);
+
     dirblock = level3buffer;
     dirana(0);
 }

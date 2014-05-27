@@ -284,7 +284,7 @@ u32 svcCreateThread()
     u32 ent_sp = arm11_R(3);
     u32 cpu  = arm11_R(4);
 
-    DEBUG("entrypoint=%08x, r0=%08x, sp=%08x, prio=%x, cpu=%x",
+    DEBUG("entrypoint=%08x, r0=%08x, sp=%08x, prio=%x, cpu=%x\n",
           ent_pc, ent_r0, ent_sp, prio, cpu);
 
     u32 hand = handle_New(HANDLE_TYPE_THREAD, 0);

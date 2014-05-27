@@ -156,15 +156,15 @@ u32 services_SyncRequest(handleinfo* h, bool *locked)
     return 0;
 }
 
-u32 mutexhandel;
+u32 mutexhandle;
 
 u32 srv_InitHandle()
 {
     // Create a handle for srv: port.
     arm11_SetR(1, handle_New(HANDLE_TYPE_PORT, PORT_TYPE_SRV));
+    mutexhandle = handle_New(HANDLE_TYPE_MUTEX, 0);
 
-    mutexhandel = handle_New(HANDLE_TYPE_MUTEX, 0);
-    handleinfo* h = handle_Get(mutexhandel);
+    handleinfo* h = handle_Get(mutexhandle);
     if (h == NULL) {
         DEBUG("failed to get newly created mutex\n");
         PAUSE();
@@ -196,11 +196,15 @@ u32 srv_SyncRequest()
 
         // XXX: check +4, flags?
         PAUSE();
-        break;
-    case 0x20000:
-        mem_Write32(CPUsvcbuffer + 0x84, 0); //no error
-        mem_Write32(CPUsvcbuffer + 0x8C, mutexhandel);
         return 0;
+
+    case 0x20000:
+        DEBUG("srv_EnableNotification\n");
+
+        mem_Write32(CPUsvcbuffer + 0x84, 0); //no error
+        mem_Write32(CPUsvcbuffer + 0x8C, mutexhandle);
+        return 0;
+
     case 0x50100:
         DEBUG("srv_GetServiceHandle\n");
 
@@ -239,6 +243,14 @@ u32 srv_SyncRequest()
         ERROR("Unimplemented service: %s\n", req.name);
         arm11_Dump();
         exit(1);
+
+    case 0x90040: // EnableNotificationType
+        DEBUG("srv_EnableNotificationType\n");
+
+        u32 type = mem_Read32(0xFFFF0084);
+        DEBUG("STUBBED, type=%x\n", type);
+        mem_Write32(CPUsvcbuffer + 0x84, 0);
+        return 0;
 
     default:
         ERROR("Unimplemented command %08x in \"srv:\"\n", cid);

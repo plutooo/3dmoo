@@ -180,7 +180,7 @@ u32 fs_user_SyncRequest()
         u32 fdata = mem_Read32(CPUsvcbuffer + 0xB0);
 
         if (asize > 0x100) {
-            DEBUG("to big");
+            DEBUG("too big\n");
             return 0;
         }
 
@@ -190,7 +190,7 @@ u32 fs_user_SyncRequest()
 
 
         if (fsize > 0x100) {
-            DEBUG("to big");
+            DEBUG("too big\n");
             return 0xFFFFFFFF;
         }
 
@@ -337,17 +337,23 @@ u32 fs_user_SyncRequest()
         mem_Write32(CPUsvcbuffer + 0x84, 0); //no error
         return 0;
     }
+    case 0x08170000: // IsSdmcDetected
+        return 0;
+
     case 0x08610042: //InitializeWithSdkVersion
         mem_Write32(CPUsvcbuffer + 0x84, 0); //no error
         return 0;
+
     case 0x08620040: //SetPriority
         Priority = mem_Read32(CPUsvcbuffer + 0x84);
         mem_Write32(CPUsvcbuffer + 0x84, 0); //no error
         return 0;
+
     case 0x08630000: //GetPriority
         mem_Write32(CPUsvcbuffer + 0x88, Priority); //Priority
         mem_Write32(CPUsvcbuffer + 0x84, 0); //no error
         return 0;
+
     default:
         break;
     }
@@ -357,6 +363,7 @@ u32 fs_user_SyncRequest()
     PAUSE();
     return 0;
 }
+
 u32 file_SyncRequest(handleinfo* h, bool *locked)
 {
     *locked = false;

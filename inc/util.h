@@ -20,6 +20,8 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include <string.h>
+#include <stdio.h>
 
 #ifndef u8
 typedef uint8_t u8;
@@ -51,18 +53,34 @@ typedef int64_t s64;
 #define __func__ __FUNCTION__
 #endif
 
+static void color_red() {
+    fprintf(stdout, "\033[0;31m");
+}
+
+static void color_green() {
+    fprintf(stdout, "\033[0;32m");
+}
+
+static void color_restore() {
+    fprintf(stdout, "\033[0m");
+}
+
 #if 1
-#define DEBUG(...) do {                          \
-    fprintf(stdout, "%s: ", __func__);       \
-    fprintf(stdout, __VA_ARGS__);           \
+#define DEBUG(...) do {                                 \
+        color_green();                                  \
+        fprintf(stdout, "%s: ", __func__);              \
+        color_restore();                                \
+        fprintf(stdout, __VA_ARGS__);                   \
 } while (0);
 #else
 #define DEBUG(...)
 #endif
 
-#define ERROR(...) do { \
-	fprintf(stderr, "%s:%d: ", __FILE__, __LINE__); \
-	fprintf(stderr, __VA_ARGS__);			\
+#define ERROR(...) do {                                 \
+        color_red();                                    \
+        fprintf(stdout, "%s: ", __func__);              \
+        color_restore();                                \
+	fprintf(stdout, __VA_ARGS__);			\
     } while(0);
 
 #if 0

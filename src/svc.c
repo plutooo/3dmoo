@@ -148,7 +148,7 @@ void svc_Execute(ARMul_State * state, u8 num)
     if(name == NULL)
         name = "Unknown";
 
-    DEBUG("-- svc%s (0x%x) --\n", name, num);
+    fprintf(stdout, "\n\033[0;36m>> svc%s (0x%x)\033[0m\n", name, num);
 
     switch (num) {
     case 1:

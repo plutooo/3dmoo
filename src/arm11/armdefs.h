@@ -18,6 +18,7 @@
 #ifndef _ARMDEFS_H_
 #define _ARMDEFS_H_
 
+#include "util.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>

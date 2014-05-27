@@ -87,9 +87,6 @@
     <ClCompile Include="..\src\services\hid_user.c">
       <Filter>Source Files\services</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\IO\SrvtoIO.c">
-      <Filter>Source Files\IO</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\arm11\armemu.c">
       <Filter>Source Files\arm11</Filter>
     </ClCompile>
@@ -153,8 +150,11 @@
     <ClCompile Include="..\src\filemon.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\DSPemu\DSPmain.c">
-      <Filter>Source Files\DSPcore</Filter>
+    <ClCompile Include="..\src\dsp\dspemu.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\gpu\gpu.c">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -168,9 +168,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\inc\util.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\inc\SrvtoIO.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\src\arm11\vfp\asm_vfp.h">
@@ -214,6 +211,9 @@
     </ClInclude>
     <ClInclude Include="..\inc\DSP.h">
       <Filter>Header Files\DSP</Filter>
+    </ClInclude>
+    <ClInclude Include="..\inc\gpu.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

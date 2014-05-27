@@ -16,13 +16,10 @@
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <stdio.h>
-#include <SDL.h>
-
 #include "util.h"
 #include "gpu.h"
-
 #include "hid_user.h"
+#include <SDL.h>
 
 SDL_Window *win = NULL;
 SDL_Renderer *renderer = NULL;

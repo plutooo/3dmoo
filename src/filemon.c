@@ -1,3 +1,6 @@
+#include "util.h"
+#include "filemon.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
@@ -6,9 +9,6 @@
 #include <wchar.h>
 
 #include <SDL.h>
-
-#include "util.h"
-#include "filemon.h"
 
 
 aufloeseentry* translaterfild = 0;

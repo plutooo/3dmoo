@@ -34,10 +34,6 @@
 #define __VFP_HELPER_H__
 
 /* Custom edit */
-
-#include <stdint.h>
-#include <stdio.h>
-
 #include <util.h>
 #include "../armdefs.h"
 

@@ -16,16 +16,11 @@
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
-#include <SDL.h>
-
 #include "util.h"
 #include "arm11.h"
 #include "handles.h"
 #include "mem.h"
+#include <SDL.h>
 
 u8 HIDsharedbuff[0x2000];
 

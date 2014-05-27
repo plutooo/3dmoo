@@ -16,11 +16,6 @@
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdint.h>
-#include <string.h>
-
 #include "util.h"
 #include "arm11.h"
 #include "handles.h"
@@ -38,7 +33,7 @@ static size_t   num_mappings;
 
 //#define MEM_TRACE 1
 
-#define PRINT_ILLEGAL 1
+//#define PRINT_ILLEGAL 1
 //#define EXIT_ON_ILLEGAL 1
 
 void mem_Dbugdump()

@@ -1,5 +1,7 @@
 /*
  * Copyright (C) 2014 - plutoo
+ * Copyright (C) 2014 - ichfly
+ * Copyright (C) 2014 - Normmatt
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,8 +20,13 @@
 #ifndef _UTIL_H_
 #define _UTIL_H_
 
+#ifndef WINVER
+#define WINVER 0x0500   // default to Windows Version 4.0
+#endif
+
 #ifdef _WIN32
 #include <Windows.h>
+#undef ERROR
 #endif
 
 #include <stdint.h>

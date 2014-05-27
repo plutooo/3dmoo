@@ -16,9 +16,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-
 #include "util.h"
 #include "arm11.h"
 #include "handles.h"
@@ -210,6 +207,7 @@ u32 svcWaitSynchronizationN() // TODO: timeouts
     u32 handles_count = arm11_R(2);
     u32 wait_all      = arm11_R(3);
     u32 nanoseconds2  = arm11_R(4);
+    u32 out = arm11_R(5);
 
     bool all_unlocked = true;
 

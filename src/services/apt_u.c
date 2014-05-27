@@ -16,9 +16,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-
 #include "util.h"
 #include "handles.h"
 #include "mem.h"
@@ -36,6 +33,7 @@ u32 apt_u_SyncRequest()
 
     // Read command-id.
     switch(cid) {
+
     case 0x10040:
         (void) 0;
 
@@ -84,6 +82,17 @@ u32 apt_u_SyncRequest()
         u32 unk = mem_Read32(0xFFFF0084);
         DEBUG("apt_u_Enable, unk=%08x\n", unk);
         PAUSE();
+
+        mem_Write32(0xFFFF0084, 0);
+        return 0;
+    }
+    case 0xB0040: //InquireNotification
+    {
+        u32 appID = mem_Read32(0xFFFF0088);
+        DEBUG("apt_u_InquireNotification, appID=%08x\n", appID);
+        PAUSE();
+
+        mem_Write32(0xFFFF008C, 0); //signal type
 
         mem_Write32(0xFFFF0084, 0);
         return 0;

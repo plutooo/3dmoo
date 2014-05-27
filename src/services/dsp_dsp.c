@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2014 - plutoo
  * Copyright (C) 2014 - ichfly
+ * Copyright (C) 2014 - Normmatt
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -15,9 +16,6 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-#include <stdio.h>
-#include <stdlib.h>
 
 #include "util.h"
 #include "handles.h"

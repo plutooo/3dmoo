@@ -16,13 +16,6 @@
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdbool.h>
-#include <string.h>
-#include <signal.h>
-#include <SDL.h>
-
 #include "util.h"
 #include "arm11.h"
 #include "screen.h"
@@ -31,6 +24,9 @@
 #include "handles.h"
 
 #include "init.h"
+
+#include <signal.h>
+#include <SDL.h>
 
 int loader_LoadFile(FILE* fd);
 

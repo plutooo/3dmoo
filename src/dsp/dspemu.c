@@ -70,7 +70,11 @@ inter INT2 0x16
 */
 const char* mulXXX[] = {
     "mpy", "mpysu", "mac", "macus",
-    "maa", "macuu", "macuu", "macsu", "maasu"
+    "maa", "macuu", "macsu", "maasu"
+};
+const char* mulXX[] = {
+    "mpy", "mac",
+    "maa", "macsu"
 };
 
 const char* ops[] = {
@@ -121,6 +125,10 @@ void DSP_Step()
 
     switch(op >> 12) {
     case 0:
+        if((op&0xF00) == 0x800)
+        {
+            DEBUG("mpyi %02X",op & 0xFF)
+        }
         if((op & 0xFE00) == 0x0E00) {
             // TODO: divs
             DEBUG("divs??\n");
@@ -303,8 +311,10 @@ void DSP_Step()
             DEBUG("%s %02x, %04x\n", alb_ops[(op >> 9) & 0x7], op & 0xFF, extra & 0xFFFF);
             break;
         }
-
-        DEBUG("?\n");
+        else
+        {
+            DEBUG("%s a%d %02x", mulXX[(op >> 9) & 0x3], (op >> 11) & 0x1,op&0xFF);
+        }
         break;
     default:
         DEBUG("?\n");

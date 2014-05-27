@@ -146,10 +146,11 @@ void threads_Switch(/*u32 from,*/ u32 to)
         exit(1);
     }
 
-    DEBUG("Thread switch %d->%d\n", from, to);
-
     if (current_thread != -1)
+    {
+        DEBUG("Thread switch %d->%d\n", from, to);
         arm11_SaveContext(&threads[from]);
+    }
 
     arm11_LoadContext(&threads[to]);
     current_thread = to;

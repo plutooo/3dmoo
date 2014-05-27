@@ -131,6 +131,16 @@ static void color_restore(int old) {
 #define DEBUG(...)
 #endif
 
+#if 1
+#define LOG(...) do {                                 \
+    int old = color_teal();                           \
+    fprintf(stdout, __VA_ARGS__);                     \
+    color_restore(old);                               \
+} while(0);
+#else
+#define LOG(...)
+#endif
+
 #define ERROR(...) do {                                 \
         int old = color_red();                          \
         fprintf(stdout, "%s: ", __func__);              \

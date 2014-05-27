@@ -664,6 +664,11 @@ ARMul_MCR (ARMul_State * state, ARMword instr, ARMword source)
         return;
     }
 
+    if (CPNum == 15 && source == 0) //Cache flush
+    {
+        return;
+    }
+
     //DEBUG("plutoo: MCR not implemented\n");
     //exit(1);
     //return;

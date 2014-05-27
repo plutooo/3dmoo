@@ -1,0 +1,33 @@
+Every thread has 3 states:
+   * RUNNING
+   * STOPPED
+   * WAITING
+
+The first 2 are self-explanatory.
+
+The WAITING state is entered by a call to svcWaitSynchronization(N).
+
+In WAITING state there are 3 parameters:
+   * wait_list - an array of handles that the thread is waiting for
+   * wait_list_length
+   * wait_all  - a boolean whether to continue execution after all or just one
+
+Upon a thread-switch, if the thread is in WAITING state the following will be executed (psuedocode):
+
+     if state == RUNNING:
+        return true
+
+     else if state == STOPPED:
+        return false
+
+     else if state == WAITING:
+        if wait_all:
+           for each handle in wait_list:
+               if handle.is_waiting():
+                  // this thread is still blocked..
+                  return false
+        else:
+           for each handle in wait_list:
+               if not handle.is_waiting():
+                  // this thread can run now!
+                  return true

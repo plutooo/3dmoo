@@ -187,11 +187,22 @@ void DSP_Step()
             break;
         }
     case 0x9:
-        if ((op & 0xFEE0) == 0x90C0)
+        if((op & 0xFEE0) == 0x90C0)
         {
             u16 extra = FetchWord(pc + 2);
             DEBUG("msu (a%d) (r%d), %04x (modifier=%s)\n",ax, op & 0x7,extra, mm[(op >> 3) & 3]);
             pc += 2;
+            break;
+        }
+        if((op&0xF0E0) == 0x9020)
+        {
+            DEBUG("tstb (r%d) (modifier=%s) (bit=%d)\n", op & 0x7, mm[(op >> 3) & 3],(op >> 8)&0xF);
+            break;
+        }
+        if ((op & 0xF0E0) == 0x9000)
+        {
+            DEBUG("tstb %s (bit=%d)\n", rrrrr[op&0x1F], (op >> 8) & 0xF);
+            break;
         }
         if(((op >> 6) & 0x7) == 4) {
             // ALM (rN)
@@ -283,6 +294,11 @@ void DSP_Step()
             DEBUG("%s r%d (modifier=%s),r%d (modifier=%s) a%d\n", mulXXX[(op >> 8) & 0x7], op & 0x3, mm[(op >> 5) & 0x3], 3 + (op >> 2) & 0x1, mm[(op >> 3) & 0x3], (op >> 11) & 0x1);
             break;
         }
+        if ((op & 0xFE80) == 0xD080){
+            //msu (rJ), (rI)
+            DEBUG("msu r%d (modifier=%s),r%d (modifier=%s) a%d\n", op & 0x3, mm[(op >> 5) & 0x3], 3 + (op >> 2) & 0x1, mm[(op >> 3) & 0x3], ax);
+            break;
+        }
         if((op & 0xFED8) == 0xD4D8) {
             int op3 = HasOp3(op);
 
@@ -321,6 +337,9 @@ void DSP_Step()
         {
             DEBUG("%s a%d %02x\n", mulXX[(op >> 9) & 0x3], (op >> 11) & 0x1,op&0xFF);
         }
+        break;
+    case 0xF:
+        DEBUG("tstb %02x (bit=%d)\n", op&0xFF, (op >> 8) & 0xF);
         break;
     default:
         DEBUG("?\n");

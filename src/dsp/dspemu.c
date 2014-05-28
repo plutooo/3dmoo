@@ -127,7 +127,7 @@ void DSP_Step()
     case 0:
         if((op&0xF00) == 0x800)
         {
-            DEBUG("mpyi %02X",op & 0xFF)
+            DEBUG("mpyi %02X\n",op & 0xFF)
         }
         if((op & 0xFE00) == 0x0E00) {
             // TODO: divs
@@ -137,7 +137,7 @@ void DSP_Step()
 
     case 4:
         if(!(op & 0x80)) {
-            u16 op3 = HasOp3(op);
+            int op3 = HasOp3(op);
 
             if(op3 != -1) {
                 // ALU (rb + #offset7), ax
@@ -172,18 +172,18 @@ void DSP_Step()
     case 0x8:
         if ((op & 0xE0) == 0x60) {
             //MUL y, (rN)
-            DEBUG("%s y, (a%d),(r%d) (modifier=%s)", mulXXX[(op >> 8) & 0x7], (op >> 11) & 0x1, mm[(op >> 3) & 3]);
+            DEBUG("%s y, (a%d),(r%d) (modifier=%s)\n", mulXXX[(op >> 8) & 0x7], (op >> 11) & 0x1, -1, mm[(op >> 3) & 3]);
             break;
         }
         if ((op & 0xE0) == 0x40) {
             //MUL y, register
-            DEBUG("%s y, (a%d),%s", mulXXX[(op >> 8) & 0x7], (op >> 11) & 0x1, rrrrr[op & 0x1F]);
+            DEBUG("%s y, (a%d),%s\n", mulXXX[(op >> 8) & 0x7], (op >> 11) & 0x1, rrrrr[op & 0x1F]);
             break;
         }
         if ((op & 0xE0) == 0x00) {
             //MUL (rN), ##long immediate
             u16 longim = FetchWord(pc + 2);
-            DEBUG("%s %s, (a%d),%04x", mulXXX[(op >> 8) & 0x7], rrrrr[op & 0x1F], (op >> 11) & 0x1, longim);
+            DEBUG("%s %s, (a%d),%04x\n", mulXXX[(op >> 8) & 0x7], rrrrr[op & 0x1F], (op >> 11) & 0x1, longim);
             break;
         }
     case 0x9:
@@ -222,7 +222,7 @@ void DSP_Step()
             }
             break;
         } else if((op & 0xF0FF) == 0x80C0) {
-            u16 op3 = HasOp3(op);
+            int op3 = HasOp3(op);
 
             if(op3 != -1) {
                 // ALU ##long immediate
@@ -259,7 +259,7 @@ void DSP_Step()
         break;
 
     case 0xC: {
-        u16 op3 = HasOp3(op);
+        int op3 = HasOp3(op);
 
         if(op3 != -1) {
             // ALU #short immediate
@@ -274,11 +274,11 @@ void DSP_Step()
     case 0xD:
         if (!(op & 0x80)) {
             //MUL (rJ), (rI) 1101AXXX0jjiiwqq
-            DEBUG("%s r%d (modifier=%s),r%d (modifier=%s) a%d", mulXXX[(op >> 8) & 0x7], op & 0x3, mm[(op >> 5) & 0x3], 3 + (op >> 2) & 0x1, mm[(op >> 3) & 0x3], (op >> 11) & 0x1);
+            DEBUG("%s r%d (modifier=%s),r%d (modifier=%s) a%d\n", mulXXX[(op >> 8) & 0x7], op & 0x3, mm[(op >> 5) & 0x3], 3 + (op >> 2) & 0x1, mm[(op >> 3) & 0x3], (op >> 11) & 0x1);
             break;
         }
         if((op & 0xFED8) == 0xD4D8) {
-            u16 op3 = HasOp3(op);
+            int op3 = HasOp3(op);
 
             if(op3 != -1) {
                 u16 extra = FetchWord(pc+1);
@@ -313,7 +313,7 @@ void DSP_Step()
         }
         else
         {
-            DEBUG("%s a%d %02x", mulXX[(op >> 9) & 0x3], (op >> 11) & 0x1,op&0xFF);
+            DEBUG("%s a%d %02x\n", mulXX[(op >> 9) & 0x3], (op >> 11) & 0x1,op&0xFF);
         }
         break;
     default:

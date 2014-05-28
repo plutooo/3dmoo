@@ -19,6 +19,6 @@
 #include "util.h"
 
 u32 hid_user_SyncRequest();
-u32 translate_to_bit(SDL_KeyboardEvent key);
-void hid_keyup(SDL_KeyboardEvent key);
-void hid_keypress(SDL_KeyboardEvent key);
+u32 translate_to_bit(const SDL_KeyboardEvent* key);
+void hid_keyup(const SDL_KeyboardEvent* key);
+void hid_keypress(const SDL_KeyboardEvent* key);

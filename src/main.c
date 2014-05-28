@@ -115,9 +115,9 @@ int main(int argc, char* argv[])
         if(!noscreen)
             screen_HandleEvent();
 
-        for (int i = 0; i < 6; i++) {
+        //for (int i = 0; i < 6; i++) {
             threads_Execute();
-        }
+        //}
 
         if (!noscreen)
             screen_RenderGPU();

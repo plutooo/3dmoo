@@ -68,9 +68,9 @@ static void vfp_double_dump(const char *str, struct vfp_double *d)
 
 static void vfp_double_normalise_denormal(struct vfp_double *vd)
 {
-    int bits = 31 - fls(vd->significand >> 32);
+    int bits = 31 - fls((ARMword)(vd->significand >> 32));
     if (bits == 31)
-        bits = 63 - fls(vd->significand);
+        bits = 63 - fls((ARMword)vd->significand);
 
     vfp_double_dump("normalise_denormal: in", vd);
 
@@ -107,9 +107,9 @@ u32 vfp_double_normaliseround(ARMul_State* state, int dd, struct vfp_double *vd,
     exponent = vd->exponent;
     significand = vd->significand;
 
-    shift = 32 - fls(significand >> 32);
+    shift = 32 - fls((ARMword)(significand >> 32));
     if (shift == 32)
-        shift = 64 - fls(significand);
+        shift = 64 - fls((ARMword)significand);
     if (shift) {
         exponent -= shift;
         significand <<= shift;
@@ -563,7 +563,7 @@ static u32 vfp_double_ftoui(ARMul_State* state, int sd, int unused, int dm, u32 
         /*
          * 2^0 <= m < 2^32-2^8
          */
-        d = (vdm.significand << 1) >> shift;
+        d = (ARMword)((vdm.significand << 1) >> shift);
         rem = vdm.significand << (65 - shift);
 
         if (rmode == FPSCR_ROUND_NEAREST) {
@@ -644,7 +644,7 @@ static u32 vfp_double_ftosi(ARMul_State* state, int sd, int unused, int dm, u32 
         int shift = 1023 + 63 - vdm.exponent;	/* 58 */
         u64 rem, incr = 0;
 
-        d = (vdm.significand << 1) >> shift;
+        d = (ARMword)((vdm.significand << 1) >> shift);
         rem = vdm.significand << (65 - shift);
 
         if (rmode == FPSCR_ROUND_NEAREST) {
@@ -659,8 +659,8 @@ static u32 vfp_double_ftosi(ARMul_State* state, int sd, int unused, int dm, u32 
 
         if ((rem + incr) < rem && d < 0xffffffff)
             d += 1;
-        if (d > 0x7fffffff + (vdm.sign != 0)) {
-            d = 0x7fffffff + (vdm.sign != 0);
+        if (d > (0x7fffffff + (vdm.sign != 0))) {
+            d = (0x7fffffff + (vdm.sign != 0));
             exceptions |= FPSCR_IOC;
         } else if (rem)
             exceptions |= FPSCR_IXC;

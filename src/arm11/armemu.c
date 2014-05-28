@@ -1779,11 +1779,11 @@ mainswitch:
                             if (BIT (5) == 0) {
                                 ARMword Rn = state->Reg[BITS(12, 15)];
 
-                                if (AddOverflow(result, Rn, result + Rn))
+                                if (AddOverflow((ARMword)result, Rn, (ARMword)(result + Rn)))
                                     SETS;
                                 result += Rn;
                             }
-                            state->Reg[BITS (16, 19)] = result;
+                            state->Reg[BITS (16, 19)] = (ARMword)result;
                             break;
                         }
 
@@ -1825,8 +1825,8 @@ mainswitch:
 #endif
                     if (state->is_v5) {
                         if (BITS (4, 7) == 0x7) {
-                            ARMword value;
-                            extern int SWI_vector_installed;
+                            //ARMword value;
+                            //extern int SWI_vector_installed;
 
                             /* Hardware is allowed to optionally override this
                                instruction and treat it as a breakpoint.  Since
@@ -1889,7 +1889,7 @@ mainswitch:
                             unsigned long long op1 = state->Reg[BITS (0, 3)];
                             unsigned long long op2 = state->Reg[BITS (8, 11)];
                             unsigned long long dest;
-                            unsigned long long result;
+                            //unsigned long long result;
 
                             if (BIT (5))
                                 op1 >>= 16;
@@ -1905,8 +1905,8 @@ mainswitch:
                             dest = (unsigned long long) state->Reg[BITS (16, 19)] << 32;
                             dest |= state->Reg[BITS (12, 15)];
                             dest += op1 * op2;
-                            state->Reg[BITS (12, 15)] = dest;
-                            state->Reg[BITS (16, 19)] = dest >> 32;
+                            state->Reg[BITS(12, 15)] = (ARMword)dest;
+                            state->Reg[BITS(16, 19)] = (ARMword)(dest >> 32);
                             break;
                         }
 

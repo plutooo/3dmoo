@@ -153,10 +153,10 @@ void screen_HandleEvent()
     while (SDL_PollEvent(&e) != 0) {
         switch (e.type) {
         case SDL_KEYUP:
-            hid_keyup(e.key);
+            hid_keyup(&e.key);
             break;
         case SDL_KEYDOWN:
-            hid_keypress(e.key);
+            hid_keypress(&e.key);
             break;
         case SDL_QUIT:
             exit(0);

@@ -19,6 +19,7 @@
 #include "util.h"
 #include "arm11.h"
 #include "mem.h"
+#include "filemon.h"
 
 // Shamelessly stolen from ctrtool.
 typedef struct {
@@ -454,7 +455,7 @@ int loader_LoadFile(FILE* fd)
         }
     }
 
-    if (Read32(h.romfsoffset) != 0 && Read32(h.romfsoffset) != 0) {
+    if (Read32(h.romfsoffset) != 0 && Read32(h.romfssize) != 0) {
         u32 romfs_off = (Read32(h.romfsoffset) * 0x200) + 0x1000;
         u32 romfs_sz = (Read32(h.romfssize) * 0x200) - 0x1000;
 

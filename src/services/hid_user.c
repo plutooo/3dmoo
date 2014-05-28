@@ -62,9 +62,9 @@ u32 hid_user_SyncRequest()
 
     return 0;
 }
-u32 translate_to_bit(SDL_KeyboardEvent key)
+u32 translate_to_bit(const SDL_KeyboardEvent* key)
 {
-    switch (SDL_GetScancodeFromKey(key.keysym.sym)) {
+    switch (SDL_GetScancodeFromKey(key->keysym.sym)) {
     case SDL_SCANCODE_V:
         return 1 <<0;
     case SDL_SCANCODE_B :
@@ -94,11 +94,11 @@ u32 translate_to_bit(SDL_KeyboardEvent key)
     }
 
 }
-void hid_keyup(SDL_KeyboardEvent key)
+void hid_keyup(const SDL_KeyboardEvent* key)
 {
     *(u32*)&HIDsharedbuff[0x1C] &= ~translate_to_bit(key);
 }
-void hid_keypress(SDL_KeyboardEvent key)
+void hid_keypress(const SDL_KeyboardEvent* key)
 {
     *(u32*)&HIDsharedbuff[0x1C] |= translate_to_bit(key);
 }

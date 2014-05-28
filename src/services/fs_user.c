@@ -21,6 +21,7 @@
 #include "handles.h"
 #include "mem.h"
 #include "gpu.h"
+#include "filemon.h"
 
 
 #define CPUsvcbuffer 0xFFFF0000
@@ -97,7 +98,7 @@ void getendfix(u32 numb, char* str)
         break;
     }
 
-    if (strlen(temp) == 0) {
+    if (temp[0] == 0) {
         str[strlen(str)-1] = 0;
     }
 }
@@ -182,7 +183,7 @@ u32 fs_user_SyncRequest()
 
         DecodePath(atype,adata,asize,cstring);
         getendfix(archiveID, cstring);
-        sprintf(cstring, "%s/", cstring);
+        strcat(cstring, "/");
 
 
         if (fsize > 0x100) {
@@ -192,7 +193,7 @@ u32 fs_user_SyncRequest()
 
         DecodePath(ftype, fdata, fsize, cstringz);
 
-        sprintf(cstring, "%s%s", cstring, cstringz);
+        strcat(cstring,cstringz);
         DEBUG("fs:USER:OpenFileDirect(%s);\n", cstring);
         FILE *fileh = fopen(cstring, "rb");
         if (fileh == 0) {
@@ -307,7 +308,7 @@ u32 fs_user_SyncRequest()
 
         s32 p = findfreearch();
         getendfix(archiveID, cstring);
-        sprintf(cstring, "%s/", cstring);
+        strcat(cstring, "/");
         filearchhandst[p] = malloc(0x200);
         filearchisfree[p] = false;
         strncpy(filearchhandst[p], cstring, 0x200);

@@ -75,7 +75,7 @@ int romfs_fileblock_readentry(u32 fileoffset, romfs_fileentry* entry)
     foldername[foldernamelen + namesize] = 0;
     foldername[foldernamelen + namesize + 1] = 0;
 
-    wprintf(L"%ls\n", foldername);
+    wprintf(L"%ls\n", (wchar_t*)foldername);
 
     translaterfildcount++;
     translaterfild = realloc(translaterfild, translaterfildcount * sizeof(aufloeseentry));
@@ -119,7 +119,7 @@ void dirana(u32 offset) // romfs_visit_dir(romfs_context* ctx, u32 diroffset, u3
     foldername[foldernamelen + 3] = 0;
 
     foldernamelen += 2;
-    wprintf(L"%ls\n", foldername);
+    wprintf(L"%ls\n", (wchar_t*)foldername);
 
     u32 siblingoffset = getle32(entry.siblingoffset);
     u32 childoffset = getle32(entry.childoffset);
@@ -164,7 +164,7 @@ void filemontranslate(u32 addr, u32 size)
 {
     for (unsigned int i = 0; i < translaterfildcount; i++) {
         if (Contains(&translaterfild[i], addr, 1)) {
-            DEBUG("%ls offset %08X size %08X\n", translaterfild[i].name, addr - translaterfild[i].start, size);
+            DEBUG("%ls offset %08X size %08X\n", (wchar_t*)translaterfild[i].name, addr - translaterfild[i].start, size);
         }
     }
 }

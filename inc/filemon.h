@@ -1,3 +1,4 @@
+#pragma once
 #define ROMFS_MAXNAMESIZE	254		// limit set by ichfly
 
 typedef struct {
@@ -38,3 +39,6 @@ typedef struct {
     u8 unk9[4];
     u8 dataoffset[4];
 } romfs_header;
+
+void initfilemon(u8* level3buffer);
+void filemontranslate(u32 addr, u32 size);

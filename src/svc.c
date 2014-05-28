@@ -172,6 +172,12 @@ void svc_Execute(ARMul_State * state, u8 num)
     case 0xa:
         arm11_SetR(0, svcsleep());
         return;
+    case 0xb:
+        arm11_SetR(0, svcGetThreadPriority());
+        return;
+    case 0xc:
+        arm11_SetR(0, svcSetThreadPriority());
+        return;
     case 0x13:
         arm11_SetR(0, svcCreateMutex());
         return;

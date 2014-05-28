@@ -190,7 +190,7 @@ void DSP_Step()
         if ((op & 0xFEE0) == 0x90C0)
         {
             u16 extra = FetchWord(pc + 2);
-            DEBUG("msu (r%d), %04x (modifier=%s)\n", op & 0x7,extra, mm[(op >> 3) & 3]);
+            DEBUG("msu (a%d) (r%d), %04x (modifier=%s)\n",ax, op & 0x7,extra, mm[(op >> 3) & 3]);
             pc += 2;
         }
         if(((op >> 6) & 0x7) == 4) {

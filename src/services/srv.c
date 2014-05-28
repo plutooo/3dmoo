@@ -263,6 +263,7 @@ u32 srv_SyncRequest()
         return 0;
 
     case 0xB0000: // GetNotificationType
+        DEBUG("srv_GetNotificationType\n");
         mem_Write32(CPUsvcbuffer + 0x84, 0);
         return 0;
         

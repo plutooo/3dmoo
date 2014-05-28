@@ -86,17 +86,6 @@ u32 apt_u_SyncRequest()
         mem_Write32(0xFFFF0084, 0);
         return 0;
     }
-    case 0xB0040: //InquireNotification
-    {
-        u32 appID = mem_Read32(0xFFFF0088);
-        DEBUG("apt_u_InquireNotification, appID=%08x\n", appID);
-        PAUSE();
-
-        mem_Write32(0xFFFF008C, 0); //signal type
-
-        mem_Write32(0xFFFF0084, 0);
-        return 0;
-    }
     case 0x3E0080: {
         u32 unk = mem_Read32(0xFFFF0084);
         DEBUG("apt_u_ReplySleepQuery, unk=%08x\n", unk);
@@ -133,6 +122,39 @@ u32 apt_u_SyncRequest()
         //arm11_Dump();
         return 0;
     }
+
+    case 0xb0040: { //InquireNotification
+        u32 appID = mem_Read32(0xFFFF0088);
+        DEBUG("apt_u_InquireNotification, appID=%08x\n", appID);
+        PAUSE();
+
+        mem_Write32(0xFFFF008C, 0); //signal type
+
+        mem_Write32(0xFFFF0084, 0);
+        return 0;
+    }
+
+    case 0xe0080: //GlanceParameter
+    {
+        u32 appID = mem_Read32(0xFFFF0084);
+        u32 bufSize = mem_Read32(0xFFFF0088);
+        DEBUG("apt_u_GlanceParameter, appID=%08x, bufSize=%08x\n", appID, bufSize);
+        PAUSE();
+
+        mem_Write32(0xFFFF0084, 0); // result
+        mem_Write32(0xFFFF0088, 0); // appid of triggering process
+
+        // signal type (1=app just started, 0xb=returning to app, 0xc=exiting app)
+        mem_Write32(0xFFFF008C, 1);
+
+        mem_Write32(0xFFFF0090, 0x10);
+        mem_Write32(0xFFFF0094, 0); // some handle
+        mem_Write32(0xFFFF0098, 0); // (bufsize<<14) | 2
+        mem_Write32(0xFFFF009C, 0); // bufptr
+        
+        return 0;
+    }
+
     }
 
     ERROR("NOT IMPLEMENTED, cid=%08x\n", cid);

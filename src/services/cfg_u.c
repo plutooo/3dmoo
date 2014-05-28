@@ -55,4 +55,12 @@ SERVICE_CMD(0x00020000) { // SecureInfoGetRegion
     return 0;
 }
 
+SERVICE_CMD(0x00050000) { // GetSystemModel
+    DEBUG("GetSystemModel\n");
+
+    RESP(1, 0); // Result
+    RESP(2, 0); // 0=3DS, 1=3DSXL, 3=2DS
+    return 0;
+}
+
 SERVICE_END();

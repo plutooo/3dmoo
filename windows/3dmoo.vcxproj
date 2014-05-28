@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -170,6 +170,8 @@
     <ClCompile Include="..\src\screen.c" />
     <ClCompile Include="..\src\services\am_u.c" />
     <ClCompile Include="..\src\services\apt_u.c" />
+    <ClCompile Include="..\src\services\boss_u.c" />
+    <ClCompile Include="..\src\services\cecd_u.c" />
     <ClCompile Include="..\src\services\cfg_u.c" />
     <ClCompile Include="..\src\services\dsp_dsp.c" />
     <ClCompile Include="..\src\services\frd_u.c" />

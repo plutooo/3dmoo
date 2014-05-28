@@ -156,6 +156,12 @@
     <ClCompile Include="..\src\gpu\gpu.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\services\boss_u.c">
+      <Filter>Source Files\services</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\services\cecd_u.c">
+      <Filter>Source Files\services</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\inc\handles.h">

@@ -172,7 +172,7 @@ void DSP_Step()
     case 0x8:
         if ((op & 0xE0) == 0x60) {
             //MUL y, (rN)
-            DEBUG("%s y, (a%d),(r%d) (modifier=%s)\n", mulXXX[(op >> 8) & 0x7], (op >> 11) & 0x1, -1, mm[(op >> 3) & 3]);
+            DEBUG("%s y, (a%d),(r%d) (modifier=%s)\n", mulXXX[(op >> 8) & 0x7], (op >> 11) & 0x1, op&0x7, mm[(op >> 3) & 3]);
             break;
         }
         if ((op & 0xE0) == 0x40) {
@@ -187,6 +187,12 @@ void DSP_Step()
             break;
         }
     case 0x9:
+        if ((op & 0xFEE0) == 0x90C0)
+        {
+            u16 extra = FetchWord(pc + 2);
+            DEBUG("msu (r%d), %04x (modifier=%s)\n", op & 0x7,extra, mm[(op >> 3) & 3]);
+            pc += 2;
+        }
         if(((op >> 6) & 0x7) == 4) {
             // ALM (rN)
             DEBUG("%s (r%d), a%d (modifier=%s)\n", ops[(op >> 9) & 0xF], op & 0x7, ax, mm[(op >> 3) & 3]);
@@ -306,9 +312,9 @@ void DSP_Step()
         // ALB direct
         if(op & (1 << 8)) {
             u16 extra = FetchWord(pc+2);
-            pc+=2;
 
             DEBUG("%s %02x, %04x\n", alb_ops[(op >> 9) & 0x7], op & 0xFF, extra & 0xFFFF);
+            pc += 2;
             break;
         }
         else

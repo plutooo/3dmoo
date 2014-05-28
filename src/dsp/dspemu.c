@@ -104,6 +104,16 @@ const char* rrrrr[] = {
     "b0h", "b1h", "b0l", "b1l",
     "ext0", "ext1"
 };
+const char* AB[] = {
+    "b0", "b1", "a0", "a1"
+};
+const char* cccc[] = {
+    "true", "eq", "neg", "gt",
+    "ge", "1t", "le", "nn",
+    "c", "v", "e", "l",
+    "nr", "niu0", "iu0", "iu1"
+
+};
 
 int HasOp3(u16 op)
 {
@@ -297,6 +307,11 @@ void DSP_Step()
         if ((op & 0xFE80) == 0xD080){
             //msu (rJ), (rI)
             DEBUG("msu r%d (modifier=%s),r%d (modifier=%s) a%d\n", op & 0x3, mm[(op >> 5) & 0x3], 3 + (op >> 2) & 0x1, mm[(op >> 3) & 0x3], ax);
+            break;
+        }
+        if ((op & 0xF380) == 0xD280){
+            //shfc
+            DEBUG("shfc %s %s %s\n", AB[(op >> 10) & 0x3], AB[(op >> 5) & 0x3], cccc[op&0xF]);
             break;
         }
         if((op & 0xFED8) == 0xD4D8) {

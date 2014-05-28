@@ -20,12 +20,8 @@
 #include "mem.h"
 #include "arm11.h"
 
-u32 cecd_u_SyncRequest()
-{
-    u32 cid = mem_Read32(0xFFFF0080);
+#include "service_macros.h"
 
-    ERROR("NOT IMPLEMENTED, cid=%08x\n", cid);
-    arm11_Dump();
-    PAUSE();
-    return 0;
-}
+SERVICE_START(cecd_u);
+
+SERVICE_END();

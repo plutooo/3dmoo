@@ -21,20 +21,8 @@
 #include "mem.h"
 #include "arm11.h"
 
-u32 lock_handle;
-u32 event_handles[2];
+#include "service_macros.h"
 
-u32 am_u_SyncRequest()
-{
-    u32 cid = mem_Read32(0xFFFF0080);
+SERVICE_START(am_u);
 
-    // Read command-id.
-    switch(cid) {
-
-    }
-
-    ERROR("NOT IMPLEMENTED, cid=%08x\n", cid);
-    arm11_Dump();
-    PAUSE();
-    return 0;
-}
+SERVICE_END();

@@ -20,6 +20,7 @@
 #include "arm11.h"
 #include "mem.h"
 #include "handles.h"
+#include "threads.h"
 
 
 u32 svcCreateAddressArbiter()//(ref uint output)
@@ -33,28 +34,65 @@ u32 svcArbitrateAddress()//(uint arbiter, uint addr, uint type, uint value)
     u32 arbiter   = arm11_R(0);
     u32 addr      = arm11_R(1);
     u32 type      = arm11_R(2);
-    u32 low_limit = arm11_R(3);
+    s32 value     = arm11_R(3);
     u32 val2      = arm11_R(4);
     u32 val3      = arm11_R(5);
 
-    DEBUG("handle=%08x addr=%08x type=%08x low_limit=%08x timeout=%08x,%08x\n",
-          arbiter, addr, type, low_limit, val2, val3);
+    DEBUG("handle=%08x addr=%08x type=%08x value=%08x timeout=%08x,%08x\n",
+          arbiter, addr, type, value, val2, val3);
+
+    handleinfo* hi = handle_Get(arbiter);
+    if(hi == NULL || hi->type != HANDLE_TYPE_Arbiter) {
+        ERROR("Invalid arbiter handle.\n");
+        return 0xD8E007F7;
+    }
+
+    thread* p;
+    s32 i;
 
     switch(type) {
-    case 0:
-        mem_Write32(addr, type); // this is wrong
-        break;
+    case 0: // Free
+
+        // Negative value means resume all threads
+        if(value < 0) {
+            while(p = threads_ArbitrateHighestPrioThread(arbiter, addr))
+                threads_ResumeArbitratedThread(p);
+            return 0;
+        }
+
+        // Resume first N threads
+        for(i=0; i<value; i++) {
+            if(p = threads_ArbitrateHighestPrioThread(arbiter, addr))
+                threads_ResumeArbitratedThread(p);
+            else break;
+        }
+
+        return 0;
+
     case 1: // USER
-    case 2: // KERNEL
-        mem_Write32(addr, type); // this is wrong
-        break;
+
+        // If (signed cmp) value >= *addr, the thread is locked and added to wait-list.
+        // Otherwise, thread keeps running and returns 0.
+        if(value >= (s32)mem_Read32(addr))
+            threads_SetCurrentThreadArbitrationSuspend(arbiter, addr);
+
+        // XXX: Return error if read failed.
+
+        return 0;
+
     case 3: // USER
-    case 4: // KERNEL
-        mem_Write32(addr, type); // this is wrong
-        break;
-    default:
-        ERROR("invalid type %d\n", type);
+        ERROR("Type 3 not implemented.\n");
+        mem_Write32(addr, type); // XXX: this is wrong
         return -1;
+
+    case 2: // KERNEL
+    case 4: // KERNEL
+        ERROR("Kernel arbitration types are not supported.\n");
+        return -1;
+
+    default:
+        ERROR("Invalid arbiter type %d\n", type);
+        return 0xD8E093ED;
     }
 
     return 0;

@@ -1,20 +1,20 @@
 #+STARTUP:showall
 
 * arm11
-[?%] Implement media-instructions (with conditions!).
-[?%] Implement missing instructions.
+[??%] Implement media-instructions (with conditions!).
+[??%] Implement missing instructions.
 [0%] Add proper handling of MRC/MCR.
-[?%] Add ldrexh
+[??%] Add ldrexh
 
 * loader
 [0%] Load modules according to exheader.
 
 * svc
-[75%] svcControlMemorysvc
-[?%] CreateMemoryBlock
-[1%] svcCreateAddressArbiter
-[50%] svcReleaseMutex
-[50%] WaitSynchronization1
+[75%] svcControlMemory
+[??%] svcCreateMemoryBlock
+[??%] svcReleaseMutex
+[50%] svcArbitrateAddress, type=3 missing
+[0%] svcArbitrateAddress cleanup on svcCloseHandle
 
 * misc
 [0%] Move ThreadCommandBuffer(s) to correct address (currently 0xFFFF0000).

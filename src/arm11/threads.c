@@ -66,7 +66,11 @@ bool threads_IsThreadActive(u32 id)
     case STOPPED:
         return false;
 
-    case WAITING:
+    case WAITING_ARB:
+        DEBUG("Thread is %d is stuck in arbitration.\n", id);
+        return false;
+
+    case WAITING_SYNC:
         DEBUG("Wait-list for thread %d:\n", id);
 
         if(threads[id].wait_all) {
@@ -240,11 +244,58 @@ void threads_SetCurrentThreadWaitList(u32* wait_list, bool wait_all, u32 num)
         free(threads[current_thread].wait_list);
 
     threads[current_thread].wait_list = wait_list;
-    threads[current_thread].state = WAITING;
+    threads[current_thread].state = WAITING_SYNC;
     threads[current_thread].wait_all = wait_all;
     threads[current_thread].wait_list_size = num;
 
     s.NumInstrsToExecute = 0;
+}
+
+// Sets current thread into arbitration suspend.
+void threads_SetCurrentThreadArbitrationSuspend(u32 arbiter, u32 addr)
+{
+    // This should never happen.
+    if(threads[current_thread].state != RUNNING) {
+        ERROR("Warning: arbiting non-running thread!\n");
+    }
+
+    threads[current_thread].state      = WAITING_ARB;
+    threads[current_thread].arb_addr   = addr;
+    threads[current_thread].arb_handle = arbiter;
+
+    s.NumInstrsToExecute = 0;
+}
+
+void threads_ResumeArbitratedThread(thread* t)
+{
+    t->arb_handle = 0;
+    t->arb_addr = 0;
+
+    t->state = RUNNING;
+}
+
+// Returns highest prio thread waiting for arbitration.
+thread* threads_ArbitrateHighestPrioThread(u32 arbiter, u32 addr)
+{
+    thread* ret = NULL;
+    s32 highest_prio = 0x80;
+    u32 i;
+
+    for(i=0; i<threads_Count(); i++) {
+        if(threads[i].state != WAITING_ARB)
+            continue;
+        if(threads[i].arb_handle != arbiter)
+            continue;
+        if(threads[i].arb_addr != addr)
+            continue;
+
+        if(threads[i].priority <= highest_prio) {
+            ret = &threads[i];
+            highest_prio = threads[i].priority;
+        }
+    }
+
+    return ret;
 }
 
 // -- Syscall implementations --

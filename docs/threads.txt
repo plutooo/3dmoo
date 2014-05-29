@@ -1,13 +1,14 @@
-Every thread has 3 states:
+Every thread has 4 states:
    * RUNNING
    * STOPPED
-   * WAITING
+   * WAITING_SYNC
+   * WAITING_ARB
 
 The first 2 are self-explanatory.
 
-The WAITING state is entered by a call to svcWaitSynchronization(N).
+The WAITING_SYNC state is entered by a call to svcWaitSynchronization(N).
 
-In WAITING state there are 3 parameters:
+In WAITING_SYNC state there are 3 parameters:
    * wait_list - an array of handles that the thread is waiting for
    * wait_list_length
    * wait_all  - a boolean whether to continue execution after all or just one
@@ -26,8 +27,13 @@ Upon a thread-switch, if the thread is in WAITING state the following will be ex
                if handle.is_waiting():
                   // this thread is still blocked..
                   return false
+           return true
         else:
            for each handle in wait_list:
                if not handle.is_waiting():
                   // this thread can run now!
                   return true
+           return false
+
+A thread that has WAITING_ARB state has been suspended by a call to svcArbitrateAddress type 1.
+The only way for it to be resumed is for another thread to resume it using svcArbitrateAddress type 0.

@@ -21,7 +21,8 @@
 typedef enum {
     RUNNING,
     STOPPED,
-    WAITING
+    WAITING_SYNC,
+    WAITING_ARB
 } thread_state;
 
 typedef struct {
@@ -38,9 +39,14 @@ typedef struct {
 
     thread_state state;
 
+    /* WAITING_SYNC */
     u32* wait_list;
     u32  wait_list_size;
     bool wait_all;
+
+    /* WAITING_ARB */
+    u32 arb_addr;
+    u32 arb_handle;
 
     u32 handle;
     s32 priority;
@@ -57,6 +63,10 @@ void threads_StopCurrentThread();
 u32  threads_FindIdByHandle(u32 handle);
 void threads_SaveContextCurrentThread();
 void threads_SetCurrentThreadWaitList(u32* wait_list, bool wait_all, u32 num);
+
+void threads_SetCurrentThreadArbitrationSuspend(u32 arbiter, u32 addr);
+void threads_ResumeArbitratedThread(thread* t);
+thread* threads_ArbitrateHighestPrioThread(u32 arbiter, u32 addr);
 
 u32 svcGetThreadPriority();
 u32 svcSetThreadPriority();

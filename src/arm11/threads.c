@@ -93,8 +93,11 @@ bool threads_IsThreadActive(u32 id)
                     ret = false;
             }
 
-            threads[id].r[1] = threads[id].wait_list_size;
-            threads[id].state = RUNNING;
+            if (ret)
+            {
+                threads[id].r[1] = threads[id].wait_list_size;
+                threads[id].state = RUNNING;
+            }
             return ret;
         }
         else {

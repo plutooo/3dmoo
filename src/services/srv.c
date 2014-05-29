@@ -166,21 +166,21 @@ u32 services_SyncRequest(handleinfo* h, bool *locked)
     return 0;
 }
 
-u32 mutexhandle;
+u32 eventhandle;
 
 u32 srv_InitHandle()
 {
     // Create a handle for srv: port.
     arm11_SetR(1, handle_New(HANDLE_TYPE_PORT, PORT_TYPE_SRV));
-    mutexhandle = handle_New(HANDLE_TYPE_MUTEX, 0);
+    eventhandle = handle_New(HANDLE_TYPE_EVENT, 0);
 
-    handleinfo* h = handle_Get(mutexhandle);
+    handleinfo* h = handle_Get(eventhandle);
     if (h == NULL) {
         DEBUG("failed to get newly created mutex\n");
         PAUSE();
         return -1;
     }
-
+    h->locktype = LOCK_TYPE_ONESHOT;
     h->locked = true;
 
     // Create handles for all services.
@@ -212,7 +212,7 @@ u32 srv_SyncRequest()
         DEBUG("srv_EnableNotification\n");
 
         mem_Write32(CPUsvcbuffer + 0x84, 0); //no error
-        mem_Write32(CPUsvcbuffer + 0x8C, mutexhandle);
+        mem_Write32(CPUsvcbuffer + 0x8C, eventhandle);
         return 0;
 
     case 0x50100:

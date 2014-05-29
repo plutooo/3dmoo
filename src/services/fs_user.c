@@ -93,7 +93,7 @@ void getendfix(u32 numb, char* str)
         sprintf(str, "SDMC/%s", temp);
         break;
     default:
-        DEBUG("unknown Archive idcode %08X", numb);
+        DEBUG("unknown Archive idcode %08X\n", numb);
         sprintf(str, "junko/%s", temp);
         break;
     }
@@ -136,7 +136,7 @@ int DecodePath(FS_pathType type, u32 data, u32 size, char *out)
     }
     default:
         //mem_Read(out, data, size);
-        DEBUG("unsupported type");
+        DEBUG("unsupported type\n");
 
         unsigned int i = 0;
         while (i < size) {
@@ -221,7 +221,7 @@ u32 fs_user_SyncRequest()
         u32 attributes = mem_Read32(CPUsvcbuffer + 0x9C);
         u32 data = mem_Read32(CPUsvcbuffer + 0xA4);
         if (size > 0x100) {
-            DEBUG("to big");
+            DEBUG("too big\n");
             return 0;
         }
 
@@ -279,7 +279,7 @@ u32 fs_user_SyncRequest()
         u32 unk5 = mem_Read32(CPUsvcbuffer + 0xB8);
         u32 unk6 = mem_Read32(CPUsvcbuffer + 0xBC);
         if (size > 0x100) {
-            DEBUG("to big");
+            DEBUG("too big\n");
             return 0;
         }
 
@@ -300,7 +300,7 @@ u32 fs_user_SyncRequest()
         u32 size = mem_Read32(CPUsvcbuffer + 0x8C);
         u32 data = mem_Read32(CPUsvcbuffer + 0x94);
         if (size > 0x100) {
-            DEBUG("to big");
+            DEBUG("too big\n");
             return 0;
         }
 

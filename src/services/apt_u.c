@@ -31,7 +31,7 @@ SERVICE_START(apt_u);
 
 SERVICE_CMD(0x10040) {
     u32 flags = CMD(1);
-    DEBUG("apt_u_GetLockHandle, flags=%08x\n", flags);
+    DEBUG("GetLockHandle, flags=%08x\n", flags);
 
     // Create lock for APT communication thread
     lock_handle = handle_New(HANDLE_TYPE_MUTEX, HANDLE_MUTEX_APTMUTEX);
@@ -58,7 +58,7 @@ SERVICE_CMD(0x10040) {
 
 SERVICE_CMD(0x20080) {
     u32 app_id = CMD(1);
-    DEBUG("apt_u_RegisterApp, app_id=%08x\n", app_id);
+    DEBUG("RegisterApp, app_id=%08x\n", app_id);
 
     // Init some event handles.
     event_handles[0] = handle_New(HANDLE_TYPE_EVENT, HANDLE_SUBEVENT_APTMENUEVENT);
@@ -79,7 +79,7 @@ SERVICE_CMD(0x20080) {
 
 SERVICE_CMD(0x30040) {
     u32 unk = CMD(1);
-    DEBUG("apt_u_Enable, unk=%08x\n", unk);
+    DEBUG("Enable, unk=%08x\n", unk);
 
     RESP(1, 0); // Result
     return 0;
@@ -88,7 +88,7 @@ SERVICE_CMD(0x30040) {
 SERVICE_CMD(0x3E0080) {
     u32 unk  = CMD(1);
     u32 unk1 = CMD(2);
-    DEBUG("apt_u_ReplySleepQuery, unk=%08x, unk1=%08x\n", unk, unk1);
+    DEBUG("ReplySleepQuery, unk=%08x, unk1=%08x\n", unk, unk1);
 
     RESP(1, 0); // Result
     return 0;
@@ -96,7 +96,14 @@ SERVICE_CMD(0x3E0080) {
 
 SERVICE_CMD(0x430040) {
     u32 app_id = CMD(1);
-    DEBUG("apt_u_NotifyToWait, app_id=%08x\n", app_id);
+    DEBUG("NotifyToWait, app_id=%08x\n", app_id);
+
+    RESP(1, 0); // Result
+    return 0;
+}
+
+SERVICE_CMD(0x440000) {
+    DEBUG("GetSharedFont\n");
 
     RESP(1, 0); // Result
     return 0;
@@ -131,17 +138,17 @@ SERVICE_CMD(0x4b00c2) { //AppletUtility
 
 SERVICE_CMD(0xb0040) {
     u32 appID = CMD(1);
-    DEBUG("apt_u_InquireNotification, appID=%08x\n", appID);
+    DEBUG("InquireNotification, appID=%08x\n", appID);
 
     RESP(1, 0); // Result
     RESP(2, 0); // Signal type (1=home button press, 7=shutdown, 8=pwr button, ..)
     return 0;
 }
 
-SERVICE_CMD(0xe0080) {
+SERVICE_CMD(0xd0080) {
     u32 appID = CMD(1);
     u32 bufSize = CMD(2);
-    DEBUG("apt_u_GlanceParameter, appID=%08x, bufSize=%08x\n", appID, bufSize);
+    DEBUG("ReceiveParameter, appID=%08x, bufSize=%08x\n", appID, bufSize);
 
     RESP(1, 0); // Result
     RESP(2, 0); // AppId of triggering process
@@ -150,7 +157,23 @@ SERVICE_CMD(0xe0080) {
     RESP(5, 0); // Some handle
     RESP(6, 0); // (bufSize<<14) | 2
     RESP(7, 0); // bufPtr
-        
+
+    return 0;
+}
+
+SERVICE_CMD(0xe0080) {
+    u32 appID = CMD(1);
+    u32 bufSize = CMD(2);
+    DEBUG("GlanceParameter, appID=%08x, bufSize=%08x\n", appID, bufSize);
+
+    RESP(1, 0); // Result
+    RESP(2, 0); // AppId of triggering process
+    RESP(3, 1); // Signal type (1=app just started, 0xb=returning to app, 0xc=exiting app)
+    RESP(4, 0x10);
+    RESP(5, 0); // Some handle
+    RESP(6, 0); // (bufSize<<14) | 2
+    RESP(7, 0); // bufPtr
+
     return 0;
 }
 

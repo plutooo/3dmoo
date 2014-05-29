@@ -258,6 +258,7 @@ u32 svcControlMemory()
 }
 
 extern u8 HIDsharedbuff[0x2000];
+
 u32 svcMapMemoryBlock()
 {
     u32 handle     = arm11_R(0);
@@ -269,21 +270,13 @@ u32 svcMapMemoryBlock()
     if(h == NULL) {
         DEBUG("Invalid handle.\n");
         PAUSE();
-        return 0xFFFFFFFF;
+        return -1;
     }
 
     DEBUG("handle=%x, addr=%08x, my_perm=%x, other_perm=%x\n",
           handle, addr, my_perm, other_perm);
 
-    if (h->type == HANDLE_TYPE_SERVICE) {
-        switch (h->subtype) {
-
-        default:
-            ERROR("Trying to map unknown memory\n");
-            PAUSE();
-            return -1;
-        }
-    } else {
+    if(h->type == HANDLE_TYPE_SHAREDMEM) {
         switch (h->subtype) {
         case MEM_TYPE_GSP_0:
             mem_AddMappingShared(addr, GSPsharebuffsize, GSPsharedbuff);
@@ -293,18 +286,25 @@ u32 svcMapMemoryBlock()
             break;
         default:
             ERROR("Trying to map unknown memory\n");
-            PAUSE();
             return -1;
         }
+    }
+    else {
+        ERROR("Handle has incorrect type\n");
+        return -1;
     }
 
     return 0;
 }
-u32 svcCreateMemoryBlock() //todo ichfly
+
+u32 svcCreateMemoryBlock() // TODO
 {
     u32 memblock = arm11_R(0);
     u32 addr = arm11_R(1);
     u32 size = arm11_R(2);
-    arm11_SetR(1, 0); //for tests //handle_New(HANDLE_TYPE_SHAREDMEM, 0)); // is this realy what it is I am not sure
+
+    ERROR("Not implemented.\n");
+
+    arm11_SetR(1, 0);
     return 0;
 }

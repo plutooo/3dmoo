@@ -48,7 +48,11 @@ SERVICE_CMD(0x10040) {
     h->locktype = LOCK_TYPE_ONESHOT;
 
     RESP(1, 0); // Result
-    RESP(2, lock_handle);
+    RESP(2, 0);
+    RESP(3, 0);
+    RESP(4, 0);
+    RESP(5, lock_handle);
+    RESP(6, 0);
     return 0;
 }
 

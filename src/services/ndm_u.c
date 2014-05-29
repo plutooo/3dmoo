@@ -21,23 +21,20 @@
 #include "handles.h"
 #include "mem.h"
 #include "arm11.h"
-
+#include "service_macros.h"
 
 #define CPUsvcbuffer 0xFFFF0000
 
-u32 ndm_u_SyncRequest()
-{
-    u32 cid = mem_Read32(0xFFFF0080);
+SERVICE_START(ndm_u);
 
-    // Read command-id.
-    switch(cid) {
-    case 0x00060040: //SuspendDaemons
-        mem_Write32(CPUsvcbuffer + 0x84, 0); //worked
-        return 0;
-    }
-
-    ERROR("NOT IMPLEMENTED, cid=%08x\n", cid);
-    arm11_Dump();
-    PAUSE();
+SERVICE_CMD(0x60040) { //SuspendDaemons
+    RESP(1, 0); // Result
     return 0;
 }
+
+SERVICE_CMD(0x140040) { //OverrideDefaultDaemons
+    RESP(1, 0); // Result
+    return 0;
+}
+
+SERVICE_END();

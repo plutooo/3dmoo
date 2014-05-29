@@ -25,6 +25,7 @@
 #define RESP(n, w)                              \
     mem_Write32(0xFFFF0080 + 4*(n), w)
 
+#undef SERVICE_START
 #define SERVICE_START(name)                     \
     u32 name ## _SyncRequest() {                \
         switch(CMD(0)) {

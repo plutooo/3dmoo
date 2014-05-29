@@ -54,12 +54,6 @@ static u16 FetchWord(u16 addr)
     return temp;
 }
 
-/*Modification of rN:
-mm = 00 No modification
-01 +1
-10 -1
-11 + step*/
-
 /*
 inter RESET 0x0
 inter TRAP/BI 0x2
@@ -95,7 +89,6 @@ const char* alb_ops[] = {
 const char* mm[] = {
     "nothing", "+1", "-1", "+step"
 };
-
 const char* rrrrr[] = {
     "r0", "r1", "r2", "r3",
     "r4", "r5", "rb", "y",
@@ -104,14 +97,21 @@ const char* rrrrr[] = {
     "b0h", "b1h", "b0l", "b1l",
     "ext0", "ext1"
 };
+
 const char* AB[] = {
     "b0", "b1", "a0", "a1"
 };
+
 const char* cccc[] = {
     "true", "eq", "neg", "gt",
     "ge", "1t", "le", "nn",
     "c", "v", "e", "l",
     "nr", "niu0", "iu0", "iu1"
+};
+
+const char* fff[] = {
+    "shr", "shr4", "shl", "shl4",
+    "ror", "rol", "clr", "reserved",
 
 };
 
@@ -179,6 +179,14 @@ void DSP_Step()
         DEBUG("?\n");
         break;
 
+    case 0x6:
+    case 0x7:
+        if ((op & 0xEF80) == 0x6F00)
+        {
+            DEBUG("%s b%d Bit %d",fff[(op >> 4)&0x7],(op >> 12)&0x1,op&0xF);
+            break;
+        } 
+        break;
     case 0x8:
         if ((op & 0xE0) == 0x60) {
             //MUL y, (rN)

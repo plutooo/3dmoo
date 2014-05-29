@@ -205,6 +205,31 @@ void DSP_Step()
             break;
         }
     case 0x9:
+        if ((op & 0xFEE0) == 0x9840)
+        {
+            DEBUG("exp r%d (modifier=%s), a%d", op & 0x7, mm[(op >> 3) & 3], ax);
+        }
+        if ((op & 0xFEE0) == 0x9040)
+        {
+            DEBUG("exp %s, a%d", rrrrr[op & 0x1F], ax);
+        }
+        if ((op & 0xFEFE) == 0x9060)
+        {
+            DEBUG("exp b%d, a%d", op & 0x1, ax);
+        }
+        if ((op & 0xFEFE) == 0x9C40)
+        {
+            DEBUG("exp r%d (modifier=%s), sv", op & 0x7, mm[(op >> 3) & 3]);
+        }
+        if ((op & 0xFEFE) == 0x9440)
+        {
+            DEBUG("exp %s, sv", rrrrr[op & 0x1F]);
+        }
+        if ((op & 0xFFFE) == 0x9460)
+        {
+            DEBUG("exp b%d, sv", op & 0x1);
+        }
+
         if((op & 0xFEE0) == 0x90C0)
         {
             u16 extra = FetchWord(pc + 2);

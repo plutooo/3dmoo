@@ -40,14 +40,14 @@ SERVICE_CMD(0x10040) {
     if(h == NULL) {
         ERROR("Failed to get handle.\n");
 
-        RESP(1, -1); // Result
+        RESP(1, 0); // Result
         return -1;
     }
 
     h->locked = false;
     h->locktype = LOCK_TYPE_ONESHOT;
 
-    RESP(1, 0); // Result
+    RESP(1, -1); // Result
     RESP(2, lock_handle);
     return 0;
 }

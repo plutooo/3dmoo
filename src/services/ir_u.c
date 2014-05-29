@@ -21,42 +21,38 @@
 #include "mem.h"
 #include "arm11.h"
 
-u32 ir_event_handles;
+#include "service_macros.h"
 
-#define CPUsvcbuffer 0xFFFF0000
 
-void ir_u_init()
-{
-    ir_event_handles = handle_New(HANDLE_TYPE_EVENT, 0);
+u32 ir_event_handle;
+
+
+void ir_u_init() {
+    ir_event_handle = handle_New(HANDLE_TYPE_EVENT, 0);
 }
 
-u32 ir_u_SyncRequest()
-{
-    u32 cid = mem_Read32(0xFFFF0080);
+SERVICE_START(ir_u);
 
-    // Read command-id.
-    switch(cid) {
-    case 0x000c0000: //GetConnectionStatusEvent
-        mem_Write32(CPUsvcbuffer + 0x8C, ir_event_handles);
-        mem_Write32(CPUsvcbuffer + 0x84, 0); //no error
-        return 0;
-        break;
-    case 0x00180182: { //InitializeIrnopShared
-        u32 unk1 = mem_Read32(CPUsvcbuffer + 0x84);
-        u32 unk2 = mem_Read32(CPUsvcbuffer + 0x88);
-        u32 unk3 = mem_Read32(CPUsvcbuffer + 0x8C);
-        u32 unk4 = mem_Read32(CPUsvcbuffer + 0x90);
-        u32 unk5 = mem_Read32(CPUsvcbuffer + 0x94);
-        u8 unk6 = mem_Read8(CPUsvcbuffer + 0x98);
-        u8 unk7 = mem_Read32(CPUsvcbuffer + 0xA0);
-        DEBUG("InitializeIrnopShared %08X %08X %08X %08X %08X %02X %08X", unk1, unk2, unk3, unk4, unk5, unk6, unk7);
-        mem_Write32(CPUsvcbuffer + 0x84, 0); //no error
-        return 0;
-    }
-    }
+SERVICE_CMD(0x000c0000) { //GetConnectionStatusEvent
+    DEBUG("GetConnectionStatusEvent\n");
 
-    ERROR("NOT IMPLEMENTED, cid=%08x\n", cid);
-    arm11_Dump();
-    PAUSE();
+    RESP(1, 0); // Result
+    RESP(1, ir_event_handle); // Event handle
     return 0;
 }
+
+SERVICE_CMD(0x00180182) { //InitializeIrnopShared
+    u32 unk1 = CMD(1);
+    u32 unk2 = CMD(2);
+    u32 unk3 = CMD(3);
+    u32 unk4 = CMD(4);
+    u32 unk5 = CMD(5);
+    u8  unk6 = CMD(6);
+    u32 unk7 = CMD(7);
+    DEBUG("InitializeIrnopShared %08x %08x %08x %08x %08x %02x %08x", unk1, unk2, unk3, unk4, unk5, unk6, unk7);
+
+    RESP(1, 0); // Result
+    return 0;
+}
+
+SERVICE_END();

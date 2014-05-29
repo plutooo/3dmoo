@@ -41,6 +41,11 @@ u32 svcArbitrateAddress()//(uint arbiter, uint addr, uint type, uint value)
     DEBUG("handle=%08x addr=%08x type=%08x value=%08x timeout=%08x,%08x\n",
           arbiter, addr, type, value, val2, val3);
 
+    if(addr & 3) {
+        ERROR("Unaligned addr.\n");
+        return 0xD8E007F1;
+    }
+
     handleinfo* hi = handle_Get(arbiter);
     if(hi == NULL || hi->type != HANDLE_TYPE_Arbiter) {
         ERROR("Invalid arbiter handle.\n");

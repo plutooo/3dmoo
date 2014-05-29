@@ -21,9 +21,8 @@
 #include "handles.h"
 #include "mem.h"
 #include "arm11.h"
-#include "service_macros.h"
 
-#define CPUsvcbuffer 0xFFFF0000
+#include "service_macros.h"
 
 SERVICE_START(ndm_u);
 

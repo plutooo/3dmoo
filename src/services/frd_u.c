@@ -21,30 +21,24 @@
 #include "mem.h"
 #include "arm11.h"
 
-u32 lock_handle;
-u32 event_handles[2];
+#include "service_macros.h"
 
-u32 frd_u_SyncRequest()
-{
-    u32 cid = mem_Read32(0xFFFF0080);
 
-    // Read command-id.
-    switch(cid) {
-    case 0x00320042: //SetClientSdkVersion
-        mem_Write32(0xFFFF0084, 0); //no error
-        return 0;
-        break;
-    case 0x00080000: //GetMyPresence
-        mem_Write32(0xFFFF0084, 0); //no error
-        u32 wtfs = mem_Read32(0xFFFF0180);
-        u32 pointer = mem_Read32(0xFFFF0184);
-        DEBUG("GetMyPresence %08X,%08X\n", wtfs, pointer);
-        return 0;
-        break;
-    }
+SERVICE_START(frd_u);
 
-    ERROR("NOT IMPLEMENTED, cid=%08x\n", cid);
-    arm11_Dump();
-    PAUSE();
+SERVICE_CMD(0x00320042) { //SetClientSdkVersion
+    DEBUG("SetClientSdkVersion\n");
+
+    RESP(1, 0); // Result
     return 0;
 }
+
+SERVICE_CMD(0x00080000) { //GetMyPresence
+    DEBUG("GetMyPresence %08x,%08x\n",
+          EXTENDED_CMD(0), EXTENDED_CMD(1));
+
+    RESP(1, 0); // Result
+    return 0;
+}
+
+SERVICE_END();

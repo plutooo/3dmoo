@@ -69,7 +69,7 @@ u32 svcArbitrateAddress()//(uint arbiter, uint addr, uint type, uint value)
 
         return 0;
 
-    case 1: // USER
+    case 1: // Acquire
 
         // If (signed cmp) value >= *addr, the thread is locked and added to wait-list.
         // Otherwise, thread keeps running and returns 0.
@@ -80,13 +80,17 @@ u32 svcArbitrateAddress()//(uint arbiter, uint addr, uint type, uint value)
 
         return 0;
 
-    case 3: // USER
-        ERROR("Type 3 not implemented.\n");
-        mem_Write32(addr, type); // XXX: this is wrong
-        return -1;
+    case 3: // Acquire Timeout
 
-    case 2: // KERNEL
-    case 4: // KERNEL
+        if(value >= (s32)mem_Read32(addr))
+            threads_SetCurrentThreadArbitrationSuspend(arbiter, addr);
+
+        // XXX: Add timeout based on val2,3
+
+        return 0;
+
+    case 2:
+    case 4:
         ERROR("Kernel arbitration types are not supported.\n");
         return -1;
 

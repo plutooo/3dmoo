@@ -137,14 +137,24 @@ void DSP_Step()
     case 0:
         if((op&0xF00) == 0x800)
         {
-            DEBUG("mpyi %02X\n",op & 0xFF)
+            DEBUG("mpyi %02X\n", op & 0xFF);
+            break;
         }
         if((op & 0xFE00) == 0x0E00) {
             // TODO: divs
             DEBUG("divs??\n");
+            break;
         }
+        DEBUG("?\n");
         break;
-
+    case 1:
+        if ((op & 0xE00) == 0xC00)
+        {
+            DEBUG("mov %s , (r%d) (modifier=%s)",rrrrr[(op >> 5)&0x1F], op & 0x7, mm[(op >> 3) & 3]);
+            break;
+        }
+        DEBUG("?\n");
+        break;
     case 4:
         if(!(op & 0x80)) {
             int op3 = HasOp3(op);
@@ -175,15 +185,37 @@ void DSP_Step()
 
             break;
         }
+        if((op & 0xFE0) == 0x7C0)
+        {
+            DEBUG("mov mixp , %s", rrrrr[op & 0x1F]);
+            break;
+        }
 
         DEBUG("?\n");
         break;
-
+    case 0x5:
+        if ((op & 0xC00) == 0x800)
+        {
+            DEBUG("mov %s, %s\n", rrrrr[(op >> 5) & 0x1F], rrrrr[op & 0x1F]);
+            break;
+        }
+        if ((op & 0xFFC0) == 0x5EC0)
+        {
+            DEBUG("mov %s, b%d", rrrrr[op& 0x1F],(op>>5)&0x1);
+            break;
+        }
+        if ((op & 0xFFE0) == 0x5F40)
+        {
+            DEBUG("mov %s, mixp", rrrrr[op & 0x1F]);
+            break;
+        }
+        DEBUG("?\n");
+        break;
     case 0x6:
     case 0x7:
         if ((op & 0xEF80) == 0x6F00)
         {
-            DEBUG("%s b%d Bit %d",fff[(op >> 4)&0x7],(op >> 12)&0x1,op&0xF);
+            DEBUG("%s b%d Bit %d\n",fff[(op >> 4)&0x7],(op >> 12)&0x1,op&0xF);
             break;
         } 
         break;
@@ -207,27 +239,33 @@ void DSP_Step()
     case 0x9:
         if ((op & 0xFEE0) == 0x9840)
         {
-            DEBUG("exp r%d (modifier=%s), a%d", op & 0x7, mm[(op >> 3) & 3], ax);
+            DEBUG("exp r%d (modifier=%s), a%d\n", op & 0x7, mm[(op >> 3) & 3], ax);
+            break;
         }
         if ((op & 0xFEE0) == 0x9040)
         {
-            DEBUG("exp %s, a%d", rrrrr[op & 0x1F], ax);
+            DEBUG("exp %s, a%d\n", rrrrr[op & 0x1F], ax);
+            break;
         }
         if ((op & 0xFEFE) == 0x9060)
         {
-            DEBUG("exp b%d, a%d", op & 0x1, ax);
+            DEBUG("exp b%d, a%d\n", op & 0x1, ax);
+            break;
         }
         if ((op & 0xFEFE) == 0x9C40)
         {
-            DEBUG("exp r%d (modifier=%s), sv", op & 0x7, mm[(op >> 3) & 3]);
+            DEBUG("exp r%d (modifier=%s), sv\n", op & 0x7, mm[(op >> 3) & 3]);
+            break;
         }
         if ((op & 0xFEFE) == 0x9440)
         {
-            DEBUG("exp %s, sv", rrrrr[op & 0x1F]);
+            DEBUG("exp %s, sv\n", rrrrr[op & 0x1F]);
+            break;
         }
         if ((op & 0xFFFE) == 0x9460)
         {
-            DEBUG("exp b%d, sv", op & 0x1);
+            DEBUG("exp b%d, sv\n", op & 0x1);
+            break;
         }
 
         if((op & 0xFEE0) == 0x90C0)
@@ -269,6 +307,7 @@ void DSP_Step()
                 // ALB (rN)
                 DEBUG("%s (r%d), %04x (modifier=%s)\n", alb_ops[(op >> 9) & 0x7], op & 0x7,
                       extra & 0xFFFF, mm[(op >> 3) & 3]);
+                break;
             } else {
                 // ALB register
                 u16 r = op & 0x1F;
@@ -307,6 +346,7 @@ void DSP_Step()
             int d = op & (1 << 10);
             int f = op & (1 << 9);
             DEBUG("max%s %s, a%d\n", d ? "d" : "", f ? "gt" : "ge", ax);
+            break;
         }
 
         DEBUG("?\n");
@@ -332,6 +372,16 @@ void DSP_Step()
 
 
     case 0xD:
+        if ((op & 0xF3FF) == 0xD2D8)
+        {
+            DEBUG("mov %s,x",AB[(op>>10) & 0x3]);
+            break;
+        }
+        if ((op & 0xF3FF) == 0xD298)
+        {
+            DEBUG("mov %s,dvm", AB[(op >> 10) & 0x3]);
+            break;
+        }
         if (!(op & 0x80)) {
             //MUL (rJ), (rI) 1101AXXX0jjiiwqq
             DEBUG("%s r%d (modifier=%s),r%d (modifier=%s) a%d\n", mulXXX[(op >> 8) & 0x7], op & 0x3, mm[(op >> 5) & 0x3], 3 + (op >> 2) & 0x1, mm[(op >> 3) & 0x3], (op >> 11) & 0x1);
@@ -384,7 +434,9 @@ void DSP_Step()
         else
         {
             DEBUG("%s a%d %02x\n", mulXX[(op >> 9) & 0x3], (op >> 11) & 0x1,op&0xFF);
+            break;
         }
+        DEBUG("?\n");
         break;
     case 0xF:
         DEBUG("tstb %02x (bit=%d)\n", op&0xFF, (op >> 8) & 0xF);

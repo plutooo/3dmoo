@@ -114,6 +114,11 @@ const char* fff[] = {
     "ror", "rol", "clr", "reserved",
 
 };
+const char* rNstar[] = {
+    "r0", "r1", "r2", "r3",
+    "r4", "r5", "rb", "y",
+
+};
 
 int HasOp3(u16 op)
 {
@@ -156,6 +161,14 @@ void DSP_Step()
         if ((op & 0xC00) == 0xC00)
         {
             DEBUG("mov (r%d) (modifier=%s) ,%s ", op & 0x7, mm[(op >> 3) & 3], rrrrr[(op >> 5) & 0x1F]);
+            break;
+        }
+        DEBUG("?\n");
+        break;
+    case 2:
+        if (!(op & 0x100))
+        {
+            DEBUG("mov %s ,%02x ", rNstar[(op >> 9) & 0x7],op&0xFF);
             break;
         }
         DEBUG("?\n");

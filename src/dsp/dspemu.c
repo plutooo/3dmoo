@@ -214,6 +214,11 @@ void DSP_Step()
             DEBUG("mov %s, mixp", rrrrr[op & 0x1F]);
             break;
         }
+        if ((op & 0xFE0) == 0x7E0)
+        {
+            DEBUG("mov sp, %s ", rrrrr[op&0x1F]);
+            break;
+        }
         DEBUG("?\n");
         break;
     case 0x6:

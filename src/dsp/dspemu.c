@@ -148,9 +148,14 @@ void DSP_Step()
         DEBUG("?\n");
         break;
     case 1:
-        if ((op & 0xE00) == 0xC00)
+        if ((op & 0xC00) == 0x800)
         {
             DEBUG("mov %s , (r%d) (modifier=%s)",rrrrr[(op >> 5)&0x1F], op & 0x7, mm[(op >> 3) & 3]);
+            break;
+        }
+        if ((op & 0xC00) == 0xC00)
+        {
+            DEBUG("mov (r%d) (modifier=%s) ,%s ", op & 0x7, mm[(op >> 3) & 3], rrrrr[(op >> 5) & 0x1F]);
             break;
         }
         DEBUG("?\n");
@@ -372,6 +377,29 @@ void DSP_Step()
 
 
     case 0xD:
+        if ((op & 0xFF9F) == 0xD490)
+        {
+            DEBUG("mov repc, %s", AB[(op >> 5) & 0x3]);
+            break;
+        }
+        if ((op & 0xFF9F) == 0xD491)
+        {
+            DEBUG("mov dvm, %s", AB[(op >> 5) & 0x3]);
+            break;
+        }
+        if ((op & 0xFF9F) == 0xD492)
+        {
+            DEBUG("mov icr, %s", AB[(op >> 5) & 0x3]);
+            break;
+        }
+        if ((op & 0xFF9F) == 0xD493)
+        {
+            DEBUG("mov x, %s", AB[(op >> 5) & 0x3]);
+            break;
+        }
+
+
+
         if ((op & 0xF3FF) == 0xD2D8)
         {
             DEBUG("mov %s,x",AB[(op>>10) & 0x3]);

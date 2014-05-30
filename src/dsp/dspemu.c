@@ -161,6 +161,7 @@ void DSP_Step()
         DEBUG("?\n");
         break;
     case 4:
+
         if(!(op & 0x80)) {
             int op3 = HasOp3(op);
 
@@ -195,7 +196,6 @@ void DSP_Step()
             DEBUG("mov mixp , %s", rrrrr[op & 0x1F]);
             break;
         }
-
         DEBUG("?\n");
         break;
     case 0x5:
@@ -242,6 +242,11 @@ void DSP_Step()
             break;
         }
     case 0x9:
+        if ((op & 0xEE0) == 0x8C0)
+        {
+            DEBUG("mov (r%d) (modifier=%s) ,b%d ", op & 0x7, mm[(op >> 3) & 3], ax;
+            break;
+        }
         if ((op & 0xFEE0) == 0x9840)
         {
             DEBUG("exp r%d (modifier=%s), a%d\n", op & 0x7, mm[(op >> 3) & 3], ax);

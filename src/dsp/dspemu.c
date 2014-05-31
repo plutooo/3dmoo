@@ -489,7 +489,7 @@ void DSP_Step()
         if ((op & 0xFEFC) == 0xD4BC) //1101010a101111--
         {
             u16 extra = FetchWord(pc + 2);
-            DEBUG("mov a%d, [%04x]", ax,extra);
+            DEBUG("mov a%dl, [%04x]", ax,extra);
             break;
         }
 

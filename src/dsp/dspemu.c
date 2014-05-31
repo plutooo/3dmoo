@@ -219,9 +219,21 @@ void DSP_Step()
         DEBUG("?\n");
         break;
     case 0x5:
+        if ((op & 0xEE0) == 0xE00) //0101111-000rrrrr
+        {
+            u16 extra = FetchWord(pc + 2);
+            DEBUG("mov #%04x, %s", extra, rrrrr[op&0x1F]);
+            break;
+        }
+        if ((op & 0xEE0) == 0xEE0) //0101111b001-----
+        {
+            u16 extra = FetchWord(pc + 2);
+            DEBUG("mov #%04x, b%d", extra, ax);
+            break;
+        }
         if ((op & 0xC00) == 0x800)
         {
-            DEBUG("mov %s, %s\n", rrrrr[(op >> 5) & 0x1F], rrrrr[op & 0x1F]);
+            DEBUG("mov %s, %s\n",rrrrr[op & 0x1F] ,rrrrr[(op >> 5) & 0x1F] );
             break;
         }
         if ((op & 0xFFC0) == 0x5EC0)
@@ -438,6 +450,11 @@ void DSP_Step()
 
 
     case 0xD:
+        if ((op & 0xF39F) == 0xD290)//1101ab101AB10000
+        {
+            DEBUG("mov %s, %s", AB[(op >> 5) & 0x3], AB[(op >> 10) & 0x3]);
+            break;
+        }
         if ((op & 0xFF9F) == 0xD490)
         {
             DEBUG("mov repc, %s", AB[(op >> 5) & 0x3]);
@@ -463,7 +480,18 @@ void DSP_Step()
             DEBUG("msu r%d (modifier=%s),r%d (modifier=%s) a%d\n", op & 0x3, mm[(op >> 5) & 0x3], 3 + (op >> 2) & 0x1, mm[(op >> 3) & 0x3], ax);
             break;
         }
-
+        if ((op & 0xFEFC) == 0xD4B8) //1101010a101110--
+        {
+            u16 extra = FetchWord(pc + 2);
+            DEBUG("mov [%04x], a%d",extra,ax);
+            break;
+        }
+        if ((op & 0xFEFC) == 0xD4BC) //1101010a101111--
+        {
+            u16 extra = FetchWord(pc + 2);
+            DEBUG("mov a%d, [%04x]", ax,extra);
+            break;
+        }
 
         if ((op & 0xF3FF) == 0xD2D8)
         {

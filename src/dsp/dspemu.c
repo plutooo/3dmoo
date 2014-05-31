@@ -339,6 +339,7 @@ void DSP_Step()
             //MUL (rN), ##long immediate
             u16 longim = FetchWord(pc + 2);
             DEBUG("%s %s, (a%d),%04x\n", mulXXX[(op >> 8) & 0x7], rrrrr[op & 0x1F], (op >> 11) & 0x1, longim);
+            pc += 2;
             break;
         }
     case 0x9:
@@ -482,6 +483,13 @@ void DSP_Step()
 
 
     case 0xD:
+        if ((op & 0xFEFC) == 0xD498)//1101010A100110--
+        {
+            u16 extra = FetchWord(pc + 2);
+            pc += 2;
+            DEBUG("mov (rb + #%04x), a%d\n", extra, ax);
+            break;
+        }
         if ((op & 0xFE80) == 0xDC80)//1101110a1ooooooo
         {
             DEBUG("mov (rb + #%02x), a%d\n", op&0x7F,ax);
@@ -526,12 +534,14 @@ void DSP_Step()
         {
             u16 extra = FetchWord(pc + 2);
             DEBUG("mov [%04x], a%d\n",extra,ax);
+            pc += 2;
             break;
         }
         if ((op & 0xFEFC) == 0xD4BC) //1101010a101111--
         {
             u16 extra = FetchWord(pc + 2);
             DEBUG("mov a%dl, [%04x]\n", ax,extra);
+            pc += 2;
             break;
         }
 

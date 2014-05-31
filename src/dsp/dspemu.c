@@ -214,6 +214,16 @@ void DSP_Step()
             }
         }
 
+        if ((op & 0xFC0) == 0xFC0) //0100111111-rrrrr
+        {
+            DEBUG("mov %s, icr\n", rrrrr[op&0x1F]);
+            break;
+        }
+        if ((op & 0xFC0) == 0xF80) //0100111111-vvvvv
+        {
+            DEBUG("mov %d, icr\n", op & 0x1F);
+            break;
+        }
         if((op & 0xFFFC) == 0x421C) {
             // lim
             switch(op & 3) {

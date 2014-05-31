@@ -170,7 +170,7 @@ void DSP_Step()
     case 2:
         if (!(op & 0x100))
         {
-            DEBUG("mov %s ,%02x ", rNstar[(op >> 9) & 0x7],op&0xFF);
+            DEBUG("mov %s ,#%02x ", rNstar[(op >> 9) & 0x7],op&0xFF);
             break;
         }
         DEBUG("?\n");
@@ -178,7 +178,7 @@ void DSP_Step()
     case 3:
         if(!(op&0x100))
         {
-            DEBUG("mov %s, %02x",ABL[(op >>9)&0x7],op&0xFF);
+            DEBUG("mov %s, #%02x",ABL[(op >>9)&0x7],op&0xFF);
         }
     case 4:
 
@@ -248,7 +248,37 @@ void DSP_Step()
             DEBUG("%s b%d Bit %d\n",fff[(op >> 4)&0x7],(op >> 12)&0x1,op&0xF);
             break;
         }
-
+        if ((op & 0xE300) == 0x6000)
+        {
+            DEBUG("mov #%02x ,%s\n",op&0xFF ,rNstar[(op >> 10)&0x7]);
+            break;
+        }
+        if ((op & 0xE700) == 0x6100)
+        {
+            DEBUG("mov #%02x ,%s\n", op & 0xFF, AB[(op >> 11) & 0x3]);
+            break;
+        }
+        if ((op & 0xE300) == 0x6200)
+        {
+            DEBUG("mov #%02x ,%s\n", op & 0xFF, ABL[(op >> 10) & 0x7]);
+            break;
+        }
+        if ((op & 0xEF00) == 0x6500)
+        {
+            DEBUG("mov #%02x ,a%dHeu\n", op & 0xFF, (op >> 12)&0x1);
+            break;
+        }
+        if ((op & 0xFF00) == 0x6D00)
+        {
+            DEBUG("mov #%02x ,sv\n", op & 0xFF);
+            break;
+        }
+        if ((op & 0xFF00) == 0x7D00)
+        {
+            DEBUG("mov sv ,#%02x\n", op & 0xFF);
+            break;
+        }
+        DEBUG("?\n");
         break;
     case 0x8:
         if ((op & 0xE0) == 0x60) {
@@ -496,13 +526,13 @@ void DSP_Step()
         }
         else
         {
-            DEBUG("%s a%d %02x\n", mulXX[(op >> 9) & 0x3], (op >> 11) & 0x1,op&0xFF);
+            DEBUG("%s a%d #%02x\n", mulXX[(op >> 9) & 0x3], (op >> 11) & 0x1,op&0xFF);
             break;
         }
         DEBUG("?\n");
         break;
     case 0xF:
-        DEBUG("tstb %02x (bit=%d)\n", op&0xFF, (op >> 8) & 0xF);
+        DEBUG("tstb #%02x (bit=%d)\n", op&0xFF, (op >> 8) & 0xF);
         break;
     default:
         DEBUG("?\n");

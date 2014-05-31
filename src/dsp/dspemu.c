@@ -142,7 +142,17 @@ void DSP_Step()
 
     switch(op >> 12) {
     case 0:
-        if ((op & 0xFFC0) == 0x0040)
+        if ((op & 0xE00) == 0x600)
+        {
+            DEBUG("movp (r%d) (modifier=%s), (r%d) (modifier=%s) %s\n", op & 0x7, mm[(op >> 3) & 3],(op>>5)&0x3,mm[(op>>7)&0x3]);
+            break;
+        }
+        if ((op & 0xFC0) == 0x040)
+        {
+            DEBUG("movp a%d, %s\n", (op >> 5) & 0x1, rrrrr[op & 0x1F]);
+            break;
+        }
+        if ((op & 0xFC0) == 0x040)
         {
             DEBUG("movp a%d, %s\n",(op >> 5) &0x1, rrrrr[op&0x1F]);
             break;
@@ -152,7 +162,7 @@ void DSP_Step()
             DEBUG("mpyi %02X\n", op & 0xFF);
             break;
         }
-        if((op & 0xFE00) == 0x0E00) {
+        if((op & 0xE00) == 0xE00) {
             // TODO: divs
             DEBUG("divs??\n");
             break;

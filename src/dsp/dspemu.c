@@ -152,6 +152,11 @@ void DSP_Step()
             DEBUG("divs??\n");
             break;
         }
+        if ((op & 0xF00) == 0x500)
+        {
+            DEBUG("mov %02x, sv\n",op&0xFF);
+            break;
+        }
         DEBUG("?\n");
         break;
     case 1:

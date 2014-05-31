@@ -111,13 +111,15 @@ const char* cccc[] = {
 
 const char* fff[] = {
     "shr", "shr4", "shl", "shl4",
-    "ror", "rol", "clr", "reserved",
+    "ror", "rol", "clr", "reserved"
 
 };
 const char* rNstar[] = {
     "r0", "r1", "r2", "r3",
-    "r4", "r5", "rb", "y",
-
+    "r4", "r5", "rb", "y"
+};
+const char* ABL[] = {
+    "B0L", "B0H", "B1L", "B1H", "A0L", "A0H", "A1L", "A1H"
 };
 
 int HasOp3(u16 op)
@@ -173,6 +175,11 @@ void DSP_Step()
         }
         DEBUG("?\n");
         break;
+    case 3:
+        if(!(op&0x100))
+        {
+            DEBUG("mov %s, %02x",ABL[(op >>9)&0x7],op&0xFF);
+        }
     case 4:
 
         if(!(op & 0x80)) {
@@ -240,7 +247,8 @@ void DSP_Step()
         {
             DEBUG("%s b%d Bit %d\n",fff[(op >> 4)&0x7],(op >> 12)&0x1,op&0xF);
             break;
-        } 
+        }
+
         break;
     case 0x8:
         if ((op & 0xE0) == 0x60) {

@@ -420,7 +420,11 @@ void DSP_Step()
             DEBUG("mov x, %s", AB[(op >> 5) & 0x3]);
             break;
         }
-
+        if ((op & 0xE80) == 0x080) {
+            //msu (rJ), (rI) 1101000A1jjiiwqq
+            DEBUG("msu r%d (modifier=%s),r%d (modifier=%s) a%d\n", op & 0x3, mm[(op >> 5) & 0x3], 3 + (op >> 2) & 0x1, mm[(op >> 3) & 0x3], ax);
+            break;
+        }
 
 
         if ((op & 0xF3FF) == 0xD2D8)

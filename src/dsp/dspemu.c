@@ -482,6 +482,16 @@ void DSP_Step()
 
 
     case 0xD:
+        if ((op & 0xFE80) == 0xDC80)//1101110a1ooooooo
+        {
+            DEBUG("mov (rb + #%02x), a%d\n", op&0x7F,ax);
+            break;
+        }
+        if ((op & 0xFE80) == 0xD880)//1101100a1ooooooo
+        {
+            DEBUG("move a%dl, (rb + #%02x)\n", op & 0x7F, ax);
+            break;
+        }
         if ((op & 0xF39F) == 0xD290)//1101ab101AB10000
         {
             DEBUG("mov %s, %s\n", AB[(op >> 5) & 0x3], AB[(op >> 10) & 0x3]);

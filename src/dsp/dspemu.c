@@ -262,7 +262,7 @@ void DSP_Step()
     case 0x9:
         if ((op & 0xEE0) == 0x8C0)
         {
-            DEBUG("mov (r%d) (modifier=%s) ,b%d ", op & 0x7, mm[(op >> 3) & 3], ax;
+            DEBUG("mov (r%d) (modifier=%s) ,b%d ", op & 0x7, mm[(op >> 3) & 3], ax);
             break;
         }
         if ((op & 0xFEE0) == 0x9840)

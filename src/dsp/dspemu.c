@@ -142,6 +142,11 @@ void DSP_Step()
 
     switch(op >> 12) {
     case 0:
+        if ((op & 0xFFC0) == 0x0040)
+        {
+            DEBUG("movp a%d, %s\n",(op >> 5) &0x1, rrrrr[op&0x1F]);
+            break;
+        }
         if((op&0xF00) == 0x800)
         {
             DEBUG("mpyi %02X\n", op & 0xFF);

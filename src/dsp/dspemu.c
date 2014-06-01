@@ -336,22 +336,27 @@ void DSP_Step()
         if((op&0xF100) ==0x3000)
         {
             DEBUG("mov %s, #%02x\n",ABL[(op >>9)&0x7],op&0xFF);
+            break;
         }
         if ((op & 0xF00) == 0x100)
         {
             DEBUG("mov #%02x, a%dl\n", (op>>12)&0x1, op & 0xFF);
+            break;
         }
         if ((op & 0xF00) == 0x500)
         {
             DEBUG("mov #%02x, a%dh\n", (op >> 12) & 0x1, op & 0xFF);
+            break;
         }
         if ((op & 0x300) == 0x300)
         {
             DEBUG("mov #%02x, %s\n", op & 0xFF,rNstar[(op>>10)&0x7]);
+            break;
         }
         if ((op & 0xB00) == 0x900)
         {
             DEBUG("mov #%02x, ext%d\n", op & 0xFF, ((op>>11)&0x2) | ((op >>10) &0x1));
+            break;
         }
 
         DEBUG("? %04X\n", op);

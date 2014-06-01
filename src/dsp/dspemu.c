@@ -122,6 +122,25 @@ const char* ABL[] = {
     "B0L", "B0H", "B1L", "B1H", "A0L", "A0H", "A1L", "A1H"
 };
 
+const char* swap[] = {
+    "a0 < –> b0",
+    "a0 <–> b1",
+    "a1 <–> b0",
+    "a1 <–> b1",
+    "a0 <–> b0 and a1 –> b1",
+    "a0 <–> b1 and a1 –> b0",
+    "a0 –> b0 and –> a1",
+    "a0 –> b1 –> a1",
+    "a1 –> b0 –> a0",
+    "a1 –> b0 –>a0",
+    "b0 –> a1 –> b1",
+    "b0 –> a1 –> b1",
+    "b1 –> a0 –> b0",
+    "b1 –> a1 –> b0",
+    "unk.",
+    "unk.",
+}; 
+
 int HasOp3(u16 op)
 {
     u16 opc = (op >> 9) & 0x7;
@@ -238,6 +257,11 @@ void DSP_Step()
                 break;
             }
         }
+        if ((op & 0xC0) == 0x40) //0100111111-rrrrr
+        {
+            DEBUG("movsi %s, %s (#%02x)\n", rNstar[(op >> 9)&0x7], AB[(op >>5)&0x3],op&0x1F);
+            break;
+        }
         if ((op & 0xFC0) == 0xFC0) //0100111111-rrrrr
         {
             DEBUG("mov %s, icr\n", rrrrr[op&0x1F]);
@@ -275,16 +299,35 @@ void DSP_Step()
         DEBUG("?\n");
         break;
     case 0x5:
+        if ((op &~0x1F) == 0x5E60)
+        {
+            DEBUG("pop %s\n", rrrrr[op & 0x1F]);
+            break;
+        }
+        if (op == 0x5F40)
+        {
+            u16 extra = FetchWord(pc + 2);
+            DEBUG("push #%04x\n", extra);
+            pc += 2;
+            break;
+        }
+        if ((op & 0xFE0) == 0xE40)
+        {
+            DEBUG("push %s\n", rrrrr[op&0x1F]);
+            break;
+        }
         if ((op & 0xEE0) == 0xE00) //0101111-000rrrrr
         {
             u16 extra = FetchWord(pc + 2);
             DEBUG("mov #%04x, %s\n", extra, rrrrr[op&0x1F]);
+            pc += 2;
             break;
         }
         if ((op & 0xEE0) == 0xEE0) //0101111b001-----
         {
             u16 extra = FetchWord(pc + 2);
             DEBUG("mov #%04x, b%d\n", extra, ax);
+            pc += 2;
             break;
         }
         if ((op & 0xC00) == 0x800)
@@ -372,7 +415,17 @@ void DSP_Step()
             break;
         }
     case 0x9:
-        if ((op & 0xEE0) == 0x8C0)
+        if ((op & 0xFEE0) == 0x9CC0)
+        {
+            DEBUG("movr %s ,a%d\n", rrrrr[op&0x1F], ax);
+            break;
+        }
+        if ((op & 0xFEE0) == 0x9CC0)
+        {
+            DEBUG("mov (r%d) (modifier=%s) ,a%d\n", op & 0x7, mm[(op >> 3) & 3], ax);
+            break;
+        }
+        if ((op & 0xFEE0) == 0x98C0)
         {
             DEBUG("mov (r%d) (modifier=%s) ,b%d\n", op & 0x7, mm[(op >> 3) & 3], ax);
             break;

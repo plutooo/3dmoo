@@ -210,7 +210,14 @@ bool cccccheck(u8 cccc)
         return true;
     }
 }
-
+u16 fixending(u16 in, u8 pos)
+{
+    if (in & (1 << (pos - 1)))
+    {
+        return (in | (0xFFFF << (pos - 1)));
+    }
+    return in;
+}
 void DSP_Step()
 {
     // Currently a disassembler.
@@ -609,9 +616,14 @@ void DSP_Step()
             break;
         }
     case 0x9:
+        if ((op & 0xE0) == 0xA0)
+        {
+            DEBUG("%s a%dl ,%s\n", ops3[(op >>9)&0xF], ax, rrrrr[op&0x1F]);
+            break;
+        }
         if ((op & 0xF240) == 0x9240)
         {
-            DEBUG("shfi %s ,%s %02x\n", AB[(op >> 10) & 0x3], AB[(op >> 7) & 0x3],op&0x3F);
+            DEBUG("shfi %s ,%s %02x\n", AB[(op >> 10) & 0x3], AB[(op >> 7) & 0x3], fixending(op & 0x3F,6));
             break;
         }
 
@@ -887,7 +899,7 @@ void DSP_Step()
             DEBUG("msu r%d (modifier=%s),r%d (modifier=%s) a%d\n", op & 0x3, mm[(op >> 5) & 0x3], 3 + (op >> 2) & 0x1, mm[(op >> 3) & 0x3], ax);
             break;
         }
-        if ((op & 0xF380) == 0xD280){
+        if ((op & 0xF390) == 0xD280){
             //shfc
             DEBUG("shfc %s %s %s\n", AB[(op >> 10) & 0x3], AB[(op >> 5) & 0x3], cccc[op&0xF]);
             break;

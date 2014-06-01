@@ -50,7 +50,7 @@ static u32 Read32(uint8_t p[4])
 
 static u16 FetchWord(u16 addr)
 {
-    u16 temp = ram[addr] | (ram[addr + 1] << 8);
+    u16 temp = ram[addr*2] | (ram[addr*2 + 1] << 8);
     return temp;
 }
 
@@ -201,6 +201,16 @@ void DSP_Step()
             DEBUG("mov %02x, sv\n",op&0xFF);
             break;
         }
+        if ((op & 0xF00) == 0xD00) //00001101...rrrrr
+        {
+            DEBUG("rep %s\n", rrrrr[op & 0x1F]);
+            break;
+        }
+        if ((op & 0xF00) == 0xC00)
+        {
+            DEBUG("rep %02x\n", op&0xFF);
+            break;
+        }
         DEBUG("?\n");
         break;
     case 1:
@@ -257,6 +267,11 @@ void DSP_Step()
                 break;
             }
         }
+        if ((op&~0x7F) == 0x4B80)
+        {
+            DEBUG("banke #%02x\n", op & 0x7F);
+            break;
+        }
         if ((op&~0x3F) == 0x4980)
         {
             DEBUG("swap %s\n", swap[op&0xF]);
@@ -304,6 +319,21 @@ void DSP_Step()
         DEBUG("?\n");
         break;
     case 0x5:
+        if ((op & 0xF00) == 0xC00)
+        {
+            DEBUG("bkrep %02x\n", op & 0xFF);
+            break;
+        }
+        if ((op & ~0x1F) == 0xD00)
+        {
+            DEBUG("bkrep %s\n", rrrrr[op&0x1F]);
+            break;
+        }
+        if ((op &0xF00) == 0xF00)
+        {
+            DEBUG("movd r%d (modifier=%s),r%d (modifier=%s)\n",3 + (op >> 2) & 0x1, mm[(op >> 3) & 0x3] ,op & 0x3, mm[(op >> 5) & 0x3]);
+            break;
+        }
         if ((op &~0x1F) == 0x5E60)
         {
             DEBUG("pop %s\n", rrrrr[op & 0x1F]);
@@ -311,9 +341,9 @@ void DSP_Step()
         }
         if (op == 0x5F40)
         {
-            u16 extra = FetchWord(pc + 2);
+            u16 extra = FetchWord(pc + 1);
             DEBUG("push #%04x\n", extra);
-            pc += 2;
+            pc++;
             break;
         }
         if ((op & 0xFE0) == 0xE40)
@@ -323,16 +353,16 @@ void DSP_Step()
         }
         if ((op & 0xEE0) == 0xE00) //0101111-000rrrrr
         {
-            u16 extra = FetchWord(pc + 2);
+            u16 extra = FetchWord(pc + 1);
             DEBUG("mov #%04x, %s\n", extra, rrrrr[op&0x1F]);
-            pc += 2;
+            pc++;
             break;
         }
         if ((op & 0xEE0) == 0xEE0) //0101111b001-----
         {
-            u16 extra = FetchWord(pc + 2);
+            u16 extra = FetchWord(pc + 1);
             DEBUG("mov #%04x, b%d\n", extra, ax);
-            pc += 2;
+            pc++;
             break;
         }
         if ((op & 0xC00) == 0x800)
@@ -414,9 +444,9 @@ void DSP_Step()
         }
         if ((op & 0xE0) == 0x00) {
             //MUL (rN), ##long immediate
-            u16 longim = FetchWord(pc + 2);
+            u16 longim = FetchWord(pc + 1);
             DEBUG("%s %s, (a%d),%04x\n", mulXXX[(op >> 8) & 0x7], rrrrr[op & 0x1F], (op >> 11) & 0x1, longim);
-            pc += 2;
+            pc++;
             break;
         }
     case 0x9:
@@ -468,9 +498,9 @@ void DSP_Step()
 
         if((op & 0xFEE0) == 0x90C0)
         {
-            u16 extra = FetchWord(pc + 2);
+            u16 extra = FetchWord(pc + 1);
             DEBUG("msu (a%d) (r%d), %04x (modifier=%s)\n",ax, op & 0x7,extra, mm[(op >> 3) & 3]);
-            pc += 2;
+            pc++;
             break;
         }
         if((op&0xF0E0) == 0x9020)
@@ -499,7 +529,7 @@ void DSP_Step()
             DEBUG("?\n");
         } else if(((op >> 6) & 0x7) == 7) {
             u16 extra = FetchWord(pc+2);
-            pc+=2;
+            pc++;
 
             if(!(op & 0x100)) {
                 // ALB (rN)
@@ -524,7 +554,7 @@ void DSP_Step()
             if(op3 != -1) {
                 // ALU ##long immediate
                 u16 extra = FetchWord(pc+1);
-                pc+=2;
+                pc++;
 
                 DEBUG("%s %04x, a%d\n", ops3[op3], extra & 0xFFFF, ax);
                 break;
@@ -535,7 +565,7 @@ void DSP_Step()
         } else if((op & 0xFF70) == 0x8A60) {
             // TODO: norm
             u16 extra = FetchWord(pc+1);
-            pc+=2;
+            pc++;
 
             DEBUG("norm??\n");
             break;
@@ -570,10 +600,15 @@ void DSP_Step()
 
 
     case 0xD:
+        if (op == 0xD3C0)
+        {
+            DEBUG("break\n");
+            break;
+        }
         if ((op & 0xFEFC) == 0xD498)//1101010A100110--
         {
-            u16 extra = FetchWord(pc + 2);
-            pc += 2;
+            u16 extra = FetchWord(pc + 1);
+            pc++;
             DEBUG("mov (rb + #%04x), a%d\n", extra, ax);
             break;
         }
@@ -619,16 +654,16 @@ void DSP_Step()
         }
         if ((op & 0xFEFC) == 0xD4B8) //1101010a101110--
         {
-            u16 extra = FetchWord(pc + 2);
+            u16 extra = FetchWord(pc + 1);
             DEBUG("mov [%04x], a%d\n",extra,ax);
-            pc += 2;
+            pc++;
             break;
         }
         if ((op & 0xFEFC) == 0xD4BC) //1101010a101111--
         {
-            u16 extra = FetchWord(pc + 2);
+            u16 extra = FetchWord(pc + 1);
             DEBUG("mov a%dl, [%04x]\n", ax,extra);
-            pc += 2;
+            pc++;
             break;
         }
 
@@ -688,7 +723,7 @@ void DSP_Step()
             u16 extra = FetchWord(pc+2);
 
             DEBUG("%s %02x, %04x\n", alb_ops[(op >> 9) & 0x7], op & 0xFF, extra & 0xFFFF);
-            pc += 2;
+            pc++;
             break;
         }
         else
@@ -705,7 +740,7 @@ void DSP_Step()
         DEBUG("?\n");
     }
 
-    pc+=2;
+    pc++;
 }
 
 void DSP_Run()
@@ -736,7 +771,7 @@ void DSP_LoadFirm(u8* bin)
         u32 select = Read32(head.segment[i].select);
 
         DEBUG("segment %08X %08X %08X %08X\n", dataoffset, destoffset, size, select);
-        memcpy(ram + destoffset, bin + dataoffset, size);
+        memcpy(ram + (destoffset *2), bin + dataoffset, size);
     }
 
     DSP_Run();

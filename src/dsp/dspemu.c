@@ -93,13 +93,39 @@ const char* mm[] = {
     "nothing", "+1", "-1", "+step"
 };
 const char* rrrrr[] = {
-    "r0", "r1", "r2", "r3",
-    "r4", "r5", "rb", "y",
-    "st0", "st1", "st2", "p/ph",
-    "pc", "sp", "cfgi", "cfgj",
-    "b0h", "b1h", "b0l", "b1l",
-    "ext0", "ext1"
-};
+    "r0",
+    "r1",
+    "r2",
+    "r3",
+    "r4",
+    "r5",
+    "rb",
+    "y",
+    "st0",
+    "st1",
+    "st2",
+    "p / ph",
+    "pc",
+    "sp",
+    "cfgi",
+    "cfgj",
+    "b0h",
+    "b1h",
+    "b01",
+    "b1l",
+    "ext 0",
+    "ext1",
+    "ext2",
+    "ext3",
+    "a0",
+    "a1",
+    "a0l",
+    "a1l",
+    "a0h",
+    "a1h",
+    "1c",
+    "sv"
+}; 
 
 const char* AB[] = {
     "b0", "b1", "a0", "a1"
@@ -280,7 +306,7 @@ void DSP_Step()
             DEBUG("rep %02x\n", op&0xFF);
             break;
         }
-        DEBUG("?\n");
+        DEBUG("? %04X\n", op);
         break;
     case 1:
         if (!(op & 0x800))
@@ -298,7 +324,7 @@ void DSP_Step()
             DEBUG("mov (r%d) (modifier=%s), %s\n", op & 0x7, mm[(op >> 3) & 3], rrrrr[(op >> 5) & 0x1F]);
             break;
         }
-        DEBUG("?\n");
+        DEBUG("? %04X\n", op);
         break;
     case 2:
         if (!(op & 0x100))
@@ -328,7 +354,7 @@ void DSP_Step()
             DEBUG("mov #%02x, ext%d\n", op & 0xFF, ((op>>11)&0x2) | ((op >>10) &0x1));
         }
 
-        DEBUG("?\n");
+        DEBUG("? %04X\n", op);
         break;
     case 4:
 
@@ -439,7 +465,7 @@ void DSP_Step()
             pc++;
             break;
         }
-        DEBUG("?\n");
+        DEBUG("? %04X\n", op);
         break;
     case 0x5:
         if (!(op & 0x800))
@@ -508,7 +534,7 @@ void DSP_Step()
             DEBUG("mov %s, mixp\n", rrrrr[op & 0x1F]);
             break;
         }
-        DEBUG("?\n");
+        DEBUG("? %04X\n", op);
         break;
     case 0x6:
     case 0x7:
@@ -557,7 +583,7 @@ void DSP_Step()
             DEBUG("mov sv ,#%02x\n", op & 0xFF);
             break;
         }
-        DEBUG("?\n");
+        DEBUG("? %04X\n", op);
         break;
     case 0x8:
         if ((op & 0xE0) == 0x60) {
@@ -654,7 +680,7 @@ void DSP_Step()
                 break;
             }
 
-            DEBUG("?\n");
+            DEBUG("? %04X\n", op);
         } else if(((op >> 6) & 0x7) == 7) {
             u16 extra = FetchWord(pc+2);
             pc++;
@@ -673,7 +699,7 @@ void DSP_Step()
                     break;
                 }
 
-                DEBUG("?\n");
+                DEBUG("? %04X\n", op);
             }
             break;
         } else if((op & 0xF0FF) == 0x80C0) {
@@ -688,7 +714,7 @@ void DSP_Step()
                 break;
             }
 
-            DEBUG("?\n");
+            DEBUG("? %04X\n", op);
             break;
         } else if((op & 0xFF70) == 0x8A60) {
             // TODO: norm
@@ -705,7 +731,7 @@ void DSP_Step()
             break;
         }
 
-        DEBUG("?\n");
+        DEBUG("? %04X\n", op);
         break;
 
     case 0xA:
@@ -722,7 +748,7 @@ void DSP_Step()
             DEBUG("%s %02x, a%d\n", ops3[op3], op & 0xFF, ax);
             break;
         }
-        DEBUG("?\n");
+        DEBUG("? %04X\n", op);
         break;
     }
 
@@ -877,7 +903,7 @@ void DSP_Step()
                 }
             }
         }
-        DEBUG("?\n");
+        DEBUG("? %04X\n", op);
         break;
 
     case 0xE:
@@ -894,13 +920,13 @@ void DSP_Step()
             DEBUG("%s a%d #%02x\n", mulXX[(op >> 9) & 0x3], (op >> 11) & 0x1,op&0xFF);
             break;
         }
-        DEBUG("?\n");
+        DEBUG("? %04X\n", op);
         break;
     case 0xF:
         DEBUG("tstb #%02x (bit=%d)\n", op&0xFF, (op >> 8) & 0xF);
         break;
     default:
-        DEBUG("?\n");
+        DEBUG("? %04X\n",op);
     }
 
     pc++;
@@ -910,7 +936,10 @@ void DSP_Run()
 {
     pc = 0x0; //reset
     while (1)
+    {
+        DEBUG("op:%04x\n", FetchWord(pc));
         DSP_Step();
+    }
 }
 
 void DSP_LoadFirm(u8* bin)

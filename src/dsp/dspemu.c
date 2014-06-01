@@ -161,6 +161,41 @@ void DSP_Step()
 
     switch(op >> 12) {
     case 0:
+        if (op == 0x20)
+        {
+            DEBUG("trap\n");
+            break;
+        }
+        if (op == 0)
+        {
+            DEBUG("nop\n");
+            break;
+        }
+        if ((op & 0xE00) == 0x200)
+        {
+            DEBUG("load modi #%04x\n", op & 0x1FF);
+            break;
+        }
+        if ((op & 0xE00) == 0xA00)
+        {
+            DEBUG("load modj #%04x\n", op & 0x1FF);
+            break;
+        }
+        if ((op & 0xF00) == 0x400)
+        {
+            DEBUG("load page #%02x\n", op & 0xFF);
+            break;
+        }
+        if ((op & 0xF80) == 0x80)
+        {
+            DEBUG("rets (r%d) (modifier=%s) (disable=%d)\n", op & 0x7, mm[(op >> 3) & 3],(op>>5)&0x1);
+            break;
+        }
+        if ((op & 0xF00) == 0x900)
+        {
+            DEBUG("rets #%02x\n", op&0xFF);
+            break;
+        }
         if ((op & 0xF80) == 0x100)
         {
             DEBUG("movs %s, %s\n",rrrrr[op&0x1F],AB[(op >> 5)&0x3]);
@@ -271,6 +306,31 @@ void DSP_Step()
                 DEBUG("%s (rb + %02x), a%d\n", ops3[op3], op & 0x7F, ax);
                 break;
             }
+        }
+        if (op == 0x43C0)
+        {
+            DEBUG("dint\n");
+            break;
+        }
+        if (op == 0x4380)
+        {
+            DEBUG("eint\n");
+            break;
+        }
+        if ((op & ~0x3) == 0x4D80)
+        {
+            DEBUG("load ps %d\n", op&0x3);
+            break;
+        }
+        if ((op & 0xFE0) == 0x5C0)
+        {
+            DEBUG("reti %s (switch=%d)\n", cccc[op & 0xF],(op>>4)&1);
+            break;
+        }
+        if ((op & 0xFF0) == 0x580)
+        {
+            DEBUG("ret %s \n", cccc[op&0xF]);
+            break;
         }
         if ((op & ~0xF00F) == 0x180)
         {
@@ -623,9 +683,44 @@ void DSP_Step()
 
 
     case 0xD:
+        if (op == 0xD390)
+        {
+            DEBUG("cntx r\n");
+            break;
+        }
+        if (op == 0xD380)
+        {
+            DEBUG("cntx s\n");
+            break;
+        }
+        if (op == 0xD7C0)
+        {
+            DEBUG("retid\n");
+            break;
+        }
+        if (op == 0xD780)
+        {
+            DEBUG("retd\n");
+            break;
+        }
+        if ((op & ~0xF100) == 0x480)
+        {
+            DEBUG("call a%d\n",ax);
+            break;
+        }
         if (op == 0xD3C0)
         {
             DEBUG("break\n");
+            break;
+        }
+        if ((op & 0xF80) == 0xF80)
+        {
+            DEBUG("load stepj #%02x\n", op&0x7F);
+            break;
+        }
+        if ((op & 0xF80) == 0xB80)
+        {
+            DEBUG("load stepi #%02x\n", op & 0x7F);
             break;
         }
         if ((op & 0xFEFC) == 0xD498)//1101010A100110--

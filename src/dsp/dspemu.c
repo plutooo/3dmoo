@@ -123,20 +123,20 @@ const char* ABL[] = {
 };
 
 const char* swap[] = {
-    "a0 < –> b0",
-    "a0 <–> b1",
-    "a1 <–> b0",
-    "a1 <–> b1",
-    "a0 <–> b0 and a1 –> b1",
-    "a0 <–> b1 and a1 –> b0",
-    "a0 –> b0 and –> a1",
-    "a0 –> b1 –> a1",
-    "a1 –> b0 –> a0",
-    "a1 –> b0 –>a0",
-    "b0 –> a1 –> b1",
-    "b0 –> a1 –> b1",
-    "b1 –> a0 –> b0",
-    "b1 –> a1 –> b0",
+    "a0 <-> b0",
+    "a0 <-> b1",
+    "a1 <-> b0",
+    "a1 <-> b1",
+    "a0 <-> b0 and a1 -> b1",
+    "a0 <-> b1 and a1 -> b0",
+    "a0 -> b0 and -> a1",
+    "a0 -> b1 -> a1",
+    "a1 -> b0 -> a0",
+    "a1 -> b0 ->a0",
+    "b0 -> a1 -> b1",
+    "b0 -> a1 -> b1",
+    "b1 -> a0 -> b0",
+    "b1 -> a1 -> b0",
     "unk.",
     "unk.",
 }; 
@@ -256,6 +256,11 @@ void DSP_Step()
                 DEBUG("%s (rb + %02x), a%d\n", ops3[op3], op & 0x7F, ax);
                 break;
             }
+        }
+        if ((op&~0x3F) == 0x4980)
+        {
+            DEBUG("swap %s\n", swap[op&0xF]);
+            break;
         }
         if ((op & 0xC0) == 0x40) //0100111111-rrrrr
         {

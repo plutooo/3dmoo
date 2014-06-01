@@ -142,6 +142,16 @@ void DSP_Step()
 
     switch(op >> 12) {
     case 0:
+        if ((op & 0xF80) == 0x100)
+        {
+            DEBUG("movs %s, %s\n",rrrrr[op&0x1F],AB[(op >> 5)&0x3]);
+            break;
+        }
+        if ((op & 0xF80) == 0x180)
+        {
+            DEBUG("movs (r%d) (modifier=%s), %s\n", op&0x7,mm[(op>>3)&3], AB[(op >> 5) & 0x3]);
+            break;
+        }
         if ((op & 0xE00) == 0x600)
         {
             DEBUG("movp (r%d) (modifier=%s), (r%d) (modifier=%s) %s\n", op & 0x7, mm[(op >> 3) & 3],(op>>5)&0x3,mm[(op>>7)&0x3]);
@@ -224,11 +234,10 @@ void DSP_Step()
 
             if(op3 != -1) {
                 // ALU (rb + #offset7), ax
-                DEBUG("%s (rb + %02), a%d\n", ops3[op3], op & 0x7F, ax);
+                DEBUG("%s (rb + %02x), a%d\n", ops3[op3], op & 0x7F, ax);
                 break;
             }
         }
-
         if ((op & 0xFC0) == 0xFC0) //0100111111-rrrrr
         {
             DEBUG("mov %s, icr\n", rrrrr[op&0x1F]);
@@ -302,6 +311,11 @@ void DSP_Step()
         break;
     case 0x6:
     case 0x7:
+        if ((op&0x700) == 0x300)
+        {
+            DEBUG("movs %02x, %s\n",op&0xFF,AB[(op>> 11)&0x3]);
+            break;
+        }
         if ((op & 0xEF80) == 0x6F00)
         {
             DEBUG("%s b%d Bit %d\n",fff[(op >> 4)&0x7],(op >> 12)&0x1,op&0xF);

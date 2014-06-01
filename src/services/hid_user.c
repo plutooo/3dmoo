@@ -57,6 +57,18 @@ SERVICE_CMD(0x130000) { //EnableGyroscopeLow
     RESP(1, 0); // Result
     return 0;
 }
+SERVICE_CMD(0x150000) {
+    DEBUG("GetGyroscopeLowRawToDpsCoefficient (not working yet)\n");
+
+    RESP(1, 0); // Result
+    return 0;
+}
+SERVICE_CMD(0x160000) {
+    DEBUG("GetGyroscopeLowCalibrateParam (not working yet)\n");
+
+    RESP(1, 0); // Result
+    return 0;
+}
 
 SERVICE_END();
 

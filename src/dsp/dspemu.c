@@ -54,6 +54,9 @@ static u16 FetchWord(u16 addr)
     return temp;
 }
 
+#define Disarm 1
+#define emulate 1
+
 /*
 inter RESET 0x0
 inter TRAP/BI 0x2
@@ -138,8 +141,27 @@ const char* swap[] = {
     "b1 -> a0 -> b0",
     "b1 -> a1 -> b0",
     "unk.",
-    "unk.",
+    "unk."
 }; 
+
+const char* ffff[] = {
+    "shr",
+    "shr4",
+    "shl",
+    "shl4",
+    "ror",
+    "rol",
+    "clr",
+    "reserved",
+    "not",
+    "neg",
+    "rnd",
+    "pacr",
+    "clrr",
+    "inc",
+    "dec",
+    "copy"
+};
 
 int HasOp3(u16 op)
 {
@@ -149,6 +171,18 @@ int HasOp3(u16 op)
         return opc;
 
     return -1;
+}
+
+bool cccccheck(u8 cccc)
+{
+    switch (cccc)
+    {
+    case 0:
+        return true;
+    default:
+        DEBUG("unk. cccc %d",cccc);
+        return true;
+    }
 }
 
 void DSP_Step()
@@ -335,8 +369,13 @@ void DSP_Step()
         if ((op & ~0xF00F) == 0x180)
         {
             u16 extra = FetchWord(pc + 1);
+#ifdef Disarm
             DEBUG("br %s %04x\n", cccc[op&0xF],extra);
+#endif
             pc++;
+#ifdef emulate
+            if (cccccheck(op&0xF))pc = extra - 1;
+#endif
             break;
         }
         if ((op&~0x7F) == 0x4B80)
@@ -472,6 +511,11 @@ void DSP_Step()
         break;
     case 0x6:
     case 0x7:
+        if ((op & 0xF00) == 0x700)
+        {
+            DEBUG("%s %s a%d\n", ffff[(op>> 4)&0xF],cccc[op&0xF],(op>>12)&0x1);
+            break;
+        }
         if ((op&0x700) == 0x300)
         {
             DEBUG("movs %02x, %s\n",op&0xFF,AB[(op>> 11)&0x3]);

@@ -214,6 +214,11 @@ void DSP_Step()
         DEBUG("?\n");
         break;
     case 1:
+        if (!(op & 0x800))
+        {
+            DEBUG("callr %s %02x\n", cccc[op & 0xF], (op >> 4) & 0x7F);
+            break;
+        }
         if ((op & 0xC00) == 0x800)
         {
             DEBUG("mov %s, (r%d) (modifier=%s)\n",rrrrr[(op >> 5)&0x1F], op & 0x7, mm[(op >> 3) & 3]);
@@ -267,6 +272,13 @@ void DSP_Step()
                 break;
             }
         }
+        if ((op & ~0xF00F) == 0x180)
+        {
+            u16 extra = FetchWord(pc + 1);
+            DEBUG("br %s %04x\n", cccc[op&0xF],extra);
+            pc++;
+            break;
+        }
         if ((op&~0x7F) == 0x4B80)
         {
             DEBUG("banke #%02x\n", op & 0x7F);
@@ -316,9 +328,25 @@ void DSP_Step()
             DEBUG("mov mixp , %s\n", rrrrr[op & 0x1F]);
             break;
         }
+        if ((op & 0xFE0) == 0x7E0)
+        {
+            DEBUG("mov sp, %s\n", rrrrr[op & 0x1F]);
+            break;
+        }
+        if ((op&0xFF0) == 0x1C0)
+        {
+            u16 extra = FetchWord(pc + 1);
+            DEBUG("call %s %04x\n", cccc[op & 0xF], extra);
+            pc++;
+        }
         DEBUG("?\n");
         break;
     case 0x5:
+        if (!(op & 0x800))
+        {
+            DEBUG("brr %s %02x\n", cccc[op & 0xF], (op >> 4)&0x7F);
+            break;
+        }
         if ((op & 0xF00) == 0xC00)
         {
             DEBUG("bkrep %02x\n", op & 0xFF);
@@ -378,11 +406,6 @@ void DSP_Step()
         if ((op & 0xFFE0) == 0x5F40)
         {
             DEBUG("mov %s, mixp\n", rrrrr[op & 0x1F]);
-            break;
-        }
-        if ((op & 0xFE0) == 0x7E0)
-        {
-            DEBUG("mov sp, %s\n", rrrrr[op&0x1F]);
             break;
         }
         DEBUG("?\n");

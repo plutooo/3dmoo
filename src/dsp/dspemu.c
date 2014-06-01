@@ -437,6 +437,7 @@ void DSP_Step()
             u16 extra = FetchWord(pc + 1);
             DEBUG("call %s %04x\n", cccc[op & 0xF], extra);
             pc++;
+            break;
         }
         DEBUG("?\n");
         break;

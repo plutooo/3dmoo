@@ -609,6 +609,12 @@ void DSP_Step()
             break;
         }
     case 0x9:
+        if ((op & 0xF240) == 0x9240)
+        {
+            DEBUG("shfi %s ,%s %02x\n", AB[(op >> 10) & 0x3], AB[(op >> 7) & 0x3],op&0x3F);
+            break;
+        }
+
         if ((op & 0xFEE0) == 0x9CC0)
         {
             DEBUG("movr %s ,a%d\n", rrrrr[op&0x1F], ax);

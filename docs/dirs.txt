@@ -1,0 +1,21 @@
+
+docs/        : documentation
+
+inc/         : include files
+
+src/         : source code
+ - arm11/    : arm11 emu
+ |
+ - dsp/      : dsp emu (WIP)
+ |
+ - gpu/      : gpu emu (WIP)
+ |
+ - syscalls/ : os/syscalls are implemented here (most)
+ |
+ - fs/       : file system archive implementations
+ |
+ - services/ : services implementations
+
+tests/       : tests
+
+windows/     : windows project files (visual studio)

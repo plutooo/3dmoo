@@ -25,24 +25,28 @@ typedef struct {
     u32 ptr;
 } file_path;
 
-typedef struct {
-    bool (*fnFileExists)  (file_path path);
-    u32  (*fnOpenFile)    (file_path path, u32 flags, u32 attr);
-    void (*fnDeinitialize)();
-} archive;
+typedef struct _archive archive;
+struct _archive {
+    bool (*fnFileExists)  (archive* self, file_path path);
+    u32  (*fnOpenFile)    (archive* self, file_path path, u32 flags, u32 attr);
+    void (*fnDeinitialize)(archive* self);
 
-typedef struct {
-    const char* name;
-    u32 id;
-    archive* (*fnOpenArchive)(file_path path);
-} archive_type;
+    union {
+        struct {
+            u8 path[16 + 1];
+        } sharedextd;
 
-typedef struct {
-    u32 (*fnRead) (u32 ptr, u32 sz, u64 off, u32* read_out);
-    u32 (*fnWrite)(u32 ptr, u32 sz, u64 off, u32* written_out);
-    u64 (*fnGetSize)();
-    u32 (*fnClose)();
-} file_type;
+    } type_specific;
+};
+
+typedef struct _file_type file_type;
+struct _file_type {
+    u32 (*fnRead) (file_type* self, u32 ptr, u32 sz, u64 off, u32* read_out);
+    u32 (*fnWrite)(file_type* self, u32 ptr, u32 sz, u64 off, u32* written_out);
+    u64 (*fnGetSize)(file_type* self);
+    u32 (*fnClose)(file_type* self);
+};
+
 
 
 // archives/romfs.c
@@ -51,6 +55,14 @@ void romfs_Setup(FILE* fd, u32 off, u32 sz);
 
 // archives/shared_extdata.c
 archive* sharedextd_OpenArchive(file_path path);
+
+
+
+typedef struct {
+    const char* name;
+    u32 id;
+    archive* (*fnOpenArchive)(file_path path);
+} archive_type;
 
 static archive_type archive_types[] =  {
     { "RomFS",

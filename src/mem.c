@@ -341,7 +341,7 @@ int mem_Write(uint8_t* in_buff, uint32_t addr, uint32_t size)
 #ifdef EXIT_ON_ILLEGAL
     exit(1);
 #endif
-    return 0;
+    return -1;
 }
 
 int mem_Read(uint8_t* buf_out, uint32_t addr, uint32_t size)
@@ -364,5 +364,5 @@ int mem_Read(uint8_t* buf_out, uint32_t addr, uint32_t size)
 #ifdef EXIT_ON_ILLEGAL
     exit(1);
 #endif
-    return 0;
+    return -1;
 }

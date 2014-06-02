@@ -1,6 +1,6 @@
 #include "util.h"
 #include "mem.h"
-#include "archives.h"
+#include "fs.h"
 
 
 archive_type* fs_GetArchiveTypeById(u32 id) {

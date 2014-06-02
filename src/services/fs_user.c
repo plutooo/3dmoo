@@ -53,9 +53,25 @@ SERVICE_CMD(0x080201C2) { // OpenFile
     }
 
     archive* arch = (archive*) arch_hi->subtype;
-    u32 file_handle = arch->fnOpenFile(
-        (file_path) { file_lowpath_type, file_lowpath_sz, file_lowpath_ptr },
-        flags, attr);
+    u32 file_handle = 0;
+
+    // Call OpenFile
+    if(arch != NULL && arch->fnOpenFile != NULL) {
+        file_handle = arch->fnOpenFile(arch,
+            (file_path) { file_lowpath_type, file_lowpath_sz, file_lowpath_ptr },
+            flags, attr);
+
+        if(file_handle == 0) {
+            ERROR("OpenFile has failed.\n");
+            RESP(1, -1);
+            return 0;
+        }
+    }
+    else {
+        ERROR("Archive has not implemented OpenFile.\n");
+        RESP(1, -1);
+        return 0;
+    }
 
     RESP(1, 0); // Result
     RESP(2, file_handle); // File handle
@@ -95,19 +111,29 @@ SERVICE_CMD(0x08030204) { // OpenFileDirectly
     DEBUG("   attr=%s\n",
           fs_AttrToString(flags, tmp));
 
+    // Call OpenArchive
     if(arch_type != NULL && arch_type->fnOpenArchive != NULL) {
         archive* arch = arch_type->fnOpenArchive(
             (file_path) { arch_lowpath_type, arch_lowpath_sz, arch_lowpath_ptr});
 
         if(arch != NULL) {
-            u32 file_handle = arch->fnOpenFile(
-                (file_path) { file_lowpath_type, file_lowpath_sz, file_lowpath_ptr },
-                flags, attr);
 
-            RESP(1, 0); // Result
-            RESP(3, file_handle); // File handle
+            // Call OpenFile
+            if(arch->fnOpenFile != NULL) {
+                u32 file_handle = arch->fnOpenFile(arch,
+                    (file_path) { file_lowpath_type, file_lowpath_sz, file_lowpath_ptr },
+                    flags, attr);
 
-            arch->fnDeinitialize();
+                RESP(1, 0); // Result
+                RESP(3, file_handle); // File handle
+            }
+            else {
+                ERROR("OpenFile not implemented for %x\n", arch_id);
+                RESP(1, -1);
+            }
+
+            if(arch->fnDeinitialize != NULL)
+                arch->fnDeinitialize(arch);
         }
         else {
             ERROR("OpenArchive failed\n");
@@ -115,7 +141,7 @@ SERVICE_CMD(0x08030204) { // OpenFileDirectly
         }
     }
     else {
-        ERROR("Archive type %x not fully implemented\n", arch_id)
+        ERROR("OpenArchive not implemented for %x\n", arch_id)
         RESP(1, -1);
     }
 
@@ -161,7 +187,7 @@ SERVICE_CMD(0x080C00C2) { // OpenArchive
         return 0;
     }
 
-    u32 arch_handle = handle_New(HANDLE_TYPE_ARCHIVE, (uintptr_t) &arch);
+    u32 arch_handle = handle_New(HANDLE_TYPE_ARCHIVE, (uintptr_t) arch);
 
     RESP(1, 0); // Result
     RESP(2, arch_handle); // Arch handle lo
@@ -171,6 +197,8 @@ SERVICE_CMD(0x080C00C2) { // OpenArchive
 
 SERVICE_CMD(0x080E0080) { // CloseArchive
     DEBUG("CloseArchive -- TODO --\n");
+
+    // XXX: Remove handle
     return 0;
 }
 
@@ -222,7 +250,7 @@ SERVICE_CMD(0x080200C2) { // Read
     file_type* type = (file_type*) h->subtype;
 
     if(type->fnRead != NULL) {
-        rc = type->fnRead(ptr, sz, off, &read);
+        rc = type->fnRead(type, ptr, sz, off, &read);
     }
     else {
         ERROR("Read() not implemented for this type.\n");
@@ -252,7 +280,7 @@ SERVICE_CMD(0x08080000) { // Close
     DEBUG("Close\n");
 
     if(type->fnClose != NULL)
-        rc = type->fnClose();
+        rc = type->fnClose(type);
 
     RESP(1, rc);
     return 0;

@@ -9,64 +9,82 @@ static u32   romfs_off;
 static u32   romfs_sz;
 
 
-static u32 rawromfs_Read(u32 ptr, u32 sz, u64 off, u32* read_out) {
-    if(sz > 0x10000) {
-        ERROR("Too large read.\n");
-        return 0;
+/* ____ Raw RomFS ____ */
+
+static u32 rawromfs_Read(file_type* self, u32 ptr, u32 sz, u64 off, u32* read_out)
+{
+    if((off >> 32) || (off >= romfs_sz) || ((off+sz) >= romfs_sz)) {
+        ERROR("Invalid read params.\n");
+        return -1;
     }
 
-    u8 b[sz];
+    if(fseek(in_fd, romfs_off + 0x1000 + off, SEEK_SET) == -1) {
+        ERROR("fseek failed.\n");
+        return -1;
+    }
 
-    // TODO: check retvals, make sure off and sz actually is RomFS
-    fseek(in_fd, SEEK_SET, romfs_off + 0x1000 + off);
-    fread(b, sz, 1, in_fd);
+    u8* b = malloc(sz);
+    if(b == NULL) {
+        ERROR("Not enough mem.\n");
+        return -1;
+    }
 
-    mem_Write(b, ptr, sz);
+    u32 read = fread(b, 1, sz, in_fd);
+    if(read == 0) {
+        ERROR("fread failed\n");
+        free(b);
+        return -1;
+    }
 
-    *read_out = sz;
+    if(mem_Write(b, ptr, read) != 0) {
+        ERROR("mem_Write failed.\n");
+        free(b);
+        return -1;
+    }
+
+    *read_out = read;
+    free(b);
+
     return 0; // Result
 }
 
-static u64 rawromfs_GetSize() {
+static u64 rawromfs_GetSize(file_type* self) {
     return romfs_sz - 0x1000;
 }
 
 static const file_type rawromfs_file = {
-    &rawromfs_Read,
-    NULL /*Write*/,
-    &rawromfs_GetSize,
-    NULL /*Close*/
+    .fnRead    = &rawromfs_Read,
+    .fnWrite   = NULL,
+    .fnGetSize = &rawromfs_GetSize,
+    .fnClose   = NULL
 };
 
 
+/* ____ RomFS ____ */
 
-bool romfs_FileExists(file_path path) {
+bool romfs_FileExists(archive* self, file_path path) {
     DEBUG("romfs_FileExists\n");
-    // XXX
     return false;
 }
 
-u32 romfs_OpenFile(file_path path, u32 flags, u32 attr) {
+u32 romfs_OpenFile(archive* self, file_path path, u32 flags, u32 attr) {
     DEBUG("romfs_OpenFile\n");
 
     // RomFS has support for raw reads.
     if(path.type == PATH_BINARY)
         return handle_New(HANDLE_TYPE_FILE, (uintptr_t) &rawromfs_file);
 
-    // XXX: return file handle
+    // XXX: Return actual file handle here
     return -1;
-}
-
-void romfs_Deinitialize() {
-    DEBUG("romfs_Deinitialize\n");
 }
 
 
 static archive romfs = {
-    &romfs_FileExists,
-    &romfs_OpenFile,
-    &romfs_Deinitialize
+    .fnFileExists   = &romfs_FileExists,
+    .fnOpenFile     = &romfs_OpenFile,
+    .fnDeinitialize = NULL
 };
+
 
 archive* romfs_OpenArchive(file_path path) {
     if(path.type != 1) {
@@ -83,6 +101,7 @@ archive* romfs_OpenArchive(file_path path) {
 }
 
 void romfs_Setup(FILE* fd, u32 off, u32 sz) {
+    // This function is called by loader if loaded file contains RomFS.
     in_fd = fd;
     romfs_off = off;
     romfs_sz  = sz;

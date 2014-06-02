@@ -49,6 +49,9 @@ typedef struct {
 archive* romfs_OpenArchive(file_path path);
 void romfs_Setup(FILE* fd, u32 off, u32 sz);
 
+// archives/shared_extdata.c
+archive* sharedextd_OpenArchive(file_path path);
+
 static archive_type archive_types[] =  {
     { "RomFS",
       3,
@@ -64,7 +67,7 @@ static archive_type archive_types[] =  {
     },
     { "SharedExtData",
       7,
-      NULL
+      sharedextd_OpenArchive
     },
     { "SysData",
       8,

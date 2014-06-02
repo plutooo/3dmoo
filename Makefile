@@ -7,6 +7,8 @@ LDFLAGS = $(LIBS)
 
 SRC_FILES = src/mem.c src/screen.c src/handles.c src/loader.c src/svc.c src/filemon.c
 
+INC_FILES = inc/*
+
 ARM11_FILES = src/arm11/armemu.c src/arm11/armsupp.c src/arm11/arminit.c \
 	src/arm11/thumbemu.c src/arm11/armcopro.c src/arm11/threads.c \
 	src/arm11/wrap.c src/arm11/vfp/vfp.c src/arm11/vfp/vfpdouble.c \
@@ -21,13 +23,13 @@ SERVICES_FILES = src/services/am_u.c src/services/apt_u.c src/services/cfg_u.c \
 	src/services/ndm_u.c src/services/ns_s.c src/services/ptm_u.c \
 	src/services/cecd_u.c src/services/boss_u.c src/services/srv.c
 
-ARCHIVE_FILES = src/archives/romfs.c src/archives/fs_util.c
+FS_FILES = src/fs/romfs.c src/fs/shared_extdata.c src/fs/util.c
 
 GPU_FILES = src/gpu/gpu.c
 
 DSP_FILES = src/dsp/dspemu.c
 
-C_FILES = $(SRC_FILES) $(ARM11_FILES) $(SYSCALLS_FILES) $(SERVICES_FILES) $(ARCHIVE_FILES) $(GPU_FILES) $(DSP_FILES)
+C_FILES = $(SRC_FILES) $(ARM11_FILES) $(SYSCALLS_FILES) $(SERVICES_FILES) $(FS_FILES) $(GPU_FILES) $(DSP_FILES)
 OBJECTS=$(C_FILES:.c=.o)
 
 MAIN_FILES=src/main.c
@@ -41,7 +43,7 @@ ARM_FILE=tests/arm_instr.s
 ARM_OUT=$(ARM_FILE:.s=.elf)
 
 
-all: $(FILES) $(MAIN_FILES) $(TEST_FILES) $(ARM_FILE) 3dmoo test $(ARM_OUT)
+all: $(FILES) $(MAIN_FILES) $(INC_FILES) $(TEST_FILES) $(ARM_FILE) 3dmoo test $(ARM_OUT)
 
 # -- MAIN EXECUTABLE ---
 

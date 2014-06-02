@@ -1,6 +1,6 @@
 #include "util.h"
 #include "handles.h"
-#include "archives.h"
+#include "fs.h"
 #include "mem.h"
 
 #include "service_macros.h"
@@ -17,7 +17,6 @@ SERVICE_CMD(0x08010002) { // Initialize
 
     RESP(1, 0); // Result
     return 0;
-
 }
 
 SERVICE_CMD(0x080201C2) { // OpenFile

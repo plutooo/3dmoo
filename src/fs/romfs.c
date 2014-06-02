@@ -1,7 +1,7 @@
 #include "util.h"
 #include "mem.h"
 #include "handles.h"
-#include "archives.h"
+#include "fs.h"
 
 /* RomFS info: this is given by loader. */
 static FILE* in_fd = NULL;

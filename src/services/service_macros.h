@@ -26,8 +26,8 @@
     mem_Write32(0xFFFF0080 + 4*(n), w)
 
 #undef SERVICE_START
-#define SERVICE_START(name)                     \
-    u32 name ## _SyncRequest() {                \
+#define SERVICE_START(name)                                 \
+    u32 name ## _SyncRequest(handleinfo* h, bool *locked) { \
         switch(CMD(0)) {
 
 #define SERVICE_CMD(id)                         \

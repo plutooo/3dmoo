@@ -3,18 +3,30 @@
 * arm11
 [??%] Implement media-instructions (with conditions!).
 [??%] Implement missing instructions.
-[0%] Add proper handling of MRC/MCR.
+[??%] Add proper handling of MRC/MCR.
 [??%] Add ldrexh
 
 * loader
 [0%] Load modules according to exheader.
+[0%] Map shared memory according to exheader.
+[0%] Review and add all necessary fields to 0x1FF80000 shared config-mem.
+[0%] Add shared mem 0x1FF81000.
+
+* mem
+[0%] Add permission system.
+
+* gpu
+[0%] Clean up.
+
+* file
+[0%] Thought required here.
+
+* cfg_u
+[10%] Add all config fields.
 
 * svc
-[75%] svcControlMemory
-[??%] svcCreateMemoryBlock
-[??%] svcReleaseMutex
-[50%] svcArbitrateAddress, type=3 missing
-[0%] svcArbitrateAddress cleanup on svcCloseHandle
+[50%] svcArbitrateAddress type=2,4.
+[0%] svcArbitrateAddress cleanup on svcCloseHandle.
 
 * misc
 [0%] Move ThreadCommandBuffer(s) to correct address (currently 0xFFFF0000).

@@ -16,10 +16,14 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <stdlib.h>
+
 #include "util.h"
 #include "arm11.h"
 #include "mem.h"
+#include "archives.h"
 #include "filemon.h"
+
 
 // Shamelessly stolen from ctrtool.
 typedef struct {
@@ -462,35 +466,7 @@ int loader_LoadFile(FILE* fd)
         DEBUG("RomFS offset:    %08x\n", romfs_off);
         DEBUG("RomFS size:      %08x\n", romfs_sz);
 
-        uint8_t* romfslvl3 = malloc(romfs_sz);
-        if (romfslvl3 == NULL) {
-            ERROR("romfslvl3 malloc failed.\n");
-            return 1;
-        }
-
-        fseek(fd, romfs_off + ncch_off, SEEK_SET);
-
-        if (fread(romfslvl3, romfs_sz, 1, fd) != 1) {
-            ERROR("romfslvl3 fread failed.\n");
-            return 1;
-        }
-
-        initfilemon(romfslvl3);
-
-        FILE *romfs_out = fopen("romfs/000000000000000000000000", "wb");
-
-        if(romfs_out == NULL) {
-            ERROR("romfslvl3 fopen failed.\n");
-            return 1;
-        }
-
-        if (fwrite(romfslvl3, romfs_sz, 1, romfs_out) != 1) {
-            ERROR("romfslvl3 fwrite failed.\n");
-            return 1;
-        }
-
-        fclose(romfs_out);
-        free(romfslvl3);
+        romfs_Setup(fd, romfs_off, romfs_sz);
     }
 
     // Add .bss segment.

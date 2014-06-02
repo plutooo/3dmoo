@@ -99,7 +99,6 @@ int main(int argc, char* argv[])
     curprocesshandle = handzwei;
 
     hid_user_init();
-    fsinit();
 
     if(!noscreen)
         initGPU();

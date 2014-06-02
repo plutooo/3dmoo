@@ -129,6 +129,7 @@ SERVICE_CMD(0x4b00c2) { //AppletUtility
 
         printf("%02x ", data[i]);
     }
+    printf("\n");
 
     free(data);
 

@@ -228,6 +228,14 @@ void DSP_Step()
 
     switch(op >> 12) {
     case 0:
+        if ((op&~0x7) == 0x30)//hope that is correct
+        {
+            u16 extra1 = FetchWord(pc + 1);
+            DEBUG("mov #0x%04x,a%d\n", extra1, (op>>2)&0x1);
+            a[(op >> 2) & 0x1] = extra1;
+            pc++;
+            break;
+        }
         if (op == 0x20)
         {
             DEBUG("trap\n");
@@ -251,6 +259,7 @@ void DSP_Step()
         if ((op & 0xF00) == 0x400)
         {
             DEBUG("load page #%02x\n", op & 0xFF);
+            st[1] = (st[1] & 0xFF00) | (op & 0xFF);
             break;
         }
         if ((op & 0xF80) == 0x80)

@@ -30,23 +30,24 @@
 #define HANDLE_TYPE_Arbiter   9
 #define HANDLE_TYPE_FILE      10
 #define HANDLE_TYPE_SEMAPHORE 11
+#define HANDLE_TYPE_ARCHIVE   12
 
 #define PORT_TYPE_SRV         0
 
-#define SERVICE_TYPE_APT_U    0
-#define SERVICE_TYPE_GSP_GPU  1
-#define SERVICE_TYPE_HID_USER 3
-#define SERVICE_TYPE_FS_USER  4
-#define SERVICE_TYPE_AM_USER  5
+#define SERVICE_TYPE_APT_U       0
+#define SERVICE_TYPE_GSP_GPU     1
+#define SERVICE_TYPE_HID_USER    3
+#define SERVICE_TYPE_FS_USER     4
+#define SERVICE_TYPE_AM_USER     5
 #define SERVICE_TYPE_NINSHELL_S  6
-#define SERVICE_TYPE_NDM_USER  7
-#define SERVICE_TYPE_CFG_USER  8
-#define SERVICE_TYPE_PTM_USER  9
-#define SERVICE_TYPE_FRD_USER  10
-#define SERVICE_TYPE_IR_USER   11
-#define SERVICE_TYPE_DSP_DSP   12
-#define SERVICE_TYPE_CECD_U    13
-#define SERVICE_TYPE_BOSS_U    14
+#define SERVICE_TYPE_NDM_USER    7
+#define SERVICE_TYPE_CFG_USER    8
+#define SERVICE_TYPE_PTM_USER    9
+#define SERVICE_TYPE_FRD_USER   10
+#define SERVICE_TYPE_IR_USER    11
+#define SERVICE_TYPE_DSP_DSP    12
+#define SERVICE_TYPE_CECD_U     13
+#define SERVICE_TYPE_BOSS_U     14
 
 #define HANDLE_SUBEVENT_USER          0
 #define HANDLE_SUBEVENT_APTMENUEVENT  1
@@ -57,7 +58,7 @@
 #define LOCK_TYPE_ONESHOT 0
 #define LOCK_TYPE_STICKY  1
 #define LOCK_TYPE_PULSE   2
-#define LOCK_TYPE_MAX   2
+#define LOCK_TYPE_MAX     2
 
 #define MEM_TYPE_GSP_0   0
 #define MEM_TYPE_HID_0   1
@@ -69,36 +70,20 @@
 typedef struct {
     bool taken;
     u32  type;
-    u32  subtype;
+    uintptr_t  subtype;
+
     bool locked;
     u32  locktype;
-    u32 process;
-    u32 thread;
-    u32 handle;
+    u32  process;
+    u32  thread;
+    u32  handle;
 
-    u32 misc[4];
+    u32  misc[4];
+    void* misc_ptr[4];
+;
 } handleinfo;
 
-typedef enum {
-    PATH_INVALID = 0,	// Specifies an invalid path.
-    PATH_EMPTY = 1,	// Specifies an empty path.
-    PATH_BINARY = 2,	// Specifies a binary path, which is non-text based.
-    PATH_CHAR = 3,	// Specifies a text based path with a 8-bit byte per character.
-    PATH_WCHAR = 4,	// Specifies a text based path with a 16-bit short per character.
-} FS_pathType;
-
-typedef struct {
-    FS_pathType type;
-    u32 size;
-    u8* data;
-} FS_path;
-
-typedef struct {
-    u32 id;
-    FS_path lowPath;
-    u32 handleLow, handleHigh;
-} FS_archive;
-
+// handles.c
 handleinfo* handle_Get(u32 handle);
 u32 handle_New(u32 type, u32 subtype);
 
@@ -118,7 +103,6 @@ u32 port_SyncRequest(handleinfo* h, bool *locked);
 u32 Event_WaitSynchronization(handleinfo* h, bool *locked);
 
 u32 file_SyncRequest(handleinfo* h, bool *locked);
-u32 file_CloseHandle(ARMul_State *state, handleinfo* h);
 
 //arm11/threads.c
 u32 thread_SyncRequest(handleinfo* h, bool *locked);
@@ -199,7 +183,7 @@ static struct {
     {
         "file",
         &file_SyncRequest,
-        &file_CloseHandle,
+        NULL,
         NULL
     },
     {

@@ -21,11 +21,13 @@ SERVICES_FILES = src/services/am_u.c src/services/apt_u.c src/services/cfg_u.c \
 	src/services/ndm_u.c src/services/ns_s.c src/services/ptm_u.c \
 	src/services/cecd_u.c src/services/boss_u.c src/services/srv.c
 
+ARCHIVE_FILES = src/archives/romfs.c src/archives/fs_util.c
+
 GPU_FILES = src/gpu/gpu.c
 
 DSP_FILES = src/dsp/dspemu.c
 
-C_FILES = $(SRC_FILES) $(ARM11_FILES) $(SYSCALLS_FILES) $(SERVICES_FILES) $(GPU_FILES) $(DSP_FILES)
+C_FILES = $(SRC_FILES) $(ARM11_FILES) $(SYSCALLS_FILES) $(SERVICES_FILES) $(ARCHIVE_FILES) $(GPU_FILES) $(DSP_FILES)
 OBJECTS=$(C_FILES:.c=.o)
 
 MAIN_FILES=src/main.c

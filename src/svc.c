@@ -154,6 +154,7 @@ void svc_Execute(ARMul_State * state, u8 num)
     case 2:
         //Stubbed for now
         //arm11_SetR(0, svcQueryMemory());
+        DEBUG("%x, %x, %x\n", arm11_R(0), arm11_R(1), arm11_R(2));
         arm11_SetR(0, 0);
         return;
     case 3: //Exit Process
@@ -254,8 +255,13 @@ void svc_Execute(ARMul_State * state, u8 num)
         return;
     case 0x3D: { //OutputDebugString
         char temp[256];
-        memset(temp,0,256);
-        mem_Read(temp, arm11_R(0), arm11_R(1));
+        memset(temp, 0, 256);
+
+        size_t sz = arm11_R(1);
+        if(sz >= 256)
+            sz = 255;
+
+        mem_Read(temp, arm11_R(0), sz);
         DEBUG("%s\n",temp);
         //arm11_Dump();
         return;
@@ -266,7 +272,8 @@ void svc_Execute(ARMul_State * state, u8 num)
 
     default:
         //Lets not error yet
-        arm11_SetR(0, 0);
+        ERROR("Syscall not implemented.\n");
+        arm11_SetR(0, -1);
         break;
     }
 

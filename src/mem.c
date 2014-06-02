@@ -69,7 +69,7 @@ static int AddMapping(uint32_t base, uint32_t size)
         return 0;
 
     if(num_mappings == MAX_MAPPINGS) {
-        DEBUG("too many mappings.\n");
+        ERROR("too many mappings.\n");
         return 1;
     }
 
@@ -79,7 +79,7 @@ static int AddMapping(uint32_t base, uint32_t size)
 
     for(j=0; j<num_mappings; j++) {
         if(Overlaps(&mappings[j], &mappings[i])) {
-            DEBUG("trying to add overlapping mapping %08x, size=%08x.\n",
+            ERROR("trying to add overlapping mapping %08x, size=%08x.\n",
                   base, size);
             return 2;
         }
@@ -87,7 +87,7 @@ static int AddMapping(uint32_t base, uint32_t size)
 
     mappings[i].phys = calloc(sizeof(uint8_t), size);
     if(mappings[i].phys == NULL) {
-        DEBUG("calloc failed for %08x, size=%08x\n", base, size);
+        ERROR("calloc failed for %08x, size=%08x\n", base, size);
         return 3;
     }
 
@@ -101,7 +101,7 @@ int mem_AddMappingShared(uint32_t base, uint32_t size, u8* data)
         return 0;
 
     if (num_mappings == MAX_MAPPINGS) {
-        DEBUG("too many mappings.\n");
+        ERROR("too many mappings.\n");
         return 1;
     }
 
@@ -111,7 +111,7 @@ int mem_AddMappingShared(uint32_t base, uint32_t size, u8* data)
 
     for (j = 0; j<num_mappings; j++) {
         if (Overlaps(&mappings[j], &mappings[i])) {
-            DEBUG("trying to add overlapping mapping %08x, size=%08x.\n",
+            ERROR("trying to add overlapping mapping %08x, size=%08x.\n",
                   base, size);
             return 2;
         }
@@ -151,7 +151,7 @@ int mem_Write8(uint32_t addr, uint8_t w)
     }
 
 #ifdef PRINT_ILLEGAL
-    DEBUG("trying to write8 unmapped addr %08x, w=%02x\n", addr, w & 0xff);
+    ERROR("trying to write8 unmapped addr %08x, w=%02x\n", addr, w & 0xff);
     arm11_Dump();
 #endif
 #ifdef EXIT_ON_ILLEGAL
@@ -174,7 +174,7 @@ uint8_t mem_Read8(uint32_t addr)
         }
     }
 #ifdef PRINT_ILLEGAL
-    DEBUG("trying to read8 unmapped addr %08x\n", addr);
+    ERROR("trying to read8 unmapped addr %08x\n", addr);
     arm11_Dump();
 #endif
 #ifdef EXIT_ON_ILLEGAL
@@ -203,7 +203,7 @@ int mem_Write16(uint32_t addr, uint16_t w)
     }
 
 #ifdef PRINT_ILLEGAL
-    DEBUG("trying to write16 unmapped addr %08x, w=%04x\n", addr, w & 0xffff);
+    ERROR("trying to write16 unmapped addr %08x, w=%04x\n", addr, w & 0xffff);
     arm11_Dump();
 #endif
 #ifdef EXIT_ON_ILLEGAL
@@ -232,7 +232,7 @@ uint16_t mem_Read16(uint32_t addr)
     }
 
 #ifdef PRINT_ILLEGAL
-    DEBUG("trying to read16 unmapped addr %08x\n", addr);
+    ERROR("trying to read16 unmapped addr %08x\n", addr);
     arm11_Dump();
 #endif
 #ifdef EXIT_ON_ILLEGAL
@@ -262,7 +262,7 @@ int mem_Write32(uint32_t addr, uint32_t w)
         }
     }
 #ifdef PRINT_ILLEGAL
-    DEBUG("trying to write32 unmapped addr %08x, w=%08x\n", addr, w);
+    ERROR("trying to write32 unmapped addr %08x, w=%08x\n", addr, w);
     arm11_Dump();
 #endif
 #ifdef EXIT_ON_ILLEGAL
@@ -311,7 +311,7 @@ u32 mem_Read32(uint32_t addr)
     }
 
 #ifdef PRINT_ILLEGAL
-    DEBUG("trying to read32 unmapped addr %08x\n", addr);
+    ERROR("trying to read32 unmapped addr %08x\n", addr);
     arm11_Dump();
     mem_Dbugdump();
 #endif
@@ -335,7 +335,7 @@ int mem_Write(uint8_t* in_buff, uint32_t addr, uint32_t size)
         }
     }
 #ifdef PRINT_ILLEGAL
-    DEBUG("trying to write 0x%x bytes unmapped addr %08x\n", size, addr);
+    ERROR("trying to write 0x%x bytes unmapped addr %08x\n", size, addr);
     arm11_Dump();
 #endif
 #ifdef EXIT_ON_ILLEGAL
@@ -358,7 +358,7 @@ int mem_Read(uint8_t* buf_out, uint32_t addr, uint32_t size)
         }
     }
 #ifdef PRINT_ILLEGAL
-    DEBUG("trying to read 0x%x bytes unmapped addr %08x\n", size, addr);
+    ERROR("trying to read 0x%x bytes unmapped addr %08x\n", size, addr);
     arm11_Dump();
 #endif
 #ifdef EXIT_ON_ILLEGAL

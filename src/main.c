@@ -46,8 +46,7 @@ void AtSig(int t)
     exit(1);
 }
 
-void AtExit(void)
-{
+void AtExit(void){
     arm11_Dump();
     if(!noscreen)
         screen_Free();

@@ -276,6 +276,9 @@ u32 svcMapMemoryBlock()
     DEBUG("handle=%x, addr=%08x, my_perm=%x, other_perm=%x\n",
           handle, addr, my_perm, other_perm);
 
+    DEBUG("h->type=%x, h->subtype=%08x\n",
+        h->type, h->subtype);
+
     if(h->type == HANDLE_TYPE_SHAREDMEM) {
         switch (h->subtype) {
         case MEM_TYPE_GSP_0:

@@ -20,6 +20,7 @@
 #include "arm11.h"
 #include "handles.h"
 #include "mem.h"
+#include "service_macros.h"
 #include <SDL.h>
 
 u8 HIDsharedbuff[0x2000];
@@ -33,35 +34,44 @@ void hid_user_init()
     memhandel = handle_New(HANDLE_TYPE_SHAREDMEM, MEM_TYPE_HID_0);
 }
 
-u32 hid_user_SyncRequest()
-{
-    u32 cid = mem_Read32(0xFFFF0080);
-    switch (cid) {
-    case 0x000A0000:
-        mem_Write32(CPUsvcbuffer + 0x8C, memhandel);
-        mem_Write32(CPUsvcbuffer + 0x90, handle_New(HANDLE_TYPE_UNK, 0));
-        mem_Write32(CPUsvcbuffer + 0x94, handle_New(HANDLE_TYPE_UNK, 0));
-        mem_Write32(CPUsvcbuffer + 0x98, handle_New(HANDLE_TYPE_UNK, 0));
-        mem_Write32(CPUsvcbuffer + 0x9C, handle_New(HANDLE_TYPE_UNK, 0));
-        mem_Write32(CPUsvcbuffer + 0x100, handle_New(HANDLE_TYPE_UNK, 0));
+SERVICE_START(hid_user);
 
-        mem_Write32(CPUsvcbuffer + 0x84, 0); //worked
-        return 0;
-    case 0x00110000: //EnableAccelerometer
-        mem_Write32(CPUsvcbuffer + 0x84, 0); //worked
-        return 0;
-    case 0x00130000: //EnableGyroscopeLow
-        mem_Write32(CPUsvcbuffer + 0x84, 0); //worked
-        return 0;
-    default:
-        break;
-    }
-    ERROR("STUBBED, cid=%08x\n", cid);
-    arm11_Dump();
-    PAUSE();
-
+SERVICE_CMD(0xA0000) { //GetIPCHandles
+    RESP(1, 0); // Result
+    RESP(2, 0xDEADF00D); // Unused
+    RESP(3, memhandel);
+    RESP(4, handle_New(HANDLE_TYPE_UNK, 0));
+    RESP(5, handle_New(HANDLE_TYPE_UNK, 0));
+    RESP(6, handle_New(HANDLE_TYPE_UNK, 0));
+    RESP(7, handle_New(HANDLE_TYPE_UNK, 0));
+    RESP(8, handle_New(HANDLE_TYPE_UNK, 0));
     return 0;
 }
+
+SERVICE_CMD(0x110000) { //EnableAccelerometer
+    RESP(1, 0); // Result
+    return 0;
+}
+
+SERVICE_CMD(0x130000) { //EnableGyroscopeLow
+    RESP(1, 0); // Result
+    return 0;
+}
+SERVICE_CMD(0x150000) {
+    DEBUG("GetGyroscopeLowRawToDpsCoefficient (not working yet)\n");
+
+    RESP(1, 0); // Result
+    return 0;
+}
+SERVICE_CMD(0x160000) {
+    DEBUG("GetGyroscopeLowCalibrateParam (not working yet)\n");
+
+    RESP(1, 0); // Result
+    return 0;
+}
+
+SERVICE_END();
+
 u32 translate_to_bit(const SDL_KeyboardEvent* key)
 {
     switch (SDL_GetScancodeFromKey(key->keysym.sym)) {

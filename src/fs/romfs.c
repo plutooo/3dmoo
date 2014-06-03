@@ -13,12 +13,14 @@ static u32   romfs_sz;
 
 static u32 rawromfs_Read(file_type* self, u32 ptr, u32 sz, u64 off, u32* read_out)
 {
+    *read_out = 0;
+
     if((off >> 32) || (off >= romfs_sz) || ((off+sz) >= romfs_sz)) {
         ERROR("Invalid read params.\n");
         return -1;
     }
 
-    if(fseek(in_fd, romfs_off + 0x1000 + off, SEEK_SET) == -1) {
+    if(fseek(in_fd, romfs_off + off, SEEK_SET) == -1) {
         ERROR("fseek failed.\n");
         return -1;
     }
@@ -49,7 +51,7 @@ static u32 rawromfs_Read(file_type* self, u32 ptr, u32 sz, u64 off, u32* read_ou
 }
 
 static u64 rawromfs_GetSize(file_type* self) {
-    return romfs_sz - 0x1000;
+    return romfs_sz;
 }
 
 static const file_type rawromfs_file = {
@@ -75,7 +77,7 @@ u32 romfs_OpenFile(archive* self, file_path path, u32 flags, u32 attr) {
         return handle_New(HANDLE_TYPE_FILE, (uintptr_t) &rawromfs_file);
 
     // XXX: Return actual file handle here
-    return -1;
+    return 0;
 }
 
 

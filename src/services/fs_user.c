@@ -242,8 +242,8 @@ SERVICE_START(file);
 SERVICE_CMD(0x080200C2) { // Read
     u32 rc, read;
     u64 off = CMD(1) | ((u64) CMD(2)) << 32;
-    u64 sz  = CMD(3);
-    u64 ptr = CMD(5);
+    u32 sz  = CMD(3);
+    u32 ptr = CMD(5);
 
     DEBUG("Read, off=%llx, len=%x\n", off, sz);
 

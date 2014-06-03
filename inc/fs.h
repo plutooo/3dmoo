@@ -33,7 +33,7 @@ struct _archive {
 
     union {
         struct {
-            u8 path[16 + 1];
+            u8 path[24 + 1];
         } sharedextd;
 
     } type_specific;

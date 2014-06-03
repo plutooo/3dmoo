@@ -17,7 +17,7 @@ static u32 sharedextd_OpenFile(archive* self, file_path path, u32 flags, u32 att
     char p[256], tmp[256];
 
     // Generate path on host file system
-    snprintf(p, sizeof(p), "sys/shared/%s/%s",
+    snprintf(p, 256, "sys/shared/%s/%s",
              &self->type_specific.sharedextd.path,
              fs_PathToString(path.type, path.ptr, path.size, tmp, 256));
 
@@ -41,7 +41,7 @@ static void sharedextd_Deinitialize(archive* self)
 
 archive* sharedextd_OpenArchive(file_path path)
 {
-    // Extdata needs a binary path with an 8-byte id.
+    // Extdata needs a binary path with a 12-byte id.
     if(path.type != PATH_BINARY || path.size != 12) {
         ERROR("Unknown SharedExtData path.\n");
         return NULL;
@@ -67,7 +67,7 @@ archive* sharedextd_OpenArchive(file_path path)
         return NULL;
     }
 
-    snprintf(arch->type_specific.sharedextd.path,
+    snprintf(&arch->type_specific.sharedextd.path,
              sizeof(arch->type_specific.sharedextd.path),
              "%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x",
              buf[0], buf[1], buf[2], buf[3], buf[ 4], buf[ 5],

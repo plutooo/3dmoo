@@ -1,0 +1,40 @@
+Archives are used by the running application to read/write to various "file systems".
+
+These are called when the application uses file I/O commands from the "FS:user" service.
+
+Each "archive_type" struct has:
+     - name
+     - id:
+           must match id specified by application.
+     - OpenArchive:
+           a function that takes a path (sometimes ignored) as input and returns the corresponding
+           archive* object.
+
+Archive types are defined in inc/archives.h
+Implementations are put in src/archives/
+
+Each "archive" struct contains:
+     - fnFileExists:
+           a function that takes a path as input and returns true/false if it exists in the archive.
+     - fnOpenFile:
+           a function that takes a path and some flags as input, and returns a file-handle used to
+           write/read/getsize.
+     ...
+     ...
+     - fnDeinitialize:
+           a function that is called when the archive is closed. If the archive is allocated on heap,
+           it must free itself here. This is optional and can be NULL without errors.
+
+Each "file handle" is a normal system handle created using the handle_New() function.
+Its "subtype" field is set to a pointer to a "file_type" struct (must be casted to uintptr_t).
+
+The "file_type" struct contains the following:
+    fnRead:
+          a function to read from the file.
+    fnWrite:
+          a function to write to the file.
+    fnGetSize:
+          a function to get the file size.
+    fnClose:
+          a function to close the file. If "file_type" struct is allocated on heap, it must free itself
+          here. Can be NULL if no closing is necessary.

@@ -10,8 +10,8 @@ Each "archive_type" struct has:
            a function that takes a path (sometimes ignored) as input and returns the corresponding
            archive* object.
 
-Archive types are defined in inc/archives.h
-Implementations are put in src/archives/
+Archive types are defined in inc/fs.h
+Implementations are put in src/fs/
 
 Each "archive" struct contains:
      - fnFileExists:

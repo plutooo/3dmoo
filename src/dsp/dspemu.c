@@ -21,11 +21,14 @@
 #include "arm11.h"
 #include "dsp.h"
 
-#define DISASM 1
+//#define DISASM 1
+#define EMULATE 1
 
 u8 ram[0x20000];
 
 //register
+u16 stt[3];
+u16 mode[4];
 u16 pc = 0;
 u16 sp = 0;
 u16 r[6];
@@ -35,8 +38,8 @@ u16 st[3];
 u16 cfgi = 0;
 u16 cfgj = 0;
 u16 ph = 0;
-u16 b[2];
-u16 a[2];
+u32 b[2];
+u32 a[2];
 u16 ext[4];
 u16 sv = 0;
 u32 onec = 0; //wtf is that I don't know
@@ -54,8 +57,10 @@ static u16 FetchWord(u16 addr)
     return temp;
 }
 
-#define Disarm 1
-#define emulate 1
+u16 DSPread16_8(u8 data)
+{
+    return FetchWord(data | (st[1] << 8));
+}
 
 /*
 inter RESET 0x0
@@ -69,6 +74,10 @@ const char* mulXXX[] = {
     "mpy", "mpysu", "mac", "macus",
     "maa", "macuu", "macsu", "maasu"
 };
+const char* morpone[] = {
+    "stt0", "stt1", "stt2", "wrong_ModStt", "mod0", "mod1", "mod2", "mod3"
+};
+
 const char* mulXX[] = {
     "mpy", "mac",
     "maa", "macsu"
@@ -79,6 +88,76 @@ const char* ops[] = {
     "cmp", "sub", "msu", "addh", "addl", "subh", "subl",
     "sqr", "sqra", "cmpu"
 };
+s32 getlastbit(u32 val)
+{
+    if (val & 0x80000000)return 31;
+    if (val & 0x40000000)return 30;
+    if (val & 0x20000000)return 29;
+    if (val & 0x10000000)return 28;
+    if (val & 0x8000000)return 27;
+    if (val & 0x4000000)return 26;
+    if (val & 0x2000000)return 25;
+    if (val & 0x1000000)return 24;
+    if (val & 0x800000)return 23;
+    if (val & 0x400000)return 22;
+    if (val & 0x200000)return 21;
+    if (val & 0x100000)return 20;
+    if (val & 0x80000)return 19;
+    if (val & 0x40000)return 18;
+    if (val & 0x20000)return 17;
+    if (val & 0x10000)return 16;
+    if (val & 0x8000)return 15;
+    if (val & 0x4000)return 14;
+    if (val & 0x2000)return 13;
+    if (val & 0x1000)return 12;
+    if (val & 0x800)return 11;
+    if (val & 0x400)return 10;
+    if (val & 0x200)return 9;
+    if (val & 0x100)return 8;
+    if (val & 0x80)return 7;
+    if (val & 0x40)return 6;
+    if (val & 0x20)return 5;
+    if (val & 0x10)return 4;
+    if (val & 0x8)return 3;
+    if (val & 0x4)return 2;
+    if (val & 0x2)return 1;
+    if (val & 0x1)return 0;
+    if (val == 0)return -1; //that is needed
+}
+void updatecmpflags(u32 data, u8 MSB, bool v, bool c)
+{
+    u16 temp = st[0] & 0xF01F;
+    if (data == 0 && MSB == 0)temp |= 0x800; //Z
+    if (MSB & 0x8) temp |= 0x400; //M
+    if (data & 0xC0000000) temp |= 0x200; //N
+    if (v) temp |= 0x100; //V
+    if (c) temp |= 0x80; //C
+    if ((MSB != 0 && (data & 0x80000000)) || (MSB != 0xF && (!(data & 0x80000000)))) temp |= 0x40; //E
+    if (v) temp |= 0x20; //L
+}
+
+void doops(u8 ops, u32 data1, u8 MSB1, u32 data2, u8 MSB2)
+{
+    switch (ops)
+    {
+    case 15:
+    {
+               u8 temp2 = MSB1 - MSB2;
+               u32 temp1 = data1 - data2;
+               if (data1 < data2) temp2--;
+               bool v = false;
+               if (temp2 & 0x10)v = true;
+               bool c = false;
+               if (getlastbit(MSB1) > getlastbit(temp2))c = true;
+               if (temp2 == 0 && getlastbit(data1) > getlastbit(temp1))c = true;
+               updatecmpflags(temp1, temp2, v, c);
+               break;
+    }
+    default:
+        DEBUG("unknown ops %02x",ops);
+        break;
+    }
+}
 
 const char* ops3[] = {
     "or", "and", "xor", "add",
@@ -188,6 +267,19 @@ const char* ffff[] = {
     "dec",
     "copy"
 };
+u16 doffff(u16 data,u8 ffff,u8* MSB)
+{
+    switch (ffff)
+    {
+    case 12: //clrr
+        *MSB = 0;
+        return 0x8000;
+    default:
+        DEBUG("unknown ffff\n");
+        return data;
+        break;
+    }
+}
 
 int HasOp3(u16 op)
 {
@@ -205,8 +297,11 @@ bool cccccheck(u8 cccc)
     {
     case 0:
         return true;
+    case 2:
+        if (st[0] & 0x800)return false;
+        return true; //Z == 0
     default:
-        DEBUG("unk. cccc %d",cccc);
+        DEBUG("unk. cccc %d\n",cccc);
         return true;
     }
 }
@@ -218,6 +313,36 @@ u16 fixending(u16 in, u8 pos)
     }
     return in;
 }
+void wmorpone(u16 morpone, u16 data)
+{
+    switch (morpone)
+    {
+    case 0:
+        stt[0] = data;
+        break;
+    case 1:
+        stt[1] = data;
+        break;
+    case 2:
+        stt[2] = data;
+        break;
+    case 4:
+        mode[0] = data;
+        break;
+    case 5:
+        mode[1] = data;
+        break;
+    case 6:
+        mode[2] = data;
+        break;
+    case 7:
+        mode[3] = data;
+        break;
+    default:
+        DEBUG("unknown morpone %02x\n", morpone);
+        break;
+    }
+}
 void DSP_Step()
 {
     // Currently a disassembler.
@@ -228,11 +353,15 @@ void DSP_Step()
 
     switch(op >> 12) {
     case 0:
-        if ((op&~0x7) == 0x30)//hope that is correct
+        if ((op&~0x7) == 0x30)//correct this may be wrong
         {
             u16 extra1 = FetchWord(pc + 1);
-            DEBUG("mov #0x%04x,a%d\n", extra1, (op>>2)&0x1);
-            a[(op >> 2) & 0x1] = extra1;
+#ifdef DISARM
+            DEBUG("mov #0x%04x,%s\n", extra1, morpone[op&0x7]);
+#endif
+#ifdef EMULATE
+            wmorpone(op & 0x7,extra1);
+#endif
             pc++;
             break;
         }
@@ -243,7 +372,9 @@ void DSP_Step()
         }
         if (op == 0)
         {
+#ifdef DISASM
             DEBUG("nop\n");
+#endif
             break;
         }
         if ((op & 0xE00) == 0x200)
@@ -258,8 +389,12 @@ void DSP_Step()
         }
         if ((op & 0xF00) == 0x400)
         {
+#ifdef DISASM
             DEBUG("load page #%02x\n", op & 0xFF);
+#endif 
+#ifdef EMULATE
             st[1] = (st[1] & 0xFF00) | (op & 0xFF);
+#endif
             break;
         }
         if ((op & 0xF80) == 0x80)
@@ -420,7 +555,7 @@ void DSP_Step()
             DEBUG("br %s %04x\n", cccc[op&0xF],extra);
 #endif
             pc++;
-#ifdef emulate
+#ifdef EMULATE
             if (cccccheck(op&0xF))pc = extra - 1;
 #endif
             break;
@@ -491,7 +626,12 @@ void DSP_Step()
     case 0x5:
         if (!(op & 0x800))
         {
+#ifdef DISARM
             DEBUG("brr %s %02x\n", cccc[op & 0xF], (op >> 4)&0x7F);
+#endif
+#ifdef EMULATE
+            if (cccccheck(op & 0xF))pc += (op >> 4) & 0x7F;
+#endif
             break;
         }
         if ((op & 0xF00) == 0xC00)
@@ -561,7 +701,17 @@ void DSP_Step()
     case 0x7:
         if ((op & 0xF00) == 0x700)
         {
+#ifdef DISASM
             DEBUG("%s %s a%d\n", ffff[(op>> 4)&0xF],cccc[op&0xF],(op>>12)&0x1);
+#endif
+#ifdef EMULATE
+            if (cccccheck(op & 0xF))
+            {
+                u8 MSB = 0;
+                a[(op >> 12) & 0x1] = doffff(a[(op >> 12) & 0x1], (op >> 4) & 0xF,&MSB);
+                st[(op >> 12) & 0x1] = st[(op >> 12) & 0x1] & 0xFFF | (MSB << 12);
+            }
+#endif
             break;
         }
         if ((op&0x700) == 0x300)
@@ -769,7 +919,12 @@ void DSP_Step()
     case 0xA:
     case 0xB:
         // ALM direct
+#ifdef DISARM
         DEBUG("%s %02x, a%d\n", ops[(op >> 9) & 0xF], op & 0xFF, ax);
+#endif
+#ifdef EMULATE
+        doops((op >> 9) & 0xF, a[ax], (st[ax] >> 12), DSPread16_8(op & 0xFF), 0);
+#endif
         break;
 
     case 0xC: {

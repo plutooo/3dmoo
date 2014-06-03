@@ -1,4 +1,7 @@
 #include <string.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
 
 #include "util.h"
 #include "mem.h"
@@ -8,8 +11,20 @@
 
 static bool sharedextd_FileExists(archive* self, file_path path)
 {
-    DEBUG("sharedextd_FileExists\n");
-    return false;
+    char p[256], tmp[256];
+    struct stat* st;
+
+    // Generate path on host file system
+    snprintf(p, 256, "sys/shared/%s/%s",
+             &self->type_specific.sharedextd.path,
+             fs_PathToString(path.type, path.ptr, path.size, tmp, 256));
+
+    if(!fs_IsSafePath(p)) {
+        ERROR("Got unsafe path.\n");
+        return false;
+    }
+
+    return stat(p, &st) == 0;
 }
 
 static u32 sharedextd_OpenFile(archive* self, file_path path, u32 flags, u32 attr)
@@ -21,7 +36,18 @@ static u32 sharedextd_OpenFile(archive* self, file_path path, u32 flags, u32 att
              &self->type_specific.sharedextd.path,
              fs_PathToString(path.type, path.ptr, path.size, tmp, 256));
 
-    FILE* fd = fopen(p, "wb");
+    if(!fs_IsSafePath(p)) {
+        ERROR("Got unsafe path.\n");
+        return 0;
+    }
+
+    if(flags != OPEN_READ) {
+        ERROR("Trying to write/create in SharedExtData\n");
+        return 0;
+    }
+
+    FILE* fd = fopen(p, "rb");
+
     if(fd == NULL) {
         ERROR("Failed to open SharedExtData, path=%s\n", p);
         return 0;

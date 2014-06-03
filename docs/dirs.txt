@@ -16,6 +16,12 @@ src/         : source code
  |
  - services/ : services implementations
 
+sys/         : system files (system packages and various binaries)
+ |
+ - shared/   : shared extdata
+ |
+ - system/   : system extdata
+
 tests/       : tests
 
 windows/     : windows project files (visual studio)

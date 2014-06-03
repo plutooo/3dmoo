@@ -96,7 +96,5 @@ archive_type* fs_GetArchiveTypeById(u32 id);
 const char* fs_FlagsToString(u32 flags, char* buf_out);
 const char* fs_AttrToString(u32 attr, char* buf_out);
 const char* fs_PathTypeToString(u32 type);
-const char* fs_PathToString(u32 type, u32 ptr, u32 size,
-    char* buf_out, size_t size_out);
-
-
+const char* fs_PathToString(u32 type, u32 ptr, u32 size, char* buf_out, size_t size_out);
+bool fs_IsSafePath(const char* p);

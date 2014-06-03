@@ -1,3 +1,6 @@
+#include <ctype.h>
+#include <string.h>
+
 #include "util.h"
 #include "mem.h"
 #include "fs.h"
@@ -129,4 +132,22 @@ const char* fs_PathToString(u32 type, u32 ptr, u32 size,
     default:
         return "";
     }
+}
+
+bool fs_IsSafePath(const char* p) {
+    size_t i, len=strlen(p);
+
+    if(strstr(p, "..")) {
+        ERROR("Unsafe path: %s\n", p);
+        return false;
+    }
+
+    for(i=0; i<len; i++) {
+        if(!isalnum(p[i]) && !strchr("_.", p[i])) {
+            ERROR("Unsafe path: %s\n", p);
+            return false;
+        }
+    }
+
+    return true;
 }

@@ -16,15 +16,19 @@
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <stdio.h>
 #include <string.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <unistd.h>
 
 #include "util.h"
 #include "mem.h"
 #include "handles.h"
 #include "fs.h"
+
+#ifdef _WIN32
+#define snprintf sprintf_s
+#endif
 
 
 static bool sharedextd_FileExists(archive* self, file_path path)

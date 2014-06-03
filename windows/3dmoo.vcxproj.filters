@@ -40,6 +40,9 @@
     <Filter Include="Header Files\DSP">
       <UniqueIdentifier>{7874e0ae-9265-401a-b064-76491a3f0b0d}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\fs">
+      <UniqueIdentifier>{9265e831-aa02-44bd-b36c-ba96e00bf407}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\handles.c">
@@ -161,6 +164,15 @@
     </ClCompile>
     <ClCompile Include="..\src\services\cecd_u.c">
       <Filter>Source Files\services</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\fs\romfs.c">
+      <Filter>Source Files\fs</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\fs\util.c">
+      <Filter>Source Files\fs</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\fs\shared_extdata.c">
+      <Filter>Source Files\fs</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

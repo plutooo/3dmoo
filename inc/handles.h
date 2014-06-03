@@ -80,7 +80,6 @@ typedef struct {
 
     u32  misc[4];
     void* misc_ptr[4];
-;
 } handleinfo;
 
 // handles.c

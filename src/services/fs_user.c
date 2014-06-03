@@ -196,9 +196,30 @@ SERVICE_CMD(0x080C00C2) { // OpenArchive
 }
 
 SERVICE_CMD(0x080E0080) { // CloseArchive
-    DEBUG("CloseArchive -- TODO --\n");
+    DEBUG("CloseArchive\n");
 
-    // XXX: Remove handle
+    u32 handle_lo = CMD(1);
+    u32 handle_hi = CMD(2);
+    u32 rc = -1;
+
+    if(handle_hi == 0xDEADC0DE) {
+        handleinfo* hi = handle_Get(handle_lo);
+
+        if(hi != NULL && hi->type == HANDLE_TYPE_ARCHIVE) {
+            archive* arch = (archive*) hi->subtype;
+
+            if(arch->fnDeinitialize != NULL)
+                arch->fnDeinitialize(arch);
+
+            rc = 0;
+        }
+    }
+
+    if(rc == -1) {
+        ERROR("Invalid handle.\n");
+    }
+
+    RESP(1, rc);
     return 0;
 }
 
@@ -264,12 +285,12 @@ SERVICE_CMD(0x080200C2) { // Read
 }
 
 SERVICE_CMD(0x08030102) { // Write
-    DEBUG("Write\n");
+    DEBUG("Write - STUB\n");
     return 0;
 }
 
 SERVICE_CMD(0x08040000) { // GetSize
-    DEBUG("GetSize\n");
+    DEBUG("GetSize - STUB\n");
     return 0;
 }
 
@@ -289,6 +310,6 @@ SERVICE_CMD(0x08080000) { // Close
 SERVICE_END();
 
 u32 file_CloseHandle(ARMul_State *state, handleinfo* h) {
-    DEBUG("file_CloseHandle\n");
+    DEBUG("file_CloseHandle - STUB\n");
     return 0;
 }

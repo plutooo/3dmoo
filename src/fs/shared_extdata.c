@@ -12,7 +12,7 @@
 static bool sharedextd_FileExists(archive* self, file_path path)
 {
     char p[256], tmp[256];
-    struct stat* st;
+    struct stat st;
 
     // Generate path on host file system
     snprintf(p, 256, "sys/shared/%s/%s",
@@ -93,7 +93,7 @@ archive* sharedextd_OpenArchive(file_path path)
         return NULL;
     }
 
-    snprintf(&arch->type_specific.sharedextd.path,
+    snprintf(arch->type_specific.sharedextd.path,
              sizeof(arch->type_specific.sharedextd.path),
              "%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x",
              buf[0], buf[1], buf[2], buf[3], buf[ 4], buf[ 5],

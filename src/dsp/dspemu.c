@@ -42,7 +42,7 @@ u32 b[2];
 u32 a[2];
 u16 ext[4];
 u16 sv = 0;
-u32 onec = 0; //wtf is that I don't know
+u16 lc = 0; //wtf is that I don't know
 
 
 static u32 Read32(uint8_t p[4])
@@ -61,33 +61,12 @@ u16 DSPread16_8(u8 data)
 {
     return FetchWord(data | (st[1] << 8));
 }
+u16 DSPread16_16(u16 data)
+{
+    return FetchWord(data);
+}
 
-/*
-inter RESET 0x0
-inter TRAP/BI 0x2
-inter NMI 0x4
-inter INT0 0x6
-inter INT1 0xE
-inter INT2 0x16
-*/
-const char* mulXXX[] = {
-    "mpy", "mpysu", "mac", "macus",
-    "maa", "macuu", "macsu", "maasu"
-};
-const char* morpone[] = {
-    "stt0", "stt1", "stt2", "wrong_ModStt", "mod0", "mod1", "mod2", "mod3"
-};
 
-const char* mulXX[] = {
-    "mpy", "mac",
-    "maa", "macsu"
-};
-
-const char* ops[] = {
-    "or", "and", "xor", "add", "tst0_a", "tst1_a",
-    "cmp", "sub", "msu", "addh", "addl", "subh", "subl",
-    "sqr", "sqra", "cmpu"
-};
 s32 getlastbit(u32 val)
 {
     if (val & 0x80000000)return 31;
@@ -135,6 +114,33 @@ void updatecmpflags(u32 data, u8 MSB, bool v, bool c)
     if ((MSB != 0 && (data & 0x80000000)) || (MSB != 0xF && (!(data & 0x80000000)))) temp |= 0x40; //E
     if (v) temp |= 0x20; //L
 }
+/*
+inter RESET 0x0
+inter TRAP/BI 0x2
+inter NMI 0x4
+inter INT0 0x6
+inter INT1 0xE
+inter INT2 0x16
+*/
+const char* mulXXX[] = {
+    "mpy", "mpysu", "mac", "macus",
+    "maa", "macuu", "macsu", "maasu"
+};
+const char* morpone[] = {
+    "stt0", "stt1", "stt2", "wrong_ModStt", "mod0", "mod1", "mod2", "mod3"
+};
+
+const char* mulXX[] = {
+    "mpy", "mac",
+    "maa", "macsu"
+};
+
+const char* ops[] = {
+    "or", "and", "xor", "add", "tst0_a", "tst1_a",
+    "cmp", "sub", "msu", "addh", "addl", "subh", "subl",
+    "sqr", "sqra", "cmpu"
+};
+
 
 void doops(u8 ops, u32 data1, u8 MSB1, u32 data2, u8 MSB2)
 {
@@ -190,9 +196,9 @@ const char* rrrrr[] = {
     "cfgj",
     "b0h",
     "b1h",
-    "b01",
+    "b0l",
     "b1l",
-    "ext 0",
+    "ext0",
     "ext1",
     "ext2",
     "ext3",
@@ -204,7 +210,111 @@ const char* rrrrr[] = {
     "a1h",
     "1c",
     "sv"
-}; 
+};
+void setrrrrr(u8 op, u16 data)
+{
+    switch (op)
+    {
+    case 0:
+        r[0] = data;
+        break;
+    case 1:
+        r[1] = data;
+        break;
+    case 2:
+        r[2] = data;
+        break;
+    case 3:
+        r[3] = data;
+        break;
+    case 4:
+        r[4] = data;
+        break;
+    case 5:
+        r[5] = data;
+        break;
+    case 6:
+        rb = data;
+        break;
+    case 7:
+        y = data;
+        break;
+    case 8:
+        st[0] = data;
+        break;
+    case 9:
+        st[1] = data;
+        break;
+    case 0xA:
+        st[2] = data;
+        break;
+    case 0xB:
+        ph = data;
+        break;
+    case 0xC:
+        pc = data - 1; //because there is a pc++ at the end
+        break;
+    case 0xD:
+        sp = data;
+        break;
+    case 0xE:
+        cfgi = data;
+        break;
+    case 0xF:
+        cfgj = data;
+        break;
+    case 0x10:
+        b[0] = (data<<16) | (b[0] & 0xFFFF);
+        break;
+    case 0x11:
+        b[1] = (data << 16) | (b[1] & 0xFFFF);
+        break;
+    case 0x12:
+        b[0] = data | (b[0]&0xFFFF0000);
+        break;
+    case 0x13:
+        b[1] = data | (b[1] & 0xFFFF0000);
+        break;
+    case 0x14:
+        ext[0] = data;
+        break;
+    case 0x15:
+        ext[1] = data;
+        break;
+    case 0x16:
+        ext[2] = data;
+        break;
+    case 0x17:
+        ext[3] = data;
+        break;
+    case 0x18:
+        a[0] = data;
+        st[0] = st[0] & 0x0FFF; //clear MSB
+        break;
+    case 0x19:
+        a[1] = data;
+        st[1] = st[1] & 0x0FFF; //clear MSB
+        break;
+    case 0x1A:
+        a[0] = (data << 16) | (a[0] & 0xFFFF);
+        break;
+    case 0x1B:
+        a[1] = (data << 16) | (a[1] & 0xFFFF);
+        break;
+    case 0x1C:
+        a[0] = data | (a[0] & 0xFFFF0000);
+        break;
+    case 0x1D:
+        a[1] = data | (a[1] & 0xFFFF0000);
+        break;
+    case 0x1E:
+        sv = data;
+        break;
+    case 0x1F:
+        lc = data;
+        break;
+    }
+}
 
 const char* AB[] = {
     "b0", "b1", "a0", "a1"
@@ -669,7 +779,12 @@ void DSP_Step()
         if ((op & 0xEE0) == 0xE00) //0101111-000rrrrr
         {
             u16 extra = FetchWord(pc + 1);
+#ifdef DISASM
             DEBUG("mov #%04x, %s\n", extra, rrrrr[op&0x1F]);
+#endif
+#ifdef EMULATE
+            setrrrrr(op & 0x1F, DSPread16_16(extra));
+#endif
             pc++;
             break;
         }

@@ -460,7 +460,7 @@ int loader_LoadFile(FILE* fd)
     }
 
     if (Read32(h.romfsoffset) != 0 && Read32(h.romfssize) != 0) {
-        u32 romfs_off = (Read32(h.romfsoffset) * 0x200) + 0x1000;
+        u32 romfs_off = ncch_off + (Read32(h.romfsoffset) * 0x200) + 0x1000;
         u32 romfs_sz = (Read32(h.romfssize) * 0x200) - 0x1000;
 
         DEBUG("RomFS offset:    %08x\n", romfs_off);

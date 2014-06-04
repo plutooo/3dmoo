@@ -38,7 +38,7 @@ static bool sharedextd_FileExists(archive* self, file_path path)
 
     // Generate path on host file system
     snprintf(p, 256, "sys/shared/%s/%s",
-             &self->type_specific.sharedextd.path,
+             self->type_specific.sharedextd.path,
              fs_PathToString(path.type, path.ptr, path.size, tmp, 256));
 
     if(!fs_IsSafePath(p)) {
@@ -55,7 +55,7 @@ static u32 sharedextd_OpenFile(archive* self, file_path path, u32 flags, u32 att
 
     // Generate path on host file system
     snprintf(p, 256, "sys/shared/%s/%s",
-             &self->type_specific.sharedextd.path,
+             self->type_specific.sharedextd.path,
              fs_PathToString(path.type, path.ptr, path.size, tmp, 256));
 
     if(!fs_IsSafePath(p)) {

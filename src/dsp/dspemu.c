@@ -419,7 +419,7 @@ void DSP_Step()
         }
         if ((op & 0xE00) == 0x600)
         {
-            DEBUG("movp (r%d) (modifier=%s), (r%d) (modifier=%s) %s\n", op & 0x7, mm[(op >> 3) & 3],(op>>5)&0x3,mm[(op>>7)&0x3]);
+            DEBUG("movp (r%d) (modifier=%s), (r%d) (modifier=%s) %s\n", op & 0x7, mm[(op >> 3) & 3],(op>>5)&0x3,mm[(op>>7)&0x3], -1);
             break;
         }
         if ((op & 0xFC0) == 0x040)

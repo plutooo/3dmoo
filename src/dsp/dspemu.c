@@ -331,6 +331,9 @@ const char* mulXXX[] = {
 const char* morpone[] = {
     "stt0", "stt1", "stt2", "wrong_ModStt", "mod0", "mod1", "mod2", "mod3"
 };
+const char* morptwo[] = {
+    "ar0", "ar1", "arp0", "arp1", "arp2", "arp3", "wrong_AddrRegs", "wrong_AddrRegs"
+};
 
 const char* mulXX[] = {
     "mpy", "mac",
@@ -645,6 +648,13 @@ void DSP_Step()
 
     switch(op >> 12) {
     case 0:
+        if ((op&~0x7) == 0x8)
+        {
+            u16 extra = FetchWord(pc + 1);
+            DEBUG("mov %04x, %s\n", extra, morptwo[op & 0x7]);
+            pc++;
+            break;
+        }
         if ((op&~0x7) == 0x30)//correct this may be wrong
         {
             u16 extra1 = FetchWord(pc + 1);
@@ -852,7 +862,16 @@ void DSP_Step()
         }
         if ((op & 0xFF0) == 0x580)
         {
+#ifdef DISASM
             DEBUG("ret %s \n", cccc[op&0xF]);
+#endif
+#ifdef EMULATE
+            if (cccccheck(op & 0xF))
+            {
+                pc = DSPread16_16(sp) - 1;//pc++; at the end
+                sp++;
+            }
+#endif
             break;
         }
         if ((op & ~0xF00F) == 0x180)
@@ -932,7 +951,7 @@ void DSP_Step()
             if (cccccheck(op & 0xF))
             {
                 sp++;
-                writeWord(sp, pc - 1);
+                writeWord(sp, pc + 1);
                 pc = extra - 1;
             }
 #endif
@@ -1028,7 +1047,12 @@ void DSP_Step()
         }
         if ((op & 0xC00) == 0x800)
         {
+#ifdef DISARM
             DEBUG("mov %s, %s\n",rrrrr[op & 0x1F] ,rrrrr[(op >> 5) & 0x1F] );
+#endif
+#ifdef EMULATE
+            setrrrrr((op >> 5) & 0x1F, getrrrrr(op & 0x1F));
+#endif
             break;
         }
         if ((op & 0xFFC0) == 0x5EC0)
@@ -1103,12 +1127,12 @@ void DSP_Step()
         DEBUG("? %04X\n", op);
         break;
     case 0x8:
-        if ((op & 0xE0) == 0x60) {
+        if ((op & 0xE0) == 0xA0) {
             //MUL y, (rN)
             DEBUG("%s y, (a%d),(r%d) (modifier=%s)\n", mulXXX[(op >> 8) & 0x7], (op >> 11) & 0x1, op&0x7, mm[(op >> 3) & 3]);
             break;
         }
-        if ((op & 0xE0) == 0x40) {
+        if ((op & 0xE0) == 0x80) {
             //MUL y, register
             DEBUG("%s y, (a%d),%s\n", mulXXX[(op >> 8) & 0x7], (op >> 11) & 0x1, rrrrr[op & 0x1F]);
             break;
@@ -1195,11 +1219,12 @@ void DSP_Step()
             DEBUG("tstb %s (bit=%d)\n", rrrrr[op&0x1F], (op >> 8) & 0xF);
             break;
         }
-        if(((op >> 6) & 0x7) == 4) {
+        if ((op & 0xE0) == 0x80) {
             // ALM (rN)
             DEBUG("%s (r%d), a%d (modifier=%s)\n", ops[(op >> 9) & 0xF], op & 0x7, ax, mm[(op >> 3) & 3]);
             break;
-        } else if(((op >> 6) & 0x7) == 5) {
+        }
+        if ((op & 0xE0) == 0xA0) {
             // ALM register
             u16 r = op & 0x1F;
 
@@ -1475,7 +1500,7 @@ void DSP_Run()
     pc = 0x0; //reset
     while (1)
     {
-        DEBUG("op:%04x\n", FetchWord(pc));
+        DEBUG("op:%04x (%04x)\n", FetchWord(pc),pc);
         DSP_Step();
     }
 }

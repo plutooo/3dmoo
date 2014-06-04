@@ -21,7 +21,7 @@
 #include "arm11.h"
 #include "dsp.h"
 
-//#define DISASM 1
+#define DISASM 1
 #define EMULATE 1
 
 u8 ram[0x20000];
@@ -63,9 +63,9 @@ static void writeWord(u16 addr,u16 data)
     ram[addr * 2 + 1] = (data >> 8) & 0xFF;
 }
 
-u16 DSPwrite16_8(u8 addr, u16 data)
+void DSPwrite16_8(u8 addr, u16 data)
 {
-    return writeWord(data | (st[1] << 8),data);
+    writeWord(data | (st[1] << 8),data);
 }
 
 u16 DSPread16_8(u8 addr)
@@ -204,6 +204,7 @@ u16 getrrrrr(u8 op)
     case 0x1F:
         return lc;
     }
+    return 0;
 }
 void setrrrrr(u8 op, u16 data)
 {
@@ -361,7 +362,7 @@ void doops(u8 ops, u32 data1, u8 MSB1, u32 data2, u8 MSB2)
                break;
     }
     default:
-        DEBUG("unknown ops %02x",ops);
+        DEBUG("unknown ops %02x\n",ops);
         break;
     }
 }
@@ -378,6 +379,22 @@ u16 doalb_ops(u8 ops,u16 data1, u16 data2)
 {
     switch (ops)
     {
+    case 0:
+    {
+              u16 ret = data1 | data2;
+              u16 temp = st[0] & 0xF3FF;
+              if (ret == 0)temp |= 0x800; //Z
+              if (ret & 0x8000) temp |= 0x400; //M
+              st[0] = temp;
+    }
+    case 1:
+    {
+              u16 ret = data1 & ~data2;
+              u16 temp = st[0] & 0xF3FF;
+              if (ret == 0)temp |= 0x800; //Z
+              if (ret & 0x8000) temp |= 0x400; //M
+              st[0] = temp;
+    }
     case 3: //addv
     {
                 u16 ret = data1 + data2;
@@ -389,7 +406,7 @@ u16 doalb_ops(u8 ops,u16 data1, u16 data2)
                 return ret;
     }
     default:
-        DEBUG("unknown alb_ops");
+        DEBUG("unknown alb_ops\n");
         return data1;
     }
 }
@@ -455,6 +472,31 @@ const char* rNstar[] = {
 const char* ABL[] = {
     "B0L", "B0H", "B1L", "B1H", "A0L", "A0H", "A1L", "A1H"
 };
+u16 getABL(u8 op)
+{
+    switch (op)
+    {
+    case 0:
+        return b[0] & 0xFFFF;
+    case 1:
+        return (b[0]>>16) & 0xFFFF;
+    case 2:
+        return b[1] & 0xFFFF;
+    case 3:
+        return (b[1] >> 16) & 0xFFFF;
+    case 4:
+        return a[0] & 0xFFFF;
+    case 5:
+        return (a[0] >> 16) & 0xFFFF;
+    case 6:
+        return a[1] & 0xFFFF;
+    case 7:
+        return (a[1] >> 16) & 0xFFFF;
+    default:
+        DEBUG("getABL error %02x\n",op);
+        return 0;
+    }
+}
 
 const char* swap[] = {
     "a0 <-> b0",
@@ -539,7 +581,31 @@ u16 fixending(u16 in, u8 pos)
     }
     return in;
 }
-void wmorpone(u16 morpone, u16 data)
+
+u16 getmorpone(u16 morpone)
+{
+    switch (morpone)
+    {
+    case 0:
+        return stt[0];
+    case 1:
+        return stt[1];
+    case 2:
+        return stt[2];
+    case 4:
+        return mode[0];
+    case 5:
+        return mode[1];
+    case 6:
+        return mode[2];
+    case 7:
+        return mode[3];
+    default:
+        DEBUG("unknown morpone %02x\n", morpone);
+        return 0;
+    }
+}
+void setmorpone(u16 morpone, u16 data)
 {
     switch (morpone)
     {
@@ -582,11 +648,11 @@ void DSP_Step()
         if ((op&~0x7) == 0x30)//correct this may be wrong
         {
             u16 extra1 = FetchWord(pc + 1);
-#ifdef DISARM
+#ifdef DISASM
             DEBUG("mov #0x%04x,%s\n", extra1, morpone[op&0x7]);
 #endif
 #ifdef EMULATE
-            wmorpone(op & 0x7,extra1);
+            setmorpone(op & 0x7,extra1);
 #endif
             pc++;
             break;
@@ -712,7 +778,12 @@ void DSP_Step()
     case 3:
         if((op&0xF100) ==0x3000)
         {
+#ifdef DISASM
             DEBUG("mov %s, #%02x\n",ABL[(op >>9)&0x7],op&0xFF);
+#endif
+#ifdef EMULATE
+            DSPwrite16_8(op & 0xFF, getABL((op >> 9) & 0x7));
+#endif
             break;
         }
         if ((op & 0xF00) == 0x100)
@@ -751,7 +822,7 @@ void DSP_Step()
         }
         if (op == 0x43C0)
         {
-#ifdef DISARM
+#ifdef DISASM
             DEBUG("dint\n");
 #endif
 #ifdef EMULATE
@@ -761,7 +832,7 @@ void DSP_Step()
         }
         if (op == 0x4380)
         {
-#ifdef DISARM
+#ifdef DISASM
             DEBUG("eint\n");
 #endif
 #ifdef EMULATE
@@ -787,7 +858,7 @@ void DSP_Step()
         if ((op & ~0xF00F) == 0x180)
         {
             u16 extra = FetchWord(pc + 1);
-#ifdef Disarm
+#ifdef DISASM
             DEBUG("br %s %04x\n", cccc[op&0xF],extra);
 #endif
             pc++;
@@ -854,7 +925,7 @@ void DSP_Step()
         {
             u16 extra = FetchWord(pc + 1);
             pc++;
-#ifdef DISARM
+#ifdef DISASM
             DEBUG("call %s %04x\n", cccc[op & 0xF], extra);
 #endif
 #ifdef EMULATE
@@ -867,12 +938,36 @@ void DSP_Step()
 #endif
             break;
         }
+        if ((op&~0x7) == 0x4388) //this is strange
+        {
+            u16 extra = FetchWord(pc + 1);
+            pc++;
+#ifdef DISASM
+            DEBUG("%s #%04x, %s\n", alb_ops[1], extra, morpone[op & 0x7]);
+#endif
+#ifdef EMULATE
+            setmorpone(op & 0x7, doalb_ops(1, getmorpone(op & 0x7), extra));
+#endif
+            break;
+        }
+        if ((op&~0x7) == 0x43C8) //this is strange
+        {
+            u16 extra = FetchWord(pc + 1);
+            pc++;
+#ifdef DISASM
+            DEBUG("%s #%04x, %s\n", alb_ops[0], extra, morpone[op & 0x7]);
+#endif
+#ifdef EMULATE
+            setmorpone(op & 0x7, doalb_ops(0, getmorpone(op & 0x7), extra));
+#endif
+            break;
+        }
         DEBUG("? %04X\n", op);
         break;
     case 0x5:
         if (!(op & 0x800))
         {
-#ifdef DISARM
+#ifdef DISASM
             DEBUG("brr %s %02x\n", cccc[op & 0xF], (op >> 4)&0x7F);
 #endif
 #ifdef EMULATE
@@ -1128,11 +1223,11 @@ void DSP_Step()
                 u16 r = op & 0x1F;
 
                 if(r < 22) {
-#ifdef DISARM
+#ifdef DISASM
                     DEBUG("%s %s, %04x\n", alb_ops[(op >> 9) & 0x7], rrrrr[r], extra & 0xFFFF);
 #endif
 #ifdef EMULATE
-                    doalb_ops((op >> 9) & 0x7, getrrrrr(op & 0x1F), extra);
+                    setrrrrr(op & 0x1F,doalb_ops((op >> 9) & 0x7, getrrrrr(op & 0x1F), extra));
 #endif
                     break;
                 }
@@ -1175,7 +1270,7 @@ void DSP_Step()
     case 0xA:
     case 0xB:
         // ALM direct
-#ifdef DISARM
+#ifdef DISASM
         DEBUG("%s %02x, a%d\n", ops[(op >> 9) & 0xF], op & 0xFF, ax);
 #endif
 #ifdef EMULATE

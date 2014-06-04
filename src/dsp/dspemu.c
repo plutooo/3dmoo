@@ -1365,7 +1365,14 @@ void DSP_Step()
         }
         if ((op & ~0xF010) == 0x381)
         {
+#ifdef DISASM
             DEBUG("call a%d\n",(op>>4)&0x1);
+#endif
+#ifdef EMULATE
+            sp++;
+            writeWord(sp, pc);
+            pc = a[(op >> 4) & 0x1] - 1;//pc++;
+#endif
             break;
         }
         if (op == 0xD3C0)
@@ -1526,7 +1533,7 @@ void DSP_Run()
     pc = 0x0; //reset
     while (1)
     {
-        //DEBUG("op:%04x (%04x)\n", FetchWord(pc),pc);
+        DEBUG("op:%04x (%04x)\n", FetchWord(pc),pc);
         DSP_Step();
     }
 }

@@ -21,7 +21,7 @@
 #include "arm11.h"
 #include "dsp.h"
 
-#define DISASM 1
+//#define DISASM 1
 #define EMULATE 1
 
 u8 ram[0x20000];
@@ -65,7 +65,11 @@ static void writeWord(u16 addr,u16 data)
 
 void DSPwrite16_8(u8 addr, u16 data)
 {
-    writeWord(data | (st[1] << 8),data);
+    writeWord(addr | (st[1] << 8), data);
+}
+void DSPwrite16_16(u16 addr, u16 data)
+{
+    writeWord(addr, data);
 }
 
 u16 DSPread16_8(u8 addr)
@@ -373,6 +377,9 @@ void doops(u8 ops, u32 data1, u8 MSB1, u32 data2, u8 MSB2)
 const char* ops3[] = {
     "or", "and", "xor", "add",
     "invalid!", "invalid!", "cmp", "sub"
+};
+const char* restep[] = {
+    "stepi0", "stepj0"
 };
 
 const char* alb_ops[] = {
@@ -1011,7 +1018,13 @@ void DSP_Step()
         }
         if ((op &~0x1F) == 0x5E60)
         {
+#ifdef DISARM
             DEBUG("pop %s\n", rrrrr[op & 0x1F]);
+#endif
+#ifdef EMULATE
+            setrrrrr(op & 0x1F, DSPread16_16(sp));
+            sp++;
+#endif
             break;
         }
         if (op == 0x5F40)
@@ -1023,7 +1036,13 @@ void DSP_Step()
         }
         if ((op & 0xFE0) == 0xE40)
         {
+#ifdef DISASM
             DEBUG("push %s\n", rrrrr[op&0x1F]);
+#endif
+#ifdef EMULATE
+            sp--;
+            DSPwrite16_16(sp, getrrrrr(op & 0x1F));
+#endif
             break;
         }
         if ((op & 0xEE0) == 0xE00) //0101111-000rrrrr
@@ -1144,15 +1163,22 @@ void DSP_Step()
             pc++;
             break;
         }
+        if ((op&~0x8) == 0x8971)
+        {
+            u16 extra = FetchWord(pc + 1);
+            DEBUG("mov %04x, %s\n", extra, restep[(op >> 3)&0x1]);
+            pc++;
+            break;
+        }
     case 0x9:
         if ((op & 0xE0) == 0xA0)
         {
-            DEBUG("%s a%dl ,%s\n", ops3[(op >>9)&0xF], ax, rrrrr[op&0x1F]);
+            DEBUG("%s a%dl, %s\n", ops3[(op >>9)&0xF], ax, rrrrr[op&0x1F]);
             break;
         }
         if ((op & 0xF240) == 0x9240)
         {
-            DEBUG("shfi %s ,%s %02x\n", AB[(op >> 10) & 0x3], AB[(op >> 7) & 0x3], fixending(op & 0x3F,6));
+            DEBUG("shfi %s, %s %02x\n", AB[(op >> 10) & 0x3], AB[(op >> 7) & 0x3], fixending(op & 0x3F,6));
             break;
         }
 
@@ -1337,9 +1363,9 @@ void DSP_Step()
             DEBUG("retd\n");
             break;
         }
-        if ((op & ~0xF100) == 0x480)
+        if ((op & ~0xF010) == 0x381)
         {
-            DEBUG("call a%d\n",ax);
+            DEBUG("call a%d\n",(op>>4)&0x1);
             break;
         }
         if (op == 0xD3C0)
@@ -1500,7 +1526,7 @@ void DSP_Run()
     pc = 0x0; //reset
     while (1)
     {
-        DEBUG("op:%04x (%04x)\n", FetchWord(pc),pc);
+        //DEBUG("op:%04x (%04x)\n", FetchWord(pc),pc);
         DSP_Step();
     }
 }

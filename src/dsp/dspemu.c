@@ -57,13 +57,24 @@ static u16 FetchWord(u16 addr)
     return temp;
 }
 
-u16 DSPread16_8(u8 data)
+static void writeWord(u16 addr,u16 data)
 {
-    return FetchWord(data | (st[1] << 8));
+    ram[addr * 2] = data&0xFF;
+    ram[addr * 2 + 1] = (data >> 8) & 0xFF;
 }
-u16 DSPread16_16(u16 data)
+
+u16 DSPwrite16_8(u8 addr, u16 data)
 {
-    return FetchWord(data);
+    return writeWord(data | (st[1] << 8),data);
+}
+
+u16 DSPread16_8(u8 addr)
+{
+    return FetchWord(addr | (st[1] << 8));
+}
+u16 DSPread16_16(u16 addr)
+{
+    return FetchWord(addr);
 }
 
 
@@ -113,7 +124,197 @@ void updatecmpflags(u32 data, u8 MSB, bool v, bool c)
     if (c) temp |= 0x80; //C
     if ((MSB != 0 && (data & 0x80000000)) || (MSB != 0xF && (!(data & 0x80000000)))) temp |= 0x40; //E
     if (v) temp |= 0x20; //L
+    st[0] = temp;
 }
+
+
+
+
+u16 getrrrrr(u8 op)
+{
+    switch (op)
+    {
+    case 0:
+        return r[0];
+    case 1:
+        return r[1];
+    case 2:
+        return r[2];
+    case 3:
+        return r[3];
+    case 4:
+        return r[4];
+    case 5:
+        return r[5];
+    case 6:
+        return rb;
+    case 7:
+        return y;
+    case 8:
+        return st[0];
+    case 9:
+        return st[1];
+    case 0xA:
+        return st[2];
+    case 0xB:
+        return ph;
+    case 0xC:
+        return pc;
+    case 0xD:
+        return sp;
+    case 0xE:
+        return cfgi;
+    case 0xF:
+        return cfgj;
+    case 0x10:
+        return ((b[0] >> 16) & 0xFFFF);
+    case 0x11:
+        return ((b[1] >> 16) & 0xFFFF);
+    case 0x12:
+        return b[0] & 0xFFFF;
+    case 0x13:
+        return b[1] & 0xFFFF;
+    case 0x14:
+        return ext[0];
+    case 0x15:
+        return ext[1];
+    case 0x16:
+        return ext[2];
+    case 0x17:
+        return ext[3];
+    case 0x18:
+        DEBUG("get a0 rrrrr todo");
+        return a[0];
+    case 0x19:
+        DEBUG("get a1 rrrrr todo");
+        return a[1];
+    case 0x1A:
+        return ((a[0] >> 16) & 0xFFFF);
+        break;
+    case 0x1B:
+        return ((a[1] >> 16) & 0xFFFF);
+        break;
+    case 0x1C:
+        return a[0] & 0xFFFF;
+        break;
+    case 0x1D:
+        return a[1] & 0xFFFF;
+    case 0x1E:
+        return sv;
+    case 0x1F:
+        return lc;
+    }
+}
+void setrrrrr(u8 op, u16 data)
+{
+    switch (op)
+    {
+    case 0:
+        r[0] = data;
+        break;
+    case 1:
+        r[1] = data;
+        break;
+    case 2:
+        r[2] = data;
+        break;
+    case 3:
+        r[3] = data;
+        break;
+    case 4:
+        r[4] = data;
+        break;
+    case 5:
+        r[5] = data;
+        break;
+    case 6:
+        rb = data;
+        break;
+    case 7:
+        y = data;
+        break;
+    case 8:
+        st[0] = data;
+        break;
+    case 9:
+        st[1] = data;
+        break;
+    case 0xA:
+        st[2] = data;
+        break;
+    case 0xB:
+        ph = data;
+        break;
+    case 0xC:
+        pc = data - 1; //because there is a pc++ at the end
+        break;
+    case 0xD:
+        sp = data;
+        break;
+    case 0xE:
+        cfgi = data;
+        break;
+    case 0xF:
+        cfgj = data;
+        break;
+    case 0x10:
+        b[0] = (data << 16) | (b[0] & 0xFFFF);
+        break;
+    case 0x11:
+        b[1] = (data << 16) | (b[1] & 0xFFFF);
+        break;
+    case 0x12:
+        b[0] = data | (b[0] & 0xFFFF0000);
+        break;
+    case 0x13:
+        b[1] = data | (b[1] & 0xFFFF0000);
+        break;
+    case 0x14:
+        ext[0] = data;
+        break;
+    case 0x15:
+        ext[1] = data;
+        break;
+    case 0x16:
+        ext[2] = data;
+        break;
+    case 0x17:
+        ext[3] = data;
+        break;
+    case 0x18:
+        a[0] = data;
+        st[0] = st[0] & 0x0FFF; //clear MSB
+        break;
+    case 0x19:
+        a[1] = data;
+        st[1] = st[1] & 0x0FFF; //clear MSB
+        break;
+    case 0x1A:
+        a[0] = (data << 16) | (a[0] & 0xFFFF);
+        break;
+    case 0x1B:
+        a[1] = (data << 16) | (a[1] & 0xFFFF);
+        break;
+    case 0x1C:
+        a[0] = data | (a[0] & 0xFFFF0000);
+        break;
+    case 0x1D:
+        a[1] = data | (a[1] & 0xFFFF0000);
+        break;
+    case 0x1E:
+        sv = data;
+        break;
+    case 0x1F:
+        lc = data;
+        break;
+    }
+}
+
+
+
+
+
+
 /*
 inter RESET 0x0
 inter TRAP/BI 0x2
@@ -173,6 +374,25 @@ const char* ops3[] = {
 const char* alb_ops[] = {
     "set", "rst", "chng", "addv", "tst0_mask1", "tst0_mask2", "cmpv", "subv"
 };
+u16 doalb_ops(u8 ops,u16 data1, u16 data2)
+{
+    switch (ops)
+    {
+    case 3: //addv
+    {
+                u16 ret = data1 + data2;
+                u16 temp = st[0] & 0xF37F;
+                if (ret == 0)temp |= 0x800; //Z
+                if (ret & 0x8000) temp |= 0x400; //M
+                if (getlastbit(ret) > getlastbit(data1)) temp |= 0x80; //C
+                st[0] = temp;
+                return ret;
+    }
+    default:
+        DEBUG("unknown alb_ops");
+        return data1;
+    }
+}
 
 const char* mm[] = {
     "nothing", "+1", "-1", "+step"
@@ -211,110 +431,6 @@ const char* rrrrr[] = {
     "1c",
     "sv"
 };
-void setrrrrr(u8 op, u16 data)
-{
-    switch (op)
-    {
-    case 0:
-        r[0] = data;
-        break;
-    case 1:
-        r[1] = data;
-        break;
-    case 2:
-        r[2] = data;
-        break;
-    case 3:
-        r[3] = data;
-        break;
-    case 4:
-        r[4] = data;
-        break;
-    case 5:
-        r[5] = data;
-        break;
-    case 6:
-        rb = data;
-        break;
-    case 7:
-        y = data;
-        break;
-    case 8:
-        st[0] = data;
-        break;
-    case 9:
-        st[1] = data;
-        break;
-    case 0xA:
-        st[2] = data;
-        break;
-    case 0xB:
-        ph = data;
-        break;
-    case 0xC:
-        pc = data - 1; //because there is a pc++ at the end
-        break;
-    case 0xD:
-        sp = data;
-        break;
-    case 0xE:
-        cfgi = data;
-        break;
-    case 0xF:
-        cfgj = data;
-        break;
-    case 0x10:
-        b[0] = (data<<16) | (b[0] & 0xFFFF);
-        break;
-    case 0x11:
-        b[1] = (data << 16) | (b[1] & 0xFFFF);
-        break;
-    case 0x12:
-        b[0] = data | (b[0]&0xFFFF0000);
-        break;
-    case 0x13:
-        b[1] = data | (b[1] & 0xFFFF0000);
-        break;
-    case 0x14:
-        ext[0] = data;
-        break;
-    case 0x15:
-        ext[1] = data;
-        break;
-    case 0x16:
-        ext[2] = data;
-        break;
-    case 0x17:
-        ext[3] = data;
-        break;
-    case 0x18:
-        a[0] = data;
-        st[0] = st[0] & 0x0FFF; //clear MSB
-        break;
-    case 0x19:
-        a[1] = data;
-        st[1] = st[1] & 0x0FFF; //clear MSB
-        break;
-    case 0x1A:
-        a[0] = (data << 16) | (a[0] & 0xFFFF);
-        break;
-    case 0x1B:
-        a[1] = (data << 16) | (a[1] & 0xFFFF);
-        break;
-    case 0x1C:
-        a[0] = data | (a[0] & 0xFFFF0000);
-        break;
-    case 0x1D:
-        a[1] = data | (a[1] & 0xFFFF0000);
-        break;
-    case 0x1E:
-        sv = data;
-        break;
-    case 0x1F:
-        lc = data;
-        break;
-    }
-}
 
 const char* AB[] = {
     "b0", "b1", "a0", "a1"
@@ -635,12 +751,22 @@ void DSP_Step()
         }
         if (op == 0x43C0)
         {
+#ifdef DISARM
             DEBUG("dint\n");
+#endif
+#ifdef EMULATE
+            st[0] &= ~0x2;
+#endif
             break;
         }
         if (op == 0x4380)
         {
+#ifdef DISARM
             DEBUG("eint\n");
+#endif
+#ifdef EMULATE
+            st[0] |= 0x2;
+#endif
             break;
         }
         if ((op & ~0x3) == 0x4D80)
@@ -727,8 +853,18 @@ void DSP_Step()
         if ((op&0xFF0) == 0x1C0)
         {
             u16 extra = FetchWord(pc + 1);
-            DEBUG("call %s %04x\n", cccc[op & 0xF], extra);
             pc++;
+#ifdef DISARM
+            DEBUG("call %s %04x\n", cccc[op & 0xF], extra);
+#endif
+#ifdef EMULATE
+            if (cccccheck(op & 0xF))
+            {
+                sp++;
+                writeWord(sp, pc - 1);
+                pc = extra - 1;
+            }
+#endif
             break;
         }
         DEBUG("? %04X\n", op);
@@ -740,7 +876,7 @@ void DSP_Step()
             DEBUG("brr %s %02x\n", cccc[op & 0xF], (op >> 4)&0x7F);
 #endif
 #ifdef EMULATE
-            if (cccccheck(op & 0xF))pc += (op >> 4) & 0x7F;
+            if (cccccheck(op & 0xF))pc += ((op >> 4) & 0x7F) - 1;
 #endif
             break;
         }
@@ -783,7 +919,7 @@ void DSP_Step()
             DEBUG("mov #%04x, %s\n", extra, rrrrr[op&0x1F]);
 #endif
 #ifdef EMULATE
-            setrrrrr(op & 0x1F, DSPread16_16(extra));
+            setrrrrr(op & 0x1F, extra);
 #endif
             pc++;
             break;
@@ -979,7 +1115,7 @@ void DSP_Step()
 
             DEBUG("? %04X\n", op);
         } else if(((op >> 6) & 0x7) == 7) {
-            u16 extra = FetchWord(pc+2);
+            u16 extra = FetchWord(pc+1);
             pc++;
 
             if(!(op & 0x100)) {
@@ -992,7 +1128,12 @@ void DSP_Step()
                 u16 r = op & 0x1F;
 
                 if(r < 22) {
+#ifdef DISARM
                     DEBUG("%s %s, %04x\n", alb_ops[(op >> 9) & 0x7], rrrrr[r], extra & 0xFFFF);
+#endif
+#ifdef EMULATE
+                    doalb_ops((op >> 9) & 0x7, getrrrrr(op & 0x1F), extra);
+#endif
                     break;
                 }
 

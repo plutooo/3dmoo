@@ -21,7 +21,7 @@
 #include "arm11.h"
 #include "dsp.h"
 
-//#define DISASM 1
+#define DISASM 1
 #define EMULATE 1
 
 u8 ram[0x20000];
@@ -545,15 +545,48 @@ const char* ffff[] = {
     "dec",
     "copy"
 };
-u16 doffff(u16 data,u8 ffff,u8* MSB)
+u32 doffff(u32 data,u8 ffff,u8* MSB)
 {
     switch (ffff)
     {
-    case 12: //clrr
-        *MSB = 0;
-        return 0x8000;
+    case 6: //clr
+    {
+                u16 temp = st[0] & 0xF0BF;
+                temp |= 0x800; //Z
+                //M
+                //N
+                //E
+                st[0] = temp;
+                *MSB = 0;
+                return 0x0;
+    }
+    case 0xc: //clrr
+    {
+                 u16 temp = st[0] & 0xF0BF;
+                 //Z
+                 //M
+                 //N
+                 //E
+                 st[0] = temp;
+                 *MSB = 0;
+                 return 0x8000;
+    }
+    case 0xD: //inc
+    {
+                  u8 temp2 = *MSB;
+                  u32 temp1 = data + 1;
+                  if (data == 0) temp2++;
+                  bool v = false;
+                  if (temp2 & 0x10)v = true;
+                  bool c = false;
+                  if (getlastbit(*MSB) != getlastbit(temp2))c = true;
+                  if (temp2 == 0 && getlastbit(data) > getlastbit(temp1))c = true;
+                  updatecmpflags(temp1, temp2, v, c);
+                  *MSB = temp2;
+                  return temp1;
+    }
     default:
-        DEBUG("unknown ffff\n");
+        DEBUG("unknown ffff %02x\n",ffff);
         return data;
         break;
     }
@@ -575,9 +608,18 @@ bool cccccheck(u8 cccc)
     {
     case 0:
         return true;
+    case 1:
+        if (st[0] & 0x800)return true; //Z == 1
+        return false;
     case 2:
         if (st[0] & 0x800)return false;
         return true; //Z == 0
+    case 3:
+        if (st[0] & 0x400 || st[0] & 0x800)return false;
+        return true; //M = 0 and Z = 0
+    case 4:
+        if (st[0] & 0x400)return false;
+        return true; //M == 0
     default:
         DEBUG("unk. cccc %d\n",cccc);
         return true;
@@ -957,7 +999,7 @@ void DSP_Step()
 #ifdef EMULATE
             if (cccccheck(op & 0xF))
             {
-                sp++;
+                sp--;
                 writeWord(sp, pc + 1);
                 pc = extra - 1;
             }
@@ -1018,7 +1060,7 @@ void DSP_Step()
         }
         if ((op &~0x1F) == 0x5E60)
         {
-#ifdef DISARM
+#ifdef DISASM
             DEBUG("pop %s\n", rrrrr[op & 0x1F]);
 #endif
 #ifdef EMULATE
@@ -1066,7 +1108,7 @@ void DSP_Step()
         }
         if ((op & 0xC00) == 0x800)
         {
-#ifdef DISARM
+#ifdef DISASM
             DEBUG("mov %s, %s\n",rrrrr[op & 0x1F] ,rrrrr[(op >> 5) & 0x1F] );
 #endif
 #ifdef EMULATE
@@ -1369,7 +1411,7 @@ void DSP_Step()
             DEBUG("call a%d\n",(op>>4)&0x1);
 #endif
 #ifdef EMULATE
-            sp++;
+            sp--;
             writeWord(sp, pc);
             pc = a[(op >> 4) & 0x1] - 1;//pc++;
 #endif
@@ -1533,7 +1575,7 @@ void DSP_Run()
     pc = 0x0; //reset
     while (1)
     {
-        DEBUG("op:%04x (%04x)\n", FetchWord(pc),pc);
+        DEBUG("op:%04x (%04x) %04x\n", FetchWord(pc),pc,sp);
         DSP_Step();
     }
 }

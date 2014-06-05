@@ -21,7 +21,7 @@
 #include "arm11.h"
 #include "dsp.h"
 
-#define DISASM 1
+//#define DISASM 1
 #define EMULATE 1
 
 u8 ram[0x20000];
@@ -37,7 +37,7 @@ u16 y = 0;
 u16 st[3];
 u16 cfgi = 0;
 u16 cfgj = 0;
-u16 ph = 0;
+u32 ph = 0;
 u32 b[2];
 u32 a[2];
 u16 ext[4];
@@ -132,7 +132,54 @@ void updatecmpflags(u32 data, u8 MSB, bool v, bool c)
 }
 
 
-
+u32 doops3(u8 op3, u32 in, u32 in2,u8 *MSB)
+{
+    switch (op3)
+    {
+    case 0: //or
+    {
+              u32 ret = in | in2;
+              u16 temp = st[0] & 0xF0BF;
+              if (ret == 0 && *MSB == 0)temp |= 0x800; //Z
+              if (*MSB & 0x8) temp |= 0x400; //M
+              if (ret & 0xC0000000) temp |= 0x200; //N
+              if ((MSB != 0 && (ret & 0x80000000)) || (MSB != 0xF && (!(ret & 0x80000000)))) temp |= 0x40; //E
+              st[0] = temp;
+              return ret;
+    }
+    case 3:
+    {
+              u8 temp2 = *MSB;
+              u32 temp1 = in + in2;
+              if (in < temp1) temp2++;
+              bool v = false;
+              if (temp2 & 0x10)v = true;
+              bool c = false;
+              if (getlastbit(*MSB) != getlastbit(temp2))c = true;
+              if (temp2 == 0 && getlastbit(in) > getlastbit(temp1))c = true;
+              updatecmpflags(temp1, temp2, v, c);
+              *MSB = temp2;
+              return temp1;
+    }
+    case 7:
+    {
+              u8 temp2 = *MSB;
+              u32 temp1 = in - in2;
+              if (in < temp1) temp2--;
+              bool v = false;
+              if (temp2 & 0x10)v = true;
+              bool c = false;
+              if (getlastbit(*MSB) != getlastbit(temp2))c = true;
+              if (temp2 == 0 && getlastbit(in) < getlastbit(temp1))c = true;
+              updatecmpflags(temp1, temp2, v, c);
+              *MSB = temp2;
+              return temp1;
+    }
+    default:
+        DEBUG("unimplemented op3 %02x\n", op3);
+        break;
+    }
+}
 
 u16 getrrrrr(u8 op)
 {
@@ -351,19 +398,19 @@ const char* ops[] = {
 };
 
 
-void doops(u8 ops, u32 data1, u8 MSB1, u32 data2, u8 MSB2)
+void doops(u8 ops, u32 data1, u8 *MSB1, u32 data2, u8 MSB2)
 {
     switch (ops)
     {
     case 15:
     {
-               u8 temp2 = MSB1 - MSB2;
+               u8 temp2 = *MSB1 - MSB2;
                u32 temp1 = data1 - data2;
                if (data1 < data2) temp2--;
                bool v = false;
                if (temp2 & 0x10)v = true;
                bool c = false;
-               if (getlastbit(MSB1) > getlastbit(temp2))c = true;
+               if (getlastbit(*MSB1) > getlastbit(temp2))c = true;
                if (temp2 == 0 && getlastbit(data1) > getlastbit(temp1))c = true;
                updatecmpflags(temp1, temp2, v, c);
                break;
@@ -581,6 +628,20 @@ u32 doffff(u32 data,u8 ffff,u8* MSB)
                   bool c = false;
                   if (getlastbit(*MSB) != getlastbit(temp2))c = true;
                   if (temp2 == 0 && getlastbit(data) > getlastbit(temp1))c = true;
+                  updatecmpflags(temp1, temp2, v, c);
+                  *MSB = temp2;
+                  return temp1;
+    }
+    case 0xE: //dec
+    {
+                  u8 temp2 = *MSB;
+                  u32 temp1 = data - 1;
+                  if (data == 0) temp2--;
+                  bool v = false;
+                  if (temp2 & 0x10)v = true;
+                  bool c = false;
+                  if (getlastbit(*MSB) != getlastbit(temp2))c = true;
+                  if (temp2 == 0 && getlastbit(data) < getlastbit(temp1))c = true;
                   updatecmpflags(temp1, temp2, v, c);
                   *MSB = temp2;
                   return temp1;
@@ -1048,9 +1109,10 @@ void DSP_Step()
             DEBUG("bkrep %02x\n", op & 0xFF);
             break;
         }
-        if ((op & ~0x1F) == 0xD00)
+        if ((op & 0xf80) == 0xD00)
         {
-            DEBUG("bkrep %s\n", rrrrr[op&0x1F]);
+            u16 extra = FetchWord(pc+1);
+            DEBUG("bkrep %s %d %04x\n", rrrrr[op & 0x1F], (op >> 5) & 0x3, extra);
             break;
         }
         if ((op &0xF00) == 0xF00)
@@ -1138,7 +1200,7 @@ void DSP_Step()
 #ifdef EMULATE
             if (cccccheck(op & 0xF))
             {
-                u8 MSB = 0;
+                u8 MSB = (st[(op >> 12) & 0x1]) & 0xF;
                 a[(op >> 12) & 0x1] = doffff(a[(op >> 12) & 0x1], (op >> 4) & 0xF,&MSB);
                 st[(op >> 12) & 0x1] = st[(op >> 12) & 0x1] & 0xFFF | (MSB << 12);
             }
@@ -1215,8 +1277,18 @@ void DSP_Step()
     case 0x9:
         if ((op & 0xE0) == 0xA0)
         {
-            DEBUG("%s a%dl, %s\n", ops3[(op >>9)&0xF], ax, rrrrr[op&0x1F]);
-            break;
+            int op3 = HasOp3(op);
+
+            if (op3 != -1) {
+#ifdef DISASM
+                DEBUG("%s a%dl, %s\n", ops3[op3], ax, rrrrr[op & 0x1F]);
+#endif
+#ifdef EMULATE
+                u8 MSB = 0;
+                a[ax] = (doops3(op3, a[ax] & 0xFFFF, getrrrrr(op & 0x1F), &MSB) & 0xFFFF) | a[ax] & ~0xFFFF;
+#endif
+                break;
+            }
         }
         if ((op & 0xF240) == 0x9240)
         {
@@ -1331,12 +1403,19 @@ void DSP_Step()
         } else if((op & 0xF0FF) == 0x80C0) {
             int op3 = HasOp3(op);
 
-            if(op3 != -1) {
+            if (op3 != -1) {
                 // ALU ##long immediate
-                u16 extra = FetchWord(pc+1);
+                u16 extra = FetchWord(pc + 1);
                 pc++;
-
+#ifdef DISASM
                 DEBUG("%s %04x, a%d\n", ops3[op3], extra & 0xFFFF, ax);
+#endif
+#ifdef EMULATE
+                u8 MSB = (st[(op >> 12) & 0x1] >> 12) & 0xF;
+                a[ax] = doops3(op3,a[ax],extra,&MSB);
+                st[(op >> 12) & 0x1] = (st[(op >> 12) & 0x1] & 0xFFF) | MSB << 12;
+#endif
+
                 break;
             }
 
@@ -1367,7 +1446,11 @@ void DSP_Step()
         DEBUG("%s %02x, a%d\n", ops[(op >> 9) & 0xF], op & 0xFF, ax);
 #endif
 #ifdef EMULATE
-        doops((op >> 9) & 0xF, a[ax], (st[ax] >> 12), DSPread16_8(op & 0xFF), 0);
+        {
+            u8 MSB = (st[ax] >> 12);
+            doops((op >> 9) & 0xF, a[ax], &MSB, DSPread16_8(op & 0xFF), 0);
+            st[ax] = (MSB << 12) | st[ax]&0xFFF;
+        }
 #endif
         break;
 

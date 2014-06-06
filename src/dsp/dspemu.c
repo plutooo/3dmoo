@@ -21,6 +21,16 @@
 #include "arm11.h"
 #include "dsp.h"
 
+
+
+#undef DEBUG
+#define DEBUG(...) do {                                 \
+    int old = color_green();                        \
+    fprintf(stdout, "%04x: ", pc);              \
+    color_restore(old);                             \
+    fprintf(stdout, __VA_ARGS__);                   \
+} while (0);
+
 //#define DISASM 1
 #define EMULATE 1
 
@@ -1100,7 +1110,10 @@ void DSP_Step()
             DEBUG("brr %s %02x\n", cccc[op & 0xF], (op >> 4)&0x7F);
 #endif
 #ifdef EMULATE
-            if (cccccheck(op & 0xF))pc += ((op >> 4) & 0x7F) - 1;
+            u32 brroffset = (op >> 4) & 0x7F;
+            if (brroffset & 0x40)
+                brroffset += 0xFF80;
+            if (cccccheck(op & 0xF))pc += brroffset; //pc++; is at the end
 #endif
             break;
         }
@@ -1174,7 +1187,17 @@ void DSP_Step()
             DEBUG("mov %s, %s\n",rrrrr[op & 0x1F] ,rrrrr[(op >> 5) & 0x1F] );
 #endif
 #ifdef EMULATE
-            setrrrrr((op >> 5) & 0x1F, getrrrrr(op & 0x1F));
+            u16 restt = getrrrrr(op & 0x1F);
+
+
+            u16 temp = st[0] & 0xF1BF;
+            if (restt == 0)temp |= 0x800; //Z
+            //M
+            //N
+            //E
+            st[0] = temp;
+
+            setrrrrr((op >> 5) & 0x1F, restt);
 #endif
             break;
         }
@@ -1495,7 +1518,7 @@ void DSP_Step()
 #endif
 #ifdef EMULATE
             sp--;
-            writeWord(sp, pc);
+            writeWord(sp, pc + 1);
             pc = a[(op >> 4) & 0x1] - 1;//pc++;
 #endif
             break;
@@ -1658,7 +1681,7 @@ void DSP_Run()
     pc = 0x0; //reset
     while (1)
     {
-        DEBUG("op:%04x (%04x) %04x\n", FetchWord(pc),pc,sp);
+        //DEBUG("op:%04x (%04x) %04x\n", FetchWord(pc),pc,sp);
         DSP_Step();
     }
 }

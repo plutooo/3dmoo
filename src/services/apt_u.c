@@ -26,6 +26,9 @@
 u32 lock_handle;
 u32 event_handles[2];
 
+u8* APTsharedfont = NULL;
+size_t APTsharedfontsize = 0;
+
 
 SERVICE_START(apt_u);
 
@@ -105,7 +108,48 @@ SERVICE_CMD(0x430040) {
 SERVICE_CMD(0x440000) {
     DEBUG("GetSharedFont\n");
 
+    // Load shared binary from sys/shared_font.bin
+    if(APTsharedfont == NULL) {
+        FILE* fd = fopen("sys/shared_font.bin", "rb");
+
+        if(fd == NULL) {
+            ERROR("No shared font available. Please put one in: sys/shared_font.bin\n");
+            RESP(1, -1);
+            return 0;
+        }
+
+        // Get file size
+        fseek(fd, 0, SEEK_END);
+        APTsharedfontsize = ftell(fd);
+        fseek(fd, 0, SEEK_SET);
+
+        // Allocate buffer for font
+        APTsharedfont = malloc(APTsharedfontsize);
+
+        if(APTsharedfont == NULL) {
+            ERROR("malloc() failed trying to read shared font.\n");
+            fclose(fd);
+            RESP(1, -1);
+            return 0;
+        }
+
+        // Read it
+        if(fread(APTsharedfont, APTsharedfontsize, 1, fd) != 1) {
+            ERROR("fread() failed trying to read shared font.\n");
+            fclose(fd);
+            RESP(1, -1);
+            return 0;
+        }
+
+        fclose(fd);
+    }
+
     RESP(1, 0); // Result
+    RESP(2, 0xDEADC0DE); // ?
+    RESP(3, 0xDEADC0DE); // ?
+
+    // Handle for shared memory
+    RESP(4, handle_New(HANDLE_TYPE_SHAREDMEM, MEM_TYPE_APT_SHARED_FONT));
     return 0;
 }
 

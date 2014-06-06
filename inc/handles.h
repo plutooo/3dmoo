@@ -60,8 +60,9 @@
 #define LOCK_TYPE_PULSE   2
 #define LOCK_TYPE_MAX     2
 
-#define MEM_TYPE_GSP_0   0
-#define MEM_TYPE_HID_0   1
+#define MEM_TYPE_GSP_0           0
+#define MEM_TYPE_HID_0           1
+#define MEM_TYPE_APT_SHARED_FONT 2
 
 
 #define HANDLE_CURRENT_THREAD  0xFFFF8000

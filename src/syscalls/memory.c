@@ -258,6 +258,8 @@ u32 svcControlMemory()
 }
 
 extern u8 HIDsharedbuff[0x2000];
+extern u8* APTsharedfont;
+extern size_t APTsharedfontsize;
 
 u32 svcMapMemoryBlock()
 {
@@ -267,14 +269,14 @@ u32 svcMapMemoryBlock()
     u32 other_perm = arm11_R(3);
     handleinfo* h  = handle_Get(handle);
 
+    DEBUG("handle=%x, addr=%08x, my_perm=%x, other_perm=%x\n",
+          handle, addr, my_perm, other_perm);
+
     if(h == NULL) {
         DEBUG("Invalid handle.\n");
         PAUSE();
         return -1;
     }
-
-    DEBUG("handle=%x, addr=%08x, my_perm=%x, other_perm=%x\n",
-          handle, addr, my_perm, other_perm);
 
     DEBUG("h->type=%x, h->subtype=%08x\n",
         h->type, h->subtype);
@@ -286,6 +288,16 @@ u32 svcMapMemoryBlock()
             break;
         case MEM_TYPE_HID_0:
             mem_AddMappingShared(addr, 0x2000, HIDsharedbuff);
+            break;
+        case MEM_TYPE_APT_SHARED_FONT:
+
+            // If user has supplied the shared font, map it.
+            if(APTsharedfont == NULL) {
+                ERROR("No shared font supplied\n");
+                return -1;
+            }
+
+            mem_AddMappingShared(addr, APTsharedfontsize, APTsharedfont);
             break;
         default:
             ERROR("Trying to map unknown memory\n");

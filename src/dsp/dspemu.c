@@ -52,8 +52,13 @@ u32 b[2];
 u32 a[2];
 u16 ext[4];
 u16 sv = 0;
-u16 lc = 0; //wtf is that I don't know
+u16 lc = 0;
 
+
+u16 ICR = 0;
+
+u16 ICRshadowend[3];
+u16 ICRshadowstart[3];
 
 static u32 Read32(uint8_t p[4])
 {
@@ -250,16 +255,16 @@ u16 getrrrrr(u8 op)
         DEBUG("get a1 rrrrr todo");
         return a[1];
     case 0x1A:
-        return ((a[0] >> 16) & 0xFFFF);
-        break;
-    case 0x1B:
-        return ((a[1] >> 16) & 0xFFFF);
-        break;
-    case 0x1C:
         return a[0] & 0xFFFF;
         break;
-    case 0x1D:
+    case 0x1B:
         return a[1] & 0xFFFF;
+        break;
+    case 0x1C:
+        return ((a[0] >> 16) & 0xFFFF);
+        break;
+    case 0x1D:
+        return ((a[1] >> 16) & 0xFFFF);
     case 0x1E:
         return sv;
     case 0x1F:
@@ -876,7 +881,12 @@ void DSP_Step()
         }
         if ((op & 0xFC0) == 0xD40) //00001101000rrrrr
         {
+#ifdef DISASM
             DEBUG("movq (a%d), %s\n",(op>>5)&0x1 , rrrrr[op & 0x1F]);
+#endif
+#ifdef EMULATE
+            setrrrrr(op & 0x1F,DSPread16_16(a[(op >> 5) & 0x1]));
+#endif
             break;
         }
 
@@ -1131,7 +1141,38 @@ void DSP_Step()
         if ((op & 0xf80) == 0xD00)
         {
             u16 extra = FetchWord(pc+1);
+#ifdef DISASM
             DEBUG("bkrep %s %d %04x\n", rrrrr[op & 0x1F], (op >> 5) & 0x3, extra);
+#endif
+#ifdef EMULATE
+            ICR |= 0x10; //in loop
+            if ((ICR & 0xE0) == 0x40)
+            {
+                ICR |= 0x80;
+                ICR &= ~0x40;
+                ICRshadowend[2] = extra;
+                ICRshadowstart[2] = pc + 2;
+            }
+            else if ((ICR & 0xE0) == 0x20)
+            {
+                ICR |= 0x40;
+                ICR &= ~0x20;
+                ICRshadowend[1] = extra;
+                ICRshadowstart[1] = pc + 2;
+            } 
+            else if ((ICR & 0xE0) == 0)
+            {
+                ICR |= 0x20;
+                ICRshadowend[0] = extra;
+                ICRshadowstart[0] = pc + 2;
+            }
+            else
+            {
+                DEBUG("no free BC");
+            }
+            lc = getrrrrr(op & 0x1F);
+#endif
+            pc++;
             break;
         }
         if ((op &0xF00) == 0xF00)
@@ -1688,7 +1729,73 @@ void DSP_Run()
     while (1)
     {
         DEBUG("op:%04x (%04x) %04x\n", FetchWord(pc),pc,sp);
+        bool sloppy_loop = false;
+        if (ICR & 0x10)
+        {
+
+            if ((ICR & 0xE0) == 0x80)
+            {
+                if (ICRshadowend[2] == pc)sloppy_loop = true;
+            }
+            else if ((ICR & 0xE0) == 0x40)
+            {
+                if (ICRshadowend[1] == pc)sloppy_loop = true;
+            }
+            else if ((ICR & 0xE0) == 0x20)
+            {
+                if (ICRshadowend[0] == pc)sloppy_loop = true;
+            }
+            else
+            {
+                DEBUG("no used BC");
+            }
+            
+        }
         DSP_Step();
+        if (sloppy_loop)
+        {
+            if (lc == 0)
+            {
+                if ((ICR & 0xE0) == 0x20)
+                {
+                    ICR &= ~0x30; //loop off
+                }
+                else if ((ICR & 0xE0) == 0x40)
+                {
+                    ICR &= ~0x40;
+                    ICR |= 0x20;
+                }
+                else if ((ICR & 0xE0) == 0x80)
+                {
+                    ICR &= ~0x80;
+                    ICR |= 0x40;
+                }
+                else
+                {
+                    DEBUG("no used BC");
+                }
+            }
+            else
+            {
+                lc--;
+                if ((ICR & 0xE0) == 0x80)
+                {
+                    pc = ICRshadowstart[2];
+                }
+                else if ((ICR & 0xE0) == 0x40)
+                {
+                    pc = ICRshadowstart[1];
+                }
+                else if ((ICR & 0xE0) == 0x20)
+                {
+                    pc = ICRshadowstart[0];
+                }
+                else
+                {
+                    DEBUG("no used BC");
+                }
+            }
+        }
     }
 }
 

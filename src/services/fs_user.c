@@ -285,7 +285,27 @@ SERVICE_CMD(0x080200C2) { // Read
 }
 
 SERVICE_CMD(0x08030102) { // Write
-    DEBUG("Write - STUB\n");
+    u32 rc, written;
+    u64 off = CMD(1) | ((u64) CMD(2)) << 32;
+    u32 sz  = CMD(3);
+    u32 flush_flags = CMD(4);
+    u32 ptr = CMD(6);
+
+    DEBUG("Write, off=%llx, len=%x, flush=%x\n", off, sz, flush_flags);
+
+    file_type* type = (file_type*) h->subtype;
+
+    if(type->fnWrite != NULL) {
+        rc = type->fnWrite(type, ptr, sz, off, flush_flags, &written);
+    }
+    else {
+        ERROR("Write() not implemented for this type.\n");
+        rc = -1;
+        written = 0;
+    }
+
+    RESP(1, rc); // Result
+    RESP(2, written);
     return 0;
 }
 

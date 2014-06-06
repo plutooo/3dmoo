@@ -60,7 +60,7 @@ struct _archive {
 typedef struct _file_type file_type;
 struct _file_type {
     u32 (*fnRead) (file_type* self, u32 ptr, u32 sz, u64 off, u32* read_out);
-    u32 (*fnWrite)(file_type* self, u32 ptr, u32 sz, u64 off, u32* written_out);
+    u32 (*fnWrite)(file_type* self, u32 ptr, u32 sz, u64 off, u32 flush_flags, u32* written_out);
     u64 (*fnGetSize)(file_type* self);
     u32 (*fnClose)(file_type* self);
 };

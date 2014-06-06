@@ -53,7 +53,7 @@ void initGPU()
 void GPUwritereg32(u32 addr, u32 data)
 {
     DEBUG("GPU write %08x to %08x\n",data,addr);
-    if (addr > 0x420000) {
+    if (addr >= 0x420000) {
         DEBUG("write out of range write\r\n");
         return;
     }
@@ -66,7 +66,7 @@ void GPUwritereg32(u32 addr, u32 data)
 u32 GPUreadreg32(u32 addr)
 {
     //DEBUG("GPU read %08x\n", addr);
-    if (addr > 0x420000) {
+    if (addr >= 0x420000) {
         DEBUG("read out of range write\r\n");
         return 0;
     }
@@ -120,13 +120,13 @@ void GPURegisterInterruptRelayQueue(u32 flags, u32 Kevent, u32*threadID, u32*out
 }
 u8* get_pymembuffer(u32 addr)
 {
-    if (addr >= 0x18000000 && addr <= 0x18600000)return VRAMbuff + (addr - 0x18000000);
-    if (addr >= 0x20000000 && addr <= 0x28000000)return LINEmembuffer + (addr - 0x20000000);
+    if (addr >= 0x18000000 && addr < 0x18600000)return VRAMbuff + (addr - 0x18000000);
+    if (addr >= 0x20000000 && addr < 0x28000000)return LINEmembuffer + (addr - 0x20000000);
     return NULL;
 }
 u32 get_py_memrestsize(u32 addr)
 {
-    if (addr > 0x18000000 && addr < 0x18600000)return addr - 0x18000000;
-    if (addr > 0x20000000 && addr < 0x28000000)return addr - 0x20000000;
+    if (addr >= 0x18000000 && addr < 0x18600000)return addr - 0x18000000;
+    if (addr >= 0x20000000 && addr < 0x28000000)return addr - 0x20000000;
     return 0;
 }

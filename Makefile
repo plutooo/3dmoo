@@ -5,7 +5,7 @@ CFLAGS  = -c -std=c99 -Iinc -Isrc/arm11 -I/usr/include/SDL2/ -DMODET -DMODE32
 LIBS    = -lSDL2
 LDFLAGS = $(LIBS)
 
-SRC_FILES = src/mem.c src/screen.c src/handles.c src/loader.c src/svc.c src/filemon.c
+SRC_FILES = src/mem.c src/screen.c src/handles.c src/loader.c src/svc.c
 
 INC_FILES = inc/*
 

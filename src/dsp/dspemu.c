@@ -145,7 +145,21 @@ void updatecmpflags(u32 data, u8 MSB, bool v, bool c)
     if (v) temp |= 0x20; //L
     st[0] = temp;
 }
-
+u16 postmod_16(u16 data,u32 op)
+{
+    switch (op)
+    {
+    case 0:
+        return data;
+    case 1:
+        return data + 1;
+    case 2:
+        return data - 1;
+    case 3:
+        DEBUG("+step not supported yet");
+        return data;
+    }
+}
 
 u32 doops3(u8 op3, u32 in, u32 in2,u8 *MSB)
 {
@@ -905,7 +919,13 @@ void DSP_Step()
         }
         if ((op & 0xC00) == 0x800)
         {
+#if DISASM
             DEBUG("mov %s, (r%d) (modifier=%s)\n",rrrrr[(op >> 5)&0x1F], op & 0x7, mm[(op >> 3) & 3]);
+#endif
+#ifdef EMULATE
+            DSPwrite16_16(r[op & 0x7], getrrrrr((op >> 5) & 0x1F));
+            r[op & 0x7] = postmod_16(r[op & 0x7],(op >> 3) & 3 );
+#endif
             break;
         }
         if ((op & 0xC00) == 0xC00)
@@ -1635,7 +1655,12 @@ void DSP_Step()
         if ((op & 0xFEFC) == 0xD4B8) //1101010a101110--
         {
             u16 extra = FetchWord(pc + 1);
+#ifdef DISASM
             DEBUG("mov [%04x], a%d\n",extra,ax);
+#endif
+#ifdef EMULATE
+            a[ax] = DSPread16_16(extra);
+#endif
             pc++;
             break;
         }

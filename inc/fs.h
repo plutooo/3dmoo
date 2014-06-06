@@ -54,6 +54,10 @@ struct _archive {
             u8 path[24 + 1];
         } sharedextd;
 
+        struct {
+            u8 path[16 + 1];
+        } sysdata;
+
     } type_specific;
 };
 
@@ -70,6 +74,11 @@ struct _file_type {
             u64   sz;
         } sharedextd;
 
+        struct {
+            FILE* fd;
+            u64   sz;
+        } sysdata;
+
     } type_specific;
 };
 
@@ -82,6 +91,8 @@ void romfs_Setup(FILE* fd, u32 off, u32 sz);
 // archives/shared_extdata.c
 archive* sharedextd_OpenArchive(file_path path);
 
+// archives/sysdata.c
+archive* sysdata_OpenArchive(file_path path);
 
 
 typedef struct {
@@ -109,7 +120,7 @@ static archive_type archive_types[] =  {
     },
     { "SysData",
       8,
-      NULL
+      sysdata_OpenArchive
     },
     { "SDMC",
       9,

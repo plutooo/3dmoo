@@ -156,4 +156,8 @@ static void color_restore(int old) {
 
 #define ARRAY_SIZE(s) (sizeof(s)/sizeof((s)[0]))
 
+#ifdef _WIN32
+#define snprintf sprintf_s
+#endif
+
 #endif

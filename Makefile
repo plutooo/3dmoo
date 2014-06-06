@@ -23,7 +23,7 @@ SERVICES_FILES = src/services/am_u.c src/services/apt_u.c src/services/cfg_u.c \
 	src/services/ndm_u.c src/services/ns_s.c src/services/ptm_u.c \
 	src/services/cecd_u.c src/services/boss_u.c src/services/srv.c
 
-FS_FILES = src/fs/romfs.c src/fs/shared_extdata.c src/fs/util.c
+FS_FILES = src/fs/romfs.c src/fs/shared_extdata.c src/fs/sysdata.c src/fs/util.c
 
 GPU_FILES = src/gpu/gpu.c
 

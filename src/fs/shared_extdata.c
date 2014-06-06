@@ -31,6 +31,64 @@
 #endif
 
 
+/* ____ File implementation ____ */
+
+static u32 sharedextdfile_Read(file_type* self, u32 ptr, u32 sz, u64 off, u32* read_out)
+{
+    FILE* fd = self->type_specific.sharedextd.fd;
+    *read_out = 0;
+
+    if(off >> 32) {
+        ERROR("64-bit offset not supported.\n");
+        return -1;
+    }
+
+    if(fseek(fd, off, SEEK_SET) == -1) {
+        ERROR("fseek failed.\n");
+        return -1;
+    }
+
+    u8* b = malloc(sz);
+    if(b == NULL) {
+        ERROR("Not enough mem.\n");
+        return -1;
+    }
+
+    u32 read = fread(b, 1, sz, fd);
+    if(read == 0) {
+        ERROR("fread failed\n");
+        free(b);
+        return -1;
+    }
+
+    if(mem_Write(b, ptr, read) != 0) {
+        ERROR("mem_Write failed.\n");
+        free(b);
+        return -1;
+    }
+
+    *read_out = read;
+    free(b);
+
+    return 0; // Result
+}
+
+static u64 sharedextdfile_GetSize(file_type* self)
+{
+    return self->type_specific.sharedextd.sz;
+}
+
+static u32 sharedextdfile_Close(file_type* self)
+{
+    // Close file and free yourself
+    fclose(self->type_specific.sharedextd.fd);
+    free(self);
+}
+
+
+
+/* ____ FS implementation ____ */
+
 static bool sharedextd_FileExists(archive* self, file_path path)
 {
     char p[256], tmp[256];
@@ -75,9 +133,33 @@ static u32 sharedextd_OpenFile(archive* self, file_path path, u32 flags, u32 att
         return 0;
     }
 
-    // XXX: Create file handle
-    fclose(fd);
-    return 0;
+    fseek(fd, 0, SEEK_END);
+    u32 sz;
+
+    if(ftell(fd) == -1) {
+        ERROR("ftell() failed.\n");
+        fclose(fd);
+        return 0;
+    }
+
+    // Create file object
+    file_type* file = calloc(sizeof(file_type), 1);
+
+    if(file == NULL) {
+        ERROR("calloc() failed.\n");
+        fclose(fd);
+        return 0;
+    }
+
+    file->type_specific.sharedextd.fd = fd;
+    file->type_specific.sharedextd.sz = (u64) sz;
+
+    // Setup function pointers.
+    file->fnRead = &sharedextdfile_Read;
+    file->fnGetSize = &sharedextdfile_GetSize;
+    file->fnClose = &sharedextdfile_Close;
+
+    return handle_New(HANDLE_TYPE_FILE, (uintptr_t) file);
 }
 
 static void sharedextd_Deinitialize(archive* self)

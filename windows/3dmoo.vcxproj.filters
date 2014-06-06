@@ -150,9 +150,6 @@
     <ClCompile Include="..\src\services\dsp_dsp.c">
       <Filter>Source Files\services</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\filemon.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\dsp\dspemu.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -172,6 +169,9 @@
       <Filter>Source Files\fs</Filter>
     </ClCompile>
     <ClCompile Include="..\src\fs\shared_extdata.c">
+      <Filter>Source Files\fs</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\fs\sysdata.c">
       <Filter>Source Files\fs</Filter>
     </ClCompile>
   </ItemGroup>

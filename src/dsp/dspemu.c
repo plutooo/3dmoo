@@ -869,11 +869,17 @@ void DSP_Step()
             DEBUG("mov %02x, sv\n",op&0xFF);
             break;
         }
-        if ((op & 0xF00) == 0xD00) //00001101...rrrrr
+        if ((op & 0xFE0) == 0xD00) //00001101000rrrrr
         {
             DEBUG("rep %s\n", rrrrr[op & 0x1F]);
             break;
         }
+        if ((op & 0xFC0) == 0xD40) //00001101000rrrrr
+        {
+            DEBUG("movq (a%d), %s\n",(op>>5)&0x1 , rrrrr[op & 0x1F]);
+            break;
+        }
+
         if ((op & 0xF00) == 0xC00)
         {
             DEBUG("rep %02x\n", op&0xFF);
@@ -909,7 +915,7 @@ void DSP_Step()
         if((op&0xF100) ==0x3000)
         {
 #ifdef DISASM
-            DEBUG("mov %s, #%02x\n",ABL[(op >>9)&0x7],op&0xFF);
+            DEBUG("mov %s, (#%02x)\n",ABL[(op >>9)&0x7],op&0xFF);
 #endif
 #ifdef EMULATE
             DSPwrite16_8(op & 0xFF, getABL((op >> 9) & 0x7));
@@ -1582,7 +1588,7 @@ void DSP_Step()
         }
         if ((op & 0xE80) == 0x080) {
             //msu (rJ), (rI) 1101000A1jjiiwqq
-            DEBUG("msu r%d (modifier=%s),r%d (modifier=%s) a%d\n", op & 0x3, mm[(op >> 5) & 0x3], 3 + (op >> 2) & 0x1, mm[(op >> 3) & 0x3], ax);
+            DEBUG("msu (r%d) (modifier=%s),(r%d) (modifier=%s) a%d\n", op & 0x3, mm[(op >> 5) & 0x3], 3 + (op >> 2) & 0x1, mm[(op >> 3) & 0x3], ax);
             break;
         }
         if ((op & 0xFEFC) == 0xD4B8) //1101010a101110--
@@ -1612,7 +1618,7 @@ void DSP_Step()
         }
         if (!(op & 0x80)) {
             //MUL (rJ), (rI) 1101AXXX0jjiiwqq
-            DEBUG("%s r%d (modifier=%s),r%d (modifier=%s) a%d\n", mulXXX[(op >> 8) & 0x7], op & 0x3, mm[(op >> 5) & 0x3], 3 + (op >> 2) & 0x1, mm[(op >> 3) & 0x3], (op >> 11) & 0x1);
+            DEBUG("%s (r%d) (modifier=%s),(r%d) (modifier=%s) a%d\n", mulXXX[(op >> 8) & 0x7], op & 0x3, mm[(op >> 5) & 0x3], 3 + (op >> 2) & 0x1, mm[(op >> 3) & 0x3], (op >> 11) & 0x1);
             break;
         }
         if ((op & 0xFE80) == 0xD080){
@@ -1681,7 +1687,7 @@ void DSP_Run()
     pc = 0x0; //reset
     while (1)
     {
-        //DEBUG("op:%04x (%04x) %04x\n", FetchWord(pc),pc,sp);
+        DEBUG("op:%04x (%04x) %04x\n", FetchWord(pc),pc,sp);
         DSP_Step();
     }
 }

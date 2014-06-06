@@ -137,6 +137,7 @@ SERVICE_CMD(0x440000) {
         if(fread(APTsharedfont, APTsharedfontsize, 1, fd) != 1) {
             ERROR("fread() failed trying to read shared font.\n");
             fclose(fd);
+            free(APTsharedfont); APTsharedfont = NULL;
             RESP(1, -1);
             return 0;
         }

@@ -25,11 +25,13 @@ u32 svcClearEvent()
 {
     u32 handleorigin = arm11_R(0);
     handleinfo* h = handle_Get(handleorigin);
+
     if (h == NULL) {
         DEBUG("failed to get Event\n");
         PAUSE();
         return -1;
     }
+
     h->locked = true;
     return 0;
 }
@@ -60,7 +62,7 @@ u32 svcCreateEvent()
     PAUSE();
     return 0;
 }
-u32 Event_WaitSynchronization(handleinfo* h, bool *locked)
+u32 event_WaitSynchronization(handleinfo* h, bool *locked)
 {
     *locked = h->locked;
     if (h->locktype != LOCK_TYPE_STICKY) h->locked = true;

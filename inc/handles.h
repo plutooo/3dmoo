@@ -27,7 +27,7 @@
 #define HANDLE_TYPE_REDIR     6
 #define HANDLE_TYPE_THREAD    7
 #define HANDLE_TYPE_PROCESS   8
-#define HANDLE_TYPE_Arbiter   9
+#define HANDLE_TYPE_ARBITER   9
 #define HANDLE_TYPE_FILE      10
 #define HANDLE_TYPE_SEMAPHORE 11
 #define HANDLE_TYPE_ARCHIVE   12
@@ -99,7 +99,7 @@ u32 mutex_SyncRequest(handleinfo* h, bool *locked);
 u32 port_SyncRequest(handleinfo* h, bool *locked);
 
 //syscalls/events.c
-u32 Event_WaitSynchronization(handleinfo* h, bool *locked);
+u32 event_WaitSynchronization(handleinfo* h, bool *locked);
 
 u32 file_SyncRequest(handleinfo* h, bool *locked);
 
@@ -141,7 +141,7 @@ static struct {
         "event",
         NULL,
         NULL,
-        &Event_WaitSynchronization
+        &event_WaitSynchronization
     },
     {
         "mutex",

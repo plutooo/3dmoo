@@ -25,7 +25,7 @@
 
 u32 svcCreateAddressArbiter()//(ref uint output)
 {
-    arm11_SetR(1, handle_New(HANDLE_TYPE_Arbiter, 0));
+    arm11_SetR(1, handle_New(HANDLE_TYPE_ARBITER, 0));
     return 0;
 }
 
@@ -47,7 +47,7 @@ u32 svcArbitrateAddress()//(uint arbiter, uint addr, uint type, uint value)
     }
 
     handleinfo* hi = handle_Get(arbiter);
-    if(hi == NULL || hi->type != HANDLE_TYPE_Arbiter) {
+    if(hi == NULL || hi->type != HANDLE_TYPE_ARBITER) {
         ERROR("Invalid arbiter handle.\n");
         return 0xD8E007F7;
     }

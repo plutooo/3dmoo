@@ -955,7 +955,12 @@ void DSP_Step()
         }
         if ((op & 0xF00) == 0x500)
         {
+#ifdef DISASM
             DEBUG("mov %02x, sv\n",op&0xFF);
+#endif
+#ifdef EMULATE
+            sv = op & 0xFF;
+#endif
             break;
         }
         if ((op & 0xFE0) == 0xD00) //00001101000rrrrr
@@ -1024,14 +1029,24 @@ void DSP_Step()
         }
         if ((op & 0xF00) == 0x100)
         {
-            DEBUG("mov #%02x, a%dl\n", (op>>12)&0x1, op & 0xFF);
+#ifdef DISASM
+            DEBUG("mov #%02x, a%dl\n", op & 0xFF, (op>>12)&0x1);
+#endif
+#ifdef EMULATE
+            a[(op >> 12) & 0x1] = (a[(op >> 12) & 0x1] & 0xFFFF0000) | (op & 0xFF);
+#endif
             break;
         }
-        if ((op & 0xF00) == 0x500)
+        /*if ((op & 0xF00) == 0x500)
         {
-            DEBUG("mov #%02x, a%dh\n", (op >> 12) & 0x1, op & 0xFF);
+#ifdef DISASM
+            DEBUG("mov #%02x, sv\n", op & 0xFF);
+#endif
+#ifdef EMULATE
+            sv = op & 0xFF;
+#endif
             break;
-        }
+        }*/
         if ((op & 0x300) == 0x300)
         {
             DEBUG("mov #%02x, %s\n", op & 0xFF,rNstar[(op>>10)&0x7]);
@@ -1793,6 +1808,7 @@ void DSP_Step()
 #endif
 #ifdef EMULATE
             a[ax] = DSPread16_16(extra);
+            st[ax] = st[ax] & 0xFFF;
 #endif
             pc++;
             break;
@@ -1800,7 +1816,13 @@ void DSP_Step()
         if ((op & 0xFEFC) == 0xD4BC) //1101010a101111--
         {
             u16 extra = FetchWord(pc + 1);
+#ifdef DISASM
             DEBUG("mov a%dl, [%04x]\n", ax,extra);
+#endif
+#ifdef EMULATE
+            DSPwrite16_16(extra,a[ax]);
+#endif
+
             pc++;
             break;
         }
@@ -1886,7 +1908,7 @@ void DSP_Run()
     pc = 0x0; //reset
     while (1)
     {
-        //DEBUG("op:%04x (%04x) %04x\n", FetchWord(pc),pc,sp);
+        DEBUG("op:%04x (%04x) %04x\n", FetchWord(pc),pc,sp);
         bool sloppy_loop = false;
         if (ICR & 0x10)
         {

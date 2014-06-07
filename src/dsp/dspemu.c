@@ -1387,7 +1387,13 @@ void DSP_Step()
         }
         if ((op & 0xFFC0) == 0x5EC0)
         {
+#ifdef DISASM
             DEBUG("mov %s, b%d\n", rrrrr[op& 0x1F],(op>>5)&0x1);
+#endif
+#ifdef EMULATE
+            b[(op >> 5) & 0x1] = getrrrrr(op & 0x1F);
+            st[(op >> 5) & 0x1] = st[(op >> 5) & 0x1] & 0xFFF;
+#endif
             break;
         }
         if ((op & 0xFFE0) == 0x5F40)

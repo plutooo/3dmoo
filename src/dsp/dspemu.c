@@ -203,7 +203,7 @@ u16 postmod_16(u16 data,u32 op)
     case 2:
         return data - 1;
     case 3:
-        DEBUG("+step not supported yet");
+        DEBUG("+step not supported yet\n");
         return data;
     }
 }
@@ -233,7 +233,7 @@ u32 doops3(u8 op3, u32 in, u32 in2,u8 *MSB)
                 st[0] = temp;
                 return ret;
     }
-    case 3:
+    case 3: //add
     {
               u8 temp2 = *MSB;
               u32 temp1 = in + in2;
@@ -247,7 +247,20 @@ u32 doops3(u8 op3, u32 in, u32 in2,u8 *MSB)
               *MSB = temp2;
               return temp1;
     }
-    case 7:
+    case 6: //cmp
+    {
+                u8 temp2 = MSB;
+                u32 temp1 = in - in2;
+                if (in < in2) temp2--;
+                bool v = false;
+                if (temp2 & 0x10)v = true;
+                bool c = false;
+                if (getlastbit(MSB) > getlastbit(temp2))c = true;
+                if (temp2 == 0 && getlastbit(in) > getlastbit(temp1))c = true;
+                updatecmpflags(temp1, temp2, v, c);
+                return in;
+    }
+    case 7: //sub
     {
               u8 temp2 = *MSB;
               u32 temp1 = in - in2;
@@ -320,10 +333,10 @@ u16 getrrrrr(u8 op)
     case 0x17:
         return ext[3];
     case 0x18:
-        DEBUG("get a0 rrrrr todo");
+        DEBUG("get a0 rrrrr todo\n");
         return a[0];
     case 0x19:
-        DEBUG("get a1 rrrrr todo");
+        DEBUG("get a1 rrrrr todo\n");
         return a[1];
     case 0x1A:
         return a[0] & 0xFFFF;
@@ -488,7 +501,7 @@ void doops(u8 ops, u32 data1, u8 *MSB1, u32 data2, u8 MSB2)
 {
     switch (ops)
     {
-    case 15:
+    case 15: //cmpu
     {
                u8 temp2 = *MSB1 - MSB2;
                u32 temp1 = data1 - data2;
@@ -1213,7 +1226,37 @@ void DSP_Step()
         if ((op & 0xF00) == 0xC00)
         {
             u16 extra = FetchWord(pc + 1);
+#ifdef DISASM
             DEBUG("bkrep %02x %04x\n", op & 0xFF, extra);
+#endif
+#ifdef EMULATE
+            ICR |= 0x10; //in loop
+            if ((ICR & 0xE0) == 0x40)
+            {
+                ICR |= 0x80;
+                ICR &= ~0x40;
+                ICRshadowend[2] = extra;
+                ICRshadowstart[2] = pc + 2;
+            }
+            else if ((ICR & 0xE0) == 0x20)
+            {
+                ICR |= 0x40;
+                ICR &= ~0x20;
+                ICRshadowend[1] = extra;
+                ICRshadowstart[1] = pc + 2;
+            }
+            else if ((ICR & 0xE0) == 0)
+            {
+                ICR |= 0x20;
+                ICRshadowend[0] = extra;
+                ICRshadowstart[0] = pc + 2;
+            }
+            else
+            {
+                DEBUG("no free BC");
+            }
+            lc = op & 0xFF;
+#endif
             pc++;
             break;
         }
@@ -1399,12 +1442,12 @@ void DSP_Step()
         DEBUG("? %04X\n", op);
         break;
     case 0x8:
-        if ((op & 0xE0) == 0xA0) {
+        if ((op & 0xE0) == 0x20) {
             //MUL y, (rN)
             DEBUG("%s y, (a%d),(r%d) (modifier=%s)\n", mulXXX[(op >> 8) & 0x7], (op >> 11) & 0x1, op&0x7, mm[(op >> 3) & 3]);
             break;
         }
-        if ((op & 0xE0) == 0x80) {
+        if ((op & 0xE0) == 0x40) {
             //MUL y, register
             DEBUG("%s y, (a%d),%s\n", mulXXX[(op >> 8) & 0x7], (op >> 11) & 0x1, rrrrr[op & 0x1F]);
             break;
@@ -1843,7 +1886,7 @@ void DSP_Run()
     pc = 0x0; //reset
     while (1)
     {
-        DEBUG("op:%04x (%04x) %04x\n", FetchWord(pc),pc,sp);
+        //DEBUG("op:%04x (%04x) %04x\n", FetchWord(pc),pc,sp);
         bool sloppy_loop = false;
         if (ICR & 0x10)
         {

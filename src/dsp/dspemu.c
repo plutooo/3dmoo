@@ -54,6 +54,7 @@ u16 ext[4];
 u16 sv = 0;
 u16 lc = 0;
 
+bMSBshed[2];
 
 u16 ICR = 0;
 
@@ -133,6 +134,52 @@ s32 getlastbit(u32 val)
     if (val & 0x1)return 0;
     if (val == 0)return -1; //that is needed
 }
+
+void setAB(u8 op, u32 data, u8 MSB)
+{
+    switch (op)
+    {
+    case 0:
+        bMSBshed[0] = MSB;
+        b[0] = data;
+        return;
+    case 1:
+        bMSBshed[1] = MSB;
+        b[1] = data;
+    case 2:
+        st[0] = (st[0] & 0xFFF) | (MSB << 12);
+        a[0] = data;
+        return;
+    case 3:
+        st[1] = (st[1] & 0xFFF) | (MSB << 12);
+        a[1] = data;
+        return;
+    default:
+        DEBUG("unknown AB %02x\n", op);
+        return 0;
+    }
+}
+u32 getAB(u8 op, u8 *MSB)
+{
+    switch (op)
+    {
+    case 0:
+        *MSB = bMSBshed[0];
+        return b[0];
+    case 1:
+        *MSB = bMSBshed[1];
+        return b[1];
+    case 2:
+        *MSB = (st[0] >> 12) & 0xF;
+        return a[0];
+    case 3:
+        *MSB = (st[1] >> 12) & 0xF;
+        return a[1];
+    default:
+        DEBUG("unknown AB %02x\n",op);
+        return 0;
+    }
+}
 void updatecmpflags(u32 data, u8 MSB, bool v, bool c)
 {
     u16 temp = st[0] & 0xF01F;
@@ -175,6 +222,16 @@ u32 doops3(u8 op3, u32 in, u32 in2,u8 *MSB)
               if ((MSB != 0 && (ret & 0x80000000)) || (MSB != 0xF && (!(ret & 0x80000000)))) temp |= 0x40; //E
               st[0] = temp;
               return ret;
+    }
+    case 1: //and
+    {
+                u32 ret = in & in2;
+                u16 temp = st[0] & 0xF0BF;
+                if (ret == 0 && *MSB == 0)temp |= 0x800; //Z
+                if (*MSB & 0x8) temp |= 0x400; //M
+                if ((MSB != 0 && (ret & 0x80000000)) || (MSB != 0xF && (!(ret & 0x80000000)))) temp |= 0x40; //E
+                st[0] = temp;
+                return ret;
     }
     case 3:
     {
@@ -1155,7 +1212,9 @@ void DSP_Step()
         }
         if ((op & 0xF00) == 0xC00)
         {
-            DEBUG("bkrep %02x\n", op & 0xFF);
+            u16 extra = FetchWord(pc + 1);
+            DEBUG("bkrep %02x %04x\n", op & 0xFF, extra);
+            pc++;
             break;
         }
         if ((op & 0xf80) == 0xD00)
@@ -1382,7 +1441,37 @@ void DSP_Step()
         }
         if ((op & 0xF240) == 0x9240)
         {
+#ifdef DISASM
             DEBUG("shfi %s, %s %02x\n", AB[(op >> 10) & 0x3], AB[(op >> 7) & 0x3], fixending(op & 0x3F,6));
+#endif
+#ifdef EMULATE
+            u32 MSB = 0;
+            u32 temp = getAB((op >> 10) & 0x3, &MSB);
+
+            s16 toshift = fixending(op & 0x3F, 6);
+            //FLAGS (V and L) todo
+            if (toshift)
+            {
+                if (toshift < 0)
+                {
+                    temp = temp >> -toshift;
+                    temp = temp | (MSB << -toshift - 32);
+                    MSB = MSB >> -toshift;
+                }
+                else
+                {
+                    MSB = MSB << toshift;
+                    MSB = MSB | (temp >> -toshift + 32);
+                    temp = temp << toshift;
+                }
+                updatecmpflags(temp, MSB, false,true);
+            }
+            else
+            {
+                updatecmpflags(temp, MSB, false, false);
+            }
+            setAB((op >> 10) & 0x3, temp, MSB);
+#endif
             break;
         }
 
@@ -1464,7 +1553,8 @@ void DSP_Step()
             }
 
             DEBUG("? %04X\n", op);
-        } else if(((op >> 6) & 0x7) == 7) {
+        }
+        else if ((op & 0xF0E0) == 0x80E0) {
             u16 extra = FetchWord(pc+1);
             pc++;
 

@@ -1748,8 +1748,8 @@ void DSP_Step()
             if(!(op & 0x100)) {
 #ifdef DISASM
                 // ALB (rN)
-                DEBUG("%s %04x,(r%d) (modifier=%s)\n", alb_ops[(op >> 9) & 0x7], op & 0x7,
-                      extra & 0xFFFF, mm[(op >> 3) & 3]);
+                DEBUG("%s %04x,(r%d) (modifier=%s)\n", alb_ops[(op >> 9) & 0x7],extra & 0xFFFF, op & 0x7,
+                      mm[(op >> 3) & 3]);
 #endif
 #ifdef EMULATE
                 r[op & 0x7] = doalb_ops((op >> 9) & 0x7, r[op & 0x7], extra);

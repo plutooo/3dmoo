@@ -97,7 +97,43 @@ u16 DSPread16_16(u16 addr)
     return FetchWord(addr);
 }
 
-
+u16 getrNstar(u8 op)
+{
+    switch (op)
+    {
+    case 0:
+    case 1:
+    case 2:
+    case 3:
+    case 4:
+    case 5:
+        return r[op];
+    case 6:
+        return rb;
+    case 7:
+        return y;
+    }
+}
+void setrNstar(u8 op,u16 data)
+{
+    switch (op)
+    {
+    case 0:
+    case 1:
+    case 2:
+    case 3:
+    case 4:
+    case 5:
+        r[op] = data;
+        break;
+    case 6:
+        rb = data;
+        break;
+    case 7:
+        y = data;
+        break;
+    }
+}
 s32 getlastbit(u32 val)
 {
     if (val & 0x80000000)return 31;
@@ -229,6 +265,17 @@ u32 doops3(u8 op3, u32 in, u32 in2,u8 *MSB)
                 u16 temp = st[0] & 0xF0BF;
                 if (ret == 0 && *MSB == 0)temp |= 0x800; //Z
                 if (*MSB & 0x8) temp |= 0x400; //M
+                if ((MSB != 0 && (ret & 0x80000000)) || (MSB != 0xF && (!(ret & 0x80000000)))) temp |= 0x40; //E
+                st[0] = temp;
+                return ret;
+    }
+    case 2: //xor
+    {
+                u32 ret = in ^ in2;
+                u16 temp = st[0] & 0xF0BF;
+                if (ret == 0 && *MSB == 0)temp |= 0x800; //Z
+                if (*MSB & 0x8) temp |= 0x400; //M
+                if (ret & 0xC0000000) temp |= 0x200; //N
                 if ((MSB != 0 && (ret & 0x80000000)) || (MSB != 0xF && (!(ret & 0x80000000)))) temp |= 0x40; //E
                 st[0] = temp;
                 return ret;
@@ -497,10 +544,49 @@ const char* ops[] = {
 };
 
 
-void doops(u8 ops, u32 data1, u8 *MSB1, u32 data2, u8 MSB2)
+u32 doops(u8 ops, u32 data1, u8 *MSB1, u32 data2, u8 MSB2)
 {
     switch (ops)
     {
+    case 0: //or
+    {
+                u32 ret = data1 | data2;
+                u16 temp = st[0] & 0xF0BF;
+                if (ret == 0 && *MSB1 == 0)temp |= 0x800; //Z
+                if (*MSB1 & 0x8) temp |= 0x400; //M
+                if (ret & 0xC0000000) temp |= 0x200; //N
+                if ((MSB1 != 0 && (ret & 0x80000000)) || (MSB1 != 0xF && (!(ret & 0x80000000)))) temp |= 0x40; //E
+                st[0] = temp;
+                return ret;
+    }
+    case 3: //add
+    {
+                u8 temp2 = *MSB1;
+                u32 temp1 = data1 + data2;
+                if (data1 < temp1) temp2++;
+                bool v = false;
+                if (temp2 & 0x10)v = true;
+                bool c = false;
+                if (getlastbit(*MSB1) != getlastbit(temp2))c = true;
+                if (temp2 == 0 && getlastbit(data1) > getlastbit(temp1))c = true;
+                updatecmpflags(temp1, temp2, v, c);
+                *MSB1 = temp2;
+                return temp1;
+    }
+    case 7: //sub
+    {
+                u8 temp2 = *MSB1;
+                u32 temp1 = data1 - data2;
+                if (data1 < temp1) temp2--;
+                bool v = false;
+                if (temp2 & 0x10)v = true;
+                bool c = false;
+                if (getlastbit(*MSB1) != getlastbit(temp2))c = true;
+                if (temp2 == 0 && getlastbit(data1) < getlastbit(temp1))c = true;
+                updatecmpflags(temp1, temp2, v, c);
+                *MSB1 = temp2;
+                return temp1;
+    }
     case 15: //cmpu
     {
                u8 temp2 = *MSB1 - MSB2;
@@ -535,7 +621,7 @@ u16 doalb_ops(u8 ops,u16 data1, u16 data2)
 {
     switch (ops)
     {
-    case 0:
+    case 0: //set
     {
               u16 ret = data1 | data2;
               u16 temp = st[0] & 0xF3FF;
@@ -543,7 +629,7 @@ u16 doalb_ops(u8 ops,u16 data1, u16 data2)
               if (ret & 0x8000) temp |= 0x400; //M
               st[0] = temp;
     }
-    case 1:
+    case 1: //rst
     {
               u16 ret = data1 & ~data2;
               u16 temp = st[0] & 0xF3FF;
@@ -981,7 +1067,17 @@ void DSP_Step()
 
         if ((op & 0xF00) == 0xC00)
         {
+#ifdef DISASM
             DEBUG("rep %02x\n", op&0xFF);
+#endif
+#ifdef EMULATE
+            u16 temp = pc + 1;
+            for (int h = 0; h < (op & 0xFF); h++)
+            {
+                pc = temp;
+                DSP_Step();
+            }
+#endif
             break;
         }
         DEBUG("? %04X\n", op);
@@ -1005,7 +1101,13 @@ void DSP_Step()
         }
         if ((op & 0xC00) == 0xC00)
         {
+#ifdef DISASM
             DEBUG("mov (r%d) (modifier=%s), %s\n", op & 0x7, mm[(op >> 3) & 3], rrrrr[(op >> 5) & 0x1F]);
+#endif
+#ifdef EMULATE
+            setrrrrr((op >> 5) & 0x1F, DSPread16_16(r[op & 0x7]));
+            r[op & 0x7] = postmod_16(r[op & 0x7], (op >> 3) & 3);
+#endif
             break;
         }
         DEBUG("? %04X\n", op);
@@ -1049,7 +1151,12 @@ void DSP_Step()
         }*/
         if ((op & 0x300) == 0x300)
         {
+#ifdef DISASM
             DEBUG("mov #%02x, %s\n", op & 0xFF,rNstar[(op>>10)&0x7]);
+#endif
+#ifdef EMULATE
+            setrNstar((op >> 10) & 0x7, op & 0xFF);
+#endif
             break;
         }
         if ((op & 0xB00) == 0x900)
@@ -1604,7 +1711,15 @@ void DSP_Step()
         }
         if ((op & 0xE0) == 0x80) {
             // ALM (rN)
+#ifdef DISASM
             DEBUG("%s (r%d), a%d (modifier=%s)\n", ops[(op >> 9) & 0xF], op & 0x7, ax, mm[(op >> 3) & 3]);
+#endif
+#ifdef EMULATE
+            u8 MSB1 = st[ax]>>12;
+            a[ax] = doops((op >> 9) & 0xF, a[ax], &MSB1, DSPread16_16(r[op & 0x7]), 0);
+            st[ax] = (st[ax] & 0xFFF) | (MSB1 << 12);
+            r[op & 0x7] = postmod_16(r[op & 0x7], (op >> 3) & 3);
+#endif
             break;
         }
         if ((op & 0xE0) == 0xA0) {
@@ -1623,9 +1738,15 @@ void DSP_Step()
             pc++;
 
             if(!(op & 0x100)) {
+#ifdef DISASM
                 // ALB (rN)
-                DEBUG("%s (r%d), %04x (modifier=%s)\n", alb_ops[(op >> 9) & 0x7], op & 0x7,
+                DEBUG("%s %04x,(r%d) (modifier=%s)\n", alb_ops[(op >> 9) & 0x7], op & 0x7,
                       extra & 0xFFFF, mm[(op >> 3) & 3]);
+#endif
+#ifdef EMULATE
+                r[op & 0x7] = doalb_ops((op >> 9) & 0x7, r[op & 0x7], extra);
+                r[op & 0x7] = postmod_16(r[op & 0x7], (op >> 3) & 3);
+#endif
                 break;
             } else {
                 // ALB register
@@ -1692,7 +1813,7 @@ void DSP_Step()
 #ifdef EMULATE
         {
             u8 MSB = (st[ax] >> 12);
-            doops((op >> 9) & 0xF, a[ax], &MSB, DSPread16_8(op & 0xFF), 0);
+            a[ax] = doops((op >> 9) & 0xF, a[ax], &MSB, DSPread16_8(op & 0xFF), 0);
             st[ax] = (MSB << 12) | st[ax]&0xFFF;
         }
 #endif
@@ -1703,7 +1824,14 @@ void DSP_Step()
 
         if(op3 != -1) {
             // ALU #short immediate
+#ifdef DISASM
             DEBUG("%s %02x, a%d\n", ops3[op3], op & 0xFF, ax);
+#endif
+#ifdef EMULATE
+            u8 MSB1 = st[ax] >> 12;
+            a[ax] = doops(op3, a[ax], &MSB1, op & 0xFF,0);
+            st[ax] = (st[ax] & 0xFFF) | (MSB1 << 12);
+#endif
             break;
         }
         DEBUG("? %04X\n", op);
@@ -1768,12 +1896,17 @@ void DSP_Step()
         }
         if ((op & 0xFE80) == 0xDC80)//1101110a1ooooooo
         {
-            DEBUG("mov (rb + #%02x), a%d\n", op&0x7F,ax);
+#ifdef DISASM
+            DEBUG("move a%dl, (rb + #%02x)\n", fixending(op & 0x7F), ax);
+#endif
+#ifdef EMULATE
+            DSPwrite16_16(fixending(op & 0x7F, 7) + rb, a[ax]);
+#endif
             break;
         }
         if ((op & 0xFE80) == 0xD880)//1101100a1ooooooo
         {
-            DEBUG("move a%dl, (rb + #%02x)\n", op & 0x7F, ax);
+            DEBUG("mov (rb + #%02x), a%d\n", op&0x7F,ax);
             break;
         }
         if ((op & 0xF39F) == 0xD290)//1101ab101AB10000
@@ -1866,10 +1999,17 @@ void DSP_Step()
                 pc+=2;
 
                 if(op & (1 << 5)) {  // ALU [##direct add.],ax
+#ifdef DISASM
                     DEBUG("%s [%04x], a%d\n",
                           ops3[op3],
                           extra & 0xFFFF,
                           op & (0x1000) ? 1 : 0);
+#endif
+#ifdef EMULATE
+                    u8 MSB = st[op & (0x1000) ? 1 : 0] >> 12;
+                    doops3(op3, a[op & (0x1000) ? 1 : 0], DSPread16_16(extra), &MSB);
+                    st[op & (0x1000) ? 1 : 0] = (st[op & (0x1000) ? 1 : 0] & 0xFFF) | (MSB << 12);
+#endif
                     break;
                 } else { // ALU (rb + ##offset),ax
                     DEBUG("%s (rb + %04x), a%d\n",
@@ -1914,7 +2054,7 @@ void DSP_Run()
     pc = 0x0; //reset
     while (1)
     {
-        DEBUG("op:%04x (%04x) %04x\n", FetchWord(pc),pc,sp);
+        //DEBUG("op:%04x (%04x) %04x\n", FetchWord(pc),pc,sp);
         bool sloppy_loop = false;
         if (ICR & 0x10)
         {

@@ -31,7 +31,7 @@
     fprintf(stdout, __VA_ARGS__);                   \
 } while (0);
 
-//#define DISASM 1
+#define DISASM 1
 #define EMULATE 1
 
 u8 ram[0x20000];
@@ -75,6 +75,7 @@ static u16 FetchWord(u16 addr)
 
 static void writeWord(u16 addr,u16 data)
 {
+    //DEBUG("write %04x to %04x\n",data,addr);
     ram[addr * 2] = data&0xFF;
     ram[addr * 2 + 1] = (data >> 8) & 0xFF;
 }
@@ -994,9 +995,16 @@ void DSP_Step()
 #endif
             break;
         }
-        if ((op & 0xF80) == 0x80)
+        if ((op & 0xFE0) == 0x80)
         {
-            DEBUG("rets (r%d) (modifier=%s) (disable=%d)\n", op & 0x7, mm[(op >> 3) & 3],(op>>5)&0x1);
+#ifdef DISASM
+            DEBUG("modr (r%d) (modifier=%s)\n", op & 0x7, mm[(op >> 3) & 3]);
+#endif
+#ifdef EMULATE
+            r[op & 0x7] = postmod_16(r[op & 0x7], (op >> 3) & 3);
+            st[0] &= ~0x10;
+            if (0 == r[op & 0x7]) st[0] |= 0x10;
+#endif
             break;
         }
         if ((op & 0xF00) == 0x900)
@@ -1897,7 +1905,7 @@ void DSP_Step()
         if ((op & 0xFE80) == 0xDC80)//1101110a1ooooooo
         {
 #ifdef DISASM
-            DEBUG("move a%dl, (rb + #%02x)\n", fixending(op & 0x7F), ax);
+            DEBUG("move a%dl, (rb + #%02x)\n",ax, fixending(op & 0x7F,7));
 #endif
 #ifdef EMULATE
             DSPwrite16_16(fixending(op & 0x7F, 7) + rb, a[ax]);
@@ -2052,6 +2060,11 @@ void DSP_Step()
 void DSP_Run()
 {
     pc = 0x0; //reset
+    //pc = 0x2; //TRAP
+    //pc = 0x4; //NIM
+    //pc = 0x6; //INT0 Indicates that the dual-port mailbox requires service
+    //pc = 0xE; //INT1 Indicates that the codec interface requires service
+    //pc = 0x16; //INT2
     while (1)
     {
         //DEBUG("op:%04x (%04x) %04x\n", FetchWord(pc),pc,sp);

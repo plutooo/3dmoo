@@ -130,7 +130,7 @@ static u32 sharedextd_OpenFile(archive* self, file_path path, u32 flags, u32 att
     }
 
     fseek(fd, 0, SEEK_END);
-    u32 sz;
+    u32 sz = 0;
 
     if(ftell(fd) == -1) {
         ERROR("ftell() failed.\n");

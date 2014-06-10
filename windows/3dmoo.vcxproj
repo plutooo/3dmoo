@@ -161,9 +161,9 @@
     <ClCompile Include="..\src\arm11\vfp\vfpsingle.c" />
     <ClCompile Include="..\src\arm11\wrap.c" />
     <ClCompile Include="..\src\dsp\dspemu.c" />
-    <ClCompile Include="..\src\filemon.c" />
     <ClCompile Include="..\src\fs\romfs.c" />
     <ClCompile Include="..\src\fs\shared_extdata.c" />
+    <ClCompile Include="..\src\fs\sysdata.c" />
     <ClCompile Include="..\src\fs\util.c" />
     <ClCompile Include="..\src\handles.c" />
     <ClCompile Include="..\src\gpu\gpu.c" />
@@ -197,6 +197,7 @@
     <ClInclude Include="..\inc\arm11.h" />
     <ClInclude Include="..\inc\dsp.h" />
     <ClInclude Include="..\inc\filemon.h" />
+    <ClInclude Include="..\inc\fs.h" />
     <ClInclude Include="..\inc\handles.h" />
     <ClInclude Include="..\inc\hid_user.h" />
     <ClInclude Include="..\inc\init.h" />

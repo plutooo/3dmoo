@@ -10,13 +10,15 @@ typedef struct {
     u8 signature[0x100];
     u8 magic[4];
     u8 content_sz[4];
-    u8 unk1[4];
-    u8 unk2;
-    u8 unk3; //num mem type 0
+    u8 port1;
+    u8 port2;
+    u8 unk1[2];
+    u8 unk3;
+    u8 ssmt;
     u8 num_sec;
-    u8 unk5; //num mem type 2
-    u8 unk6[4];
-    u8 unk7[4];
+    u8 flags;
+    u8 ssaddr[4];
+    u8 ssszie[4];
     u8 zero[8];
     dsp_segment segment[0x9];
 } dsp_header;

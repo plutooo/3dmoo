@@ -34,7 +34,7 @@
 #define DISASM 1
 #define EMULATE 1
 
-u8 ram[0x20000];
+u8 ram[0x80000];
 
 //register
 u16 stt[3];
@@ -531,6 +531,13 @@ const char* morpone[] = {
 };
 const char* morptwo[] = {
     "ar0", "ar1", "arp0", "arp1", "arp2", "arp3", "wrong_AddrRegs", "wrong_AddrRegs"
+};
+const char* morptr[] = {
+    "ar0", "ar1", "ar2", "ar3"
+};
+const char* morpvier[] = {
+    "pmcn0", "pmcn1", "pmcn2", "pmcn3"
+
 };
 
 const char* mulXX[] = {
@@ -1186,6 +1193,11 @@ void DSP_Step()
                 break;
             }
         }
+        if ((op & 0xFFc0) == 0x4DC0)
+        {
+            DEBUG("mova wtf (%s %s %s)\n", AB[(op >> 4) & 0x3], morptr[(op >> 2) & 0x3], morpvier[op & 0x3]);
+            break;
+        }
         if (op == 0x43C0)
         {
 #ifdef DISASM
@@ -1618,6 +1630,11 @@ void DSP_Step()
                 break;
             }
         }
+        if ((op & 0xFFE0) == 0x9c60)
+        {
+            DEBUG("mov %sl, %s\n",AB[(op>>3)&0x3],morpone[op&0x7]);
+            break;
+        }
         if ((op & 0xF240) == 0x9240)
         {
 #ifdef DISASM
@@ -1848,6 +1865,11 @@ void DSP_Step()
 
 
     case 0xD:
+        if ((op & 0x3F8) == 0x2f8)
+        {
+            DEBUG("mov %s ,%sl\n", morpone[op&0x7],AB[(op>>0xa)&0x3]);
+            break;
+        }
         if (op == 0xD390)
         {
             DEBUG("cntx r\n");
@@ -2138,19 +2160,18 @@ void DSP_Run()
     }
 }
 
-void DSP_LoadFirm(u8* bin)
+void DSP_LoadFirm(u8* bin) //todo check the size !!!
 {
     dsp_header head;
     memcpy(&head, bin, sizeof(head));
 
     u32 magic = Read32(head.magic);
     u32 contsize = Read32(head.content_sz);
-    u32 unk1 = Read32(head.unk1);
-    u32 unk6 = Read32(head.unk6);
-    u32 unk7 = Read32(head.unk7);
+    u32 ssaddr = Read32(head.ssaddr);
+    u32 ssszie = Read32(head.ssszie);
 
-    DEBUG("head %08X %08X %08X %08X %08X %02X %02X %02X %02X\n",
-          magic, contsize, unk1, unk6, unk7, head.unk2, head.unk3, head.num_sec, head.unk5);
+    DEBUG("head %08X %08X %08X %08X %02X %02X %02X %02X %02X\n",
+        magic, contsize, ssaddr, ssszie, head.port1, head.port2, head.ssmt, head.num_sec,head.flags);
 
     for (int i = 0; i < head.num_sec; i++) {
         u32 dataoffset = Read32(head.segment[i].data_offset);
@@ -2159,8 +2180,28 @@ void DSP_LoadFirm(u8* bin)
         u32 select = Read32(head.segment[i].select);
 
         DEBUG("segment %08X %08X %08X %08X\n", dataoffset, destoffset, size, select);
-        memcpy(ram + (destoffset *2), bin + dataoffset, size);
+        if (select == 0x02000000)
+        {
+            if (destoffset > 0x10000 || (dataoffset + size) > 0x10000)
+            {
+                ERROR("DSP out of range");
+                return;
+            }
+            memcpy(ram + (destoffset * 2) + 0x40000, bin + dataoffset, size);
+        }
+        else
+        {
+            if (destoffset > 0x20000 || (dataoffset + size) > 0x20000)
+            {
+                ERROR("DSP out of range");
+                return;
+            }
+            memcpy(ram + (destoffset * 2), bin + dataoffset, size);
+        }
     }
+    FILE* out = fopen("dspram.bin", "wb");
+    fwrite(ram, 0x20000, 1, out);
+    fclose(out);
 
     DSP_Run();
 }

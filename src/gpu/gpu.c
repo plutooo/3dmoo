@@ -31,6 +31,8 @@ u8* GSPsharedbuff;*/
 extern int noscreen;
 
 u32 numReqQueue = 1;
+
+u32 trigevent = 0;
 void initGPU()
 {
     IObuffer = malloc(0x420000);
@@ -106,10 +108,12 @@ void GPUTriggerCmdReqQueue() //todo
         }
     }
 }
+
 void GPURegisterInterruptRelayQueue(u32 flags, u32 Kevent, u32*threadID, u32*outMemHandle)
 {
     *threadID = ++numReqQueue;
     *outMemHandle = handle_New(HANDLE_TYPE_SHAREDMEM, MEM_TYPE_GSP_0);
+    trigevent = Kevent;
     handleinfo* h = handle_Get(Kevent);
     if (h == NULL) {
         DEBUG("failed to get Event\n");

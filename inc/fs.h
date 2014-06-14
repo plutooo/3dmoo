@@ -94,6 +94,9 @@ archive* sharedextd_OpenArchive(file_path path);
 // archives/sysdata.c
 archive* sysdata_OpenArchive(file_path path);
 
+// archives/sdmc.c
+archive* sdmc_OpenArchive(file_path path);
+
 
 typedef struct {
     const char* name;
@@ -124,7 +127,7 @@ static archive_type archive_types[] =  {
     },
     { "SDMC",
       9,
-      NULL
+      sdmc_OpenArchive
     }
 };
 

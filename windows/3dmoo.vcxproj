@@ -162,6 +162,7 @@
     <ClCompile Include="..\src\arm11\wrap.c" />
     <ClCompile Include="..\src\dsp\dspemu.c" />
     <ClCompile Include="..\src\fs\romfs.c" />
+    <ClCompile Include="..\src\fs\sdmc.c" />
     <ClCompile Include="..\src\fs\shared_extdata.c" />
     <ClCompile Include="..\src\fs\sysdata.c" />
     <ClCompile Include="..\src\fs\util.c" />

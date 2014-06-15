@@ -35,11 +35,14 @@ SERVICE_CMD(0x00010082) { // GetConfigInfoBlk2
     DEBUG("GetConfigInfoBlk2 %08x %08x %08x\n", size, id, pointer);
 
     switch (id) {
+    case 0x00070001:// Sound Mode?
+        mem_Write8(pointer, 0);
+        break;
     case 0x000A0002: // Language
         mem_Write8(pointer, 1); // 1=English
         break;
     default:
-        ERROR("Unknown id.\n");
+        ERROR("Unknown id %08x\n",id);
         break;
     }
 

@@ -1161,7 +1161,7 @@ mainswitch:
                     Rd = BITS(12, 15);
                     Rn = BITS(0, 3);
                     lsb = BITS(7, 11);
-                    msb = BITS(16, 20);
+                    msb = BITS(16, 20); //-V519
                     if ((Rd == 15)) {
                         ARMul_UndefInstr (state, instr);
                     } else if ((Rn == 15)) {

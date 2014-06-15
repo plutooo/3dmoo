@@ -190,8 +190,8 @@ SERVICE_CMD(0x080C00C2) { // OpenArchive
     u32 arch_handle = handle_New(HANDLE_TYPE_ARCHIVE, (uintptr_t) arch);
 
     RESP(1, 0); // Result
-    RESP(2, arch_handle); // Arch handle lo
-    RESP(3, 0xDEADC0DE);  // Arch handle hi (not used)
+    RESP(2, 0xDEADC0DE); // Arch handle lo (not used)
+    RESP(3, arch_handle);  // Arch handle hi
     return 0;
 }
 

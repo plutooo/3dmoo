@@ -166,3 +166,5 @@ windows/dspfirm.bin
 windows/dspfirm.bin.bak
 ConsoleApplication1/*
 sys/shared_font.bin
+map
+windows/maptest

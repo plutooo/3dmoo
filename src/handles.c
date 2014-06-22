@@ -42,14 +42,16 @@ u32 handle_New(u32 type, u32 subtype)
         arm11_Dump();
         exit(1);
     }
-
+    DEBUG("newhand=%x\n", HANDLES_BASE + handles_num);
     handles[handles_num].taken    = true;
     handles[handles_num].type     = type;
     handles[handles_num].subtype  = subtype;
     handles[handles_num].locked   = false;
     handles[handles_num].locktype = LOCK_TYPE_STICKY;
 
-    return HANDLES_BASE + handles_num++;
+    handles_num++;
+
+    return HANDLES_BASE + handles_num - 1;
 }
 
 handleinfo* handle_Get(u32 handle)

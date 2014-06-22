@@ -188,6 +188,7 @@ void threads_Execute() {
         }
 
         threads_Switch(/*from,*/ t);
+
         arm11_Run(0x8000000 / 60);
     }
 

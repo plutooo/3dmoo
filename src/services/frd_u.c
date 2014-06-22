@@ -27,7 +27,7 @@
 SERVICE_START(frd_u);
 
 SERVICE_CMD(0x00320042) { //SetClientSdkVersion
-    DEBUG("SetClientSdkVersion\n");
+    DEBUG("SetClientSdkVersion %08x\n", EXTENDED_CMD(0));
 
     RESP(1, 0); // Result
     return 0;

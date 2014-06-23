@@ -89,7 +89,6 @@ static const char* names[256] = {
     "ControlPerformanceCounter",
     NULL, NULL, NULL, NULL,
     NULL, NULL, NULL, NULL,
-    NULL,
     "CreatePort",
     "CreateSessionToPort",
     "CreateSession",
@@ -265,6 +264,11 @@ void svc_Execute(ARMul_State * state, u8 num)
         DEBUG("%s\n",temp);
         //arm11_Dump();
         return;
+    case 0x4F:
+    {
+                 arm11_SetR(0, svcReplyAndReceive());
+                 return 0;
+    }
     }
     case 0xFF:
         fprintf(stdout, "%c", (u8)arm11_R(0));

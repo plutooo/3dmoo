@@ -669,7 +669,7 @@ ARMul_MCR (ARMul_State * state, ARMword instr, ARMword source)
         return;
     }
 
-    //DEBUG("plutoo: MCR not implemented\n");
+    DEBUG("plutoo: MCR not implemented\n");
     //exit(1);
     //return;
 
@@ -745,7 +745,7 @@ ARMword ARMul_MRC (ARMul_State * state, ARMword instr)
         return 0xFFFF0000;
     }
 
-    //DEBUG("plutoo: MRC not implemented\n");
+    DEBUG("plutoo: MRC not implemented\n");
     //return;
 
     unsigned cpab;

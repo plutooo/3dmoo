@@ -420,6 +420,8 @@ int loader_LoadFile(FILE* fd)
         DEBUG("    size:   %08x\n", sec_size);
 
 
+        bool isfirmNCCH = false;
+
         if (strcmp((char*) eh.section[i].name, ".code") == 0) {
             sec_off += exefs_off + sizeof(eh);
             fseek(fd, sec_off + ncch_off, SEEK_SET);
@@ -440,6 +442,8 @@ int loader_LoadFile(FILE* fd)
                 u32 dec_size = GetDecompressedSize(sec, sec_size);
                 u8* dec = malloc(AlignPage(dec_size));
 
+                u32 firmexpected = Read32(ex.codesetinfo.text.codesize) + Read32(ex.codesetinfo.ro.codesize) + Read32(ex.codesetinfo.data.codesize);
+
                 DEBUG("Decompressing..\n");
                 if (Decompress(sec, sec_size, dec, dec_size) == 0) {
                     ERROR("section decompression failed.\n");
@@ -447,14 +451,41 @@ int loader_LoadFile(FILE* fd)
                 }
                 DEBUG("  .. OK\n");
 
+                if (dec_size == firmexpected)
+                {
+                    isfirmNCCH = true;
+                    DEBUG("firm NCCH detected\n");
+                }
+
                 free(sec);
                 sec = dec;
                 sec_size = dec_size;
             }
 
             // Load .code section.
-            sec_size = AlignPage(sec_size);
-            mem_AddSegment(Read32(ex.codesetinfo.text.address), sec_size, sec);
+            if (isfirmNCCH)
+            {
+                
+                mem_AddSegment(Read32(ex.codesetinfo.text.address), Read32(ex.codesetinfo.text.codesize), sec);
+                mem_AddSegment(Read32(ex.codesetinfo.ro.address), Read32(ex.codesetinfo.ro.codesize), sec + Read32(ex.codesetinfo.text.codesize));
+                
+                u8* temp = malloc(Read32(ex.codesetinfo.bsssize) + Read32(ex.codesetinfo.data.codesize));
+                memcpy(temp, sec + Read32(ex.codesetinfo.ro.codesize) + Read32(ex.codesetinfo.text.codesize), Read32(ex.codesetinfo.data.codesize));
+               
+
+                mem_AddSegment(Read32(ex.codesetinfo.data.address), Read32(ex.codesetinfo.data.codesize) + Read32(ex.codesetinfo.bsssize), temp);
+                free(temp);
+            }
+            else
+            {
+                sec_size = AlignPage(sec_size);
+                mem_AddSegment(Read32(ex.codesetinfo.text.address), sec_size, sec);
+                // Add .bss segment.
+                u32 bss_off = AlignPage(Read32(ex.codesetinfo.data.address) +
+                    Read32(ex.codesetinfo.data.codesize));
+                mem_AddSegment(bss_off, AlignPage(Read32(ex.codesetinfo.bsssize)), NULL);
+            }
+            free(sec);
         }
     }
 
@@ -467,11 +498,6 @@ int loader_LoadFile(FILE* fd)
 
         romfs_Setup(fd, romfs_off, romfs_sz);
     }
-
-    // Add .bss segment.
-    u32 bss_off = AlignPage(Read32(ex.codesetinfo.data.address) +
-                            Read32(ex.codesetinfo.data.codesize));
-    mem_AddSegment(bss_off, AlignPage(Read32(ex.codesetinfo.bsssize)), NULL);
 
     // Add stack segment.
     u32 stack_size = Read32(ex.codesetinfo.stacksize);

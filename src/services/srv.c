@@ -62,7 +62,7 @@ static struct {
     u32 handle;
     u32 (*fnSyncRequest)();
 } services[] = {
-    // Services are declared here.
+    //HLE Services are declared here.
     {
         "APT:U\0\0\0\0",
         SERVICE_TYPE_APT_U,
@@ -148,6 +148,21 @@ static struct {
         &boss_u_SyncRequest
     }
 };
+#define NUM_HANDLE_TYPES ARRAY_SIZE(handle_types)
+
+
+#define MAX_ownservice 0x100
+typedef struct {
+    const char* name;
+    u32 pid;
+    u32 handle;
+    s32 threadwaitlist;
+} S_ownservice;
+
+static S_ownservice ownservice[MAX_ownservice];
+static u32 ownservice_num;
+
+
 
 
 u32 services_SyncRequest(handleinfo* h, bool *locked)
@@ -194,6 +209,12 @@ u32 srv_InitHandle()
 
 #define CPUsvcbuffer 0xFFFF0000
 
+struct {
+    char name[8];
+    uint32_t name_len;
+    uint32_t unk2;
+} req;
+
 u32 srv_SyncRequest()
 {
     u32 cid = mem_Read32(0xFFFF0080);
@@ -202,7 +223,7 @@ u32 srv_SyncRequest()
     switch(cid) {
 
     case 0x10002:
-        DEBUG("srv_RegisterClient\n");
+        DEBUG("srv_Initialize\n");
 
         // XXX: check +4, flags?
         PAUSE();
@@ -215,19 +236,35 @@ u32 srv_SyncRequest()
         mem_Write32(CPUsvcbuffer + 0x8C, eventhandle);
         return 0;
 
+        char names[9];
+    case 0x00030100:
+        DEBUG("srv_RegisterService\n");
+
+        // Read rest of command header
+        mem_Read((u8*)&req, 0xFFFF0084, sizeof(req));
+
+        memcpy(names, req.name, 8);
+        names[8] = '\0';
+
+        DEBUG("name=%s, namelen=%u, unk=0x%x\n", names, req.name_len,
+            req.unk2);
+
+
+        ownservice[ownservice_num].name = malloc(9);
+        memcpy(ownservice[ownservice_num].name,req.name , 9);
+
+        ownservice[ownservice_num].handle = handle_New(HANDLE_TYPE_SERVICE, SERVICE_DIRECT);
+        ownservice_num++;
+        mem_Write32(CPUsvcbuffer + 0x84, 0); //no error
+        mem_Write32(CPUsvcbuffer + 0x8C, ownservice[ownservice_num].handle); //return handle
+        return 0;
+
     case 0x50100:
         DEBUG("srv_GetServiceHandle\n");
-
-        struct {
-            char name[8];
-            uint32_t name_len;
-            uint32_t unk2;
-        } req;
 
         // Read rest of command header
         mem_Read((u8*) &req, 0xFFFF0084, sizeof(req));
 
-        char names[9];
         memcpy(names, req.name, 8);
         names[8] = '\0';
 
@@ -274,4 +311,12 @@ u32 srv_SyncRequest()
     }
 
     return 0;
+}
+u32 svcReplyAndReceive()
+{
+    s32 index = arm11_R(0); //replayindex -1 for non
+    u32 handles = arm11_R(1);
+    u32 handleCount = arm11_R(2);
+    u32 replyTarget = arm11_R(3); //null for non
+
 }

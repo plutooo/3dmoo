@@ -33,7 +33,7 @@ static size_t   num_mappings;
 
 //#define MEM_TRACE 1
 
-//#define PRINT_ILLEGAL 1
+#define PRINT_ILLEGAL 1
 //#define EXIT_ON_ILLEGAL 1
 
 void mem_Dbugdump()
@@ -125,6 +125,7 @@ int mem_AddMappingShared(uint32_t base, uint32_t size, u8* data)
 
 int mem_AddSegment(uint32_t base, uint32_t size, uint8_t* data)
 {
+    DEBUG("adding %08x %08x\n", base, size);
     int rc;
 
     rc = AddMapping(base, size);

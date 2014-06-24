@@ -939,6 +939,8 @@ ARMul_Emulate26 (ARMul_State * state)
 
             case t_branch:
                 /* Already processed.  */
+                pc = state->Reg[15] - 2;
+                state->pc = state->Reg[15] - 2; //ichfly why do I need that
                 goto donext;
 
             case t_decoded:

@@ -447,8 +447,8 @@ u32 *ainstr;
                                   + (((tinstr & 0x7F) << 1)
                                      | ((tinstr & (1 << 7)) ?
                                         0xFFFFFF00 : 0)));
+                valid = t_branch;
             }
-            valid = t_branch;
         } else		/* UNDEFINED : cc=1110(AL) uses different format */
             valid = t_undefined;
         break;
@@ -490,6 +490,7 @@ u32 *ainstr;
         /* else we fall through to process the second half of the BL */
         //pc += 2;	/* point the pc at the 2nd half */
         state->Reg[15] = pc + 2;
+
         break;
     case 31:		/* BL instruction 2 */
         /* Format 19 */

@@ -30,7 +30,7 @@ SERVICE_START(cfg_u);
 SERVICE_CMD(0x00010082) { // GetConfigInfoBlk2
     u32 size    = CMD(1);
     u32 id      = CMD(2);
-    u32 pointer = CMD(3);
+    u32 pointer = CMD(4);
 
     DEBUG("GetConfigInfoBlk2 %08x %08x %08x\n", size, id, pointer);
 

@@ -32,33 +32,6 @@ size_t APTsharedfontsize = 0;
 
 SERVICE_START(apt_u);
 
-SERVICE_CMD(0x10040) {
-    u32 flags = CMD(1);
-    DEBUG("GetLockHandle, flags=%08x\n", flags);
-
-    // Create lock for APT communication thread
-    lock_handle = handle_New(HANDLE_TYPE_MUTEX, HANDLE_MUTEX_APTMUTEX);
-
-    handleinfo* h = handle_Get(lock_handle);
-    if(h == NULL) {
-        ERROR("Failed to get handle.\n");
-
-        RESP(1, -1); // Result
-        return -1;
-    }
-
-    h->locked = false;
-    h->locktype = LOCK_TYPE_ONESHOT;
-
-    RESP(1, 0); // Result
-    RESP(2, 0);
-    RESP(3, 0);
-    RESP(4, 0);
-    RESP(5, lock_handle);
-    RESP(6, 0);
-    return 0;
-}
-
 SERVICE_CMD(0x20080) {
     u32 app_id = CMD(1);
     DEBUG("RegisterApp, app_id=%08x\n", app_id);

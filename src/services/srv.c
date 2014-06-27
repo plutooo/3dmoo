@@ -35,6 +35,18 @@ u32 ir_u_SyncRequest();
 u32 dsp_dsp_SyncRequest();
 u32 cecd_u_SyncRequest();
 u32 boss_u_SyncRequest();
+u32 ptm_s_SyncRequest();
+u32 pdn_d_SyncRequest();
+u32 cdc_DSP_SyncRequest();
+u32 fs_ldr_SyncRequest();
+u32 PxiPM_SyncRequest();
+u32 fs_REG_SyncRequest();
+u32 cfg_i_SyncRequest();
+u32 cfg_nor_SyncRequest();
+u32 hid_SPVR_SyncRequest();
+u32 am_sys_SyncRequest();
+u32 boss_P_SyncRequest();
+u32 ps_ps_SyncRequest();
 
 #ifndef _WIN32
 static size_t strnlen(const char* p, size_t n)
@@ -146,8 +158,82 @@ static struct {
         SERVICE_TYPE_BOSS_U,
         0,
         &boss_u_SyncRequest
+    },
+    {
+        "ptm:s",
+        SERVICE_TYPE_PTM_SYSTEM,
+        0,
+        &ptm_s_SyncRequest
+    },
+    {
+        "pdn:d",
+        SERVICE_TYPE_PDN_D,
+        0,
+        &pdn_d_SyncRequest
+    },
+    {
+        "cdc:DSP",
+        SERVICE_TYPE_cdc_DSP,
+        0,
+        &cdc_DSP_SyncRequest
+    },
+    {
+        "fs:LDR",
+        SERVICE_TYPE_fs_ldr,
+        0,
+        &fs_ldr_SyncRequest
+    },
+    {
+        "PxiPM",
+        SERVICE_TYPE_PxiPM,
+        0,
+        &PxiPM_SyncRequest
+    },
+    {
+        "fs:REG",
+        SERVICE_TYPE_fs_REG,
+        0,
+        &fs_REG_SyncRequest
+    },
+    {
+        "cfg:i",
+        SERVICE_TYPE_cfg_i,
+        0,
+        &cfg_i_SyncRequest
+    },
+    {
+        "cfg:nor",
+        SERVICE_TYPE_cfg_nor,
+        0,
+        &cfg_nor_SyncRequest
+    },
+    {
+        "hid:SPVR",
+        SERVICE_TYPE_hid_SPVR,
+        0,
+        &hid_SPVR_SyncRequest
+    },
+    {
+        "am:sys",
+        SERVICE_TYPE_am_sys,
+        0,
+        &am_sys_SyncRequest
+    },
+    {
+        "boss:P",
+        SERVICE_TYPE_boss_P,
+        0,
+        &boss_P_SyncRequest
+    },
+    {
+        "ps:ps",
+        SERVICE_TYPE_ps_ps,
+        0,
+        &ps_ps_SyncRequest
     }
 };
+
+
 #define NUM_HANDLE_TYPES ARRAY_SIZE(handle_types)
 
 
@@ -254,9 +340,9 @@ u32 srv_SyncRequest()
         memcpy(ownservice[ownservice_num].name,req.name , 9);
 
         ownservice[ownservice_num].handle = handle_New(HANDLE_TYPE_SERVICE, SERVICE_DIRECT);
-        ownservice_num++;
         mem_Write32(CPUsvcbuffer + 0x84, 0); //no error
         mem_Write32(CPUsvcbuffer + 0x8C, ownservice[ownservice_num].handle); //return handle
+        ownservice_num++;
         return 0;
 
     case 0x50100:
@@ -314,9 +400,45 @@ u32 srv_SyncRequest()
 }
 u32 svcReplyAndReceive()
 {
-    s32 index = arm11_R(0); //replayindex -1 for non
+    s32 index = arm11_R(0);
     u32 handles = arm11_R(1);
     u32 handleCount = arm11_R(2);
-    u32 replyTarget = arm11_R(3); //null for non
+    u32 replyTarget = arm11_R(3);
+    DEBUG("svcReplyAndReceive %08x %08x %08x %08x\n", index, handles, handleCount, replyTarget);
+    arm11_SetR(1,0); //this is the index that is returned
 
+    //feed module data here 
+
+    mem_Write32(CPUsvcbuffer + 0x80, 0x001100c2);
+    mem_Write32(CPUsvcbuffer + 0x84, 0x0000C288);
+    mem_Write32(CPUsvcbuffer + 0x88, 0x000000FF);
+    mem_Write32(CPUsvcbuffer + 0x8C, 0x000000FF);
+    mem_Write32(CPUsvcbuffer + 0x90, 0x000C288A);
+    mem_Write32(CPUsvcbuffer + 0x94, 0xDEADC000);
+
+
+    u8* dat = malloc(0x0000C288);
+
+    FILE * pFile3;
+    pFile3 = fopen("dspfirm.bin", "rb");
+    if (pFile3 != NULL)
+    {
+        fread(dat, 0x0000C288,1 , pFile3);
+        fclose(pFile3);
+    }
+
+    mem_AddSegment(0xDEADC000, 0x0000C288, dat);
+
+    free(dat);
+
+    //feed end
+    return 0;
+}
+u32 svcAcceptSession()
+{
+    s32 session = arm11_R(0);
+    u32 port = arm11_R(1);
+    arm11_SetR(1, handle_New(HANDLE_TYPE_SESSION, port));
+    DEBUG("AcceptSession %08x %08x\n", session, port);
+    return 0;
 }

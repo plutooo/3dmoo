@@ -26,7 +26,7 @@
 #define MAX_NUM_HANDLES 0x1000
 #define HANDLES_BASE    0xDEADBABE
 
-#define EXIT_ON_ERROR 1
+//#define EXIT_ON_ERROR 1
 
 static handleinfo handles[MAX_NUM_HANDLES];
 static u32 handles_num;
@@ -76,6 +76,7 @@ u32 svcSendSyncRequest()
 
     if(hi == NULL) {
         ERROR("handle %08x not found.\n", handle);
+        arm11_Dump();
         PAUSE();
 #ifdef EXIT_ON_ERROR
         exit(1);
@@ -209,7 +210,7 @@ u32 svcWaitSynchronizationN() // TODO: timeouts
     u32 handles_count = arm11_R(2);
     u32 wait_all      = arm11_R(3);
     u32 nanoseconds2  = arm11_R(4);
-    u32 out = arm11_R(5);
+    u32 out =           arm11_R(5);
 
     bool all_unlocked = true;
 
@@ -247,9 +248,10 @@ u32 svcWaitSynchronizationN() // TODO: timeouts
                 all_unlocked = false;
 
         } else {
-            ERROR("svcCloseHandle undefined for handle-type \"%s\".\n",
+            ERROR("WaitSynchronization undefined for handle-type \"%s\".\n",
                   handle_types[hi->type].name);
             PAUSE();
+            arm11_SetR(1, i); //we just say this one is open
             return 0;
         }
     }

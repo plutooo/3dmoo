@@ -141,7 +141,7 @@ void svc_Execute(ARMul_State * state, u8 num)
 {
     const char* name = names[num & 0xFF];
 
-    if(name == NULL)
+    if (name == NULL)
         name = "Unknown";
 
     LOG("\n>> svc%s (0x%x)\n", name, num);
@@ -225,6 +225,11 @@ void svc_Execute(ARMul_State * state, u8 num)
     case 0x28: //GetSystemTick
         arm11_SetR(0, 1);
         return;
+    case 0x2B:
+        DEBUG("svcGetProcessInfo=%08x\n", arm11_R(2));
+        DEBUG("STUBBED\n");
+        arm11_SetR(0, 0);
+        return;
     case 0x2D:
         arm11_SetR(0, svcConnectToPort());
         return;
@@ -243,33 +248,40 @@ void svc_Execute(ARMul_State * state, u8 num)
         return;
     case 0x3A:
         DEBUG("values_ptr=%08x, handleResourceLimit=%08x, names_ptr=%08x, nameCount=%d\n",
-              arm11_R(0), arm11_R(1), arm11_R(2), arm11_R(3));
+            arm11_R(0), arm11_R(1), arm11_R(2), arm11_R(3));
         DEBUG("STUBBED");
         PAUSE();
         //arm11_SetR(0, 1);
         mem_Write32(arm11_R(0), 0); //Set used memory to 0 for now
         return;
     case 0x3C: //Break
-        exit(1);
+        //exit(1);
         return;
     case 0x3D: { //OutputDebugString
-        char temp[256];
-        memset(temp, 0, 256);
+                   char temp[256];
+                   memset(temp, 0, 256);
 
-        size_t sz = arm11_R(1);
-        if(sz >= 256)
-            sz = 255;
+                   size_t sz = arm11_R(1);
+                   if (sz >= 256)
+                       sz = 255;
 
-        mem_Read(temp, arm11_R(0), sz);
-        DEBUG("%s\n",temp);
-        //arm11_Dump();
+                   mem_Read(temp, arm11_R(0), sz);
+                   DEBUG("%s\n", temp);
+                   //arm11_Dump();
+                   return;
+    }
+    case 0x47:
+        arm11_SetR(0, svcCreatePort());
+        return;
+    case 0x4a:
+        arm11_SetR(0, svcAcceptSession());
         return;
     case 0x4F:
-    {
-                 arm11_SetR(0, svcReplyAndReceive());
-                 return 0;
-    }
-    }
+        arm11_SetR(0, svcReplyAndReceive());
+        return;
+    case 0x50:
+        arm11_SetR(0, svcBindInterrupt());
+        return;
     case 0xFF:
         fprintf(stdout, "%c", (u8)arm11_R(0));
         return;
@@ -279,9 +291,9 @@ void svc_Execute(ARMul_State * state, u8 num)
         ERROR("Syscall not implemented.\n");
         arm11_SetR(0, -1);
         break;
-    }
 
-    arm11_Dump();
-    PAUSE();
-    //exit(1);
+        arm11_Dump();
+        PAUSE();
+        //exit(1);
+    }
 }

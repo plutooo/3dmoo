@@ -31,7 +31,7 @@ typedef struct {
 static memmap_t mappings[MAX_MAPPINGS];
 static size_t   num_mappings;
 
-//#define MEM_TRACE 1
+#define MEM_TRACE 1
 
 #define PRINT_ILLEGAL 1
 //#define EXIT_ON_ILLEGAL 1
@@ -139,6 +139,10 @@ int mem_AddSegment(uint32_t base, uint32_t size, uint8_t* data)
 
 int mem_Write8(uint32_t addr, uint8_t w)
 {
+    if (addr == 0x001000c0)
+    {
+        int asdf = 0;
+    }
 #ifdef MEM_TRACE
     fprintf(stderr, "w8 %08x <- w=%02x\n", addr, w & 0xff);
 #endif
@@ -186,6 +190,10 @@ uint8_t mem_Read8(uint32_t addr)
 
 int mem_Write16(uint32_t addr, uint16_t w)
 {
+    if (addr == 0x0010028e)
+    {
+        int asdf = 0;
+    }
 #ifdef MEM_TRACE
     fprintf(stderr, "w16 %08x <- w=%04x\n", addr, w & 0xffff);
 #endif
@@ -215,6 +223,10 @@ int mem_Write16(uint32_t addr, uint16_t w)
 
 uint16_t mem_Read16(uint32_t addr)
 {
+    if (addr == 0x001000c0)
+    {
+        int asdf = 0;
+    }
 #ifdef MEM_TRACE
     fprintf(stderr, "r16 %08x\n", addr);
 #endif
@@ -244,6 +256,10 @@ uint16_t mem_Read16(uint32_t addr)
 
 int mem_Write32(uint32_t addr, uint32_t w)
 {
+    if (addr == 0x0010028c)
+    {
+        int asdf = 0;
+    }
 #ifdef MEM_TRACE
     fprintf(stderr, "w32 %08x <- w=%08x\n", addr, w);
 #endif
@@ -314,7 +330,7 @@ u32 mem_Read32(uint32_t addr)
 #ifdef PRINT_ILLEGAL
     ERROR("trying to read32 unmapped addr %08x\n", addr);
     arm11_Dump();
-    mem_Dbugdump();
+    //mem_Dbugdump();
 #endif
 #ifdef EXIT_ON_ILLEGAL
     exit(1);

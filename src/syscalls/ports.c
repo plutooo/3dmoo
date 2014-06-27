@@ -25,6 +25,31 @@
 u32 srv_InitHandle();
 u32 srv_SyncRequest();
 
+
+
+
+u32 err_f_InitHandle()
+{
+    arm11_SetR(1, handle_New(HANDLE_TYPE_PORT, PORT_TYPE_err_f));
+    arm11_Dump();
+    return 0;
+}
+u32 err_f_SyncRequest()
+{
+    u32 cid = mem_Read32(0xFFFF0080);
+
+    // Read command-id.
+    switch (cid) {
+
+    default:
+        ERROR("Unimplemented command %08x in \"err:f\"\n", cid);
+        //arm11_Dump();
+        //exit(1);
+    }
+
+    return 0;
+}
+
 static struct {
     const char* name;
     u32 subtype;
@@ -37,7 +62,13 @@ static struct {
         PORT_TYPE_SRV,
         &srv_InitHandle,
         &srv_SyncRequest
-    }
+    },
+    {
+        "err:f",
+        PORT_TYPE_err_f,
+        &err_f_InitHandle,
+        &err_f_SyncRequest
+    },
 };
 
 u32 svcConnectToPort()
@@ -87,5 +118,18 @@ u32 port_SyncRequest(handleinfo* h, bool *locked)
           h->subtype);
     arm11_Dump();
     PAUSE();
+    return 0;
+}
+u32 svcCreatePort()
+{
+    u32 portServer = arm11_R(0);
+    u32 portClient = arm11_R(1);
+    u32 name = arm11_R(2);
+    u32 maxSessions = arm11_R(3);
+    DEBUG("CreatePort %08x %08x %08x %08x\n", portServer, portClient, name, maxSessions);
+    char b[0x100];
+    mem_Read(b, name, 0x100);
+    DEBUG("%s\n",b);
+    DEBUG("Stumb\n");
     return 0;
 }

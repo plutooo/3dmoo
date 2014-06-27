@@ -370,7 +370,8 @@ ARMul_Emulate26 (ARMul_State * state)
 #endif
 {
     /* The PC pipeline value depends on whether ARM
-    or Thumb instructions are being executed.  */
+    or Thumb instructions are being 
+    d.  */
     ARMword isize;
     ARMword instr;		/* The current instruction.  */
     ARMword dest = 0;	/* Almost the DestBus.  */
@@ -929,7 +930,6 @@ ARMul_Emulate26 (ARMul_State * state)
            dealing with the BL instruction.  */
         if (TFLAG) {
             ARMword new;
-
             /* Check if in Thumb mode.  */
             switch (ARMul_ThumbDecode (state, pc, instr, &new)) {
             case t_undefined:
@@ -947,6 +947,7 @@ ARMul_Emulate26 (ARMul_State * state)
                 /* ARM instruction available.  */
                 //printf("t decode %04lx -> %08lx\n", instr & 0xffff, new);
                 instr = new;
+
                 /* So continue instruction decoding.  */
                 break;
             default:
@@ -5589,13 +5590,17 @@ L_stm_s_takeabort:
                 u32 rd = (instr >> 12) & 0xF;
                 u32 rm = (instr >> 16) & 0xF;
                 u32 rn = (instr >> 0) & 0xF;
-                u32 tosub = state->Reg[rm];
-                u32 subfrom = state->Reg[rn];
+                u32 subfrom = state->Reg[rm];
+                u32 tosub = state->Reg[rn];
 
                 u8 b1 = (u8)((u8)(subfrom)-(u8)(tosub));
+                if (b1 > (u8)(subfrom)) b1 = 0;
                 u8 b2 = (u8)((u8)(subfrom >> 8) - (u8)(tosub >> 8));
+                if (b2 > (u8)(subfrom >> 8)) b2 = 0;
                 u8 b3 = (u8)((u8)(subfrom >> 16) - (u8)(tosub >> 16));
+                if (b3 > (u8)(subfrom >> 16)) b3 = 0;
                 u8 b4 = (u8)((u8)(subfrom >> 24) - (u8)(tosub >> 24));
+                if (b4 > (u8)(subfrom >> 24)) b4 = 0;
                 state->Reg[rd] = (u32)(b1 | b2 << 8 | b3 << 16 | b4 << 24);
                 return 1;
             } else {

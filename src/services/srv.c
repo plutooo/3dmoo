@@ -47,6 +47,8 @@ u32 hid_SPVR_SyncRequest();
 u32 am_sys_SyncRequest();
 u32 boss_P_SyncRequest();
 u32 ps_ps_SyncRequest();
+u32 cfg_s_SyncRequest();
+u32 apt_s_SyncRequest();
 
 #ifndef _WIN32
 static size_t strnlen(const char* p, size_t n)
@@ -76,10 +78,16 @@ static struct {
 } services[] = {
     //HLE Services are declared here.
     {
-        "APT:U\0\0\0\0",
+        "APT:U",
         SERVICE_TYPE_APT_U,
         0,
         &apt_u_SyncRequest
+    },
+    {
+        "APT:S",
+        SERVICE_TYPE_APT_S,
+        0,
+        &apt_s_SyncRequest
     },
     {
         "gsp::Gpu",
@@ -230,7 +238,13 @@ static struct {
         SERVICE_TYPE_ps_ps,
         0,
         &ps_ps_SyncRequest
-    }
+    },
+    {
+        "cfg:s",
+        SERVICE_TYPE_CFG_S,
+        0,
+        &cfg_s_SyncRequest
+    },
 };
 
 

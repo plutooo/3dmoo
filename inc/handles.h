@@ -64,6 +64,8 @@
 #define SERVICE_TYPE_am_sys     25
 #define SERVICE_TYPE_boss_P     26
 #define SERVICE_TYPE_ps_ps      27
+#define SERVICE_TYPE_CFG_S      28
+#define SERVICE_TYPE_APT_S      29
 
 #define HANDLE_SUBEVENT_USER          0
 #define HANDLE_SUBEVENT_APTMENUEVENT  1

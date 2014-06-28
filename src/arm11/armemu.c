@@ -929,9 +929,9 @@ ARMul_Emulate26 (ARMul_State * state)
            pipelined PC value is used when executing Thumb code, and also for
            dealing with the BL instruction.  */
         if (TFLAG) {
-            ARMword new;
+            ARMword armOp = 0;
             /* Check if in Thumb mode.  */
-            switch (ARMul_ThumbDecode (state, pc, instr, &new)) {
+            switch (ARMul_ThumbDecode(state, pc, instr, &armOp)) {
             case t_undefined:
                 /* This is a Thumb instruction.  */
                 ARMul_UndefInstr (state, instr);
@@ -939,14 +939,20 @@ ARMul_Emulate26 (ARMul_State * state)
 
             case t_branch:
                 /* Already processed.  */
-                pc = state->Reg[15] - 2;
-                state->pc = state->Reg[15] - 2; //ichfly why do I need that
+                //pc = state->Reg[15] - 2;
+                //state->pc = state->Reg[15] - 2; //ichfly why do I need that
                 goto donext;
 
             case t_decoded:
                 /* ARM instruction available.  */
-                //printf("t decode %04lx -> %08lx\n", instr & 0xffff, new);
-                instr = new;
+                //printf("t decode %04lx -> %08lx\n", instr & 0xffff, armOp);
+                
+                if (armOp == 0xDEADC0DE)
+                {
+                    DEBUG("Failed to decode thumb opcode %04X at %08X\n", instr, pc);
+                }
+
+                instr = armOp;
 
                 /* So continue instruction decoding.  */
                 break;

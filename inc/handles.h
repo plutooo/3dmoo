@@ -31,8 +31,11 @@
 #define HANDLE_TYPE_FILE      10
 #define HANDLE_TYPE_SEMAPHORE 11
 #define HANDLE_TYPE_ARCHIVE   12
+#define HANDLE_TYPE_SESSION   13
+
 
 #define PORT_TYPE_SRV         0
+#define PORT_TYPE_err_f       1
 
 #define SERVICE_TYPE_APT_U       0
 #define SERVICE_TYPE_GSP_GPU     1
@@ -48,7 +51,19 @@
 #define SERVICE_TYPE_DSP_DSP    12
 #define SERVICE_TYPE_CECD_U     13
 #define SERVICE_TYPE_BOSS_U     14
-#define SERVICE_DIRECT     15
+#define SERVICE_DIRECT          15
+#define SERVICE_TYPE_PTM_SYSTEM 16
+#define SERVICE_TYPE_PDN_D      17
+#define SERVICE_TYPE_cdc_DSP    18
+#define SERVICE_TYPE_fs_ldr     19
+#define SERVICE_TYPE_PxiPM      20
+#define SERVICE_TYPE_fs_REG     21
+#define SERVICE_TYPE_cfg_i      22
+#define SERVICE_TYPE_cfg_nor    23
+#define SERVICE_TYPE_hid_SPVR   24
+#define SERVICE_TYPE_am_sys     25
+#define SERVICE_TYPE_boss_P     26
+#define SERVICE_TYPE_ps_ps      27
 
 #define HANDLE_SUBEVENT_USER          0
 #define HANDLE_SUBEVENT_APTMENUEVENT  1

@@ -653,25 +653,30 @@ void
 ARMul_MCR (ARMul_State * state, ARMword instr, ARMword source)
 {
     unsigned cpab;
-    u32 num = CPNum;
-
-    //printf("SKYEYE ARMul_MCR, CPnum is %x, source %x\n",CPNum, source);
-    //if (!CP_ACCESS_ALLOWED (state, CPNum)) {
-    if (!state->MCR[CPNum]) {
-        //chy 2004-07-19 should fix in the future ????!!!!
-        //printf("SKYEYE ARMul_MCR, ACCESS_not ALLOWed, UndefinedInstr  CPnum is %x, source %x\n",CPNum, source);
-        ARMul_UndefInstr (state, instr);
-        return;
-    }
+    int cm = BITS(0, 3) & 0xf;
+    int cp = BITS(5, 7) & 0x7;
+    int rd = BITS(12, 15) & 0xf;
+    int cn = BITS(16, 19) & 0xf;
+    int cpopc = BITS(21, 23) & 0x7;
 
     if (CPNum == 15 && source == 0) //Cache flush
     {
         return;
     }
 
-    DEBUG("plutoo: MCR not implemented\n");
+    //printf("SKYEYE ARMul_MCR, CPnum is %x, source %x\n",CPNum, source);
+    //if (!CP_ACCESS_ALLOWED (state, CPNum)) {
+    if (!state->MCR[CPNum]) {
+        //chy 2004-07-19 should fix in the future ????!!!!
+        DEBUG("SKYEYE ARMul_MCR, ACCESS_not ALLOWed, UndefinedInstr  CPnum is %x, source %x\n",CPNum, source);
+        ARMul_UndefInstr (state, instr);
+        return;
+    }
+
+    DEBUG("SKYEYE ARMul_MCR p%d, %d, r%d, c%d, c%d, %d\n", CPNum, cpopc, rd, cn, cm, cp);
+    //DEBUG("plutoo: MCR not implemented\n");
     //exit(1);
-    return;
+    //return;
 
     cpab = (state->MCR[CPNum]) (state, ARMul_FIRST, instr, source);
 
@@ -745,7 +750,8 @@ ARMword ARMul_MRC (ARMul_State * state, ARMword instr)
         return 0xFFFF0000;
     }
 
-    DEBUG("plutoo: MRC not implemented\n");
+    DEBUG("SKYEYE ARMul_MRC p%d, %d, r%d, c%d, c%d, %d\n", CPNum, cpopc, rd, cn, cm, cp);
+    //DEBUG("plutoo: MRC not implemented\n");
     //return;
 
     unsigned cpab;
@@ -755,7 +761,7 @@ ARMword ARMul_MRC (ARMul_State * state, ARMword instr)
     //if (!CP_ACCESS_ALLOWED (state, CPNum)) {
     if (!state->MRC[CPNum]) {
         //chy 2004-07-19 should fix in the future????!!!!
-        //printf("SKYEYE ARMul_MRC,NOT ALLOWed UndefInstr  CPnum is %x, instr %x\n",CPNum, instr);
+        DEBUG("SKYEYE ARMul_MRC,NOT ALLOWed UndefInstr  CPnum is %x, instr %x\n", CPNum, instr);
         ARMul_UndefInstr (state, instr);
         return -1;
     }

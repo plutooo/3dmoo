@@ -126,7 +126,8 @@ s32 getlastbit(u32 val)
     if (val & 0x4)return 2;
     if (val & 0x2)return 1;
     if (val & 0x1)return 0;
-    if (val == 0)return -1; //that is needed
+    
+    return -1; //that is needed
 }
 void updatecmpflags(u32 data, u8 MSB, bool v, bool c)
 {
@@ -153,7 +154,7 @@ u32 doops3(u8 op3, u32 in, u32 in2,u8 *MSB)
               if (ret == 0 && *MSB == 0)temp |= 0x800; //Z
               if (*MSB & 0x8) temp |= 0x400; //M
               if (ret & 0xC0000000) temp |= 0x200; //N
-              if ((MSB != 0 && (ret & 0x80000000)) || (MSB != 0xF && (!(ret & 0x80000000)))) temp |= 0x40; //E
+              if ((*MSB != 0 && (ret & 0x80000000)) || (*MSB != 0xF && (!(ret & 0x80000000)))) temp |= 0x40; //E
               st[0] = temp;
               return ret;
     }
@@ -189,6 +190,8 @@ u32 doops3(u8 op3, u32 in, u32 in2,u8 *MSB)
         DEBUG("unimplemented op3 %02x\n", op3);
         break;
     }
+
+    return -1;
 }
 
 u16 getrrrrr(u8 op)
@@ -1710,5 +1713,5 @@ void DSP_LoadFirm(u8* bin)
         memcpy(ram + (destoffset *2), bin + dataoffset, size);
     }
 
-    DSP_Run();
+    //DSP_Run();
 }

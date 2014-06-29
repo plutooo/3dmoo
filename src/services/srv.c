@@ -450,7 +450,7 @@ u32 svcReplyAndReceive()
     u32 replyTarget = arm11_R(3);
     DEBUG("svcReplyAndReceive %08x %08x %08x %08x\n", index, handles, handleCount, replyTarget);
 
-    for (int i = 0; i < handleCount; i++)
+    for (u32 i = 0; i < handleCount; i++)
     {
         DEBUG("%08x\n", mem_Read32(handles+i*4));
     }

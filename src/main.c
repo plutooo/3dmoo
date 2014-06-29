@@ -99,6 +99,9 @@ int main(int argc, char* argv[])
 
     hid_user_init();
 
+    initDSP();
+    mcu_GPU_init();
+
     if(!noscreen)
         initGPU();
 

@@ -66,6 +66,9 @@
 #define SERVICE_TYPE_ps_ps      27
 #define SERVICE_TYPE_CFG_S      28
 #define SERVICE_TYPE_APT_S      29
+#define SERVICE_TYPE_PDN_G      30
+#define SERVICE_TYPE_MCU_GPU      31
+#define SERVICE_TYPE_I2C_LCD      32
 
 #define HANDLE_SUBEVENT_USER          0
 #define HANDLE_SUBEVENT_APTMENUEVENT  1
@@ -81,6 +84,7 @@
 #define MEM_TYPE_GSP_0           0
 #define MEM_TYPE_HID_0           1
 #define MEM_TYPE_APT_SHARED_FONT 2
+#define MEM_TYPE_ALLOC 3
 
 
 #define HANDLE_CURRENT_THREAD  0xFFFF8000

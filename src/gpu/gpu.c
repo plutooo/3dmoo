@@ -107,6 +107,8 @@ void GPUTriggerCmdReqQueue() //todo
             }
         }
     }
+    *(u8*)(GSPsharedbuff + 0x81) = 1; //ichfly fix that
+    *(u8*)(GSPsharedbuff + 0x80) = 1;
 }
 
 void GPURegisterInterruptRelayQueue(u32 flags, u32 Kevent, u32*threadID, u32*outMemHandle)

@@ -1713,5 +1713,5 @@ void DSP_LoadFirm(u8* bin)
         memcpy(ram + (destoffset *2), bin + dataoffset, size);
     }
 
-    //DSP_Run();
+    DSP_Run();
 }

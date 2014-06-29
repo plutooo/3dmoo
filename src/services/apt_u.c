@@ -32,6 +32,15 @@ size_t APTsharedfontsize = 0;
 
 SERVICE_START(apt_u);
 
+SERVICE_CMD(0x10040) { //GetLockHandle
+    u32 unk1 = CMD(1);
+    u32 unk2 = CMD(2);
+    DEBUG("GetLockHandle, unk1=%08x, unk2=%08x\n", unk1, unk2);
+
+    RESP(1, 0); // Result
+    return 0;
+}
+
 SERVICE_CMD(0x20080) {
     u32 app_id = CMD(1);
     DEBUG("RegisterApp, app_id=%08x\n", app_id);

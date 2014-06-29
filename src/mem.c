@@ -374,7 +374,7 @@ int mem_rawaddr(uint32_t addr, uint32_t size)
     size_t i;
     for (i = 0; i<num_mappings; i++) {
         if (Contains(&mappings[i], addr, size)) {
-            return &mappings[i].phys[addr - mappings[i].base];
+            return (int)&mappings[i].phys[addr - mappings[i].base];
         }
     }
 #ifdef PRINT_ILLEGAL

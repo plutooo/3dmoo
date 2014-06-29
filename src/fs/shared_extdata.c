@@ -79,6 +79,8 @@ static u32 sharedextdfile_Close(file_type* self)
     // Close file and free yourself
     fclose(self->type_specific.sharedextd.fd);
     free(self);
+
+    return 0;
 }
 
 

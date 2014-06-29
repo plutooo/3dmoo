@@ -79,6 +79,8 @@ static u32 sdmcfile_Close(file_type* self)
     // Close file and free yourself
     fclose(self->type_specific.sysdata.fd);
     free(self);
+
+    return 0;
 }
 
 
@@ -130,7 +132,7 @@ static u32 sdmc_OpenFile(archive* self, file_path path, u32 flags, u32 attr)
     fseek(fd, 0, SEEK_END);
     u32 sz;
 
-    if(ftell(fd) == -1) {
+    if((sz=ftell(fd)) == -1) {
         ERROR("ftell() failed.\n");
         fclose(fd);
         return 0;

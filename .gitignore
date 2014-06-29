@@ -168,3 +168,5 @@ ConsoleApplication1/*
 sys/shared_font.bin
 map
 windows/maptest
+decode.code
+dspfirm.bin

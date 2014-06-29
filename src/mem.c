@@ -364,3 +364,25 @@ int mem_Read(uint8_t* buf_out, uint32_t addr, uint32_t size)
 #endif
     return -1;
 }
+
+int mem_rawaddr(uint32_t addr, uint32_t size)
+{
+#ifdef MEM_TRACE
+    fprintf(stderr, "r (sz=%08x) %08x\n", size, addr);
+#endif
+
+    size_t i;
+    for (i = 0; i<num_mappings; i++) {
+        if (Contains(&mappings[i], addr, size)) {
+            return &mappings[i].phys[addr - mappings[i].base];
+        }
+    }
+#ifdef PRINT_ILLEGAL
+    ERROR("trying to remap 0x%x bytes unmapped addr %08x\n", size, addr);
+    arm11_Dump();
+#endif
+#ifdef EXIT_ON_ILLEGAL
+    exit(1);
+#endif
+    return -1;
+}

@@ -227,6 +227,17 @@ u32 svcControlMemory()
             return mem_AddSegment(addr0, size, NULL);
         }
     }
+    if ((op & 0xF) == 0x4) //MAP
+    {
+        u8* buffer = mem_rawaddr(addr1, size);
+        if (buffer == 0)return -1;
+        return mem_AddMappingShared(addr0, size, buffer);
+    }
+    if ((op & 0xF) == 0x6) //Protect we don't protect mem sorry
+    {
+        DEBUG("STUBBED!\n");
+        return 0;
+    }
 
     DEBUG("STUBBED!\n");
     PAUSE();
@@ -253,7 +264,6 @@ u32 svcControlMemory()
     if(flags == 3)
     sub_FFF7A0E8(*r10, 1, r5);
     */
-
     return -1;
 }
 
@@ -297,7 +307,7 @@ u32 svcMapMemoryBlock()
                 return -1;
             }
 
-            mem_AddMappingShared(addr, APTsharedfontsize, APTsharedfont);
+            mem_AddMappingShared(0xDEAD0000, APTsharedfontsize, APTsharedfont); //todo ichfly
             break;
         default:
             ERROR("Trying to map unknown memory\n");

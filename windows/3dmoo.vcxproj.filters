@@ -216,6 +216,12 @@
     <ClCompile Include="..\src\services\cfg_i.c">
       <Filter>Source Files\services</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\services\cfg_s.c">
+      <Filter>Source Files\services</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\services\apt_s.c">
+      <Filter>Source Files\services</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\inc\handles.h">

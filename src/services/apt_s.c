@@ -97,7 +97,7 @@ SERVICE_CMD(0x440000) {
         fseek(fd, 0, SEEK_SET);
 
         // Allocate buffer for font
-        APTs_sharedfont = malloc(APTs_sharedfontsize);
+        APTs_sharedfont = malloc(APTs_sharedfontsize + 4);
 
         if (APTs_sharedfont == NULL) {
             ERROR("malloc() failed trying to read shared font.\n");
@@ -107,20 +107,20 @@ SERVICE_CMD(0x440000) {
         }
 
         // Read it
-        if (fread(APTs_sharedfont, APTs_sharedfontsize, 1, fd) != 1) {
+        if (fread(APTs_sharedfont + 4, APTs_sharedfontsize, 1, fd) != 1) {
             ERROR("fread() failed trying to read shared font.\n");
             fclose(fd);
             free(APTs_sharedfont); APTs_sharedfont = NULL;
             RESP(1, -1);
             return 0;
         }
+        APTs_sharedfont[3] = 0x2;
 
         fclose(fd);
     }
 
     RESP(1, 0); // Result
-    RESP(2, 0xDEADC0DE); // ?
-    //RESP(3, 0xDEADC0DE); // not even read?
+    RESP(2, 0xDEAD0000); // ?
 
     // Handle for shared memory
     RESP(4, handle_New(HANDLE_TYPE_SHAREDMEM, MEM_TYPE_APT_SHARED_FONT));

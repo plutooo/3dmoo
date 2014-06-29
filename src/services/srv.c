@@ -287,16 +287,20 @@ u32 srv_InitHandle()
 {
     // Create a handle for srv: port.
     arm11_SetR(1, handle_New(HANDLE_TYPE_PORT, PORT_TYPE_SRV));
-    eventhandle = handle_New(HANDLE_TYPE_EVENT, 0);
+    eventhandle = handle_New(HANDLE_TYPE_SEMAPHORE, 0);
+
 
     handleinfo* h = handle_Get(eventhandle);
     if (h == NULL) {
-        DEBUG("failed to get newly created mutex\n");
+        DEBUG("failed to get newly created semaphore\n");
         PAUSE();
         return -1;
     }
-    h->locktype = LOCK_TYPE_ONESHOT;
+
     h->locked = true;
+
+    h->misc[0] = 0; //there are 0x10 events we know 2 non of them are used here
+    h->misc[1] = 0x10;
 
     // Create handles for all services.
     u32 i;
@@ -333,6 +337,7 @@ u32 srv_SyncRequest()
         DEBUG("srv_EnableNotification\n");
 
         mem_Write32(CPUsvcbuffer + 0x84, 0); //no error
+        mem_Write32(CPUsvcbuffer + 0x88, 0); //done in sm 4.4
         mem_Write32(CPUsvcbuffer + 0x8C, eventhandle);
         return 0;
 
@@ -401,7 +406,9 @@ u32 srv_SyncRequest()
 
     case 0xB0000: // GetNotificationType
         DEBUG("srv_GetNotificationType\n");
-        mem_Write32(CPUsvcbuffer + 0x84, 0);
+        mem_Dbugdump();
+        mem_Write32(CPUsvcbuffer + 0x84, 0); //worked
+        mem_Write32(CPUsvcbuffer + 0x88, 0xFFFF); //type 
         return 0;
         
     default:
@@ -419,7 +426,7 @@ u32 svcReplyAndReceive()
     u32 handleCount = arm11_R(2);
     u32 replyTarget = arm11_R(3);
     DEBUG("svcReplyAndReceive %08x %08x %08x %08x\n", index, handles, handleCount, replyTarget);
-    arm11_SetR(1,0); //this is the index that is returned
+    arm11_SetR(1,1); //this is the index that is returned
 
     //feed module data here 
 
@@ -446,7 +453,7 @@ u32 svcReplyAndReceive()
     free(dat);
 
     //feed end
-    return 0;
+    return 1;
 }
 u32 svcAcceptSession()
 {

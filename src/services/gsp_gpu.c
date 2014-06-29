@@ -63,7 +63,7 @@ u32 gsp_gpu_SyncRequest()
     }
     case 0xC0000: //TriggerCmdReqQueue
     {
-        DEBUG("TriggerCmdReqQueue");
+        DEBUG("TriggerCmdReqQueue\n");
         GPUTriggerCmdReqQueue();
         mem_Write32(CPUsvcbuffer + 0x84, 0); //no error
         return 0;

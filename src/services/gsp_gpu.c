@@ -70,7 +70,7 @@ u32 gsp_gpu_SyncRequest()
     }
     case 0x130042: //RegisterInterruptRelayQueue
     {
-                       DEBUG("RegisterInterruptRelayQueue %08x %08x", mem_Read32(CPUsvcbuffer + 0x84), mem_Read32(CPUsvcbuffer + 0x8C));
+                       DEBUG("RegisterInterruptRelayQueue %08x %08x\n", mem_Read32(CPUsvcbuffer + 0x84), mem_Read32(CPUsvcbuffer + 0x8C));
                        u32 threadID = 0;
                        u32 outMemHandle = 0;
                        GPURegisterInterruptRelayQueue(mem_Read32(CPUsvcbuffer + 0x84), mem_Read32(CPUsvcbuffer + 0x8C), &threadID, &outMemHandle);

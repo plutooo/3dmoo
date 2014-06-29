@@ -309,6 +309,13 @@ u32 svcMapMemoryBlock()
 
             mem_AddMappingShared(0xDEAD0000, APTsharedfontsize, APTsharedfont); //todo ichfly
             break;
+        case MEM_TYPE_ALLOC:
+            if (h->misc[0] != 0)
+            {
+                DEBUG("meaning of addr unk %08x", h->misc[0]);
+            }
+            mem_AddMappingShared(addr,h->misc[1] ,h->misc_ptr[0] );
+            break;
         default:
             ERROR("Trying to map unknown memory\n");
             return -1;
@@ -328,8 +335,21 @@ u32 svcCreateMemoryBlock() // TODO
     u32 addr = arm11_R(1);
     u32 size = arm11_R(2);
 
-    ERROR("Not implemented.\n");
+    ERROR("CreateMemoryBlock addr=%08x size=%08x\n",addr,size);
 
-    arm11_SetR(1, 0);
+    u32 handle = handle_New(HANDLE_TYPE_SHAREDMEM, MEM_TYPE_ALLOC);
+
+    handleinfo* h = handle_Get(handle);
+
+    if (h == NULL) {
+        DEBUG("failed to get handle\n");
+        PAUSE();
+        return -1;
+    }
+
+    h->misc[0] = addr;
+    h->misc[1] = size;
+    h->misc_ptr[0] = malloc(size);
+    arm11_SetR(1, handle);
     return 0;
 }

@@ -278,6 +278,7 @@ void svc_Execute(ARMul_State * state, u8 num)
         return;
     case 0x4F:
         arm11_SetR(0, svcReplyAndReceive());
+        state->NumInstrsToExecute = 0;
         return;
     case 0x50:
         arm11_SetR(0, svcBindInterrupt());

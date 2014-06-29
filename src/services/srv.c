@@ -49,6 +49,9 @@ u32 boss_P_SyncRequest();
 u32 ps_ps_SyncRequest();
 u32 cfg_s_SyncRequest();
 u32 apt_s_SyncRequest();
+u32 pdn_g_SyncRequest();
+u32 mcu_GPU_SyncRequest();
+u32 i2c_LCD_SyncRequest();
 
 #ifndef _WIN32
 static size_t strnlen(const char* p, size_t n)
@@ -245,6 +248,24 @@ static struct {
         0,
         &cfg_s_SyncRequest
     },
+    {
+        "pdn:g",
+        SERVICE_TYPE_PDN_G,
+        0,
+        &pdn_g_SyncRequest
+    },
+    {
+        "mcu::GPU",
+        SERVICE_TYPE_MCU_GPU,
+        0,
+        &mcu_GPU_SyncRequest
+    },
+    {
+        "i2c::LCD",
+        SERVICE_TYPE_I2C_LCD,
+        0,
+        &i2c_LCD_SyncRequest
+    }
 };
 
 
@@ -419,18 +440,23 @@ u32 srv_SyncRequest()
 
     return 0;
 }
+bool goin = false;
 u32 svcReplyAndReceive()
 {
+
     s32 index = arm11_R(0);
     u32 handles = arm11_R(1);
     u32 handleCount = arm11_R(2);
     u32 replyTarget = arm11_R(3);
     DEBUG("svcReplyAndReceive %08x %08x %08x %08x\n", index, handles, handleCount, replyTarget);
-    arm11_SetR(1,1); //this is the index that is returned
 
+    for (int i = 0; i < handleCount; i++)
+    {
+        DEBUG("%08x\n", mem_Read32(handles+i*4));
+    }
     //feed module data here 
 
-    mem_Write32(CPUsvcbuffer + 0x80, 0x001100c2);
+    /*mem_Write32(CPUsvcbuffer + 0x80, 0x001100c2);
     mem_Write32(CPUsvcbuffer + 0x84, 0x0000C288);
     mem_Write32(CPUsvcbuffer + 0x88, 0x000000FF);
     mem_Write32(CPUsvcbuffer + 0x8C, 0x000000FF);
@@ -450,9 +476,39 @@ u32 svcReplyAndReceive()
 
     mem_AddSegment(0xDEADC000, 0x0000C288, dat);
 
-    free(dat);
+    free(dat);*/
+
+    u32 close = handle_New(HANDLE_TYPE_MUTEX, 0);
+    handleinfo* h = handle_Get(close);
+    if (h == NULL) {
+        DEBUG("failed to get newly created semaphore\n");
+        PAUSE();
+        return -1;
+    }
+
+    h->locked = true;
+    u32* wait_list = (u32*)malloc(4);
+    wait_list[0] = close;
+    
+
+    threads_SetCurrentThreadWaitList(wait_list, true, 1);
+    if (goin)
+    {
+        mem_Write32(CPUsvcbuffer + 0x80, 0x00130042);
+        mem_Write32(CPUsvcbuffer + 0x84, 0x00000000);
+        mem_Write32(CPUsvcbuffer + 0x88, 0x00000000);
+        mem_Write32(CPUsvcbuffer + 0x8C, handle_New(HANDLE_TYPE_EVENT, 0));
+        arm11_SetR(1,2); //this is the index that is returned in this case GPU:GPU
+        goin = false;
+    }
+    else
+    {
+        mem_Write32(CPUsvcbuffer + 0x80, 0xFFF10042); //error
+        arm11_SetR(1, 5); //error²
+    }
 
     //feed end
+
     return 1;
 }
 u32 svcAcceptSession()

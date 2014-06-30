@@ -454,6 +454,7 @@ u32 svcReplyAndReceive()
     {
         DEBUG("%08x\n", mem_Read32(handles+i*4));
     }
+
     //feed module data here 
 
     /*mem_Write32(CPUsvcbuffer + 0x80, 0x001100c2);
@@ -478,7 +479,7 @@ u32 svcReplyAndReceive()
 
     free(dat);*/
 
-    u32 close = handle_New(HANDLE_TYPE_MUTEX, 0);
+    /*u32 close = handle_New(HANDLE_TYPE_MUTEX, 0);
     handleinfo* h = handle_Get(close);
     if (h == NULL) {
         DEBUG("failed to get newly created semaphore\n");
@@ -505,7 +506,7 @@ u32 svcReplyAndReceive()
     {
         mem_Write32(CPUsvcbuffer + 0x80, 0xFFF10042); //error
         arm11_SetR(1, 5); //error²
-    }
+    }*/
 
     //feed end
 

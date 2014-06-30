@@ -213,5 +213,17 @@ static struct {
         &semaphore_SyncRequest,
         NULL,
         &semaphore_WaitSynchronization
+    },
+    {
+        "archive",
+        &semaphore_SyncRequest,
+        NULL,
+        &semaphore_WaitSynchronization
+    },
+    {
+        "session",
+        NULL,
+        NULL,
+        NULL
     }
 };

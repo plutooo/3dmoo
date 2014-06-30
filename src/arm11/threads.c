@@ -28,6 +28,13 @@
 
 #define MAX_THREADS 32
 
+#ifdef modulesupport
+thread** threadsproc;
+u32*    num_threadsproc;
+s32*    current_threadproc;
+u32     current_proc;
+#endif
+
 static thread threads[MAX_THREADS];
 static u32    num_threads = 0;
 static s32    current_thread = 0;
@@ -35,6 +42,29 @@ static s32    current_thread = 0;
 
 #define THREAD_ID_OFFSET 0xC
 
+#ifdef modulesupport
+void threadmod_init(u32 modulenum)
+{
+    u32 i;
+    threadsproc = (thread **)malloc(sizeof(thread *)*(modulenum + 1));
+    for (i = 0; i < (modulenum + 1); i++)
+    {
+        *(threadsproc + i) = (thread *)malloc(sizeof(thread)*(MAX_THREADS));
+    }
+    num_threadsproc = (thread **)malloc(sizeof(u32*)*(modulenum + 1));
+    current_threadproc = (thread **)malloc(sizeof(s32*)*(modulenum + 1));
+}
+void threadmodswapprocess(u32 newproc)
+{
+    memcpy(*(threadsproc + current_proc), threads, sizeof(thread)*(MAX_THREADS)); //save maps
+    *(current_threadproc + current_proc) = current_thread;
+    *(num_threadsproc + current_proc) = num_threads;
+    memcpy(threads, *(threadsproc + newproc), sizeof(thread)*(MAX_THREADS)); //save maps
+    current_thread = *(current_threadproc + newproc);
+    num_threads = *(num_threadsproc + newproc);
+}
+
+#endif
 
 u32 threads_New(u32 handle)
 {

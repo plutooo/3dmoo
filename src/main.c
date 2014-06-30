@@ -34,6 +34,11 @@ u32 curprocesshandle;
 
 static int running = 1;
 int noscreen = 0;
+bool disasm = false;
+#ifdef modulesupport
+u32 modulenum = 0;
+char** modulenames;
+#endif
 
 #define FPS  60
 #define interval 1000 / FPS // The unit of interval is ms.
@@ -73,12 +78,36 @@ int main(int argc, char* argv[])
     atexit(AtExit);
     if(argc < 2) {
         printf("Usage:\n");
+#ifdef modulesupport
+        printf("%s <in.ncch> [-d|-noscreen|-modules <num> <in.ncch>]\n", argv[0]);
+#else
         printf("%s <in.ncch> [-d|-noscreen]\n", argv[0]);
+#endif
         return 1;
     }
 
-    bool disasm = (argc > 2) && (strcmp(argv[2], "-d") == 0);
-    noscreen =    (argc > 2) && (strcmp(argv[2], "-noscreen") == 0);
+    //disasm = (argc > 2) && (strcmp(argv[2], "-d") == 0);
+    //noscreen =    (argc > 2) && (strcmp(argv[2], "-noscreen") == 0);
+
+    for (int i = 2; i < argc; i++)
+    {
+        if ((strcmp(argv[i], "-d") == 0))disasm = true;
+        if ((strcmp(argv[i], "-noscreen") == 0))noscreen = true;
+#ifdef modulesupport
+        if ((strcmp(argv[i], "-modules") == 0))
+        {
+            i++;
+            modulenum = atoi(argv[i]);
+            for (int j = 0; j < modulenum; j++)
+            {
+                *(modulenames + j) = malloc(strlen(argv[i]));
+                strcpy(*(modulenames + j), argv[i]);
+                i++;
+            }
+            mem_init(modulenum);
+        }
+#endif
+    }
 
     FILE* fd = fopen(argv[1], "rb");
     if(fd == NULL) {

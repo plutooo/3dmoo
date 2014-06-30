@@ -28,6 +28,12 @@ typedef struct {
 } memmap_t;
 
 #define MAX_MAPPINGS 16
+
+#ifdef modulesupport
+memmap_t **mappingsproc;
+size_t*   num_mappingsproc;
+u32 currentmap = 0;
+#endif
 static memmap_t mappings[MAX_MAPPINGS];
 static size_t   num_mappings;
 
@@ -35,6 +41,28 @@ static size_t   num_mappings;
 
 #define PRINT_ILLEGAL 1
 //#define EXIT_ON_ILLEGAL 1
+
+#ifdef modulesupport
+void mem_init(u32 modulenum)
+{
+    u32 i;
+    mappingsproc = (memmap_t **)malloc(sizeof(memmap_t *)*(modulenum + 1));
+    for (i = 0; i < (modulenum + 1); i++)
+    {
+        *(mappingsproc + i) = (memmap_t *)malloc(sizeof(memmap_t)*(MAX_MAPPINGS));
+    }
+    num_mappingsproc = (size_t*)malloc(sizeof(size_t*)*(modulenum + 1));
+    threadmod_init(modulenum);
+}
+void swapprocess(u32 newproc)
+{
+    memcpy(*(mappingsproc + currentmap), mappings, sizeof(memmap_t)*(MAX_MAPPINGS)); //save maps
+    *(num_mappingsproc + currentmap) = num_mappings;
+    memcpy(mappings, *(mappingsproc + newproc), sizeof(memmap_t)*(MAX_MAPPINGS)); //save maps
+    num_mappings = *(num_mappingsproc + newproc);
+    threadmodswapprocess(newproc);
+}
+#endif
 
 void mem_Dbugdump()
 {

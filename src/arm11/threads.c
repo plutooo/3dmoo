@@ -59,9 +59,11 @@ void threadmodswapprocess(u32 newproc)
     memcpy(*(threadsproc + current_proc), threads, sizeof(thread)*(MAX_THREADS)); //save maps
     *(current_threadproc + current_proc) = current_thread;
     *(num_threadsproc + current_proc) = num_threads;
+
     memcpy(threads, *(threadsproc + newproc), sizeof(thread)*(MAX_THREADS)); //save maps
     current_thread = *(current_threadproc + newproc);
     num_threads = *(num_threadsproc + newproc);
+    curprocesshandle = *(curprocesshandlelist + newproc);
 }
 
 #endif

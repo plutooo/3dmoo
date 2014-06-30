@@ -37,7 +37,7 @@ int noscreen = 0;
 bool disasm = false;
 #ifdef modulesupport
 u32 modulenum = 0;
-char** modulenames;
+char** modulenames = NULL;
 #endif
 
 #define FPS  60
@@ -76,7 +76,7 @@ void FPS_Lock(void)
 int main(int argc, char* argv[])
 {
     atexit(AtExit);
-    if(argc < 2) {
+    if (argc < 2) {
         printf("Usage:\n");
 #ifdef modulesupport
         printf("%s <in.ncch> [-d|-noscreen|-modules <num> <in.ncch>]\n", argv[0]);
@@ -98,56 +98,96 @@ int main(int argc, char* argv[])
         {
             i++;
             modulenum = atoi(argv[i]);
+            modulenames = malloc(sizeof(char*)*modulenum);
             for (int j = 0; j < modulenum; j++)
             {
                 *(modulenames + j) = malloc(strlen(argv[i]));
                 strcpy(*(modulenames + j), argv[i]);
                 i++;
             }
-            mem_init(modulenum);
         }
 #endif
     }
 
+    curprocesshandlelist = malloc(sizeof(u32)*(modulenum + 1));
+    mem_init(modulenum);
+
+
+    signal(SIGINT, AtSig);
+
+    if (!noscreen)
+        screen_Init();
+    hid_user_init();
+    initDSP();
+    mcu_GPU_init();
+    initGPU();
+
+
+    arm11_Init();
+
+#ifdef modulesupport
+    int i;
+    for (i = 0;i<modulenum;i++)
+    {
+        u32 handzwei = handle_New(HANDLE_TYPE_PROCESS, 0);
+        curprocesshandle = handzwei;
+        *(curprocesshandlelist + i) = handzwei;
+        swapprocess(i);
+        u32 hand = handle_New(HANDLE_TYPE_THREAD, 0);
+        threads_New(hand);
+
+        // Load file.
+        FILE* fd = fopen(*(modulenames + i), "rb");
+        if (fd == NULL) {
+            perror("Error opening file");
+            return 1;
+        }
+        if (loader_LoadFile(fd) != 0) {
+            fclose(fd);
+            return 1;
+        }
+    }
+
+    u32 handzwei = handle_New(HANDLE_TYPE_PROCESS, 0);
+    *(curprocesshandlelist + modulenum) = handzwei;
+    swapprocess(modulenum);
+#else
+    u32 handzwei = handle_New(HANDLE_TYPE_PROCESS, 0);
+    curprocesshandle = handzwei;
+#endif
+
     FILE* fd = fopen(argv[1], "rb");
-    if(fd == NULL) {
+    if (fd == NULL) {
         perror("Error opening file");
         return 1;
     }
 
-    signal(SIGINT, AtSig);
-
-    if(!noscreen)
-        screen_Init();
-
-    arm11_Init();
     u32 hand = handle_New(HANDLE_TYPE_THREAD, 0);
     threads_New(hand);
-    u32 handzwei = handle_New(HANDLE_TYPE_PROCESS, 0);
-    curprocesshandle = handzwei;
 
-    hid_user_init();
 
-    initDSP();
-    mcu_GPU_init();
-
-    if(!noscreen)
-        initGPU();
 
     // Load file.
-    if(loader_LoadFile(fd) != 0) {
+    if (loader_LoadFile(fd) != 0) {
         fclose(fd);
         return 1;
     }
 
+
     // Execute.
-    while(running) {
-        if(!noscreen)
+    while (running) {
+        if (!noscreen)
             screen_HandleEvent();
 
-        //for (int i = 0; i < 6; i++) {
+#ifdef modulesupport
+        int k;
+        for (k = 0; k <= modulenum; k++) {
+#endif
             threads_Execute();
-        //}
+#ifdef modulesupport
+            swapprocess(k);
+        }
+#endif
 
         if (!noscreen)
             screen_RenderGPU();

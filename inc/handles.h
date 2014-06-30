@@ -109,6 +109,9 @@ typedef struct {
 handleinfo* handle_Get(u32 handle);
 u32 handle_New(u32 type, u32 subtype);
 
+#ifdef modulesupport
+u32 *curprocesshandlelist;
+#endif
 u32 curprocesshandle;
 
 // services/srv.c

@@ -99,6 +99,7 @@ int main(int argc, char* argv[])
             i++;
             modulenum = atoi(argv[i]);
             modulenames = malloc(sizeof(char*)*modulenum);
+            i++;
             for (int j = 0; j < modulenum; j++)
             {
                 *(modulenames + j) = malloc(strlen(argv[i]));
@@ -182,10 +183,10 @@ int main(int argc, char* argv[])
 #ifdef modulesupport
         int k;
         for (k = 0; k <= modulenum; k++) {
+            swapprocess(k);
 #endif
             threads_Execute();
 #ifdef modulesupport
-            swapprocess(k);
         }
 #endif
 

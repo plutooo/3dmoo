@@ -32,7 +32,7 @@
 thread** threadsproc;
 u32*    num_threadsproc;
 s32*    current_threadproc;
-u32     current_proc;
+u32     current_proc = 0;
 #endif
 
 static thread threads[MAX_THREADS];
@@ -52,7 +52,9 @@ void threadmod_init(u32 modulenum)
         *(threadsproc + i) = (thread *)malloc(sizeof(thread)*(MAX_THREADS));
     }
     num_threadsproc = (thread **)malloc(sizeof(u32*)*(modulenum + 1));
+    memset(num_threadsproc, 0, sizeof(u32*)*(modulenum + 1));
     current_threadproc = (thread **)malloc(sizeof(s32*)*(modulenum + 1));
+    memset(current_threadproc, 0, sizeof(s32*)*(modulenum + 1));
 }
 void threadmodswapprocess(u32 newproc)
 {
@@ -64,6 +66,7 @@ void threadmodswapprocess(u32 newproc)
     current_thread = *(current_threadproc + newproc);
     num_threads = *(num_threadsproc + newproc);
     curprocesshandle = *(curprocesshandlelist + newproc);
+    current_proc = newproc;
 }
 
 #endif

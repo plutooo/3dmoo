@@ -52,6 +52,7 @@ void mem_init(u32 modulenum)
         *(mappingsproc + i) = (memmap_t *)malloc(sizeof(memmap_t)*(MAX_MAPPINGS));
     }
     num_mappingsproc = (size_t*)malloc(sizeof(size_t*)*(modulenum + 1));
+    memset(num_mappingsproc, 0, sizeof(size_t*)*(modulenum + 1));
     threadmod_init(modulenum);
 }
 void swapprocess(u32 newproc)
@@ -61,6 +62,7 @@ void swapprocess(u32 newproc)
     memcpy(mappings, *(mappingsproc + newproc), sizeof(memmap_t)*(MAX_MAPPINGS)); //save maps
     num_mappings = *(num_mappingsproc + newproc);
     threadmodswapprocess(newproc);
+    currentmap = newproc;
 }
 #endif
 

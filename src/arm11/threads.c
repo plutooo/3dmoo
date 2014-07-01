@@ -31,7 +31,6 @@
 #ifdef modulesupport
 thread** threadsproc;
 u32*    num_threadsproc;
-s32*    current_threadproc;
 u32     current_proc = 0;
 #endif
 
@@ -50,23 +49,23 @@ void threadmod_init(u32 modulenum)
     for (i = 0; i < (modulenum + 1); i++)
     {
         *(threadsproc + i) = (thread *)malloc(sizeof(thread)*(MAX_THREADS));
+        memset(*(threadsproc + i), 0, sizeof(thread)*(MAX_THREADS));
     }
     num_threadsproc = (thread **)malloc(sizeof(u32*)*(modulenum + 1));
     memset(num_threadsproc, 0, sizeof(u32*)*(modulenum + 1));
-    current_threadproc = (thread **)malloc(sizeof(s32*)*(modulenum + 1));
-    memset(current_threadproc, 0, sizeof(s32*)*(modulenum + 1));
 }
 void threadmodswapprocess(u32 newproc)
 {
+    threads_SaveContextCurrentThread();
     memcpy(*(threadsproc + current_proc), threads, sizeof(thread)*(MAX_THREADS)); //save maps
-    *(current_threadproc + current_proc) = current_thread;
     *(num_threadsproc + current_proc) = num_threads;
 
     memcpy(threads, *(threadsproc + newproc), sizeof(thread)*(MAX_THREADS)); //save maps
-    current_thread = *(current_threadproc + newproc);
+    current_thread = 0;
     num_threads = *(num_threadsproc + newproc);
     curprocesshandle = *(curprocesshandlelist + newproc);
     current_proc = newproc;
+    arm11_LoadContext(&threads[0]);
 }
 
 #endif

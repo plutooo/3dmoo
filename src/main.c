@@ -127,9 +127,10 @@ int main(int argc, char* argv[])
         if (i >= argc)break;
 #endif
     }
-
+#ifdef modulesupport
     curprocesshandlelist = malloc(sizeof(u32)*(modulenum + 1));
     mem_init(modulenum);
+#endif
 
 
     signal(SIGINT, AtSig);
@@ -214,6 +215,7 @@ int main(int argc, char* argv[])
             screen_RenderGPU();
 
         FPS_Lock();
+        //mem_Dbugdump();
     }
 
 

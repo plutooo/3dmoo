@@ -252,6 +252,14 @@ SERVICE_CMD(0x08170000) { // IsSdmcDetected
     return 0;
 }
 
+SERVICE_CMD(0x08210000) { // CardSlotIsInserted
+    DEBUG("CardSlotIsInserted - STUBBED -\n");
+
+    RESP(1, 0);
+    return 0;
+}
+
+
 SERVICE_END();
 
 

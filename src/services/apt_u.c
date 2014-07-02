@@ -29,14 +29,25 @@ u32 event_handles[2];
 u8* APTsharedfont = NULL;
 size_t APTsharedfontsize = 0;
 
+u32 LockHandle = 0;
 
 SERVICE_START(apt_u);
 
 SERVICE_CMD(0x10040) { //GetLockHandle
     u32 unk1 = CMD(1);
     u32 unk2 = CMD(2);
-    DEBUG("GetLockHandle, unk1=%08x, unk2=%08x\n", unk1, unk2);
+    DEBUG("GetLockHandle (todo), unk1=%08x, unk2=%08x\n", unk1, unk2);
 
+    if (LockHandle == 0)
+    {
+        LockHandle = handle_New(HANDLE_TYPE_MUTEX, 0);
+        handleinfo* hi = handle_Get(LockHandle);
+        hi->locked = false;
+    }
+    RESP(5, LockHandle); // return
+    RESP(4, 0); // unk used?
+    RESP(3, 0); // unk used?
+    RESP(2, 0); // unk used?
     RESP(1, 0); // Result
     return 0;
 }

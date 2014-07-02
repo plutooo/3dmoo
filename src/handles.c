@@ -203,15 +203,10 @@ u32 svcWaitSynchronization1() //todo timeout
     }
 
 }
-u32 svcWaitSynchronizationN() // TODO: timeouts
-{
-    u32 nanoseconds1  = arm11_R(0);
-    u32 handles_ptr   = arm11_R(1);
-    u32 handles_count = arm11_R(2);
-    u32 wait_all      = arm11_R(3);
-    u32 nanoseconds2  = arm11_R(4);
-    u32 out =           arm11_R(5);
 
+
+u32 wrapWaitSynchronizationN(u32 nanoseconds1,u32 handles_ptr,u32 handles_count,u32 wait_all,u32 nanoseconds2,u32 out) // TODO: timeouts
+{
     bool all_unlocked = true;
 
     for (u32 i = 0; i < handles_count; i++) {
@@ -268,4 +263,17 @@ u32 svcWaitSynchronizationN() // TODO: timeouts
 
     threads_SetCurrentThreadWaitList(wait_list, wait_all, handles_count);
     return 0;
+
+}
+
+
+u32 svcWaitSynchronizationN() // TODO: timeouts
+{
+    u32 nanoseconds1  = arm11_R(0);
+    u32 handles_ptr   = arm11_R(1);
+    u32 handles_count = arm11_R(2);
+    u32 wait_all      = arm11_R(3);
+    u32 nanoseconds2  = arm11_R(4);
+    u32 out =           arm11_R(5);
+    wrapWaitSynchronizationN(nanoseconds1, handles_ptr, handles_count, wait_all, nanoseconds2, out);
 }

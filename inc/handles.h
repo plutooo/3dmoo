@@ -18,6 +18,13 @@
 
 #include "armdefs.h"
 
+
+
+#define HANDLE_SERV_STAT_TAKEN       0x1
+#define HANDLE_SERV_STAT_WAITING     0x2
+#define HANDLE_SERV_STAT_SYNCING     0x4
+#define HANDLE_SERV_STAT_ACKING      0x8
+
 #define HANDLE_TYPE_UNK       0
 #define HANDLE_TYPE_PORT      1
 #define HANDLE_TYPE_SERVICE   2
@@ -104,6 +111,9 @@ typedef struct {
     u32  misc[4];
     void* misc_ptr[4];
 } handleinfo;
+//main.c
+u32 overdrivnum;
+char** overdrivnames;
 
 // handles.c
 handleinfo* handle_Get(u32 handle);
@@ -116,6 +126,7 @@ u32 curprocesshandle;
 
 // services/srv.c
 u32 services_SyncRequest(handleinfo* h, bool *locked);
+u32 services_WaitSynchronization(handleinfo* h, bool *locked);
 
 // svc/syn.c
 u32 mutex_WaitSynchronization(handleinfo* h, bool *locked);
@@ -161,7 +172,7 @@ static struct {
         "service",
         &services_SyncRequest,
         NULL,
-        NULL
+        &services_WaitSynchronization
     },
     {
         "event",

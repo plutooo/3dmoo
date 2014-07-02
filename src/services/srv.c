@@ -53,6 +53,9 @@ u32 pdn_g_SyncRequest();
 u32 mcu_GPU_SyncRequest();
 u32 i2c_LCD_SyncRequest();
 
+#define CPUsvcbuffer 0xFFFF0000
+
+
 #ifndef _WIN32
 static size_t strnlen(const char* p, size_t n)
 {
@@ -296,6 +299,24 @@ u32 services_SyncRequest(handleinfo* h, bool *locked)
             return services[i].fnSyncRequest();
     }
 
+    if (h->subtype == SERVICE_DIRECT)
+    {
+        if (h->misc[0] & HANDLE_SERV_STAT_ACKING)
+        {
+            mem_Write(h->misc_ptr[0], CPUsvcbuffer + 0x80, 0x200);
+            h->misc[0] &= ~(HANDLE_SERV_STAT_ACKING | HANDLE_SERV_STAT_SYNCING);
+            *locked = false;
+            return 0;
+        }
+        else
+        {
+            if (!(h->misc[0] & HANDLE_SERV_STAT_SYNCING)) mem_Read(h->misc_ptr[0], CPUsvcbuffer + 0x80, 0x200);
+            h->misc[0] |= HANDLE_SERV_STAT_SYNCING;
+            *locked = true;
+            return 0;
+        }
+    }
+
     ERROR("invalid handle.\n");
     arm11_Dump();
     PAUSE();
@@ -323,16 +344,17 @@ u32 srv_InitHandle()
     h->misc[0] = 0; //there are 0x10 events we know 2 non of them are used here
     h->misc[1] = 0x10;
 
+    return 0;
+}
+
+u32 srv_InitGlobal()
+{
     // Create handles for all services.
     u32 i;
     for(i=0; i<ARRAY_SIZE(services); i++) {
         services[i].handle = handle_New(HANDLE_TYPE_SERVICE, services[i].subtype);
     }
-
-    return 0;
 }
-
-#define CPUsvcbuffer 0xFFFF0000
 
 struct {
     char name[8];
@@ -380,6 +402,16 @@ u32 srv_SyncRequest()
         memcpy(ownservice[ownservice_num].name,req.name , 9);
 
         ownservice[ownservice_num].handle = handle_New(HANDLE_TYPE_SERVICE, SERVICE_DIRECT);
+
+        handleinfo* hi = handle_Get(ownservice[ownservice_num].handle);
+        if (hi == NULL) {
+            ERROR("getting handle.\n");
+            return 0x0;
+        }
+        hi->misc[0] = HANDLE_SERV_STAT_TAKEN; //init
+
+        hi->misc_ptr[0] = malloc(0x200);
+
         mem_Write32(CPUsvcbuffer + 0x84, 0); //no error
         mem_Write32(CPUsvcbuffer + 0x8C, ownservice[ownservice_num].handle); //return handle
         ownservice_num++;
@@ -399,6 +431,28 @@ u32 srv_SyncRequest()
         PAUSE();
 
         u32 i;
+
+        bool overdr = false;
+        for (int i = 0; i < overdrivnum; i++)
+        {
+            if (memcmp(req.name, *(overdrivnames + i), strnlen(*(overdrivnames + i), 8)) == 0)overdr = true;
+        }
+        if (!overdr)
+        {
+            for (int i = 0; i < ownservice_num; i++)
+            {
+                if (memcmp(req.name, ownservice[i].name, strnlen(ownservice[i].name, 8)) == 0) {
+
+                    // Write result.
+                    mem_Write32(0xFFFF0084, 0);
+
+                    // Write handle_out.
+                    mem_Write32(0xFFFF008C, ownservice[i].handle);
+
+                    return 0;
+                }
+            }
+        }
         for(i=0; i<ARRAY_SIZE(services); i++) {
             // Find service in list.
             if(memcmp(req.name, services[i].name, strnlen(services[i].name, 8)) == 0) {
@@ -449,12 +503,27 @@ u32 svcReplyAndReceive()
     u32 handleCount = arm11_R(2);
     u32 replyTarget = arm11_R(3);
     DEBUG("svcReplyAndReceive %08x %08x %08x %08x\n", index, handles, handleCount, replyTarget);
-
+#ifdef modulesupport
     for (u32 i = 0; i < handleCount; i++)
     {
         DEBUG("%08x\n", mem_Read32(handles+i*4));
-    }
 
+        handleinfo* h = handle_Get(eventhandle);
+        if (h == NULL) {
+            DEBUG("failed to get newly created semaphore\n");
+            PAUSE();
+            return -1;
+        }
+
+        if (h->type == HANDLE_TYPE_SERVICE)
+        {
+            h->misc[0] |= HANDLE_SERV_STAT_WAITING;
+            h->misc[1] = curprocesshandle;
+            h->misc[2] = threads_GetCurrentThreadHandle();
+        }
+        wrapWaitSynchronizationN(0xFFFFFFFF, handles, handleCount, 0, 0xFFFFFFFF,0,1);
+    }
+#endif
     //feed module data here 
 
     /*mem_Write32(CPUsvcbuffer + 0x80, 0x001100c2);
@@ -518,5 +587,15 @@ u32 svcAcceptSession()
     u32 port = arm11_R(1);
     arm11_SetR(1, handle_New(HANDLE_TYPE_SESSION, port));
     DEBUG("AcceptSession %08x %08x\n", session, port);
+    return 0;
+}
+u32 services_WaitSynchronization(handleinfo* h, bool *locked)
+{
+    if (h->misc[0] & HANDLE_SERV_STAT_SYNCING)
+    {
+        mem_Write(h->misc_ptr[0], CPUsvcbuffer + 0x80, 0x200);
+        *locked = false;
+    }
+    else*locked = true;
     return 0;
 }

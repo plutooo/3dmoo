@@ -216,12 +216,12 @@ void threads_Execute() {
     u32 t;
 
     for (t=0; t<threads_Count(); t++) {
+        threads_Switch(/*from,*/ t);
         if(!threads_IsThreadActive(t)) {
             DEBUG("Skipping thread %d..\n", t);
             continue;
         }
 
-        threads_Switch(/*from,*/ t);
 
         arm11_Run(0x8000000 / 60);
     }

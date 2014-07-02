@@ -33,3 +33,5 @@
 [0%] Switch ThreadCommandBuffer upon context switch.
 [0%] Implement a debugger.
 [0%] Better error-handling than exit(1).
+[0%] remove HANDLE_SERV_STAT_WAITING when service is no more waiting.
+[0%] support mutible syncs in one run to the same service.

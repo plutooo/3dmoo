@@ -38,6 +38,9 @@ bool disasm = false;
 #ifdef modulesupport
 u32 modulenum = 0;
 char** modulenames = NULL;
+
+u32 overdrivnum = 0;
+char** overdrivnames = NULL;
 #endif
 
 #define FPS  60
@@ -79,7 +82,7 @@ int main(int argc, char* argv[])
     if (argc < 2) {
         printf("Usage:\n");
 #ifdef modulesupport
-        printf("%s <in.ncch> [-d|-noscreen|-modules <num> <in.ncch>]\n", argv[0]);
+        printf("%s <in.ncch> [-d|-noscreen|-modules <num> <in.ncch>|-overdrivlist <num> <services>]\n", argv[0]);
 #else
         printf("%s <in.ncch> [-d|-noscreen]\n", argv[0]);
 #endif
@@ -107,6 +110,21 @@ int main(int argc, char* argv[])
                 i++;
             }
         }
+        if (i >= argc)break;
+        if ((strcmp(argv[i], "-overdrivlist") == 0))
+        {
+            i++;
+            overdrivnum = atoi(argv[i]);
+            overdrivnames = malloc(sizeof(char*)*modulenum);
+            i++;
+            for (int j = 0; j < modulenum; j++)
+            {
+                *(overdrivnames + j) = malloc(strlen(argv[i]));
+                strcpy(*(overdrivnames + j), argv[i]);
+                i++;
+            }
+        }
+        if (i >= argc)break;
 #endif
     }
 
@@ -122,6 +140,7 @@ int main(int argc, char* argv[])
     initDSP();
     mcu_GPU_init();
     initGPU();
+    srv_InitGlobal();
 
 
     arm11_Init();
@@ -184,6 +203,7 @@ int main(int argc, char* argv[])
         int k;
         for (k = 0; k <= modulenum; k++) {
             swapprocess(k);
+            DEBUG("process %X\n",k);
 #endif
             threads_Execute();
 #ifdef modulesupport

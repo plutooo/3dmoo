@@ -100,6 +100,12 @@ SERVICE_CMD(0x00020080) { //unk 0x2
     RESP(1, 0); // Result
     return 0;
 }
+SERVICE_CMD(0x000B0040) { //unk 0xB
+    DEBUG("unk 0xB %02x\n", (u8)CMD(1));
+
+    RESP(1, 0); // Result
+    return 0;
+}
 
 
 SERVICE_END();

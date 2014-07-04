@@ -35,6 +35,7 @@ u32 curprocesshandle;
 static int running = 1;
 int noscreen = 0;
 bool disasm = false;
+char* codepath = NULL;
 #ifdef modulesupport
 u32 modulenum = 0;
 char** modulenames = NULL;
@@ -82,9 +83,9 @@ int main(int argc, char* argv[])
     if (argc < 2) {
         printf("Usage:\n");
 #ifdef modulesupport
-        printf("%s <in.ncch> [-d|-noscreen|-modules <num> <in.ncch>|-overdrivlist <num> <services>]\n", argv[0]);
+        printf("%s <in.ncch> [-d|-noscreen|-codepatch <code>|-modules <num> <in.ncch>|-overdrivlist <num> <services>]\n", argv[0]);
 #else
-        printf("%s <in.ncch> [-d|-noscreen]\n", argv[0]);
+        printf("%s <in.ncch> [-d|-noscreen|-codepatch <code>]\n", argv[0]);
 #endif
         return 1;
     }
@@ -96,6 +97,16 @@ int main(int argc, char* argv[])
     {
         if ((strcmp(argv[i], "-d") == 0))disasm = true;
         if ((strcmp(argv[i], "-noscreen") == 0))noscreen = true;
+        if ((strcmp(argv[i], "-codepatch") == 0))
+        {
+            i++;
+            codepath = malloc(strlen(argv[i]));
+            strcpy(codepath, argv[i]);
+            i++;
+        }
+        if (i >= argc)break;
+
+
 #ifdef modulesupport
         if ((strcmp(argv[i], "-modules") == 0))
         {

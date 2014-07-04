@@ -476,12 +476,13 @@ u32 srv_SyncRequest()
 
         u32 type = mem_Read32(0xFFFF0084);
         DEBUG("STUBBED, type=%x\n", type);
+
         mem_Write32(CPUsvcbuffer + 0x84, 0);
         return 0;
 
     case 0xB0000: // GetNotificationType
         DEBUG("srv_GetNotificationType\n");
-        mem_Dbugdump();
+        //mem_Dbugdump();
         mem_Write32(CPUsvcbuffer + 0x84, 0); //worked
         mem_Write32(CPUsvcbuffer + 0x88, 0xFFFF); //type 
         return 0;
@@ -510,7 +511,6 @@ u32 svcReplyAndReceive()
 
         handleinfo* h = handle_Get(eventhandle);
         if (h == NULL) {
-            DEBUG("failed to get newly created semaphore\n");
             PAUSE();
             return -1;
         }
@@ -521,10 +521,16 @@ u32 svcReplyAndReceive()
             h->misc[1] = curprocesshandle;
             h->misc[2] = threads_GetCurrentThreadHandle();
         }
-        wrapWaitSynchronizationN(0xFFFFFFFF, handles, handleCount, 0, 0xFFFFFFFF,0,1);
     }
 #endif
+    for (u32 i = 0; i < handleCount; i++)
+    {
+        DEBUG("%08x\n", mem_Read32(handles + i * 4));
+    }
+    wrapWaitSynchronizationN(0xFFFFFFFF, handles, handleCount, 1, 0xFFFFFFFF,0);
     //feed module data here 
+
+    arm11_SetR(1, 1);
 
     /*mem_Write32(CPUsvcbuffer + 0x80, 0x001100c2);
     mem_Write32(CPUsvcbuffer + 0x84, 0x0000C288);

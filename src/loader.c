@@ -23,6 +23,7 @@
 #include "mem.h"
 #include "fs.h"
 
+extern char* codepath;
 
 // Shamelessly stolen from ctrtool.
 typedef struct {
@@ -458,6 +459,16 @@ int loader_LoadFile(FILE* fd)
                 {
                     fwrite(dec, 1, dec_size, pFile);
                     fclose(pFile);
+                }
+
+                if (codepath != NULL)
+                {
+                    pFile = fopen(codepath, "rb");
+                    if (pFile != NULL)
+                    {
+                        fread(dec, 1, dec_size, pFile);
+                        fclose(pFile);
+                    }
                 }
 
                 if (dec_size == firmexpected)

@@ -87,12 +87,18 @@ void GPUTriggerCmdReqQueue() //todo
             u32 src;
             u32 dest;
             u32 size;
+            u32 addr;
+            u32 flags;
             switch (CMDID & 0xFF) {
             case 0:
                 src = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x4);
                 dest = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x8);
                 size = *(u32*)(baseaddr + (j + 1) * 0x20 + 0xC);
-                if (dest - 0x1f000000 > 0x600000)DEBUG("dma copy into non VRAM not suported\r\n");
+                if (dest - 0x1f000000 > 0x600000)
+                {
+                    DEBUG("dma copy into non VRAM not suported\r\n");
+                    continue;
+                }
 
 
                 //for (u32 k = 0; k < size; k++)
@@ -101,12 +107,45 @@ void GPUTriggerCmdReqQueue() //todo
                 mem_Read(&VRAMbuff[dest - 0x1F000000], src, size);
 
                 break;
+            case 1:
+                addr = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x4);
+                size = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x8);
+                flags = *(u32*)(baseaddr + (j + 1) * 0x20 + 0xC);
+                DEBUG("GX SetCommandList Last 0x%08X 0x%08X 0x%08X --todo--",addr,size,flags);
+
+            case 2:
+            {
+                      u32 addr1, val1, addrend1, addr2, val2, addrend2,width;
+                      addr1 = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x4);
+                      val1 = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x8);
+                      addrend1 = *(u32*)(baseaddr + (j + 1) * 0x20 + 0xC);
+                      addr2 = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x10);
+                      val2 = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x14);
+                      addrend2 = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x18);
+                      width = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x1C);
+                      if (addrend1 - 0x1f000000 > 0x600000 || addrend2 - 0x1f000000 > 0x600000)
+                      {
+                          DEBUG("SetMemoryFill into non VRAM not suported\r\n");
+                          continue;
+                      }
+                      DEBUG("GX SetMemoryFill 0x%08X 0x%08X 0x%08X 0x%08X 0x%08X 0x%08X 0x%08X --todo--", addr1, val1, addrend1, addr2, val2, addrend2, width);
+
+            }
+                break;
             default:
                 DEBUG("GX cmd 0x%08X 0x%08X 0x%08X 0x%08X 0x%08X 0x%08X 0x%08X 0x%08X\r\n", *(u32*)(baseaddr + (j + 1) * 0x20), *(u32*)((baseaddr + (j + 1) * 0x20) + 0x4), *(u32*)((baseaddr + (j + 1) * 0x20) + 0x8), *(u32*)((baseaddr + (j + 1) * 0x20) + 0xC), *(u32*)((baseaddr + (j + 1) * 0x20) + 0x10), *(u32*)((baseaddr + (j + 1) * 0x20) + 0x14), *(u32*)((baseaddr + (j + 1) * 0x20) + 0x18), *(u32*)((baseaddr + (j + 1) * 0x20)) + 0x1C);
                 break;
             }
         }
     }
+    handleinfo* h = handle_Get(trigevent);
+    if (h == NULL) {
+        DEBUG("failed to get Event\n");
+        PAUSE();
+        return;// -1;
+    }
+    h->locked = false; //unlock we are fast
+
     *(u8*)(GSPsharedbuff + 0x81) = 1; //ichfly fix that
     *(u8*)(GSPsharedbuff + 0x80) = 1;
 }

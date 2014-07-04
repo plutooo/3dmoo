@@ -7,7 +7,7 @@
 #include "threads.h"
 
 #define dumpstack 1
-#define dumpstacksize 0x10
+#define dumpstacksize 0x100
 #define maxdmupaddr 0x0033a850
 
 /*ARMword ARMul_GetCPSR (ARMul_State * state) {

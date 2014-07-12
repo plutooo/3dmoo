@@ -267,9 +267,14 @@ u32 svcControlMemory()
     return -1;
 }
 
+extern u8 HIDsharedbuffSPVR[0x2000];
 extern u8 HIDsharedbuff[0x2000];
+
 extern u8* APTsharedfont;
 extern size_t APTsharedfontsize;
+
+extern u8* APTs_sharedfont;
+extern size_t APTs_sharedfontsize;
 
 u32 svcMapMemoryBlock()
 {
@@ -299,6 +304,9 @@ u32 svcMapMemoryBlock()
         case MEM_TYPE_HID_0:
             mem_AddMappingShared(addr, 0x2000, HIDsharedbuff);
             break;
+        case MEM_TYPE_HID_SPVR_0:
+            mem_AddMappingShared(addr, 0x2000, HIDsharedbuffSPVR);
+            break;
         case MEM_TYPE_APT_SHARED_FONT:
 
             // If user has supplied the shared font, map it.
@@ -309,6 +317,18 @@ u32 svcMapMemoryBlock()
 
             mem_AddMappingShared(0xDEAD0000, APTsharedfontsize, APTsharedfont); //todo ichfly
             break;
+
+        case MEM_TYPE_APT_S_SHARED_FONT:
+
+            // If user has supplied the shared font, map it.
+            if (APTs_sharedfont == NULL) {
+                ERROR("No shared font supplied\n");
+                return -1;
+            }
+
+            mem_AddMappingShared(0xDEAD0000, APTs_sharedfontsize, APTs_sharedfont); //todo ichfly
+            break;
+
         case MEM_TYPE_ALLOC:
             if (h->misc[0] != 0)
             {

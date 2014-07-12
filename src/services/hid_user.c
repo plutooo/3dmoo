@@ -23,6 +23,8 @@
 #include "service_macros.h"
 #include <SDL.h>
 
+
+extern u8 HIDsharedbuffSPVR[0x2000];
 u8 HIDsharedbuff[0x2000];
 
 #define CPUsvcbuffer 0xFFFF0000
@@ -107,8 +109,10 @@ u32 translate_to_bit(const SDL_KeyboardEvent* key)
 void hid_keyup(const SDL_KeyboardEvent* key)
 {
     *(u32*)&HIDsharedbuff[0x1C] &= ~translate_to_bit(key);
+    *(u32*)&HIDsharedbuffSPVR[0x1C] = *(u32*)&HIDsharedbuff[0x1C];
 }
 void hid_keypress(const SDL_KeyboardEvent* key)
 {
     *(u32*)&HIDsharedbuff[0x1C] |= translate_to_bit(key);
+    *(u32*)&HIDsharedbuffSPVR[0x1C] = *(u32*)&HIDsharedbuff[0x1C];
 }

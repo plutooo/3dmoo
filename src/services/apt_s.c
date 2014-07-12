@@ -114,16 +114,20 @@ SERVICE_CMD(0x440000) {
             RESP(1, -1);
             return 0;
         }
+
         APTs_sharedfont[3] = 0x2;
+        APTs_sharedfont[2] = 0x0;
+        APTs_sharedfont[1] = 0x0;
+        APTs_sharedfont[0] = 0x0;
 
         fclose(fd);
     }
 
     RESP(1, 0); // Result
-    RESP(2, 0xDEAD0000); // ?
+    RESP(2, 0xDEAD0000); // mem addr
 
     // Handle for shared memory
-    RESP(4, handle_New(HANDLE_TYPE_SHAREDMEM, MEM_TYPE_APT_SHARED_FONT));
+    RESP(4, handle_New(HANDLE_TYPE_SHAREDMEM, MEM_TYPE_APT_S_SHARED_FONT));
     return 0;
 }
 

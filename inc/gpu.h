@@ -32,7 +32,7 @@ u8* LINEmembuffer;
 u8* VRAMbuff;
 u8* GSPsharedbuff;
 
-#define GSPsharebuffsize 0x800 + 0xFF * 0x200
+#define GSPsharebuffsize 0x1000 //dumped from GSP module in Firm 4.4
 
 void initGPU();
 void GPUwritereg32(u32 addr, u32 data);

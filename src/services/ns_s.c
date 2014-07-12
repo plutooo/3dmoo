@@ -21,20 +21,16 @@
 #include "mem.h"
 #include "arm11.h"
 
-u32 lock_handle;
-u32 event_handles[2];
+#include "service_macros.h"
 
-u32 ns_s_SyncRequest()
-{
-    u32 cid = mem_Read32(0xFFFF0080);
+SERVICE_START(ns_s);
 
-    // Read command-id.
-    switch(cid) {
+SERVICE_CMD(0x000200c0) { // Initialize
+    DEBUG("LaunchTitle --todo-- %08x %08x %08x\n", CMD(1), CMD(2), CMD(3));
 
-    }
-
-    ERROR("NOT IMPLEMENTED, cid=%08x\n", cid);
-    arm11_Dump();
-    PAUSE();
+    RESP(2, 0); // 	Launched process' ProcessId 
+    RESP(1, 0); // Result
     return 0;
 }
+
+SERVICE_END();

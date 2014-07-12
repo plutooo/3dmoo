@@ -89,7 +89,7 @@ SERVICE_CMD(0x00040040) { //unk 0x4
 SERVICE_CMD(0x000e0000) { //unk 0xE
     DEBUG("unk 0xE\n");
 
-    RESP(2, 0x2000000); // return //u32
+    RESP(2, 0x02000000); // return //u32
 
     RESP(1, 0); // Result
     return 0;

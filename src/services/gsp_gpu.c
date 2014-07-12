@@ -39,8 +39,8 @@ u32 gsp_gpu_SyncRequest()
         outaddr = mem_Read32(CPUsvcbuffer + 0x90);
         lange = mem_Read32(CPUsvcbuffer + 0x88);
         addr = mem_Read32(CPUsvcbuffer + 0x84);
-        DEBUG("GSPGPU_WriteHWRegs %08x %08x %08x", addr, outaddr, lange);
-        if ((lange & 0x3) != 0) DEBUG("nicht surportete Länge");
+        DEBUG("GSPGPU_WriteHWRegs %08x %08x %08x\n", addr, outaddr, lange);
+        if ((lange & 0x3) != 0) DEBUG("nicht surportete Länge\n");
         for (u32 i = 0; i < lange; i += 4) GPUwritereg32((u32)(addr + i), mem_Read32((u32)(outaddr + i)));
         return 0;
     }
@@ -49,14 +49,14 @@ u32 gsp_gpu_SyncRequest()
         outaddr = mem_Read32(CPUsvcbuffer + 0x184);
         lange = mem_Read32(CPUsvcbuffer + 0x88);
         addr = mem_Read32(CPUsvcbuffer + 0x84);
-        DEBUG("GSPGPU_ReadHWRegs %08x %08x %08x", addr, outaddr, lange);
-        if ((lange & 0x3) != 0) DEBUG("nicht surportete Länge");
+        DEBUG("GSPGPU_ReadHWRegs %08x %08x %08x\n", addr, outaddr, lange);
+        if ((lange & 0x3) != 0) DEBUG("nicht surportete Länge\n");
         for (u32 i = 0; i < lange; i += 4) mem_Write32((u32)(outaddr + i), GPUreadreg32((u32)(addr + i)));
         return 0;
     }
     case 0xB0040: //SetLcdForceBlack
     {
-        DEBUG("SetLcdForceBlack");
+        DEBUG("SetLcdForceBlack\n");
         unsigned char* buffer = get_pymembuffer(0x18000000);
         memset(buffer, 0, 0x46500 * 6);
         return 0;
@@ -81,7 +81,7 @@ u32 gsp_gpu_SyncRequest()
     }
     case 0x160042: //AcquireRight
     {
-                       DEBUG("AcquireRight %08x %08x", mem_Read32(CPUsvcbuffer + 0x84), mem_Read32(CPUsvcbuffer + 0x8C));
+                       DEBUG("AcquireRight %08x %08x\n", mem_Read32(CPUsvcbuffer + 0x84), mem_Read32(CPUsvcbuffer + 0x8C));
                        mem_Write32(CPUsvcbuffer + 0x84, 0); //no error
                        return 0;
     }

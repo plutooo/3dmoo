@@ -92,6 +92,8 @@
 #define MEM_TYPE_HID_0           1
 #define MEM_TYPE_APT_SHARED_FONT 2
 #define MEM_TYPE_ALLOC 3
+#define MEM_TYPE_HID_SPVR_0           4
+#define MEM_TYPE_APT_S_SHARED_FONT 5
 
 
 #define HANDLE_CURRENT_THREAD  0xFFFF8000

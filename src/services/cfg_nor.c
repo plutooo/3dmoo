@@ -24,4 +24,11 @@
 
 SERVICE_START(cfg_nor);
 
+SERVICE_CMD(0x00010040) { // Initialize
+    DEBUG("Initialize %08x\n",CMD(1));
+
+    RESP(1, 0); // Result
+    return 0;
+}
+
 SERVICE_END();

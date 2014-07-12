@@ -20,6 +20,12 @@
 #include "arm11.h"
 #include "handles.h"
 
+#include "armdefs.h"
+#include "armemu.h"
+#include "threads.h"
+
+extern ARMul_State s;
+
 typedef struct {
     uint32_t base;
     uint32_t size;
@@ -246,7 +252,7 @@ int mem_Write16(uint32_t addr, uint16_t w)
 uint16_t mem_Read16(uint32_t addr)
 {
 #ifdef MEM_TRACE
-    fprintf(stderr, "r16 %08x\n", addr);
+    fprintf(stderr, "r16 %08x sp=%08x\n", addr, s.Reg[13]);
 #endif
 
     size_t i;
@@ -294,7 +300,7 @@ int mem_Write32(uint32_t addr, uint32_t w)
     }
 #ifdef PRINT_ILLEGAL
     ERROR("trying to write32 unmapped addr %08x, w=%08x\n", addr, w);
-    //arm11_Dump();
+    arm11_Dump();
 #endif
 #ifdef EXIT_ON_ILLEGAL
     exit(1);
@@ -341,7 +347,7 @@ u32 mem_Read32(uint32_t addr)
 #ifdef PRINT_ILLEGAL
     ERROR("trying to read32 unmapped addr %08x\n", addr);
     arm11_Dump();
-    //mem_Dbugdump();
+    mem_Dbugdump();
 #endif
 #ifdef EXIT_ON_ILLEGAL
     exit(1);

@@ -490,12 +490,13 @@ u32 srv_SyncRequest()
     default:
         ERROR("Unimplemented command %08x in \"srv:\"\n", cid);
         arm11_Dump();
+        mem_Write32(CPUsvcbuffer + 0x84, 0xFFFFFFFF); //worked
+        return 0;
         //exit(1);
     }
 
     return 0;
 }
-bool goin = false;
 u32 svcReplyAndReceive()
 {
 
@@ -527,61 +528,11 @@ u32 svcReplyAndReceive()
     {
         DEBUG("%08x\n", mem_Read32(handles + i * 4));
     }
-    wrapWaitSynchronizationN(0xFFFFFFFF, handles, handleCount, 1, 0xFFFFFFFF,0);
+    //wrapWaitSynchronizationN(0xFFFFFFFF, handles, handleCount, 1, 0xFFFFFFFF,0);
+
+
+
     //feed module data here 
-
-    arm11_SetR(1, 1);
-
-    /*mem_Write32(CPUsvcbuffer + 0x80, 0x001100c2);
-    mem_Write32(CPUsvcbuffer + 0x84, 0x0000C288);
-    mem_Write32(CPUsvcbuffer + 0x88, 0x000000FF);
-    mem_Write32(CPUsvcbuffer + 0x8C, 0x000000FF);
-    mem_Write32(CPUsvcbuffer + 0x90, 0x000C288A);
-    mem_Write32(CPUsvcbuffer + 0x94, 0xDEADC000);
-
-
-    u8* dat = malloc(0x0000C288);
-
-    FILE * pFile3;
-    pFile3 = fopen("dspfirm.bin", "rb");
-    if (pFile3 != NULL)
-    {
-        fread(dat, 0x0000C288,1 , pFile3);
-        fclose(pFile3);
-    }
-
-    mem_AddSegment(0xDEADC000, 0x0000C288, dat);
-
-    free(dat);*/
-
-    /*u32 close = handle_New(HANDLE_TYPE_MUTEX, 0);
-    handleinfo* h = handle_Get(close);
-    if (h == NULL) {
-        DEBUG("failed to get newly created semaphore\n");
-        PAUSE();
-        return -1;
-    }
-
-    h->locked = true;
-    u32* wait_list = (u32*)malloc(4);
-    wait_list[0] = close;
-    
-
-    threads_SetCurrentThreadWaitList(wait_list, true, 1);
-    if (goin)
-    {
-        mem_Write32(CPUsvcbuffer + 0x80, 0x00130042);
-        mem_Write32(CPUsvcbuffer + 0x84, 0x00000000);
-        mem_Write32(CPUsvcbuffer + 0x88, 0x00000000);
-        mem_Write32(CPUsvcbuffer + 0x8C, handle_New(HANDLE_TYPE_EVENT, 0));
-        arm11_SetR(1,2); //this is the index that is returned in this case GPU:GPU
-        goin = false;
-    }
-    else
-    {
-        mem_Write32(CPUsvcbuffer + 0x80, 0xFFF10042); //error
-        arm11_SetR(1, 5); //error²
-    }*/
 
     //feed end
 

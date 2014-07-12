@@ -197,6 +197,7 @@ u32 *ainstr;
             if (tinstr & (1 << 6))
                 Rs += 8;
             switch ((tinstr & 0x03C0) >> 6) {
+            case 0x0:	/* ADD Rd,Rd,Hs */
             case 0x1:	/* ADD Rd,Rd,Hs */
             case 0x2:	/* ADD Hd,Hd,Rs */
             case 0x3:	/* ADD Hd,Hd,Hs */
@@ -205,6 +206,7 @@ u32 *ainstr;
                           |(Rd << 12)	/* Rd */
                           |(Rs << 0);	/* Rm */
                 break;
+            case 0x4:	/* CMP Rd,Hs */
             case 0x5:	/* CMP Rd,Hs */
             case 0x6:	/* CMP Hd,Rs */
             case 0x7:	/* CMP Hd,Hs */
@@ -213,6 +215,7 @@ u32 *ainstr;
                           |(Rd << 12)	/* Rd */
                           |(Rs << 0);	/* Rm */
                 break;
+            case 0x8:	/* MOV Rd,Hs */
             case 0x9:	/* MOV Rd,Hs */
             case 0xA:	/* MOV Hd,Rs */
             case 0xB:	/* MOV Hd,Hs */
@@ -225,11 +228,6 @@ u32 *ainstr;
             case 0xD:	/* BX Hs */
                 *ainstr = 0xE12FFF10	/* base */
                           | ((tinstr & 0x0078) >> 3);	/* Rd */
-                break;
-            case 0x0:	/* UNDEFINED */
-            case 0x4:	/* UNDEFINED */
-            case 0x8:	/* UNDEFINED */
-                valid = t_undefined;
                 break;
             case 0xE:	/* BLX */
             case 0xF:	/* BLX */
@@ -348,15 +346,45 @@ u32 *ainstr;
             // *ainstr = 0xEF000000 | SWI_Breakpoint;
             *ainstr = 0xEF000000 | 0;
         else {
-            /* Format 14 */
-            u32 subset[4] = {
-                0xE92D0000,	/* STMDB sp!,{rlist}    */
-                0xE92D4000,	/* STMDB sp!,{rlist,lr} */
-                0xE8BD0000,	/* LDMIA sp!,{rlist}    */
-                0xE8BD8000	/* LDMIA sp!,{rlist,pc} */
-            };
-            *ainstr = subset[((tinstr & (1 << 11)) >> 10) | ((tinstr & (1 << 8)) >> 8)]	/* base */
-                      |(tinstr & 0x00FF);	/* mask8 */
+            if ((tinstr & 0x600) == 0x400)
+            {
+                /* Format 14 */
+                u32 subset[4] = {
+                    0xE92D0000,	/* STMDB sp!,{rlist}    */
+                    0xE92D4000,	/* STMDB sp!,{rlist,lr} */
+                    0xE8BD0000,	/* LDMIA sp!,{rlist}    */
+                    0xE8BD8000	/* LDMIA sp!,{rlist,pc} */
+                };
+                *ainstr = subset[((tinstr & (1 << 11)) >> 10) | ((tinstr & (1 << 8)) >> 8)]	/* base */
+                    | (tinstr & 0x00FF);	/* mask8 */
+            }
+            else
+            {
+                //e6bf1071 	sxth	r1, r1
+                //e6af1071 	sxtb	r1, r1
+                //e6ff1078 	uxth	r1, r8
+                //e6ef1078	uxtb    r1, r8
+
+                u32 subset[4] = { //Bit 12 - 15 dest Bit 0 - 3 src
+                    0xe6ff0070,	/* uxth */
+                    0xe6ef0070,	/* uxtb */
+                    0xe6bf0070,	/* sxth */
+                    0xe6af0070	/* sxtb */
+                };
+
+                if ((tinstr & 0xF00) == 0x200) //Bit(7) unsigned (set = sxt. cleared = uxt) Bit(6) byte (set = .xtb cleared = .xth) Bit 5-3    Rb src                Bit 2-0    Rd dest
+                {
+                    *ainstr = subset[((tinstr & (0x3 << 6)) >> 6)] |
+                        (tinstr & 0x7) << 12 |
+                        (tinstr & 0x38) >> 3;
+                } 
+                else
+                {
+                    valid = t_undefined;
+                    DEBUG("unk thumb instr %04x", tinstr);
+                }
+                
+            }
         }
         break;
     case 24:		/* STMIA */

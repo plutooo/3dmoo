@@ -148,6 +148,7 @@ int main(int argc, char* argv[])
 
     if (!noscreen)
         screen_Init();
+    hid_spvr_init();
     hid_user_init();
     initDSP();
     mcu_GPU_init();

@@ -76,7 +76,7 @@ u32 GPUreadreg32(u32 addr)
 }
 void GPUTriggerCmdReqQueue() //todo
 {
-    for (int i = 0; i < 0xFF; i++) { //for all threads
+    for (int i = 0; i < 0x4; i++) { //for all threads
         u8 *baseaddr = (u8*)(GSPsharedbuff + 0x800 + i * 0x200);
         u32 header = *(u32*)baseaddr;
         //Console.WriteLine(Convert.ToString(header,0x10));

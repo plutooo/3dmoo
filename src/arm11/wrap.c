@@ -7,7 +7,7 @@
 #include "threads.h"
 
 #define dumpstack 1
-#define dumpstacksize 0x100
+#define dumpstacksize 0x10
 #define maxdmupaddr 0x0033a850
 
 /*ARMword ARMul_GetCPSR (ARMul_State * state) {
@@ -246,6 +246,7 @@ void arm11_Init()
     ARMul_Reset (&s);
     s.NextInstr = RESUME;
     s.Emulate = 3;
+    s.servaddr = 0xFFFF0000 - 0x1000 * MAX_THREADS;
 }
 
 void arm11_SkipToNextThread()
@@ -377,6 +378,9 @@ void arm11_SaveContext(thread *t)
     for (int i = 0; i < 32; i++) t->fpu_r[i] = s.ExtReg[i];
     t->fpscr = s.VFP[1];
     t->fpexc = s.VFP[2];
+
+    t->currentexaddr = s.currentexaddr;
+    t->currentexval = s.currentexval;
 }
 void arm11_LoadContext(thread *t)
 {
@@ -391,4 +395,8 @@ void arm11_LoadContext(thread *t)
     for (int i = 0; i < 32; i++) s.ExtReg[i] = t->fpu_r[i];
     s.VFP[1] = t->fpscr;
     s.VFP[2] = t->fpexc;
+
+    s.currentexaddr = t->currentexaddr;
+    s.currentexval = t->currentexval;
+    s.servaddr = t->servaddr;
 }

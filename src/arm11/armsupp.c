@@ -747,7 +747,7 @@ ARMword ARMul_MRC (ARMul_State * state, ARMword instr)
     int cpopc = BITS(21, 23) & 0x7;
 
     if (cn == 13 && cm == 0 && cp == 3) { //c13,c0,3; returns CPU svc buffer
-        return 0xFFFF0000;
+        return state->servaddr;
     }
 
     DEBUG("SKYEYE ARMul_MRC p%d, %d, r%d, c%d, c%d, %d\n", CPNum, cpopc, rd, cn, cm, cp);

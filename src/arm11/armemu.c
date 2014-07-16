@@ -2291,12 +2291,25 @@ mainswitch:
                         u32 l = LHSReg;
                         u32 r = RHSReg;
                         lhs = LHS;
+
+                        bool enter = false;
+
+                        if (state->currentexval == (u32)ARMul_LoadHalfWord(state, state->currentexaddr))enter = true;
+
+
                         ARMul_StoreHalfWord(state, lhs, RHS);
                         //StoreWord(state, lhs, RHS)
                         if (state->Aborted) {
                             TAKEABORT;
                         }
-                        state->Reg[DESTReg] = 0; //Always succeed
+                        if (enter)
+                        {
+                            state->Reg[DESTReg] = 0;
+                        }
+                        else
+                        {
+                            state->Reg[DESTReg] = 1;
+                        }
                         break;
                     }
                     if (BITS (4, 7) == 0xB) {
@@ -2323,6 +2336,10 @@ mainswitch:
                     if ((instr & 0x00000FF0) == 0x00000F90) { //(instr & 0x0FF00FF0) == 0x01f00f90)//if ((instr & 0x0FF00FF0) == 0x01f00f90) {
                         /* ldrexh ichfly */
                         lhs = LHS;
+
+                        state->currentexaddr = lhs;
+                        state->currentexval = (u32)ARMul_LoadHalfWord(state, lhs);
+
                         LoadHalfWord(state, instr, lhs,0);
                         break;
                     }
@@ -5592,7 +5609,7 @@ L_stm_s_takeabort:
         switch (BITS (20, 27)) {
         //ichfly
         case 0x66: //UQSUB8
-            if ((instr & 0x0FF00FF0) == 0x06600FF0) { //hope this is correct we don't have 2 cpus todo
+            if ((instr & 0x0FF00FF0) == 0x06600FF0) {
                 u32 rd = (instr >> 12) & 0xF;
                 u32 rm = (instr >> 16) & 0xF;
                 u32 rn = (instr >> 0) & 0xF;
@@ -5716,12 +5733,24 @@ L_stm_s_takeabort:
                 u32 l = LHSReg;
                 u32 r = RHSReg;
                 lhs = LHS;
+
+                bool enter = false;
+
+                if (state->currentexval == (u32)ARMul_ReadWord(state, state->currentexaddr))enter = true;
                 ARMul_StoreWordS(state, lhs, RHS);
                 //StoreWord(state, lhs, RHS)
                 if (state->Aborted) {
                     TAKEABORT;
                 }
-                state->Reg[DESTReg] = 0; //Always succeed
+                
+                if (enter)
+                {
+                    state->Reg[DESTReg] = 0;
+                }
+                else
+                {
+                    state->Reg[DESTReg] = 1;
+                }
 
                 return 1;
             }
@@ -5732,6 +5761,10 @@ L_stm_s_takeabort:
             /* dyf add armv6 instr ldrex  */
             if (BITS (4, 7) == 0x9) {
                 lhs = LHS;
+
+                state->currentexaddr = lhs;
+                state->currentexval = ARMul_ReadWord(state, lhs);
+
                 LoadWord (state, instr, lhs);
                 return 1;
             }
@@ -5742,13 +5775,27 @@ L_stm_s_takeabort:
             /* dyf add for STREXB */
             if (BITS (4, 7) == 0x9) {
                 lhs = LHS;
+
+                bool enter = false;
+
+                if (state->currentexval == (u32)ARMul_ReadByte(state, state->currentexaddr))enter = true;
+
                 ARMul_StoreByte (state, lhs, RHS);
                 BUSUSEDINCPCN;
                 if (state->Aborted) {
                     TAKEABORT;
                 }
 
-                state->Reg[DESTReg] = 0; //Always succeed
+
+                if (enter)
+                {
+                    state->Reg[DESTReg] = 0;
+                }
+                else
+                {
+                    state->Reg[DESTReg] = 1;
+                }
+
                 //printf("In %s, strexb not implemented\n", __FUNCTION__);
                 UNDEF_LSRBPC;
                 /* WRITESDEST (dest); */
@@ -5762,6 +5809,10 @@ L_stm_s_takeabort:
                 /* ldrexb */
                 temp = LHS;
                 LoadByte (state, instr, temp, LUNSIGNED);
+
+                state->currentexaddr = temp;
+                state->currentexval = (u32)ARMul_ReadByte(state, temp);
+
                 //state->Reg[BITS(12, 15)] = ARMul_LoadByte(state, state->Reg[BITS(16, 19)]);
                 //printf("ldrexb\n");
                 //printf("instr is %x rm is %d\n", instr, BITS(16, 19));

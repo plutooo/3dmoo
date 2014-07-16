@@ -23,7 +23,11 @@
 #include "mem.h"
 #include "fs.h"
 
+#include "threads.h"
+
 extern char* codepath;
+
+extern thread threads[MAX_THREADS];
 
 // Shamelessly stolen from ctrtool.
 typedef struct {
@@ -299,7 +303,13 @@ static u32 LoadElfFile(u8 *addr)
 static void CommonMemSetup()
 {
     // Add thread command buffer.
-    mem_AddSegment(0xFFFF0000, 0x1000, NULL);
+
+    for (int i = 0; i < MAX_THREADS; i++)
+    {
+        threads[i].servaddr = 0xFFFF0000 - 0x1000 * MAX_THREADS + i * 0x1000; //there is a mirrow of that addr in wrap.c fix this addr as well if you fix this
+    }
+
+    mem_AddSegment(0xFFFF0000 - 0x1000 * MAX_THREADS, 0x1000 * MAX_THREADS, NULL);
 
     // Add Read Only Shared Info
     mem_AddSegment(0x1FF80000, 0x100, NULL);
@@ -309,9 +319,6 @@ static void CommonMemSetup()
     //Shared Memory Page For ARM11 Processes
     mem_AddSegment(0x1FF81000, 0x100, NULL);
     mem_Write8(0x1FF800c0, 1); //headset connected
-
-    //DSP
-    mem_AddSegment(0x1FF00000, 0x80000, NULL);
 
 }
 

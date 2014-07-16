@@ -21,6 +21,9 @@
 #include "handles.h"
 #include "mem.h"
 
+#include "service_macros.h"
+
+
 u32 apt_u_SyncRequest();
 u32 gsp_gpu_SyncRequest();
 u32 hid_user_SyncRequest();
@@ -497,6 +500,8 @@ u32 srv_SyncRequest()
 
     return 0;
 }
+
+u32 times = 0;
 u32 svcReplyAndReceive()
 {
 
@@ -528,13 +533,37 @@ u32 svcReplyAndReceive()
     {
         DEBUG("%08x\n", mem_Read32(handles + i * 4));
     }
-    //wrapWaitSynchronizationN(0xFFFFFFFF, handles, handleCount, 1, 0xFFFFFFFF,0);
+    wrapWaitSynchronizationN(0xFFFFFFFF, handles, handleCount, 0, 0xFFFFFFFF,0);
 
 
 
-    //feed module data here 
+    //feed module data here
+    switch (times)
+    {
+    case 0:
+    case 1:
+    case 2:
+    case 3:
+    case 4:
+    case 5:
+    case 6:
+        RESP(0, 0x00160042);
+        RESP(1, 0x0);
+        RESP(2, 0x0);
+        RESP(3, 0x12345);
+    case 7:
+        RESP(0, 0x00130042);
+        RESP(1, 0x0);
+        RESP(2, 0x0);
+        RESP(3, handle_New(HANDLE_TYPE_EVENT, 0));
+        break;
+    default:
+        RESP(0, 0x000C0000);
+    }
 
     //feed end
+
+    times++;
 
     return 1;
 }

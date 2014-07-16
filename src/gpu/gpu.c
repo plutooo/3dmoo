@@ -94,6 +94,7 @@ void GPUTriggerCmdReqQueue() //todo
                 src = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x4);
                 dest = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x8);
                 size = *(u32*)(baseaddr + (j + 1) * 0x20 + 0xC);
+                DEBUG("GX RequestDma 0x%08X 0x%08X 0x%08X --todo--\r\n", addr, size, flags);
                 if (dest - 0x1f000000 > 0x600000)
                 {
                     DEBUG("dma copy into non VRAM not suported\r\n");
@@ -111,8 +112,35 @@ void GPUTriggerCmdReqQueue() //todo
                 addr = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x4);
                 size = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x8);
                 flags = *(u32*)(baseaddr + (j + 1) * 0x20 + 0xC);
-                DEBUG("GX SetCommandList Last 0x%08X 0x%08X 0x%08X --todo--",addr,size,flags);
+                DEBUG("GX SetCommandList Last 0x%08X 0x%08X 0x%08X --todo--\r\n",addr,size,flags);
+                
+                
+                
+                //trigger them all
+                
+                /**(u8*)(GSPsharedbuff + i * 0x40) = 0x0;
+                *(u8*)(GSPsharedbuff + i * 0x40 + 1) = 0x8;
+                *(u8*)(GSPsharedbuff + i * 0x40 + 2) = 0x0;
+                *(u8*)(GSPsharedbuff + i * 0x40 + 3) = 0x0;
 
+                *(u8*)(GSPsharedbuff + i * 0x40 + 0xD) = 0x0;
+                *(u8*)(GSPsharedbuff + i * 0x40 + 0xE) = 0x1;
+                *(u8*)(GSPsharedbuff + i * 0x40 + 0xF) = 0x2;
+                *(u8*)(GSPsharedbuff + i * 0x40 + 0x10) = 0x3;
+                *(u8*)(GSPsharedbuff + i * 0x40 + 0x11) = 0x4;
+                *(u8*)(GSPsharedbuff + i * 0x40 + 0x12) = 0x5;
+                *(u8*)(GSPsharedbuff + i * 0x40 + 0x13) = 0x6;*/
+
+                *(u8*)(GSPsharedbuff + i * 0x40) = 0x33;        //next is 00
+                *(u8*)(GSPsharedbuff + i * 0x40 + 1) = 0x3;
+                *(u8*)(GSPsharedbuff + i * 0x40 + 2) = 0x0;
+                *(u8*)(GSPsharedbuff + i * 0x40 + 3) = 0x0;
+
+                *(u8*)(GSPsharedbuff + i * 0x40 + 0xD) = 0x2;
+                *(u8*)(GSPsharedbuff + i * 0x40 + 0xE) = 0x3;
+
+                mem_Dbugdump();
+                break;
             case 2:
             {
                       u32 addr1, val1, addrend1, addr2, val2, addrend2,width;
@@ -123,15 +151,49 @@ void GPUTriggerCmdReqQueue() //todo
                       val2 = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x14);
                       addrend2 = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x18);
                       width = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x1C);
+                      DEBUG("GX SetMemoryFill 0x%08X 0x%08X 0x%08X 0x%08X 0x%08X 0x%08X 0x%08X --todo--\r\n", addr1, val1, addrend1, addr2, val2, addrend2, width);
                       if (addrend1 - 0x1f000000 > 0x600000 || addrend2 - 0x1f000000 > 0x600000)
                       {
                           DEBUG("SetMemoryFill into non VRAM not suported\r\n");
                           continue;
                       }
-                      DEBUG("GX SetMemoryFill 0x%08X 0x%08X 0x%08X 0x%08X 0x%08X 0x%08X 0x%08X --todo--", addr1, val1, addrend1, addr2, val2, addrend2, width);
-
+                      break;
             }
-                break;
+            case 3:
+            {
+                      u32 inpaddr, outputaddr, inputdim, outputdim, flags;
+                      inpaddr = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x4);
+                      outputaddr = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x8);
+                      inputdim = *(u32*)(baseaddr + (j + 1) * 0x20 + 0xC);
+                      outputdim = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x10);
+                      flags = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x14);
+                      DEBUG("GX SetDisplayTransfer 0x%08X 0x%08X 0x%08X 0x%08X 0x%08X --todo--\r\n", inpaddr, outputaddr, inputdim, outputdim, flags);
+                      break;
+            }
+            case 4:
+            {
+                      u32 inpaddr, outputaddr /*,size*/, inputdim, outputdim, flags;
+                      inpaddr = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x4);
+                      outputaddr = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x8);
+                      size = *(u32*)(baseaddr + (j + 1) * 0x20 + 0xC);
+                      inputdim = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x10);
+                      outputdim = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x14);
+                      flags = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x18);
+                      DEBUG("GX SetTextureCopy 0x%08X 0x%08X 0x%08X 0x%08X 0x%08X 0x%08X --todo--\r\n", inpaddr, outputaddr,size, inputdim, outputdim, flags);
+                      break;
+            }
+            case 5:
+            {
+                      u32 addr1, size1, addr2, size2, addr3, size3;
+                      addr1 = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x4);
+                      size1 = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x8);
+                      addr2 = *(u32*)(baseaddr + (j + 1) * 0x20 + 0xC);
+                      size2 = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x10);
+                      addr3 = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x14);
+                      size3 = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x18);
+                      DEBUG("GX SetCommandList First 0x%08X 0x%08X 0x%08X 0x%08X 0x%08X 0x%08X --todo--\r\n",addr1, size1, addr2, size2, addr3, size3);
+                      break;
+            }
             default:
                 DEBUG("GX cmd 0x%08X 0x%08X 0x%08X 0x%08X 0x%08X 0x%08X 0x%08X 0x%08X\r\n", *(u32*)(baseaddr + (j + 1) * 0x20), *(u32*)((baseaddr + (j + 1) * 0x20) + 0x4), *(u32*)((baseaddr + (j + 1) * 0x20) + 0x8), *(u32*)((baseaddr + (j + 1) * 0x20) + 0xC), *(u32*)((baseaddr + (j + 1) * 0x20) + 0x10), *(u32*)((baseaddr + (j + 1) * 0x20) + 0x14), *(u32*)((baseaddr + (j + 1) * 0x20) + 0x18), *(u32*)((baseaddr + (j + 1) * 0x20)) + 0x1C);
                 break;
@@ -146,13 +208,12 @@ void GPUTriggerCmdReqQueue() //todo
     }
     h->locked = false; //unlock we are fast
 
-    *(u8*)(GSPsharedbuff + 0x81) = 1; //ichfly fix that
-    *(u8*)(GSPsharedbuff + 0x80) = 1;
+
 }
 
-void GPURegisterInterruptRelayQueue(u32 flags, u32 Kevent, u32*threadID, u32*outMemHandle)
+u32 GPURegisterInterruptRelayQueue(u32 flags, u32 Kevent, u32*threadID, u32*outMemHandle)
 {
-    *threadID = ++numReqQueue;
+    *threadID = numReqQueue++;
     *outMemHandle = handle_New(HANDLE_TYPE_SHAREDMEM, MEM_TYPE_GSP_0);
     trigevent = Kevent;
     handleinfo* h = handle_Get(Kevent);
@@ -162,6 +223,11 @@ void GPURegisterInterruptRelayQueue(u32 flags, u32 Kevent, u32*threadID, u32*out
         return;// -1;
     }
     h->locked = false; //unlock we are fast
+
+    *(u32*)(GSPsharedbuff + *threadID * 0x40) = 0x0; //dump from save GSP v0 flags 0
+    *(u32*)(GSPsharedbuff + *threadID * 0x44) = 0x0; //dump from save GSP v0 flags 0
+    *(u32*)(GSPsharedbuff + *threadID * 0x48) = 0x0; //dump from save GSP v0 flags 0
+    return 0x2A07; //dump from save GSP v0 flags 0
 }
 u8* get_pymembuffer(u32 addr)
 {

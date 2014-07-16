@@ -26,7 +26,7 @@ typedef enum {
 } thread_state;
 
 typedef struct {
-    u32  r[13];
+    u32 r[13];
     u32 sp;
     u32 lr;
     u32 pc;
@@ -36,6 +36,10 @@ typedef struct {
     u32 fpexc;
     u32 mode;
     u32 r15;
+    uint32_t currentexaddr;
+    uint32_t currentexval;
+    uint32_t servaddr;
+
 
     thread_state state;
 
@@ -72,5 +76,7 @@ u32 svcGetThreadPriority();
 u32 svcSetThreadPriority();
 u32 svcGetThreadId();
 u32 svcCreateThread();
+
+#define MAX_THREADS 32
 
 #endif

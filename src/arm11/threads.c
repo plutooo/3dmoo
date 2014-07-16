@@ -25,16 +25,13 @@
 
 #include "threads.h"
 
-
-#define MAX_THREADS 32
-
 #ifdef modulesupport
 thread** threadsproc;
 u32*    num_threadsproc;
 u32     current_proc = 0;
 #endif
 
-static thread threads[MAX_THREADS];
+thread threads[MAX_THREADS];
 static u32    num_threads = 0;
 static s32    current_thread = 0;
 
@@ -223,7 +220,7 @@ void threads_Execute() {
 
         threads_Switch(/*from,*/ t);
 
-        arm11_Run(0x8000000 / 60);
+        arm11_Run(11172); //process one line
     }
 
     threads_SaveContextCurrentThread();

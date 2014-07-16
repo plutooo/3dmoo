@@ -24,6 +24,7 @@
 #include "armemu.h"
 #include "threads.h"
 
+
 extern ARMul_State s;
 
 typedef struct {
@@ -31,6 +32,9 @@ typedef struct {
     uint32_t size;
     uint8_t* phys;
     bool     ro;
+#ifdef logext
+    bool dolog;
+#endif
 } memmap_t;
 
 #define MAX_MAPPINGS 16
@@ -127,6 +131,12 @@ static int AddMapping(uint32_t base, uint32_t size)
         return 3;
     }
 
+#ifdef logext
+    if ((base & 0xFFFF0000) == 0x1FF80000 || base == 0x10000000 || base == 0x10002000)
+        mappings[i].dolog = true;
+    else mappings[i].dolog = false;
+#endif
+
     num_mappings++;
     return 0;
 }
@@ -155,6 +165,12 @@ int mem_AddMappingShared(uint32_t base, uint32_t size, u8* data)
 
     mappings[i].phys = data;
 
+#ifdef logext
+    if ((base & 0xFFFF0000) == 0x1FF80000 || base == 0x10000000 || base == 0x10002000)
+        mappings[i].dolog = true;
+        else mappings[i].dolog = false;
+#endif
+
     num_mappings++;
     return 0;
 }
@@ -182,6 +198,9 @@ int mem_Write8(uint32_t addr, uint8_t w)
     size_t i;
     for(i=0; i<num_mappings; i++) {
         if(Contains(&mappings[i], addr, 1)) {
+#ifdef logext
+            if (mappings[i].dolog)fprintf(stderr, "w8 %08x <- w=%02x pc=%08x\n", addr, w & 0xff, s.Reg[15]);
+#endif
             mappings[i].phys[addr - mappings[i].base] = w;
             return 0;
         }
@@ -207,6 +226,10 @@ uint8_t mem_Read8(uint32_t addr)
 
     for(i=0; i<num_mappings; i++) {
         if(Contains(&mappings[i], addr, 1)) {
+#ifdef logext
+            if (mappings[i].dolog)fprintf(stderr, "r8 %08x pc=%08x\n", addr, s.Reg[15]);
+#endif
+
             return mappings[i].phys[addr - mappings[i].base];
         }
     }
@@ -229,6 +252,9 @@ int mem_Write16(uint32_t addr, uint16_t w)
     size_t i;
     for(i=0; i<num_mappings; i++) {
         if(Contains(&mappings[i], addr, 2)) {
+#ifdef logext
+            if (mappings[i].dolog)fprintf(stderr, "w16 %08x <- w=%04x pc=%08x\n", addr, w & 0xffff, s.Reg[15]);
+#endif
             // Unaligned.
             if (addr & 1) {
                 mappings[i].phys[addr - mappings[i].base] = (u8)w;
@@ -252,12 +278,18 @@ int mem_Write16(uint32_t addr, uint16_t w)
 uint16_t mem_Read16(uint32_t addr)
 {
 #ifdef MEM_TRACE
-    fprintf(stderr, "r16 %08x sp=%08x\n", addr, s.Reg[13]);
+    fprintf(stderr, "r16 %08x\n", addr);
 #endif
 
     size_t i;
     for(i=0; i<num_mappings; i++) {
         if(Contains(&mappings[i], addr, 2)) {
+
+#ifdef logext
+            if (mappings[i].dolog)fprintf(stderr, "r16 %08x pc=%08x\n", addr, s.Reg[15]);
+#endif
+
+
             // Unaligned.
             if (addr & 1) {
                 uint16_t ret = mappings[i].phys[addr - mappings[i].base + 1] << 8;
@@ -287,6 +319,13 @@ int mem_Write32(uint32_t addr, uint32_t w)
     size_t i;
     for(i=0; i<num_mappings; i++) {
         if(Contains(&mappings[i], addr, 4)) {
+
+#ifdef logext
+            if (mappings[i].dolog)
+                fprintf(stderr, "w32 %08x <- w=%08x pc=%08x\n", addr, w, s.Reg[15]);
+#endif
+
+
             // Unaligned.
             if (addr & 3) {
                 mappings[i].phys[addr - mappings[i].base] = w;
@@ -328,6 +367,16 @@ u32 mem_Read32(uint32_t addr)
     size_t i;
     for(i=0; i<num_mappings; i++) {
         if(Contains(&mappings[i], addr, 4)) {
+
+#ifdef logext
+            if (mappings[i].dolog)
+            {
+                fprintf(stderr, "r32 %08x pc=%08x\n", addr, s.Reg[15]);
+                //arm11_Dump();
+            }
+#endif
+
+
             // Unaligned.
             u32 temp = *(uint32_t*)(&mappings[i].phys[addr - mappings[i].base]);
             switch (addr & 3) {
@@ -347,7 +396,7 @@ u32 mem_Read32(uint32_t addr)
 #ifdef PRINT_ILLEGAL
     ERROR("trying to read32 unmapped addr %08x\n", addr);
     arm11_Dump();
-    mem_Dbugdump();
+    //mem_Dbugdump();
 #endif
 #ifdef EXIT_ON_ILLEGAL
     exit(1);

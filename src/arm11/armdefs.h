@@ -453,6 +453,12 @@ So, if lateabtSig=1, then it means Late Abort Model(Base Updated Abort Model)
 
 
     uint32_t NumInstrsToExecute;
+
+    uint32_t currentexaddr;
+    uint32_t currentexval;
+
+    uint32_t servaddr;
+
 };
 #define DIFF_WRITE 0
 

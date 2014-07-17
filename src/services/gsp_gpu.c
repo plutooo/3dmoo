@@ -24,7 +24,7 @@
 
 u32 gsp_gpu_SyncRequest()
 {
-    u32 cid = mem_Read32(0xFFFF0080);
+    u32 cid = mem_Read32(arm11_ServiceBufferAddress() + 0x80);
 
 
 

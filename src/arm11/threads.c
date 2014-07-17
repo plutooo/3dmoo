@@ -418,7 +418,7 @@ u32 thread_CloseHandle(ARMul_State *state, handleinfo* h)
 
 u32 thread_SyncRequest(handleinfo* h, bool *locked)
 {
-    u32 cid = mem_Read32(0xFFFF0080);
+    u32 cid = mem_Read32(arm11_ServiceBufferAddress() + 0x80);
 
     switch (cid) {
     default:

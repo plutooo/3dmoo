@@ -36,7 +36,7 @@ u32 err_f_InitHandle()
 }
 u32 err_f_SyncRequest()
 {
-    u32 cid = mem_Read32(0xFFFF0080);
+    u32 cid = mem_Read32(arm11_ServiceBufferAddress() + 0x80);
 
     // Read command-id.
     switch (cid) {

@@ -209,10 +209,19 @@ void threads_Switch(/*u32 from,*/ u32 to)
     current_thread = to;
 }
 
+u32 line = 0;
+
 void threads_Execute() {
     u32 t;
 
     for (t=0; t<threads_Count(); t++) {
+        sendGPUinterall(2);
+        line++;
+        if (line == 400)
+        {
+            sendGPUinterall(3);
+            line = 0;
+        }
         if(!threads_IsThreadActive(t)) {
             DEBUG("Skipping thread %d..\n", t);
             continue;
@@ -220,7 +229,10 @@ void threads_Execute() {
 
         threads_Switch(/*from,*/ t);
 
-        arm11_Run(11172); //process one line
+        //arm11_Run(11172); //process one line
+
+        arm11_Run(0x7FFFFFFF);
+
     }
 
     threads_SaveContextCurrentThread();

@@ -51,7 +51,37 @@ void initGPU()
     GPUwritereg32(RGBdownoneleft, 0x18000000 + 0x46500 * 4);
     GPUwritereg32(RGBdowntwoleft, 0x18000000 + 0x46500 * 5);
 }
+/*
+0 = PSC0
+1 = PSC1
+2 = PDC0
+3 = PDC1
+4 = PPF
+5 = P3D
+6 = DMA
 
+PDC0 called every line?
+PDC1 called every VBlank?
+
+*/
+void sendGPUinterall(u32 ID)
+{
+    int i;
+    handleinfo* h = handle_Get(trigevent);
+    if (h == NULL) {
+        return;
+    }
+    h->locked = false; //unlock we are fast
+    for (i = 0; i < 4; i++)
+    {
+        u8 next = *(u8*)(GSPsharedbuff + i * 0x40);        //0x33 next is 00
+        next  += *(u8*)(GSPsharedbuff + i * 0x40 + 1) = *(u8*)(GSPsharedbuff + i * 0x40 + 1) + 1;
+        *(u8*)(GSPsharedbuff + i * 0x40 + 2) = 0x0; //no error
+        next = next % 0x34;
+        *(u8*)(GSPsharedbuff + i * 0x40 + 0xC + next) = ID;
+    }
+
+}
 void GPUwritereg32(u32 addr, u32 data)
 {
     DEBUG("GPU write %08x to %08x\n",data,addr);
@@ -113,31 +143,8 @@ void GPUTriggerCmdReqQueue() //todo
                 size = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x8);
                 flags = *(u32*)(baseaddr + (j + 1) * 0x20 + 0xC);
                 DEBUG("GX SetCommandList Last 0x%08X 0x%08X 0x%08X --todo--\r\n",addr,size,flags);
-                
-                
-                
-                //trigger them all
-                
-                /**(u8*)(GSPsharedbuff + i * 0x40) = 0x0;
-                *(u8*)(GSPsharedbuff + i * 0x40 + 1) = 0x8;
-                *(u8*)(GSPsharedbuff + i * 0x40 + 2) = 0x0;
-                *(u8*)(GSPsharedbuff + i * 0x40 + 3) = 0x0;
 
-                *(u8*)(GSPsharedbuff + i * 0x40 + 0xD) = 0x0;
-                *(u8*)(GSPsharedbuff + i * 0x40 + 0xE) = 0x1;
-                *(u8*)(GSPsharedbuff + i * 0x40 + 0xF) = 0x2;
-                *(u8*)(GSPsharedbuff + i * 0x40 + 0x10) = 0x3;
-                *(u8*)(GSPsharedbuff + i * 0x40 + 0x11) = 0x4;
-                *(u8*)(GSPsharedbuff + i * 0x40 + 0x12) = 0x5;
-                *(u8*)(GSPsharedbuff + i * 0x40 + 0x13) = 0x6;*/
-
-                *(u8*)(GSPsharedbuff + i * 0x40) = 0x33;        //next is 00
-                *(u8*)(GSPsharedbuff + i * 0x40 + 1) = 0x3;
-                *(u8*)(GSPsharedbuff + i * 0x40 + 2) = 0x0;
-                *(u8*)(GSPsharedbuff + i * 0x40 + 3) = 0x0;
-
-                *(u8*)(GSPsharedbuff + i * 0x40 + 0xD) = 0x2;
-                *(u8*)(GSPsharedbuff + i * 0x40 + 0xE) = 0x3;
+                sendGPUinterall(5);//P3D
 
                 mem_Dbugdump();
                 break;
@@ -168,6 +175,12 @@ void GPUTriggerCmdReqQueue() //todo
                       outputdim = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x10);
                       flags = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x14);
                       DEBUG("GX SetDisplayTransfer 0x%08X 0x%08X 0x%08X 0x%08X 0x%08X --todo--\r\n", inpaddr, outputaddr, inputdim, outputdim, flags);
+                      
+                      sendGPUinterall(0);
+                      sendGPUinterall(1);
+                      sendGPUinterall(4);
+                      sendGPUinterall(5);
+                      sendGPUinterall(6);
                       break;
             }
             case 4:
@@ -200,15 +213,6 @@ void GPUTriggerCmdReqQueue() //todo
             }
         }
     }
-    handleinfo* h = handle_Get(trigevent);
-    if (h == NULL) {
-        DEBUG("failed to get Event\n");
-        PAUSE();
-        return;// -1;
-    }
-    h->locked = false; //unlock we are fast
-
-
 }
 
 u32 GPURegisterInterruptRelayQueue(u32 flags, u32 Kevent, u32*threadID, u32*outMemHandle)

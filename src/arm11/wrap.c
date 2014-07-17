@@ -249,6 +249,11 @@ void arm11_Init()
     s.servaddr = 0xFFFF0000 - 0x1000 * MAX_THREADS;
 }
 
+u32 arm11_ServiceBufferAddress()
+{
+    return s.servaddr;
+}
+
 void arm11_SkipToNextThread()
 {
     s.NumInstrsToExecute = 0;

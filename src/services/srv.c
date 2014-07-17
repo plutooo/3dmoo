@@ -56,8 +56,6 @@ u32 pdn_g_SyncRequest();
 u32 mcu_GPU_SyncRequest();
 u32 i2c_LCD_SyncRequest();
 
-#define CPUsvcbuffer 0xFFFF0000
-
 
 #ifndef _WIN32
 static size_t strnlen(const char* p, size_t n)
@@ -306,14 +304,14 @@ u32 services_SyncRequest(handleinfo* h, bool *locked)
     {
         if (h->misc[0] & HANDLE_SERV_STAT_ACKING)
         {
-            mem_Write(h->misc_ptr[0], CPUsvcbuffer + 0x80, 0x200);
+            mem_Write(h->misc_ptr[0], arm11_ServiceBufferAddress() + 0x80, 0x200);
             h->misc[0] &= ~(HANDLE_SERV_STAT_ACKING | HANDLE_SERV_STAT_SYNCING);
             *locked = false;
             return 0;
         }
         else
         {
-            if (!(h->misc[0] & HANDLE_SERV_STAT_SYNCING)) mem_Read(h->misc_ptr[0], CPUsvcbuffer + 0x80, 0x200);
+            if (!(h->misc[0] & HANDLE_SERV_STAT_SYNCING)) mem_Read(h->misc_ptr[0], arm11_ServiceBufferAddress() + 0x80, 0x200);
             h->misc[0] |= HANDLE_SERV_STAT_SYNCING;
             *locked = true;
             return 0;
@@ -367,7 +365,7 @@ struct {
 
 u32 srv_SyncRequest()
 {
-    u32 cid = mem_Read32(0xFFFF0080);
+    u32 cid = mem_Read32(arm11_ServiceBufferAddress() + 0x80);
 
     // Read command-id.
     switch(cid) {
@@ -382,9 +380,9 @@ u32 srv_SyncRequest()
     case 0x20000:
         DEBUG("srv_EnableNotification\n");
 
-        mem_Write32(CPUsvcbuffer + 0x84, 0); //no error
-        mem_Write32(CPUsvcbuffer + 0x88, 0); //done in sm 4.4
-        mem_Write32(CPUsvcbuffer + 0x8C, eventhandle);
+        mem_Write32(arm11_ServiceBufferAddress() + 0x84, 0); //no error
+        mem_Write32(arm11_ServiceBufferAddress() + 0x88, 0); //done in sm 4.4
+        mem_Write32(arm11_ServiceBufferAddress() + 0x8C, eventhandle);
         return 0;
 
         char names[9];
@@ -392,7 +390,7 @@ u32 srv_SyncRequest()
         DEBUG("srv_RegisterService\n");
 
         // Read rest of command header
-        mem_Read((u8*)&req, 0xFFFF0084, sizeof(req));
+        mem_Read((u8*)&req, arm11_ServiceBufferAddress() + 0x84, sizeof(req));
 
         memcpy(names, req.name, 8);
         names[8] = '\0';
@@ -415,8 +413,8 @@ u32 srv_SyncRequest()
 
         hi->misc_ptr[0] = malloc(0x200);
 
-        mem_Write32(CPUsvcbuffer + 0x84, 0); //no error
-        mem_Write32(CPUsvcbuffer + 0x8C, ownservice[ownservice_num].handle); //return handle
+        mem_Write32(arm11_ServiceBufferAddress() + 0x84, 0); //no error
+        mem_Write32(arm11_ServiceBufferAddress() + 0x8C, ownservice[ownservice_num].handle); //return handle
         ownservice_num++;
         return 0;
 
@@ -424,7 +422,7 @@ u32 srv_SyncRequest()
         DEBUG("srv_GetServiceHandle\n");
 
         // Read rest of command header
-        mem_Read((u8*) &req, 0xFFFF0084, sizeof(req));
+        mem_Read((u8*)&req, arm11_ServiceBufferAddress() + 0x84, sizeof(req));
 
         memcpy(names, req.name, 8);
         names[8] = '\0';
@@ -447,10 +445,10 @@ u32 srv_SyncRequest()
                 if (memcmp(req.name, ownservice[i].name, strnlen(ownservice[i].name, 8)) == 0) {
 
                     // Write result.
-                    mem_Write32(0xFFFF0084, 0);
+                    mem_Write32(arm11_ServiceBufferAddress() + 0x84, 0);
 
                     // Write handle_out.
-                    mem_Write32(0xFFFF008C, ownservice[i].handle);
+                    mem_Write32(arm11_ServiceBufferAddress() + 0x8C, ownservice[i].handle);
 
                     return 0;
                 }
@@ -461,10 +459,10 @@ u32 srv_SyncRequest()
             if(memcmp(req.name, services[i].name, strnlen(services[i].name, 8)) == 0) {
 
                 // Write result.
-                mem_Write32(0xFFFF0084, 0);
+                mem_Write32(arm11_ServiceBufferAddress() + 0x84, 0);
 
                 // Write handle_out.
-                mem_Write32(0xFFFF008C, services[i].handle);
+                mem_Write32(arm11_ServiceBufferAddress() + 0x8C, services[i].handle);
 
                 return 0;
             }
@@ -477,23 +475,23 @@ u32 srv_SyncRequest()
     case 0x90040: // EnableNotificationType
         DEBUG("srv_EnableNotificationType\n");
 
-        u32 type = mem_Read32(0xFFFF0084);
+        u32 type = mem_Read32(arm11_ServiceBufferAddress() + 0x84);
         DEBUG("STUBBED, type=%x\n", type);
 
-        mem_Write32(CPUsvcbuffer + 0x84, 0);
+        mem_Write32(arm11_ServiceBufferAddress() + 0x84, 0);
         return 0;
 
     case 0xB0000: // GetNotificationType
         DEBUG("srv_GetNotificationType\n");
         //mem_Dbugdump();
-        mem_Write32(CPUsvcbuffer + 0x84, 0); //worked
-        mem_Write32(CPUsvcbuffer + 0x88, 0xFFFF); //type 
+        mem_Write32(arm11_ServiceBufferAddress() + 0x84, 0); //worked
+        mem_Write32(arm11_ServiceBufferAddress() + 0x88, 0xFFFF); //type 
         return 0;
         
     default:
         ERROR("Unimplemented command %08x in \"srv:\"\n", cid);
         arm11_Dump();
-        mem_Write32(CPUsvcbuffer + 0x84, 0xFFFFFFFF); //worked
+        mem_Write32(arm11_ServiceBufferAddress() + 0x84, 0xFFFFFFFF); //worked
         return 0;
         //exit(1);
     }
@@ -579,7 +577,7 @@ u32 services_WaitSynchronization(handleinfo* h, bool *locked)
 {
     if (h->misc[0] & HANDLE_SERV_STAT_SYNCING)
     {
-        mem_Write(h->misc_ptr[0], CPUsvcbuffer + 0x80, 0x200);
+        mem_Write(h->misc_ptr[0], arm11_ServiceBufferAddress() + 0x80, 0x200);
         *locked = false;
     }
     else*locked = true;

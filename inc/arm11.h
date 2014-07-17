@@ -29,6 +29,7 @@ bool arm11_Step();
 bool arm11_Run(int numInstructions);
 void arm11_Dump();
 void arm11_SkipToNextThread();
+u32 arm11_ServiceBufferAddress();
 
 void arm11_LoadContext(thread *t);
 void arm11_SaveContext(thread *t);

@@ -27,8 +27,6 @@
 extern u8 HIDsharedbuffSPVR[0x2000];
 u8 HIDsharedbuff[0x2000];
 
-#define CPUsvcbuffer 0xFFFF0000
-
 u32 memhandel;
 
 void hid_user_init()

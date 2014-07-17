@@ -306,10 +306,10 @@ static void CommonMemSetup()
 
     for (int i = 0; i < MAX_THREADS; i++)
     {
-        threads[i].servaddr = 0xFFFF0000 - 0x1000 * MAX_THREADS + i * 0x1000; //there is a mirrow of that addr in wrap.c fix this addr as well if you fix this
+        threads[i].servaddr = 0xFFFF0000 - (0x1000 * (MAX_THREADS-i)); //there is a mirrow of that addr in wrap.c fix this addr as well if you fix this
     }
 
-    mem_AddSegment(0xFFFF0000 - 0x1000 * MAX_THREADS, 0x1000 * MAX_THREADS, NULL);
+    mem_AddSegment(0xFFFF0000 - 0x1000 * MAX_THREADS, 0x1000 * (MAX_THREADS+1), NULL);
 
     // Add Read Only Shared Info
     mem_AddSegment(0x1FF80000, 0x100, NULL);

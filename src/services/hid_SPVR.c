@@ -24,8 +24,6 @@
 
 u8 HIDsharedbuffSPVR[0x2000];
 
-#define CPUsvcbuffer 0xFFFF0000
-
 u32 memhandel2;
 
 

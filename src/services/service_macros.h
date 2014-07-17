@@ -15,15 +15,17 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "arm11.h"
+
 #define CMD(n)                                  \
-    mem_Read32(0xFFFF0080 + 4*(n))
+    mem_Read32(arm11_ServiceBufferAddress() + 0x80 + 4*(n))
 
 #define EXTENDED_CMD(n)                         \
-    mem_Read32(0xFFFF0180 + 4*(n))
+    mem_Read32(arm11_ServiceBufferAddress() + 0x180 + 4*(n))
 
 
 #define RESP(n, w)                              \
-    mem_Write32(0xFFFF0080 + 4*(n), w)
+    mem_Write32(arm11_ServiceBufferAddress() + 0x80 + 4*(n), w)
 
 #undef SERVICE_START
 #define SERVICE_START(name)                                 \

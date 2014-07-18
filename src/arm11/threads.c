@@ -34,6 +34,7 @@ u32     current_proc = 0;
 thread threads[MAX_THREADS];
 static u32    num_threads = 0;
 static s32    current_thread = 0;
+static u32    reschedule = 0;
 
 
 #define THREAD_ID_OFFSET 0xC
@@ -76,6 +77,7 @@ u32 threads_New(u32 handle)
         exit(1);
     }
 
+    threads[num_threads].priority = 50;
     threads[num_threads].handle = handle;
     threads[num_threads].state = RUNNING;
     threads[num_threads].wait_list = NULL;
@@ -201,7 +203,7 @@ void threads_Switch(/*u32 from,*/ u32 to)
 
     if (current_thread != -1)
     {
-        DEBUG("Thread switch %d->%d\n", from, to);
+        DEBUG("Thread switch %d->%d (%08X->%08X)\n", from, to, threads[from].handle, threads[to].handle);
         arm11_SaveContext(&threads[from]);
     }
 
@@ -227,7 +229,7 @@ void threads_Execute() {
             continue;
         }
 
-        threads_Switch(/*from,*/ t);
+        threads_Switch(t);
 
         //arm11_Run(11172); //process one line
 
@@ -238,6 +240,57 @@ void threads_Execute() {
     threads_SaveContextCurrentThread();
     threads_RemoveZombies();
 }
+
+void threads_DoReschedule()
+{
+    /*u32 t;
+    u32 cur_prio = 0;
+    u32 next_thread = 0;
+
+    //threads_SaveContextCurrentThread();
+    threads_RemoveZombies();
+
+    for (t = 0; t < threads_Count(); t++) {
+        if (t == current_thread) continue;
+
+        if (!threads_IsThreadActive(t)) {
+            DEBUG("Skipping thread %d..\n", t);
+            continue;
+        }
+
+        if (threads[t].priority > cur_prio)
+        {
+            cur_prio = threads[t].priority;
+            next_thread = t;
+        }
+    }
+
+    threads_Switch(next_thread);*/
+}
+
+void threads_Reschedule()
+{
+    reschedule = 1;
+}
+
+/*u32 line = 0;
+void threads_Execute() {
+    if (reschedule)
+    {
+        threads_DoReschedule();
+        reschedule = 0;
+    }
+
+    sendGPUinterall(2);
+    line++;
+    if (line == 400)
+    {
+        sendGPUinterall(3);
+        line = 0;
+    }
+
+    arm11_Run(0x7FFFF);
+}*/
 
 u32 threads_Count()
 {
@@ -356,10 +409,11 @@ u32 svcGetThreadPriority()
     u32 threadid = threads_FindIdByHandle(hand);
 
     if (threadid != -1) {
+        DEBUG("Thread Priority : %d\n", threads[threadid].priority);
         prio = threads[threadid].priority;
     }
 
-    mem_Write32(out, prio);
+    arm11_SetR(1, prio); // r1 = prio out
 
     return 0;
 }
@@ -372,6 +426,7 @@ u32 svcSetThreadPriority()
     u32 threadid = threads_FindIdByHandle(hand);
 
     if (threadid != -1) {
+        DEBUG("Thread Priority : %d -> %d\n", threads[threadid].priority, prio);
         threads[threadid].priority = prio;
     }
 
@@ -404,6 +459,7 @@ u32 svcCreateThread()
     u32 hand = handle_New(HANDLE_TYPE_THREAD, 0);
     u32 numthread = threads_New(hand);
 
+    threads[numthread].priority = prio;
     threads[numthread].r[0] = ent_r0;
     threads[numthread].sp = ent_sp;
     threads[numthread].r15 = ent_pc;

@@ -36,6 +36,7 @@ u32 svcClearEvent()
     return 0;
 }
 
+
 u32 svcCreateEvent()
 {
     u32 handleorigin = arm11_R(0);
@@ -62,6 +63,24 @@ u32 svcCreateEvent()
     PAUSE();
     return 0;
 }
+
+u32 svcSignalEvent()
+{
+    u32 handleorigin = arm11_R(0);
+    handleinfo* h = handle_Get(handleorigin);
+
+    if (h == NULL) {
+        DEBUG("failed to get Event %08X\n", handleorigin);
+        PAUSE();
+        return -1;
+    }
+
+    DEBUG("handle=%x, resettype=%x\n", handleorigin, h->type);
+
+    h->locked = false;
+    return 0;
+}
+
 u32 event_WaitSynchronization(handleinfo* h, bool *locked)
 {
     *locked = h->locked;

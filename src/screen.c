@@ -75,6 +75,7 @@ void screen_RenderGPU()
     else
     {
         u32 addr = ((GPUreadreg32(frameselectoben) & 0x1) == 0) ? GPUreadreg32(RGBuponeleft) : GPUreadreg32(RGBuptwoleft);
+        
         u8* buffer = get_pymembuffer(addr);
 
         if (buffer != NULL) {

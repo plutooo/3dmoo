@@ -37,7 +37,7 @@ void initGPU()
 {
     IObuffer = malloc(0x420000);
     LINEmembuffer = malloc(0x8000000);
-    VRAMbuff = malloc(0x600000);
+    VRAMbuff = malloc(0x800000);//malloc(0x600000);
     GSPsharedbuff = malloc(GSPsharebuffsize);
 
     memset(IObuffer, 0, 0x420000);
@@ -52,18 +52,26 @@ void initGPU()
     GPUwritereg32(RGBdowntwoleft, 0x18000000 + 0x46500 * 5);
 }
 /*
-0 = PSC0
-1 = PSC1
-2 = PDC0
-3 = PDC1
-4 = PPF
-5 = P3D
-6 = DMA
+0 = PSC0 private?
+1 = PSC1 private?
+2 = PDC0 public?
+3 = PDC1 public?
+4 = PPF  private?
+5 = P3D  private?
+6 = DMA  private?
 
 PDC0 called every line?
 PDC1 called every VBlank?
 
 */
+
+convertvirtualtopys(u32 addr) //topo
+{
+    if (addr >= 0x14000000 && addr < 0x1C000000)return addr + 0xC000000; //FCRAM
+    if (addr >= 0x1F000000 && addr < 0x1F600000)return addr - 0x7000000; //VRAM
+    DEBUG("can't convert vitual to py %08x",addr);
+    return NULL;
+}
 void sendGPUinterall(u32 ID)
 {
     int i;
@@ -104,6 +112,82 @@ u32 GPUreadreg32(u32 addr)
     }
     return *(uint32_t*)(&IObuffer[addr]);
 }
+u32 getsizeofwight(u16 val) //this is the size of pixel
+{
+    switch (val)
+    {
+        case 0x0201:
+            return 3;
+        default:
+            DEBUG("unknown len %04x",val);
+            return 3;
+    }
+}
+u32 getsizeofwight32(u32 val)
+{
+    switch (val)
+    {
+    case 0x00800080: //no idea why 
+        return 0x8000;
+    default:
+        return (val & 0xFFFF) * ((val>>16) & 0xFFFF) * 3;
+    }
+}
+
+u32 getsizeofframebuffer(u32 val)
+{
+    switch (val)
+    {
+    case 0x0201:
+        return 3;
+    default:
+        DEBUG("unknown len %08x", val);
+        return 3;
+    }
+}
+
+
+void updateFramebuffer()
+{
+    //we use the last in buffer with flag set
+    int i;
+    for (i = 0; i < 4; i++)
+    {
+        u8 *baseaddrtop = (u8*)(GSPsharedbuff + 0x200 + i * 0x80); //top
+        if (*(u8*)(baseaddrtop + 1))
+        {
+            *(u8*)(baseaddrtop + 1) = 0;
+            if (*(u8*)(baseaddrtop))
+                baseaddrtop += 0x20; //get the other
+            else
+                baseaddrtop += 0x4;
+            GPUwritereg32(frameselectoben, *(u32*)(baseaddrtop));
+            if ((*(u32*)(baseaddrtop)& 0x1) == 0)
+                GPUwritereg32(RGBuponeleft, convertvirtualtopys(*(u32*)(baseaddrtop + 4)));
+            else
+                GPUwritereg32(RGBuptwoleft, convertvirtualtopys(*(u32*)(baseaddrtop + 4)));
+            //the rest is todo
+        }
+        u8 *baseaddrbot = (u8*)(GSPsharedbuff + 0x240 + i * 0x80); //bot
+        if (*(u8*)(baseaddrbot + 1))
+        {
+            *(u8*)(baseaddrbot + 1) = 0;
+            if (*(u8*)(baseaddrbot))
+                baseaddrbot += 0x20; //get the other
+            else
+                baseaddrbot += 0x4;
+            //GPUwritereg32(frameselectoben, *(u32*)(baseaddrbot)); //todo
+            if ((*(u32*)(baseaddrbot) &0x1) == 0)
+                GPUwritereg32(RGBdownoneleft, convertvirtualtopys(*(u32*)(baseaddrbot + 4)));
+            else
+                GPUwritereg32(RGBdowntwoleft, convertvirtualtopys(*(u32*)(baseaddrbot + 4)));
+            //the rest is todo
+
+
+        }
+    }
+    return;
+}
 void GPUTriggerCmdReqQueue() //todo
 {
     for (int i = 0; i < 0x4; i++) { //for all threads
@@ -124,8 +208,8 @@ void GPUTriggerCmdReqQueue() //todo
                 src = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x4);
                 dest = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x8);
                 size = *(u32*)(baseaddr + (j + 1) * 0x20 + 0xC);
-                DEBUG("GX RequestDma 0x%08X 0x%08X 0x%08X --todo--\r\n", addr, size, flags);
-                if (dest - 0x1f000000 > 0x600000)
+                DEBUG("GX RequestDma 0x%08X 0x%08X 0x%08X\r\n", addr, size, flags);
+                if (dest - 0x1f000000 > 0x600000 || dest + size - 0x1f000000 > 0x600000)
                 {
                     DEBUG("dma copy into non VRAM not suported\r\n");
                     continue;
@@ -145,8 +229,6 @@ void GPUTriggerCmdReqQueue() //todo
                 DEBUG("GX SetCommandList Last 0x%08X 0x%08X 0x%08X --todo--\r\n",addr,size,flags);
 
                 sendGPUinterall(5);//P3D
-
-                mem_Dbugdump();
                 break;
             case 2:
             {
@@ -158,11 +240,36 @@ void GPUTriggerCmdReqQueue() //todo
                       val2 = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x14);
                       addrend2 = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x18);
                       width = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x1C);
-                      DEBUG("GX SetMemoryFill 0x%08X 0x%08X 0x%08X 0x%08X 0x%08X 0x%08X 0x%08X --todo--\r\n", addr1, val1, addrend1, addr2, val2, addrend2, width);
-                      if (addrend1 - 0x1f000000 > 0x600000 || addrend2 - 0x1f000000 > 0x600000)
+                      DEBUG("GX SetMemoryFill 0x%08X 0x%08X 0x%08X 0x%08X 0x%08X 0x%08X 0x%08X\r\n", addr1, val1, addrend1, addr2, val2, addrend2, width);
+                      if (addr1 - 0x1f000000 > 0x600000 || addrend1 - 0x1f000000 > 0x600000)
                       {
                           DEBUG("SetMemoryFill into non VRAM not suported\r\n");
-                          continue;
+                      }
+                      else
+                      {
+                          u32 size = getsizeofwight(width&0xFFFF);
+                          int k;
+                          for (k = 0; k*size + addr1 < addrend1; k++)
+                          {
+                              int m;
+                              for (m = 0; m<size; m++)
+                                  VRAMbuff[m + k*size + addr1 - 0x1F000000] = (u8)(val1 >> (m * 8));
+                          }
+                      }
+                      if (addr2 - 0x1f000000 > 0x600000 || addrend2 - 0x1f000000 > 0x600000)
+                      {
+                          DEBUG("SetMemoryFill into non VRAM not suported\r\n");
+                      }
+                      else
+                      {
+                          u32 size = getsizeofwight((width >> 16) & 0xFFFF);
+                          int k;
+                          for (k = 0; k*size + addr2 < addrend2; k++)
+                          {
+                              int m;
+                              for (m = 0; m<size; m++)
+                                  VRAMbuff[m + k*size + addr2 - 0x1F000000] = (u8)(val1 >> (m * 8));
+                          }
                       }
                       break;
             }
@@ -176,11 +283,24 @@ void GPUTriggerCmdReqQueue() //todo
                       flags = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x14);
                       DEBUG("GX SetDisplayTransfer 0x%08X 0x%08X 0x%08X 0x%08X 0x%08X --todo--\r\n", inpaddr, outputaddr, inputdim, outputdim, flags);
                       
+                      if (inputdim != outputdim)
+                      {
+                          DEBUG("error converting from %08x to %08x", inputdim, outputdim);
+                      }
+                      u32 sizeoutp = getsizeofwight32(inputdim);
+
+                      memset(get_pymembuffer(convertvirtualtopys(outputaddr)), 0xFF, sizeoutp);
+                      //memcpy(get_pymembuffer(convertvirtualtopys(outputaddr)),get_pymembuffer(convertvirtualtopys(inpaddr)) , sizeoutp);
+                      updateFramebuffer();
+
                       sendGPUinterall(0);
                       sendGPUinterall(1);
                       sendGPUinterall(4);
                       sendGPUinterall(5);
                       sendGPUinterall(6);
+
+                      mem_Dbugdump();
+
                       break;
             }
             case 4:
@@ -193,6 +313,8 @@ void GPUTriggerCmdReqQueue() //todo
                       outputdim = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x14);
                       flags = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x18);
                       DEBUG("GX SetTextureCopy 0x%08X 0x%08X 0x%08X 0x%08X 0x%08X 0x%08X --todo--\r\n", inpaddr, outputaddr,size, inputdim, outputdim, flags);
+
+                      updateFramebuffer();
                       break;
             }
             case 5:

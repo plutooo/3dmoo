@@ -549,6 +549,7 @@ u32 svcReplyAndReceive()
         RESP(1, 0x0);
         RESP(2, 0x0);
         RESP(3, 0x12345);
+        break;
     case 7:
         RESP(0, 0x00130042);
         RESP(1, 0x0);
@@ -557,6 +558,7 @@ u32 svcReplyAndReceive()
         break;
     default:
         RESP(0, 0x000C0000);
+        break;
     }
 
     //feed end

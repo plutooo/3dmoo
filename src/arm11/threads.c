@@ -36,6 +36,7 @@ static u32    num_threads = 0;
 static s32    current_thread = 0;
 static u32    reschedule = 0;
 
+//#define PROPER_THREADING
 
 #define THREAD_ID_OFFSET 0xC
 
@@ -213,37 +214,10 @@ void threads_Switch(/*u32 from,*/ u32 to)
 
 u32 line = 0;
 
-void threads_Execute() {
-    u32 t;
-
-    for (t=0; t<threads_Count(); t++) {
-        sendGPUinterall(2);
-        line++;
-        if (line == 400)
-        {
-            sendGPUinterall(3);
-            line = 0;
-        }
-        if(!threads_IsThreadActive(t)) {
-            DEBUG("Skipping thread %d..\n", t);
-            continue;
-        }
-
-        threads_Switch(t);
-
-        //arm11_Run(11172); //process one line
-
-        arm11_Run(0x7FFFFFFF);
-
-    }
-
-    threads_SaveContextCurrentThread();
-    threads_RemoveZombies();
-}
-
 void threads_DoReschedule()
 {
-    /*u32 t;
+#ifdef PROPER_THREADING
+    u32 t;
     u32 cur_prio = 0;
     u32 next_thread = 0;
 
@@ -258,23 +232,20 @@ void threads_DoReschedule()
             continue;
         }
 
-        if (threads[t].priority > cur_prio)
+        if (threads[t].priority >= cur_prio)
         {
             cur_prio = threads[t].priority;
             next_thread = t;
         }
     }
 
-    threads_Switch(next_thread);*/
+    threads_Switch(next_thread);
+#endif
 }
 
-void threads_Reschedule()
-{
-    reschedule = 1;
-}
-
-/*u32 line = 0;
 void threads_Execute() {
+
+#ifdef PROPER_THREADING
     if (reschedule)
     {
         threads_DoReschedule();
@@ -289,8 +260,40 @@ void threads_Execute() {
         line = 0;
     }
 
-    arm11_Run(0x7FFFF);
-}*/
+    arm11_Run(0x7FFFFFFF);
+#else
+    u32 t;
+
+    for (t = 0; t < threads_Count(); t++) {
+        sendGPUinterall(2);
+        line++;
+        if (line == 400)
+        {
+            sendGPUinterall(3);
+            line = 0;
+        }
+        if (!threads_IsThreadActive(t)) {
+            DEBUG("Skipping thread %d..\n", t);
+            continue;
+        }
+
+        threads_Switch(t);
+
+        //arm11_Run(11172); //process one line
+
+        arm11_Run(0x7FFFFFFF);
+
+    }
+
+    threads_SaveContextCurrentThread();
+    threads_RemoveZombies();
+#endif
+}
+
+void threads_Reschedule()
+{
+    reschedule = 1;
+}
 
 u32 threads_Count()
 {

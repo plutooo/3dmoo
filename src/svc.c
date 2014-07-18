@@ -167,12 +167,12 @@ void svc_Execute(ARMul_State * state, u8 num)
         arm11_SetR(0, 0);
         state->NumInstrsToExecute = 0;
         threads_StopCurrentThread();
-        threads_DoReschedule();
+        threads_Reschedule();
         return;
     case 0xa:
         arm11_SetR(0, svcsleep());
         state->NumInstrsToExecute = 0;
-        threads_DoReschedule();
+        threads_Reschedule();
         return;
     case 0xb:
         arm11_SetR(0, svcGetThreadPriority());
@@ -219,12 +219,12 @@ void svc_Execute(ARMul_State * state, u8 num)
     case 0x24:
         arm11_SetR(0, svcWaitSynchronization1());
         state->NumInstrsToExecute = 0;
-        threads_DoReschedule();
+        threads_Reschedule();
         return;
     case 0x25:
         arm11_SetR(0, svcWaitSynchronizationN());
         state->NumInstrsToExecute = 0;
-        threads_DoReschedule();
+        threads_Reschedule();
         return;
     case 0x27:
         arm11_SetR(0, svcDuplicateHandle());

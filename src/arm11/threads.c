@@ -222,7 +222,7 @@ void threads_DoReschedule()
     u32 next_thread = 0;
 
     //threads_SaveContextCurrentThread();
-    threads_RemoveZombies();
+    //threads_RemoveZombies();
 
     for (t = 0; t < threads_Count(); t++) {
         if (t == current_thread) continue;

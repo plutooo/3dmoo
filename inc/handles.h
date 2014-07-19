@@ -126,6 +126,10 @@ u32 *curprocesshandlelist;
 #endif
 u32 curprocesshandle;
 
+//handles.h
+
+u32 wrapWaitSynchronizationN(u32 nanoseconds1, u32 handles_ptr, u32 handles_count, u32 wait_all, u32 nanoseconds2, u32 out);
+
 // services/srv.c
 u32 services_SyncRequest(handleinfo* h, bool *locked);
 u32 services_WaitSynchronization(handleinfo* h, bool *locked);

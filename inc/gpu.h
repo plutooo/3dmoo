@@ -41,3 +41,4 @@ void GPUTriggerCmdReqQueue();
 u32 GPURegisterInterruptRelayQueue(u32 Flags, u32 Kevent, u32*threadID, u32*outMemHandle);
 u8* get_pymembuffer(u32 addr);
 u32 get_py_memrestsize(u32 addr);
+void sendGPUinterall(u32 ID);

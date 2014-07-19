@@ -65,12 +65,12 @@ PDC1 called every VBlank?
 
 */
 
-convertvirtualtopys(u32 addr) //topo
+u32 convertvirtualtopys(u32 addr) //topo
 {
     if (addr >= 0x14000000 && addr < 0x1C000000)return addr + 0xC000000; //FCRAM
     if (addr >= 0x1F000000 && addr < 0x1F600000)return addr - 0x7000000; //VRAM
     DEBUG("can't convert vitual to py %08x",addr);
-    return NULL;
+    return 0;
 }
 void sendGPUinterall(u32 ID)
 {
@@ -188,6 +188,8 @@ void updateFramebuffer()
     }
     return;
 }
+u32 GPUnum = 0;
+
 void GPUTriggerCmdReqQueue() //todo
 {
     for (int i = 0; i < 0x4; i++) { //for all threads
@@ -228,6 +230,19 @@ void GPUTriggerCmdReqQueue() //todo
                 flags = *(u32*)(baseaddr + (j + 1) * 0x20 + 0xC);
                 DEBUG("GX SetCommandList Last 0x%08X 0x%08X 0x%08X --todo--\r\n",addr,size,flags);
 
+                char name[0x100];
+                sprintf(name, "Cmdlist%08x.dat", GPUnum);
+                GPUnum++;
+                FILE* out = fopen(name,"wb");
+
+                u8* buffer = malloc(size);
+                mem_Read(buffer, addr, size);
+
+                //u8* buffer = get_pymembuffer(addr);
+
+                fwrite(buffer, size, 1, out);
+                fclose(out);
+
                 sendGPUinterall(5);//P3D
                 break;
             case 2:
@@ -248,10 +263,10 @@ void GPUTriggerCmdReqQueue() //todo
                       else
                       {
                           u32 size = getsizeofwight(width&0xFFFF);
-                          int k;
+                          u32 k;
                           for (k = 0; k*size + addr1 < addrend1; k++)
                           {
-                              int m;
+                              u32 m;
                               for (m = 0; m<size; m++)
                                   VRAMbuff[m + k*size + addr1 - 0x1F000000] = (u8)(val1 >> (m * 8));
                           }
@@ -263,10 +278,10 @@ void GPUTriggerCmdReqQueue() //todo
                       else
                       {
                           u32 size = getsizeofwight((width >> 16) & 0xFFFF);
-                          int k;
+                          u32 k;
                           for (k = 0; k*size + addr2 < addrend2; k++)
                           {
-                              int m;
+                              u32 m;
                               for (m = 0; m<size; m++)
                                   VRAMbuff[m + k*size + addr2 - 0x1F000000] = (u8)(val1 >> (m * 8));
                           }
@@ -289,8 +304,7 @@ void GPUTriggerCmdReqQueue() //todo
                       }
                       u32 sizeoutp = getsizeofwight32(inputdim);
 
-                      memset(get_pymembuffer(convertvirtualtopys(outputaddr)), 0xFF, sizeoutp);
-                      //memcpy(get_pymembuffer(convertvirtualtopys(outputaddr)),get_pymembuffer(convertvirtualtopys(inpaddr)) , sizeoutp);
+                      memcpy(get_pymembuffer(convertvirtualtopys(outputaddr)),get_pymembuffer(convertvirtualtopys(inpaddr)) , sizeoutp);
                       updateFramebuffer();
 
                       sendGPUinterall(0);
@@ -346,7 +360,7 @@ u32 GPURegisterInterruptRelayQueue(u32 flags, u32 Kevent, u32*threadID, u32*outM
     if (h == NULL) {
         DEBUG("failed to get Event\n");
         PAUSE();
-        return;// -1;
+        return -1;// -1;
     }
     h->locked = false; //unlock we are fast
 

@@ -76,6 +76,7 @@ u32 svcGetThreadPriority();
 u32 svcSetThreadPriority();
 u32 svcGetThreadId();
 u32 svcCreateThread();
+void threads_Reschedule();
 
 #define MAX_THREADS 32
 

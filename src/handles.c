@@ -276,4 +276,5 @@ u32 svcWaitSynchronizationN() // TODO: timeouts
     u32 nanoseconds2  = arm11_R(4);
     u32 out =           arm11_R(5);
     wrapWaitSynchronizationN(nanoseconds1, handles_ptr, handles_count, wait_all, nanoseconds2, out);
+    return 0;
 }

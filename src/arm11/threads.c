@@ -25,6 +25,8 @@
 
 #include "threads.h"
 
+#include "gpu.h"
+
 #ifdef modulesupport
 thread** threadsproc;
 u32*    num_threadsproc;

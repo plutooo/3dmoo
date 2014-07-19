@@ -278,7 +278,7 @@ static struct {
 
 #define MAX_ownservice 0x100
 typedef struct {
-    const char* name;
+    char* name;
     u32 pid;
     u32 handle;
     s32 threadwaitlist;
@@ -348,7 +348,7 @@ u32 srv_InitHandle()
     return 0;
 }
 
-u32 srv_InitGlobal()
+void srv_InitGlobal()
 {
     // Create handles for all services.
     u32 i;
@@ -434,13 +434,13 @@ u32 srv_SyncRequest()
         u32 i;
 
         bool overdr = false;
-        for (int i = 0; i < overdrivnum; i++)
+        for (u32 i = 0; i < overdrivnum; i++)
         {
             if (memcmp(req.name, *(overdrivnames + i), strnlen(*(overdrivnames + i), 8)) == 0)overdr = true;
         }
         if (!overdr)
         {
-            for (int i = 0; i < ownservice_num; i++)
+            for (u32 i = 0; i < ownservice_num; i++)
             {
                 if (memcmp(req.name, ownservice[i].name, strnlen(ownservice[i].name, 8)) == 0) {
 

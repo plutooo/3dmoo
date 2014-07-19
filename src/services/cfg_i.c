@@ -26,4 +26,35 @@
  
 SERVICE_START(cfg_i);
 
+SERVICE_CMD(0x00010082) { // GetConfigInfoBlk8
+    u32 size = CMD(1);
+    u32 id = CMD(2);
+    u32 pointer = CMD(4);
+
+    DEBUG("GetConfigInfoBlk8 %08x %08x %08x\n", size, id, pointer);
+
+    switch (id) {
+    case 0x00070001:// Sound Mode?
+        mem_Write8(pointer, 0);
+        break;
+    case 0x000A0002: // Language
+        mem_Write8(pointer, 1); // 1=English
+        break;
+    default:
+        ERROR("Unknown id %08x\n", id);
+        break;
+    }
+
+    RESP(1, 0); // Result
+    return 0;
+}
+SERVICE_CMD(0x00040000) {
+
+    DEBUG("unk4\n");
+
+    RESP(2, 0); // return byte
+
+    RESP(1, 0); // Result
+    return 0;
+}
 SERVICE_END();

@@ -231,7 +231,7 @@ u32 svcControlMemory()
     }
     if ((op & 0xF) == 0x4) //MAP
     {
-        u8* buffer = (u8*)mem_rawaddr(addr1, size);
+        u8* buffer = mem_rawaddr(addr1, size);
         if (buffer == 0)return -1;
         return mem_AddMappingShared(addr0, size, buffer);
     }

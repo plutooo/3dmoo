@@ -30,25 +30,25 @@ void svc_Execute(ARMul_State * state, u8 num);
 u32 svcCreateThread();
 u32 svcGetThreadId();
 
-// svc/memory.c
+// syscalls/memory.c
 u32 svcControlMemory();
 u32 svcMapMemoryBlock();
 u32 svcCreateMemoryBlock();
 
-// svc/ports.c
+// syscalls/ports.c
 u32 svcConnectToPort();
 
-// svc/events.c
+// syscalls/events.c
 u32 svcCreateEvent();
 u32 svcClearEvent();
 
-// svc/syn.c
+// syscalls/syn.c
 u32 svcCreateMutex();
 u32 svcReleaseMutex();
 u32 svcCreateSemaphore();
 u32 svcReleaseSemaphore();
 
-// svc/arb.c
+// syscalls/arb.c
 u32 svcCreateAddressArbiter();
 u32 svcArbitrateAddress();
 
@@ -59,10 +59,19 @@ u32 svcWaitSynchronization1();
 u32 svcWaitSynchronizationN();
 u32 svcDuplicateHandle();
 
+//syscalls/Interrupt.c
+u32 svcBindInterrupt();
+
 //mem
 u32 svcmapMemoryBlock();
 
 //screen.c
 u32 svcsleep();
+
+//srv.c
+u32 svcReplyAndReceive();
+u32 svcSignalEvent();
+u32 svcCreatePort();
+u32 svcAcceptSession();
 
 #endif

@@ -32,7 +32,7 @@ void mcu_GPU_init()
     if (h == NULL) {
         DEBUG("failed to get newly created semaphore\n");
         PAUSE();
-        return -1;
+        return;
     }
     h->locked = false;
 }

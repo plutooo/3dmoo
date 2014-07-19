@@ -450,7 +450,7 @@ int mem_Read(uint8_t* buf_out, uint32_t addr, uint32_t size)
     return -1;
 }
 
-int mem_rawaddr(uint32_t addr, uint32_t size)
+u8* mem_rawaddr(uint32_t addr, uint32_t size)
 {
 #ifdef MEM_TRACE
     fprintf(stderr, "r (sz=%08x) %08x\n", size, addr);
@@ -459,7 +459,7 @@ int mem_rawaddr(uint32_t addr, uint32_t size)
     size_t i;
     for (i = 0; i<num_mappings; i++) {
         if (Contains(&mappings[i], addr, size)) {
-            return (int)&mappings[i].phys[addr - mappings[i].base];
+            return (u8*)&mappings[i].phys[addr - mappings[i].base];
         }
     }
 #ifdef PRINT_ILLEGAL
@@ -469,5 +469,5 @@ int mem_rawaddr(uint32_t addr, uint32_t size)
 #ifdef EXIT_ON_ILLEGAL
     exit(1);
 #endif
-    return -1;
+    return NULL;
 }

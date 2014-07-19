@@ -12,14 +12,16 @@ static u32 priority;
 
 SERVICE_START(fs_user);
 
-SERVICE_CMD(0x08010002) { // Initialize
+SERVICE_CMD(0x08010002)   // Initialize
+{
     DEBUG("Initialize\n");
 
     RESP(1, 0); // Result
     return 0;
 }
 
-SERVICE_CMD(0x080201C2) { // OpenFile
+SERVICE_CMD(0x080201C2)   // OpenFile
+{
     u32 transaction       = CMD(1);
     u32 handle_arch       = CMD(2);
     u32 handle_arch_hi    = CMD(3);
@@ -58,16 +60,17 @@ SERVICE_CMD(0x080201C2) { // OpenFile
     // Call OpenFile
     if(arch != NULL && arch->fnOpenFile != NULL) {
         file_handle = arch->fnOpenFile(arch,
-            (file_path) { file_lowpath_type, file_lowpath_sz, file_lowpath_ptr },
-            flags, attr);
+        (file_path) {
+            file_lowpath_type, file_lowpath_sz, file_lowpath_ptr
+        },
+        flags, attr);
 
         if(file_handle == 0) {
             ERROR("OpenFile has failed.\n");
             RESP(1, -1);
             return 0;
         }
-    }
-    else {
+    } else {
         ERROR("Archive has not implemented OpenFile.\n");
         RESP(1, -1);
         return 0;
@@ -78,7 +81,8 @@ SERVICE_CMD(0x080201C2) { // OpenFile
     return 0;
 }
 
-SERVICE_CMD(0x08030204) { // OpenFileDirectly
+SERVICE_CMD(0x08030204)   // OpenFileDirectly
+{
     u32 transaction       = CMD(1);
     u32 arch_id           = CMD(2);
     u32 arch_lowpath_type = CMD(3);
@@ -114,33 +118,34 @@ SERVICE_CMD(0x08030204) { // OpenFileDirectly
     // Call OpenArchive
     if(arch_type != NULL && arch_type->fnOpenArchive != NULL) {
         archive* arch = arch_type->fnOpenArchive(
-            (file_path) { arch_lowpath_type, arch_lowpath_sz, arch_lowpath_ptr});
+        (file_path) {
+            arch_lowpath_type, arch_lowpath_sz, arch_lowpath_ptr
+        });
 
         if(arch != NULL) {
 
             // Call OpenFile
             if(arch->fnOpenFile != NULL) {
                 u32 file_handle = arch->fnOpenFile(arch,
-                    (file_path) { file_lowpath_type, file_lowpath_sz, file_lowpath_ptr },
-                    flags, attr);
+                (file_path) {
+                    file_lowpath_type, file_lowpath_sz, file_lowpath_ptr
+                },
+                flags, attr);
 
                 RESP(1, 0); // Result
                 RESP(3, file_handle); // File handle
-            }
-            else {
+            } else {
                 ERROR("OpenFile not implemented for %x\n", arch_id);
                 RESP(1, -1);
             }
 
             if(arch->fnDeinitialize != NULL)
                 arch->fnDeinitialize(arch);
-        }
-        else {
+        } else {
             ERROR("OpenArchive failed\n");
             RESP(1, -1);
         }
-    }
-    else {
+    } else {
         ERROR("OpenArchive not implemented for %x\n", arch_id)
         RESP(1, -1);
     }
@@ -148,7 +153,8 @@ SERVICE_CMD(0x08030204) { // OpenFileDirectly
     return 0;
 }
 
-SERVICE_CMD(0x080C00C2) { // OpenArchive
+SERVICE_CMD(0x080C00C2)   // OpenArchive
+{
     u32 arch_id           = CMD(1);
     u32 arch_lowpath_type = CMD(2);
     u32 arch_lowpath_sz   = CMD(3);
@@ -179,7 +185,9 @@ SERVICE_CMD(0x080C00C2) { // OpenArchive
     }
 
     archive* arch = arch_type->fnOpenArchive(
-        (file_path) { arch_lowpath_type, arch_lowpath_sz, arch_lowpath_ptr});
+    (file_path) {
+        arch_lowpath_type, arch_lowpath_sz, arch_lowpath_ptr
+    });
 
     if(arch == NULL) {
         ERROR("OpenArchive failed\n");
@@ -195,7 +203,8 @@ SERVICE_CMD(0x080C00C2) { // OpenArchive
     return 0;
 }
 
-SERVICE_CMD(0x080E0080) { // CloseArchive
+SERVICE_CMD(0x080E0080)   // CloseArchive
+{
     DEBUG("CloseArchive\n");
 
     u32 handle_lo = CMD(1);
@@ -223,14 +232,16 @@ SERVICE_CMD(0x080E0080) { // CloseArchive
     return 0;
 }
 
-SERVICE_CMD(0x08610042) { // InitializeWithSdkVersion
+SERVICE_CMD(0x08610042)   // InitializeWithSdkVersion
+{
     DEBUG("InitializeWithSdkVersion -- TODO --\n");
 
     RESP(1, 0); // Result
     return 0;
 }
 
-SERVICE_CMD(0x08620040) { // SetPriority
+SERVICE_CMD(0x08620040)   // SetPriority
+{
     priority = CMD(1);
     DEBUG("SetPriority, prio=%x\n", priority);
 
@@ -238,21 +249,24 @@ SERVICE_CMD(0x08620040) { // SetPriority
     return 0;
 }
 
-SERVICE_CMD(0x08630000) { // GetPriority
+SERVICE_CMD(0x08630000)   // GetPriority
+{
     DEBUG("GetPriority\n");
 
     RESP(1, priority);
     return 0;
 }
 
-SERVICE_CMD(0x08170000) { // IsSdmcDetected
+SERVICE_CMD(0x08170000)   // IsSdmcDetected
+{
     DEBUG("IsSdmcDetected - STUBBED -\n");
 
     RESP(1, 0);
     return 0;
 }
 
-SERVICE_CMD(0x08210000) { // CardSlotIsInserted
+SERVICE_CMD(0x08210000)   // CardSlotIsInserted
+{
     DEBUG("CardSlotIsInserted - STUBBED -\n");
 
     RESP(1, 0);
@@ -268,7 +282,8 @@ SERVICE_END();
 
 SERVICE_START(file);
 
-SERVICE_CMD(0x080200C2) { // Read
+SERVICE_CMD(0x080200C2)   // Read
+{
     u32 rc, read;
     u64 off = CMD(1) | ((u64) CMD(2)) << 32;
     u32 sz  = CMD(3);
@@ -280,8 +295,7 @@ SERVICE_CMD(0x080200C2) { // Read
 
     if(type->fnRead != NULL) {
         rc = type->fnRead(type, ptr, sz, off, &read);
-    }
-    else {
+    } else {
         ERROR("Read() not implemented for this type.\n");
         rc = -1;
         read = 0;
@@ -292,7 +306,8 @@ SERVICE_CMD(0x080200C2) { // Read
     return 0;
 }
 
-SERVICE_CMD(0x08030102) { // Write
+SERVICE_CMD(0x08030102)   // Write
+{
     u32 rc, written;
     u64 off = CMD(1) | ((u64) CMD(2)) << 32;
     u32 sz  = CMD(3);
@@ -305,8 +320,7 @@ SERVICE_CMD(0x08030102) { // Write
 
     if(type->fnWrite != NULL) {
         rc = type->fnWrite(type, ptr, sz, off, flush_flags, &written);
-    }
-    else {
+    } else {
         ERROR("Write() not implemented for this type.\n");
         rc = -1;
         written = 0;
@@ -317,12 +331,14 @@ SERVICE_CMD(0x08030102) { // Write
     return 0;
 }
 
-SERVICE_CMD(0x08040000) { // GetSize
+SERVICE_CMD(0x08040000)   // GetSize
+{
     DEBUG("GetSize - STUB\n");
     return 0;
 }
 
-SERVICE_CMD(0x08080000) { // Close
+SERVICE_CMD(0x08080000)   // Close
+{
     u32 rc = 0;
     file_type* type = (file_type*) h->subtype;
 
@@ -337,7 +353,8 @@ SERVICE_CMD(0x08080000) { // Close
 
 SERVICE_END();
 
-u32 file_CloseHandle(ARMul_State *state, handleinfo* h) {
+u32 file_CloseHandle(ARMul_State *state, handleinfo* h)
+{
     DEBUG("file_CloseHandle - STUB\n");
     return 0;
 }

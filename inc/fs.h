@@ -105,29 +105,35 @@ typedef struct {
 } archive_type;
 
 static archive_type archive_types[] =  {
-    { "RomFS",
-      3,
-      romfs_OpenArchive
+    {
+        "RomFS",
+        3,
+        romfs_OpenArchive
     },
-    { "SaveData",
-      4,
-      NULL
+    {
+        "SaveData",
+        4,
+        NULL
     },
-    { "ExtData",
-      6,
-      NULL
+    {
+        "ExtData",
+        6,
+        NULL
     },
-    { "SharedExtData",
-      7,
-      sharedextd_OpenArchive
+    {
+        "SharedExtData",
+        7,
+        sharedextd_OpenArchive
     },
-    { "SysData",
-      8,
-      sysdata_OpenArchive
+    {
+        "SysData",
+        8,
+        sysdata_OpenArchive
     },
-    { "SDMC",
-      9,
-      sdmc_OpenArchive
+    {
+        "SDMC",
+        9,
+        sdmc_OpenArchive
     }
 };
 

@@ -55,7 +55,8 @@ void AtSig(int t)
     exit(1);
 }
 
-void AtExit(void){
+void AtExit(void)
+{
     arm11_Dump();
     if(!noscreen)
         screen_Free();
@@ -93,12 +94,10 @@ int main(int argc, char* argv[])
     //disasm = (argc > 2) && (strcmp(argv[2], "-d") == 0);
     //noscreen =    (argc > 2) && (strcmp(argv[2], "-noscreen") == 0);
 
-    for (int i = 2; i < argc; i++)
-    {
+    for (int i = 2; i < argc; i++) {
         if ((strcmp(argv[i], "-d") == 0))disasm = true;
         if ((strcmp(argv[i], "-noscreen") == 0))noscreen = true;
-        if ((strcmp(argv[i], "-codepatch") == 0))
-        {
+        if ((strcmp(argv[i], "-codepatch") == 0)) {
             i++;
             codepath = malloc(strlen(argv[i]));
             strcpy(codepath, argv[i]);
@@ -108,28 +107,24 @@ int main(int argc, char* argv[])
 
 
 #ifdef modulesupport
-        if ((strcmp(argv[i], "-modules") == 0))
-        {
+        if ((strcmp(argv[i], "-modules") == 0)) {
             i++;
             modulenum = atoi(argv[i]);
             modulenames = malloc(sizeof(char*)*modulenum);
             i++;
-            for (int j = 0; j < modulenum; j++)
-            {
+            for (int j = 0; j < modulenum; j++) {
                 *(modulenames + j) = malloc(strlen(argv[i]));
                 strcpy(*(modulenames + j), argv[i]);
                 i++;
             }
         }
         if (i >= argc)break;
-        if ((strcmp(argv[i], "-overdrivlist") == 0))
-        {
+        if ((strcmp(argv[i], "-overdrivlist") == 0)) {
             i++;
             overdrivnum = atoi(argv[i]);
             overdrivnames = malloc(sizeof(char*)*modulenum);
             i++;
-            for (int j = 0; j < modulenum; j++)
-            {
+            for (int j = 0; j < modulenum; j++) {
                 *(overdrivnames + j) = malloc(strlen(argv[i]));
                 strcpy(*(overdrivnames + j), argv[i]);
                 i++;
@@ -160,8 +155,7 @@ int main(int argc, char* argv[])
 
 #ifdef modulesupport
     int i;
-    for (i = 0;i<modulenum;i++)
-    {
+    for (i = 0; i<modulenum; i++) {
         u32 handzwei = handle_New(HANDLE_TYPE_PROCESS, 0);
         curprocesshandle = handzwei;
         *(curprocesshandlelist + i) = handzwei;

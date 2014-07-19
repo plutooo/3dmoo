@@ -64,14 +64,15 @@ typedef int64_t s64;
 #define __func__ __FUNCTION__
 #endif
 
-static int color_red() {
+static int color_red()
+{
 #ifdef _WIN32
     CONSOLE_SCREEN_BUFFER_INFO csbiInfo;
     GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE),
-        &csbiInfo);
+                               &csbiInfo);
 
     SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE),
-        FOREGROUND_RED | FOREGROUND_INTENSITY);
+                            FOREGROUND_RED | FOREGROUND_INTENSITY);
 
     return csbiInfo.wAttributes;
 #else
@@ -80,15 +81,16 @@ static int color_red() {
 #endif
 }
 
-static int color_green() {
+static int color_green()
+{
 #ifdef _WIN32
     CONSOLE_SCREEN_BUFFER_INFO csbiInfo;
     GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE),
-        &csbiInfo);
+                               &csbiInfo);
 
     SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE),
-        FOREGROUND_GREEN | FOREGROUND_INTENSITY);
-    
+                            FOREGROUND_GREEN | FOREGROUND_INTENSITY);
+
     return csbiInfo.wAttributes;
 #else
     fprintf(stdout, "\033[0;32m");
@@ -96,14 +98,15 @@ static int color_green() {
 #endif
 }
 
-static int color_teal() {
+static int color_teal()
+{
 #ifdef _WIN32
     CONSOLE_SCREEN_BUFFER_INFO csbiInfo;
     GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE),
-        &csbiInfo);
+                               &csbiInfo);
 
     SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE),
-        FOREGROUND_BLUE | FOREGROUND_INTENSITY);
+                            FOREGROUND_BLUE | FOREGROUND_INTENSITY);
 
     return csbiInfo.wAttributes;
 #else
@@ -112,7 +115,8 @@ static int color_teal() {
 #endif
 }
 
-static void color_restore(int old) {
+static void color_restore(int old)
+{
 #ifdef _WIN32
     SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), old);
 #else

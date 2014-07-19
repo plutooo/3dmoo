@@ -33,13 +33,13 @@ u32 LockHandle = 0;
 
 SERVICE_START(apt_u);
 
-SERVICE_CMD(0x10040) { //GetLockHandle
+SERVICE_CMD(0x10040)   //GetLockHandle
+{
     u32 unk1 = CMD(1);
     u32 unk2 = CMD(2);
     DEBUG("GetLockHandle (todo), unk1=%08x, unk2=%08x\n", unk1, unk2);
 
-    if (LockHandle == 0)
-    {
+    if (LockHandle == 0) {
         LockHandle = handle_New(HANDLE_TYPE_MUTEX, 0);
         handleinfo* hi = handle_Get(LockHandle);
         hi->locked = false;
@@ -52,7 +52,8 @@ SERVICE_CMD(0x10040) { //GetLockHandle
     return 0;
 }
 
-SERVICE_CMD(0x20080) {
+SERVICE_CMD(0x20080)
+{
     u32 app_id = CMD(1);
     DEBUG("RegisterApp, app_id=%08x\n", app_id);
 
@@ -73,7 +74,8 @@ SERVICE_CMD(0x20080) {
     return 0;
 }
 
-SERVICE_CMD(0x30040) {
+SERVICE_CMD(0x30040)
+{
     u32 unk = CMD(1);
     DEBUG("Enable, unk=%08x\n", unk);
 
@@ -81,7 +83,8 @@ SERVICE_CMD(0x30040) {
     return 0;
 }
 
-SERVICE_CMD(0x3E0080) {
+SERVICE_CMD(0x3E0080)
+{
     u32 unk  = CMD(1);
     u32 unk1 = CMD(2);
     DEBUG("ReplySleepQuery, unk=%08x, unk1=%08x\n", unk, unk1);
@@ -90,7 +93,8 @@ SERVICE_CMD(0x3E0080) {
     return 0;
 }
 
-SERVICE_CMD(0x430040) {
+SERVICE_CMD(0x430040)
+{
     u32 app_id = CMD(1);
     DEBUG("NotifyToWait, app_id=%08x\n", app_id);
 
@@ -98,7 +102,8 @@ SERVICE_CMD(0x430040) {
     return 0;
 }
 
-SERVICE_CMD(0x440000) {
+SERVICE_CMD(0x440000)
+{
     DEBUG("GetSharedFont\n");
 
     // Load shared binary from sys/shared_font.bin
@@ -130,7 +135,8 @@ SERVICE_CMD(0x440000) {
         if (fread(APTsharedfont + 4, APTsharedfontsize, 1, fd) != 1) {
             ERROR("fread() failed trying to read shared font.\n");
             fclose(fd);
-            free(APTsharedfont); APTsharedfont = NULL;
+            free(APTsharedfont);
+            APTsharedfont = NULL;
             RESP(1, -1);
             return 0;
         }
@@ -150,7 +156,8 @@ SERVICE_CMD(0x440000) {
     return 0;
 }
 
-SERVICE_CMD(0x4b00c2) { //AppletUtility
+SERVICE_CMD(0x4b00c2)   //AppletUtility
+{
     u32 unk = CMD(1);
     u32 pointeresize = CMD(2);
     u32 pointerzsize = CMD(3);
@@ -163,7 +170,7 @@ SERVICE_CMD(0x4b00c2) { //AppletUtility
 
     // Dump data.
     mem_Read(data, pointere, pointeresize);
- 
+
     for (i=0; i<pointeresize; i++) {
         if (i % 16 == 0)
             printf("\n");
@@ -178,7 +185,8 @@ SERVICE_CMD(0x4b00c2) { //AppletUtility
     return 0;
 }
 
-SERVICE_CMD(0xb0040) {
+SERVICE_CMD(0xb0040)
+{
     u32 appID = CMD(1);
     DEBUG("InquireNotification, appID=%08x\n", appID);
 
@@ -187,7 +195,8 @@ SERVICE_CMD(0xb0040) {
     return 0;
 }
 
-SERVICE_CMD(0xd0080) {
+SERVICE_CMD(0xd0080)
+{
     u32 appID = CMD(1);
     u32 bufSize = CMD(2);
     DEBUG("ReceiveParameter, appID=%08x, bufSize=%08x\n", appID, bufSize);
@@ -203,7 +212,8 @@ SERVICE_CMD(0xd0080) {
     return 0;
 }
 
-SERVICE_CMD(0xe0080) {
+SERVICE_CMD(0xe0080)
+{
     u32 appID = CMD(1);
     u32 bufSize = CMD(2);
     DEBUG("GlanceParameter, appID=%08x, bufSize=%08x\n", appID, bufSize);

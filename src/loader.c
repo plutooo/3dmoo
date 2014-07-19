@@ -304,8 +304,7 @@ static void CommonMemSetup()
 {
     // Add thread command buffer.
 
-    for (int i = 0; i < MAX_THREADS; i++)
-    {
+    for (int i = 0; i < MAX_THREADS; i++) {
         threads[i].servaddr = 0xFFFF0000 - (0x1000 * (MAX_THREADS-i)); //there is a mirrow of that addr in wrap.c fix this addr as well if you fix this
     }
 
@@ -462,24 +461,20 @@ int loader_LoadFile(FILE* fd)
 
                 FILE * pFile;
                 pFile = fopen("decode.code", "wb");
-                if (pFile != NULL)
-                {
+                if (pFile != NULL) {
                     fwrite(dec, 1, dec_size, pFile);
                     fclose(pFile);
                 }
 
-                if (codepath != NULL)
-                {
+                if (codepath != NULL) {
                     pFile = fopen(codepath, "rb");
-                    if (pFile != NULL)
-                    {
+                    if (pFile != NULL) {
                         fread(dec, 1, dec_size, pFile);
                         fclose(pFile);
                     }
                 }
 
-                if (dec_size == firmexpected)
-                {
+                if (dec_size == firmexpected) {
                     isfirmNCCH = true;
                     DEBUG("firm NCCH detected\n");
                 }
@@ -490,26 +485,23 @@ int loader_LoadFile(FILE* fd)
             }
 
             // Load .code section.
-            if (isfirmNCCH)
-            {
-                
+            if (isfirmNCCH) {
+
                 mem_AddSegment(Read32(ex.codesetinfo.text.address), Read32(ex.codesetinfo.text.codesize), sec);
                 mem_AddSegment(Read32(ex.codesetinfo.ro.address), Read32(ex.codesetinfo.ro.codesize), sec + Read32(ex.codesetinfo.text.codesize));
-                
+
                 u8* temp = malloc(Read32(ex.codesetinfo.bsssize) + Read32(ex.codesetinfo.data.codesize));
                 memcpy(temp, sec + Read32(ex.codesetinfo.ro.codesize) + Read32(ex.codesetinfo.text.codesize), Read32(ex.codesetinfo.data.codesize));
-               
+
 
                 mem_AddSegment(Read32(ex.codesetinfo.data.address), Read32(ex.codesetinfo.data.codesize) + Read32(ex.codesetinfo.bsssize), temp);
                 free(temp);
-            }
-            else
-            {
+            } else {
                 sec_size = AlignPage(sec_size);
                 mem_AddSegment(Read32(ex.codesetinfo.text.address), sec_size, sec);
                 // Add .bss segment.
                 u32 bss_off = AlignPage(Read32(ex.codesetinfo.data.address) +
-                    Read32(ex.codesetinfo.data.codesize));
+                                        Read32(ex.codesetinfo.data.codesize));
                 mem_AddSegment(bss_off, AlignPage(Read32(ex.codesetinfo.bsssize)), NULL);
             }
             free(sec);

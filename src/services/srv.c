@@ -300,17 +300,13 @@ u32 services_SyncRequest(handleinfo* h, bool *locked)
             return services[i].fnSyncRequest();
     }
 
-    if (h->subtype == SERVICE_DIRECT)
-    {
-        if (h->misc[0] & HANDLE_SERV_STAT_ACKING)
-        {
+    if (h->subtype == SERVICE_DIRECT) {
+        if (h->misc[0] & HANDLE_SERV_STAT_ACKING) {
             mem_Write(h->misc_ptr[0], arm11_ServiceBufferAddress() + 0x80, 0x200);
             h->misc[0] &= ~(HANDLE_SERV_STAT_ACKING | HANDLE_SERV_STAT_SYNCING);
             *locked = false;
             return 0;
-        }
-        else
-        {
+        } else {
             if (!(h->misc[0] & HANDLE_SERV_STAT_SYNCING)) mem_Read(h->misc_ptr[0], arm11_ServiceBufferAddress() + 0x80, 0x200);
             h->misc[0] |= HANDLE_SERV_STAT_SYNCING;
             *locked = true;
@@ -396,7 +392,7 @@ u32 srv_SyncRequest()
         names[8] = '\0';
 
         DEBUG("name=%s, namelen=%u, unk=0x%x\n", names, req.name_len,
-            req.unk2);
+              req.unk2);
 
 
         ownservice[ownservice_num].name = malloc(9);
@@ -434,14 +430,11 @@ u32 srv_SyncRequest()
         u32 i;
 
         bool overdr = false;
-        for (u32 i = 0; i < overdrivnum; i++)
-        {
+        for (u32 i = 0; i < overdrivnum; i++) {
             if (memcmp(req.name, *(overdrivnames + i), strnlen(*(overdrivnames + i), 8)) == 0)overdr = true;
         }
-        if (!overdr)
-        {
-            for (u32 i = 0; i < ownservice_num; i++)
-            {
+        if (!overdr) {
+            for (u32 i = 0; i < ownservice_num; i++) {
                 if (memcmp(req.name, ownservice[i].name, strnlen(ownservice[i].name, 8)) == 0) {
 
                     // Write result.
@@ -485,9 +478,9 @@ u32 srv_SyncRequest()
         DEBUG("srv_GetNotificationType\n");
         //mem_Dbugdump();
         mem_Write32(arm11_ServiceBufferAddress() + 0x84, 0); //worked
-        mem_Write32(arm11_ServiceBufferAddress() + 0x88, 0xFFFF); //type 
+        mem_Write32(arm11_ServiceBufferAddress() + 0x88, 0xFFFF); //type
         return 0;
-        
+
     default:
         ERROR("Unimplemented command %08x in \"srv:\"\n", cid);
         arm11_Dump();
@@ -509,8 +502,7 @@ u32 svcReplyAndReceive()
     u32 replyTarget = arm11_R(3);
     DEBUG("svcReplyAndReceive %08x %08x %08x %08x\n", index, handles, handleCount, replyTarget);
 #ifdef modulesupport
-    for (u32 i = 0; i < handleCount; i++)
-    {
+    for (u32 i = 0; i < handleCount; i++) {
         DEBUG("%08x\n", mem_Read32(handles+i*4));
 
         handleinfo* h = handle_Get(eventhandle);
@@ -519,16 +511,14 @@ u32 svcReplyAndReceive()
             return -1;
         }
 
-        if (h->type == HANDLE_TYPE_SERVICE)
-        {
+        if (h->type == HANDLE_TYPE_SERVICE) {
             h->misc[0] |= HANDLE_SERV_STAT_WAITING;
             h->misc[1] = curprocesshandle;
             h->misc[2] = threads_GetCurrentThreadHandle();
         }
     }
 #endif
-    for (u32 i = 0; i < handleCount; i++)
-    {
+    for (u32 i = 0; i < handleCount; i++) {
         DEBUG("%08x\n", mem_Read32(handles + i * 4));
     }
     wrapWaitSynchronizationN(0xFFFFFFFF, handles, handleCount, 0, 0xFFFFFFFF,0);
@@ -536,8 +526,7 @@ u32 svcReplyAndReceive()
 
 
     //feed module data here
-    switch (times)
-    {
+    switch (times) {
     case 0:
     case 1:
     case 2:
@@ -577,11 +566,9 @@ u32 svcAcceptSession()
 }
 u32 services_WaitSynchronization(handleinfo* h, bool *locked)
 {
-    if (h->misc[0] & HANDLE_SERV_STAT_SYNCING)
-    {
+    if (h->misc[0] & HANDLE_SERV_STAT_SYNCING) {
         mem_Write(h->misc_ptr[0], arm11_ServiceBufferAddress() + 0x80, 0x200);
         *locked = false;
-    }
-    else*locked = true;
+    } else*locked = true;
     return 0;
 }

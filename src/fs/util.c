@@ -24,7 +24,8 @@
 #include "fs.h"
 
 
-archive_type* fs_GetArchiveTypeById(u32 id) {
+archive_type* fs_GetArchiveTypeById(u32 id)
+{
     u32 i;
 
     for(i=0; i<ARRAY_SIZE(archive_types); i++) {
@@ -35,7 +36,8 @@ archive_type* fs_GetArchiveTypeById(u32 id) {
     return NULL;
 }
 
-const char* fs_FlagsToString(u32 flags, char* buf_out) {
+const char* fs_FlagsToString(u32 flags, char* buf_out)
+{
     buf_out[0] = '\0';
 
     // Convert flags to string representation.
@@ -49,7 +51,8 @@ const char* fs_FlagsToString(u32 flags, char* buf_out) {
     return buf_out;
 }
 
-const char* fs_AttrToString(u32 attr, char* buf_out) {
+const char* fs_AttrToString(u32 attr, char* buf_out)
+{
     int has_prev = 0;
 
     buf_out[0] = '\0';
@@ -80,7 +83,8 @@ const char* fs_AttrToString(u32 attr, char* buf_out) {
     return buf_out;
 }
 
-const char* fs_PathTypeToString(u32 type) {
+const char* fs_PathTypeToString(u32 type)
+{
 
     // Convert type to string representation.
     switch(type) {
@@ -100,7 +104,7 @@ const char* fs_PathTypeToString(u32 type) {
 }
 
 const char* fs_PathToString(u32 type, u32 ptr, u32 size,
-    char* buf_out, size_t size_out)
+                            char* buf_out, size_t size_out)
 {
     static const char* hex_digits = "0123456789abcdef";
     u32 i;
@@ -152,7 +156,8 @@ const char* fs_PathToString(u32 type, u32 ptr, u32 size,
     }
 }
 
-bool fs_IsSafePath(const char* p) {
+bool fs_IsSafePath(const char* p)
+{
     size_t i, len=strlen(p);
 
     if(strstr(p, "..") || p[0] == '/') {

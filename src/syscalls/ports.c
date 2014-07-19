@@ -127,8 +127,7 @@ u32 svcCreatePort()
     u32 name = arm11_R(2);
     u32 maxSessions = arm11_R(3);
     DEBUG("CreatePort %08x %08x %08x %08x\n", portServer, portClient, name, maxSessions);
-    if (name != 0)
-    {
+    if (name != 0) {
         char b[0x100];
         mem_Read(b, name, 0x100);
         DEBUG("%s\n", b);

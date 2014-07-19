@@ -25,13 +25,15 @@
 
 SERVICE_START(am_u);
 
-SERVICE_CMD(0x00080000) { // TitleIDListGetTotal3
+SERVICE_CMD(0x00080000)   // TitleIDListGetTotal3
+{
     DEBUG("TitleIDListGetTotal3 - STUBBED -\n");
     RESP(2, 0); // we have 0 Total titles
     RESP(1, 0);
     return 0;
 }
-SERVICE_CMD(0x00090082) { // GetTitleIDList3
+SERVICE_CMD(0x00090082)   // GetTitleIDList3
+{
     DEBUG("TitleIDListGetTotal3 - STUBBED -\n");
     RESP(2, 0); // we have 0 titles on that medium
     RESP(1, 0);

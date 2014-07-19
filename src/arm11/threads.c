@@ -47,8 +47,7 @@ void threadmod_init(u32 modulenum)
 {
     u32 i;
     threadsproc = (thread **)malloc(sizeof(thread *)*(modulenum + 1));
-    for (i = 0; i < (modulenum + 1); i++)
-    {
+    for (i = 0; i < (modulenum + 1); i++) {
         *(threadsproc + i) = (thread *)malloc(sizeof(thread)*(MAX_THREADS));
         memset(*(threadsproc + i), 0, sizeof(thread)*(MAX_THREADS));
     }
@@ -125,18 +124,16 @@ bool threads_IsThreadActive(u32 id)
                 DEBUG("    %08x, type=%s, waiting=%s\n", handle, handle_types[hi->type].name,
                       is_waiting ? "true" : "false");
 
-                if(is_waiting) 
+                if(is_waiting)
                     ret = false;
             }
 
-            if (ret)
-            {
+            if (ret) {
                 threads[id].r[1] = threads[id].wait_list_size;
                 threads[id].state = RUNNING;
             }
             return ret;
-        }
-        else {
+        } else {
             ret = false;
 
             for(i=0; i<threads[id].wait_list_size; i++) {
@@ -204,8 +201,7 @@ void threads_Switch(/*u32 from,*/ u32 to)
         exit(1);
     }
 
-    if (current_thread != -1)
-    {
+    if (current_thread != -1) {
         DEBUG("Thread switch %d->%d (%08X->%08X)\n", from, to, threads[from].handle, threads[to].handle);
         arm11_SaveContext(&threads[from]);
     }
@@ -234,8 +230,7 @@ void threads_DoReschedule()
             continue;
         }
 
-        if (threads[t].priority >= cur_prio)
-        {
+        if (threads[t].priority >= cur_prio) {
             cur_prio = threads[t].priority;
             next_thread = t;
         }
@@ -245,19 +240,18 @@ void threads_DoReschedule()
 #endif
 }
 
-void threads_Execute() {
+void threads_Execute()
+{
 
 #ifdef PROPER_THREADING
-    if (reschedule)
-    {
+    if (reschedule) {
         threads_DoReschedule();
         reschedule = 0;
     }
 
     sendGPUinterall(2);
     line++;
-    if (line == 400)
-    {
+    if (line == 400) {
         sendGPUinterall(3);
         line = 0;
     }
@@ -269,8 +263,7 @@ void threads_Execute() {
     for (t = 0; t < threads_Count(); t++) {
         sendGPUinterall(2);
         line++;
-        if (line == 400)
-        {
+        if (line == 400) {
             sendGPUinterall(3);
             line = 0;
         }

@@ -57,8 +57,7 @@ void mem_init(u32 modulenum)
 {
     u32 i;
     mappingsproc = (memmap_t **)malloc(sizeof(memmap_t *)*(modulenum + 1));
-    for (i = 0; i < (modulenum + 1); i++)
-    {
+    for (i = 0; i < (modulenum + 1); i++) {
         *(mappingsproc + i) = (memmap_t *)malloc(sizeof(memmap_t)*(MAX_MAPPINGS));
     }
     num_mappingsproc = (size_t*)malloc(sizeof(size_t*)*(modulenum + 1));
@@ -168,7 +167,7 @@ int mem_AddMappingShared(uint32_t base, uint32_t size, u8* data)
 #ifdef logext
     if ((base & 0xFFFF0000) == 0x1FF80000 || base == 0x10000000 || base == 0x10002000)
         mappings[i].dolog = true;
-        else mappings[i].dolog = false;
+    else mappings[i].dolog = false;
 #endif
 
     num_mappings++;
@@ -369,8 +368,7 @@ u32 mem_Read32(uint32_t addr)
         if(Contains(&mappings[i], addr, 4)) {
 
 #ifdef logext
-            if (mappings[i].dolog)
-            {
+            if (mappings[i].dolog) {
                 fprintf(stderr, "r32 %08x pc=%08x\n", addr, s.Reg[15]);
                 //arm11_Dump();
             }

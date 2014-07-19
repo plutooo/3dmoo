@@ -27,13 +27,15 @@
 u32 ir_event_handle;
 
 
-void ir_u_init() {
+void ir_u_init()
+{
     ir_event_handle = handle_New(HANDLE_TYPE_EVENT, 0);
 }
 
 SERVICE_START(ir_u);
 
-SERVICE_CMD(0x000c0000) { //GetConnectionStatusEvent
+SERVICE_CMD(0x000c0000)   //GetConnectionStatusEvent
+{
     DEBUG("GetConnectionStatusEvent\n");
 
     RESP(1, 0); // Result
@@ -41,7 +43,8 @@ SERVICE_CMD(0x000c0000) { //GetConnectionStatusEvent
     return 0;
 }
 
-SERVICE_CMD(0x00180182) { //InitializeIrnopShared
+SERVICE_CMD(0x00180182)   //InitializeIrnopShared
+{
     u32 unk1 = CMD(1);
     u32 unk2 = CMD(2);
     u32 unk3 = CMD(3);

@@ -255,7 +255,7 @@ void svc_Execute(ARMul_State * state, u8 num)
         return;
     case 0x3A:
         DEBUG("values_ptr=%08x, handleResourceLimit=%08x, names_ptr=%08x, nameCount=%d\n",
-            arm11_R(0), arm11_R(1), arm11_R(2), arm11_R(3));
+              arm11_R(0), arm11_R(1), arm11_R(2), arm11_R(3));
         DEBUG("STUBBED");
         PAUSE();
         //arm11_SetR(0, 1);
@@ -265,17 +265,17 @@ void svc_Execute(ARMul_State * state, u8 num)
         //exit(1);
         return;
     case 0x3D: { //OutputDebugString
-                   char temp[256];
-                   memset(temp, 0, 256);
+        char temp[256];
+        memset(temp, 0, 256);
 
-                   size_t sz = arm11_R(1);
-                   if (sz >= 256)
-                       sz = 255;
+        size_t sz = arm11_R(1);
+        if (sz >= 256)
+            sz = 255;
 
-                   mem_Read(temp, arm11_R(0), sz);
-                   DEBUG("%s\n", temp);
-                   //arm11_Dump();
-                   return;
+        mem_Read(temp, arm11_R(0), sz);
+        DEBUG("%s\n", temp);
+        //arm11_Dump();
+        return;
     }
     case 0x47:
         arm11_SetR(0, svcCreatePort());

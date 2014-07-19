@@ -370,7 +370,7 @@ ARMul_Emulate26 (ARMul_State * state)
 #endif
 {
     /* The PC pipeline value depends on whether ARM
-    or Thumb instructions are being 
+    or Thumb instructions are being
     d.  */
     ARMword isize;
     ARMword instr;		/* The current instruction.  */
@@ -946,9 +946,8 @@ ARMul_Emulate26 (ARMul_State * state)
             case t_decoded:
                 /* ARM instruction available.  */
                 //printf("t decode %04lx -> %08lx\n", instr & 0xffff, armOp);
-                
-                if (armOp == 0xDEADC0DE)
-                {
+
+                if (armOp == 0xDEADC0DE) {
                     DEBUG("Failed to decode thumb opcode %04X at %08X\n", instr, pc);
                 }
 
@@ -2302,12 +2301,9 @@ mainswitch:
                         if (state->Aborted) {
                             TAKEABORT;
                         }
-                        if (enter)
-                        {
+                        if (enter) {
                             state->Reg[DESTReg] = 0;
-                        }
-                        else
-                        {
+                        } else {
                             state->Reg[DESTReg] = 1;
                         }
                         break;
@@ -5742,13 +5738,10 @@ L_stm_s_takeabort:
                 if (state->Aborted) {
                     TAKEABORT;
                 }
-                
-                if (enter)
-                {
+
+                if (enter) {
                     state->Reg[DESTReg] = 0;
-                }
-                else
-                {
+                } else {
                     state->Reg[DESTReg] = 1;
                 }
 
@@ -5787,12 +5780,9 @@ L_stm_s_takeabort:
                 }
 
 
-                if (enter)
-                {
+                if (enter) {
                     state->Reg[DESTReg] = 0;
-                }
-                else
-                {
+                } else {
                     state->Reg[DESTReg] = 1;
                 }
 

@@ -25,10 +25,11 @@
 
 SERVICE_START(ns_s);
 
-SERVICE_CMD(0x000200c0) { // Initialize
+SERVICE_CMD(0x000200c0)   // Initialize
+{
     DEBUG("LaunchTitle --todo-- %08x %08x %08x\n", CMD(1), CMD(2), CMD(3));
 
-    RESP(2, 0); // 	Launched process' ProcessId 
+    RESP(2, 0); // 	Launched process' ProcessId
     RESP(1, 0); // Result
     return 0;
 }

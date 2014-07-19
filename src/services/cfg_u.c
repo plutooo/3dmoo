@@ -27,7 +27,8 @@
 
 SERVICE_START(cfg_u);
 
-SERVICE_CMD(0x00010082) { // GetConfigInfoBlk2
+SERVICE_CMD(0x00010082)   // GetConfigInfoBlk2
+{
     u32 size    = CMD(1);
     u32 id      = CMD(2);
     u32 pointer = CMD(4);
@@ -50,7 +51,8 @@ SERVICE_CMD(0x00010082) { // GetConfigInfoBlk2
     return 0;
 }
 
-SERVICE_CMD(0x00020000) { // SecureInfoGetRegion
+SERVICE_CMD(0x00020000)   // SecureInfoGetRegion
+{
     DEBUG("SecureInfoGetRegion\n");
 
     RESP(1, 0); // Result
@@ -58,7 +60,8 @@ SERVICE_CMD(0x00020000) { // SecureInfoGetRegion
     return 0;
 }
 
-SERVICE_CMD(0x00050000) { // GetSystemModel
+SERVICE_CMD(0x00050000)   // GetSystemModel
+{
     DEBUG("GetSystemModel\n");
 
     RESP(1, 0); // Result

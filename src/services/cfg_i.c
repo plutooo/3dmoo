@@ -23,10 +23,11 @@
 
 #include "service_macros.h"
 
- 
+
 SERVICE_START(cfg_i);
 
-SERVICE_CMD(0x00010082) { // GetConfigInfoBlk8
+SERVICE_CMD(0x00010082)   // GetConfigInfoBlk8
+{
     u32 size = CMD(1);
     u32 id = CMD(2);
     u32 pointer = CMD(4);
@@ -48,7 +49,8 @@ SERVICE_CMD(0x00010082) { // GetConfigInfoBlk8
     RESP(1, 0); // Result
     return 0;
 }
-SERVICE_CMD(0x00040000) {
+SERVICE_CMD(0x00040000)
+{
 
     DEBUG("unk4\n");
 

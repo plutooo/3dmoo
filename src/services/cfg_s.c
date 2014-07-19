@@ -26,7 +26,8 @@
 
 SERVICE_START(cfg_s);
 
-SERVICE_CMD(0x00010082) { // GetConfigInfoBlk2
+SERVICE_CMD(0x00010082)   // GetConfigInfoBlk2
+{
     u32 size = CMD(1);
     u32 id = CMD(2);
     u32 pointer = CMD(4);
@@ -34,22 +35,23 @@ SERVICE_CMD(0x00010082) { // GetConfigInfoBlk2
     DEBUG("GetConfigInfoBlk2 %08x %08x %08x\n", size, id, pointer);
 
     switch (id) {
-        case 0x00070001:// Sound Mode?
-            mem_Write8(pointer, 0);
-            break;
-        case 0x000A0002: // Language
-            mem_Write8(pointer, 1); // 1=English
-            break;
-        default:
-            ERROR("Unknown id %08x\n", id);
-            break;
+    case 0x00070001:// Sound Mode?
+        mem_Write8(pointer, 0);
+        break;
+    case 0x000A0002: // Language
+        mem_Write8(pointer, 1); // 1=English
+        break;
+    default:
+        ERROR("Unknown id %08x\n", id);
+        break;
     }
 
     RESP(1, 0); // Result
     return 0;
 }
 
-SERVICE_CMD(0x00020000) { // SecureInfoGetRegion
+SERVICE_CMD(0x00020000)   // SecureInfoGetRegion
+{
     DEBUG("SecureInfoGetRegion\n");
 
     RESP(1, 0); // Result
@@ -57,7 +59,8 @@ SERVICE_CMD(0x00020000) { // SecureInfoGetRegion
     return 0;
 }
 
-SERVICE_CMD(0x00050000) { // GetSystemModel
+SERVICE_CMD(0x00050000)   // GetSystemModel
+{
     DEBUG("GetSystemModel\n");
 
     RESP(1, 0); // Result
@@ -65,7 +68,8 @@ SERVICE_CMD(0x00050000) { // GetSystemModel
     return 0;
 }
 
-SERVICE_CMD(0x04050000) { // GetLocalFriendCodeSeed
+SERVICE_CMD(0x04050000)   // GetLocalFriendCodeSeed
+{
     DEBUG("GetLocalFriendCodeSeed\n");
     RESP(1, 0); // Result
     RESP(2, 0x11223344); // LocalFriendCodeSeed lower word
@@ -73,7 +77,8 @@ SERVICE_CMD(0x04050000) { // GetLocalFriendCodeSeed
     return 0;
 }
 
-SERVICE_CMD(0x04070000) { // SecureInfoGetByte101
+SERVICE_CMD(0x04070000)   // SecureInfoGetByte101
+{
     DEBUG("SecureInfoGetByte101\n");
     RESP(1, 0); // Result
     RESP(2, 0x11223344); // u8 value loaded from SecureInfo offset 0x101, from the already-loaded SecureInfo buffer.

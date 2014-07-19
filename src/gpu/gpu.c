@@ -80,8 +80,7 @@ void sendGPUinterall(u32 ID)
         return;
     }
     h->locked = false; //unlock we are fast
-    for (i = 0; i < 4; i++)
-    {
+    for (i = 0; i < 4; i++) {
         u8 next = *(u8*)(GSPsharedbuff + i * 0x40);        //0x33 next is 00
         next  += *(u8*)(GSPsharedbuff + i * 0x40 + 1) = *(u8*)(GSPsharedbuff + i * 0x40 + 1) + 1;
         *(u8*)(GSPsharedbuff + i * 0x40 + 2) = 0x0; //no error
@@ -114,20 +113,18 @@ u32 GPUreadreg32(u32 addr)
 }
 u32 getsizeofwight(u16 val) //this is the size of pixel
 {
-    switch (val)
-    {
-        case 0x0201:
-            return 3;
-        default:
-            DEBUG("unknown len %04x",val);
-            return 3;
+    switch (val) {
+    case 0x0201:
+        return 3;
+    default:
+        DEBUG("unknown len %04x",val);
+        return 3;
     }
 }
 u32 getsizeofwight32(u32 val)
 {
-    switch (val)
-    {
-    case 0x00800080: //no idea why 
+    switch (val) {
+    case 0x00800080: //no idea why
         return 0x8000;
     default:
         return (val & 0xFFFF) * ((val>>16) & 0xFFFF) * 3;
@@ -136,8 +133,7 @@ u32 getsizeofwight32(u32 val)
 
 u32 getsizeofframebuffer(u32 val)
 {
-    switch (val)
-    {
+    switch (val) {
     case 0x0201:
         return 3;
     default:
@@ -151,11 +147,9 @@ void updateFramebuffer()
 {
     //we use the last in buffer with flag set
     int i;
-    for (i = 0; i < 4; i++)
-    {
+    for (i = 0; i < 4; i++) {
         u8 *baseaddrtop = (u8*)(GSPsharedbuff + 0x200 + i * 0x80); //top
-        if (*(u8*)(baseaddrtop + 1))
-        {
+        if (*(u8*)(baseaddrtop + 1)) {
             *(u8*)(baseaddrtop + 1) = 0;
             if (*(u8*)(baseaddrtop))
                 baseaddrtop += 0x20; //get the other
@@ -169,8 +163,7 @@ void updateFramebuffer()
             //the rest is todo
         }
         u8 *baseaddrbot = (u8*)(GSPsharedbuff + 0x240 + i * 0x80); //bot
-        if (*(u8*)(baseaddrbot + 1))
-        {
+        if (*(u8*)(baseaddrbot + 1)) {
             *(u8*)(baseaddrbot + 1) = 0;
             if (*(u8*)(baseaddrbot))
                 baseaddrbot += 0x20; //get the other
@@ -211,8 +204,7 @@ void GPUTriggerCmdReqQueue() //todo
                 dest = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x8);
                 size = *(u32*)(baseaddr + (j + 1) * 0x20 + 0xC);
                 DEBUG("GX RequestDma 0x%08X 0x%08X 0x%08X\r\n", addr, size, flags);
-                if (dest - 0x1f000000 > 0x600000 || dest + size - 0x1f000000 > 0x600000)
-                {
+                if (dest - 0x1f000000 > 0x600000 || dest + size - 0x1f000000 > 0x600000) {
                     DEBUG("dma copy into non VRAM not suported\r\n");
                     continue;
                 }
@@ -245,103 +237,90 @@ void GPUTriggerCmdReqQueue() //todo
 
                 sendGPUinterall(5);//P3D
                 break;
-            case 2:
-            {
-                      u32 addr1, val1, addrend1, addr2, val2, addrend2,width;
-                      addr1 = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x4);
-                      val1 = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x8);
-                      addrend1 = *(u32*)(baseaddr + (j + 1) * 0x20 + 0xC);
-                      addr2 = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x10);
-                      val2 = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x14);
-                      addrend2 = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x18);
-                      width = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x1C);
-                      DEBUG("GX SetMemoryFill 0x%08X 0x%08X 0x%08X 0x%08X 0x%08X 0x%08X 0x%08X\r\n", addr1, val1, addrend1, addr2, val2, addrend2, width);
-                      if (addr1 - 0x1f000000 > 0x600000 || addrend1 - 0x1f000000 > 0x600000)
-                      {
-                          DEBUG("SetMemoryFill into non VRAM not suported\r\n");
-                      }
-                      else
-                      {
-                          u32 size = getsizeofwight(width&0xFFFF);
-                          u32 k;
-                          for (k = 0; k*size + addr1 < addrend1; k++)
-                          {
-                              u32 m;
-                              for (m = 0; m<size; m++)
-                                  VRAMbuff[m + k*size + addr1 - 0x1F000000] = (u8)(val1 >> (m * 8));
-                          }
-                      }
-                      if (addr2 - 0x1f000000 > 0x600000 || addrend2 - 0x1f000000 > 0x600000)
-                      {
-                          DEBUG("SetMemoryFill into non VRAM not suported\r\n");
-                      }
-                      else
-                      {
-                          u32 size = getsizeofwight((width >> 16) & 0xFFFF);
-                          u32 k;
-                          for (k = 0; k*size + addr2 < addrend2; k++)
-                          {
-                              u32 m;
-                              for (m = 0; m<size; m++)
-                                  VRAMbuff[m + k*size + addr2 - 0x1F000000] = (u8)(val1 >> (m * 8));
-                          }
-                      }
-                      break;
+            case 2: {
+                u32 addr1, val1, addrend1, addr2, val2, addrend2,width;
+                addr1 = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x4);
+                val1 = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x8);
+                addrend1 = *(u32*)(baseaddr + (j + 1) * 0x20 + 0xC);
+                addr2 = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x10);
+                val2 = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x14);
+                addrend2 = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x18);
+                width = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x1C);
+                DEBUG("GX SetMemoryFill 0x%08X 0x%08X 0x%08X 0x%08X 0x%08X 0x%08X 0x%08X\r\n", addr1, val1, addrend1, addr2, val2, addrend2, width);
+                if (addr1 - 0x1f000000 > 0x600000 || addrend1 - 0x1f000000 > 0x600000) {
+                    DEBUG("SetMemoryFill into non VRAM not suported\r\n");
+                } else {
+                    u32 size = getsizeofwight(width&0xFFFF);
+                    u32 k;
+                    for (k = 0; k*size + addr1 < addrend1; k++) {
+                        u32 m;
+                        for (m = 0; m<size; m++)
+                            VRAMbuff[m + k*size + addr1 - 0x1F000000] = (u8)(val1 >> (m * 8));
+                    }
+                }
+                if (addr2 - 0x1f000000 > 0x600000 || addrend2 - 0x1f000000 > 0x600000) {
+                    DEBUG("SetMemoryFill into non VRAM not suported\r\n");
+                } else {
+                    u32 size = getsizeofwight((width >> 16) & 0xFFFF);
+                    u32 k;
+                    for (k = 0; k*size + addr2 < addrend2; k++) {
+                        u32 m;
+                        for (m = 0; m<size; m++)
+                            VRAMbuff[m + k*size + addr2 - 0x1F000000] = (u8)(val1 >> (m * 8));
+                    }
+                }
+                break;
             }
-            case 3:
-            {
-                      u32 inpaddr, outputaddr, inputdim, outputdim, flags;
-                      inpaddr = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x4);
-                      outputaddr = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x8);
-                      inputdim = *(u32*)(baseaddr + (j + 1) * 0x20 + 0xC);
-                      outputdim = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x10);
-                      flags = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x14);
-                      DEBUG("GX SetDisplayTransfer 0x%08X 0x%08X 0x%08X 0x%08X 0x%08X --todo--\r\n", inpaddr, outputaddr, inputdim, outputdim, flags);
-                      
-                      if (inputdim != outputdim)
-                      {
-                          DEBUG("error converting from %08x to %08x", inputdim, outputdim);
-                      }
-                      u32 sizeoutp = getsizeofwight32(inputdim);
+            case 3: {
+                u32 inpaddr, outputaddr, inputdim, outputdim, flags;
+                inpaddr = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x4);
+                outputaddr = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x8);
+                inputdim = *(u32*)(baseaddr + (j + 1) * 0x20 + 0xC);
+                outputdim = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x10);
+                flags = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x14);
+                DEBUG("GX SetDisplayTransfer 0x%08X 0x%08X 0x%08X 0x%08X 0x%08X --todo--\r\n", inpaddr, outputaddr, inputdim, outputdim, flags);
 
-                      memcpy(get_pymembuffer(convertvirtualtopys(outputaddr)),get_pymembuffer(convertvirtualtopys(inpaddr)) , sizeoutp);
-                      updateFramebuffer();
+                if (inputdim != outputdim) {
+                    DEBUG("error converting from %08x to %08x", inputdim, outputdim);
+                }
+                u32 sizeoutp = getsizeofwight32(inputdim);
 
-                      sendGPUinterall(0);
-                      sendGPUinterall(1);
-                      sendGPUinterall(4);
-                      sendGPUinterall(5);
-                      sendGPUinterall(6);
+                memcpy(get_pymembuffer(convertvirtualtopys(outputaddr)),get_pymembuffer(convertvirtualtopys(inpaddr)) , sizeoutp);
+                updateFramebuffer();
 
-                      mem_Dbugdump();
+                sendGPUinterall(0);
+                sendGPUinterall(1);
+                sendGPUinterall(4);
+                sendGPUinterall(5);
+                sendGPUinterall(6);
 
-                      break;
+                mem_Dbugdump();
+
+                break;
             }
-            case 4:
-            {
-                      u32 inpaddr, outputaddr /*,size*/, inputdim, outputdim, flags;
-                      inpaddr = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x4);
-                      outputaddr = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x8);
-                      size = *(u32*)(baseaddr + (j + 1) * 0x20 + 0xC);
-                      inputdim = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x10);
-                      outputdim = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x14);
-                      flags = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x18);
-                      DEBUG("GX SetTextureCopy 0x%08X 0x%08X 0x%08X 0x%08X 0x%08X 0x%08X --todo--\r\n", inpaddr, outputaddr,size, inputdim, outputdim, flags);
+            case 4: {
+                u32 inpaddr, outputaddr /*,size*/, inputdim, outputdim, flags;
+                inpaddr = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x4);
+                outputaddr = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x8);
+                size = *(u32*)(baseaddr + (j + 1) * 0x20 + 0xC);
+                inputdim = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x10);
+                outputdim = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x14);
+                flags = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x18);
+                DEBUG("GX SetTextureCopy 0x%08X 0x%08X 0x%08X 0x%08X 0x%08X 0x%08X --todo--\r\n", inpaddr, outputaddr,size, inputdim, outputdim, flags);
 
-                      updateFramebuffer();
-                      break;
+                updateFramebuffer();
+                break;
             }
-            case 5:
-            {
-                      u32 addr1, size1, addr2, size2, addr3, size3;
-                      addr1 = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x4);
-                      size1 = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x8);
-                      addr2 = *(u32*)(baseaddr + (j + 1) * 0x20 + 0xC);
-                      size2 = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x10);
-                      addr3 = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x14);
-                      size3 = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x18);
-                      DEBUG("GX SetCommandList First 0x%08X 0x%08X 0x%08X 0x%08X 0x%08X 0x%08X --todo--\r\n",addr1, size1, addr2, size2, addr3, size3);
-                      break;
+            case 5: {
+                u32 addr1, size1, addr2, size2, addr3, size3;
+                addr1 = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x4);
+                size1 = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x8);
+                addr2 = *(u32*)(baseaddr + (j + 1) * 0x20 + 0xC);
+                size2 = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x10);
+                addr3 = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x14);
+                size3 = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x18);
+                DEBUG("GX SetCommandList First 0x%08X 0x%08X 0x%08X 0x%08X 0x%08X 0x%08X --todo--\r\n",addr1, size1, addr2, size2, addr3, size3);
+                break;
             }
             default:
                 DEBUG("GX cmd 0x%08X 0x%08X 0x%08X 0x%08X 0x%08X 0x%08X 0x%08X 0x%08X\r\n", *(u32*)(baseaddr + (j + 1) * 0x20), *(u32*)((baseaddr + (j + 1) * 0x20) + 0x4), *(u32*)((baseaddr + (j + 1) * 0x20) + 0x8), *(u32*)((baseaddr + (j + 1) * 0x20) + 0xC), *(u32*)((baseaddr + (j + 1) * 0x20) + 0x10), *(u32*)((baseaddr + (j + 1) * 0x20) + 0x14), *(u32*)((baseaddr + (j + 1) * 0x20) + 0x18), *(u32*)((baseaddr + (j + 1) * 0x20)) + 0x1C);

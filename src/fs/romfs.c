@@ -68,7 +68,8 @@ static u32 rawromfs_Read(file_type* self, u32 ptr, u32 sz, u64 off, u32* read_ou
     return 0; // Result
 }
 
-static u64 rawromfs_GetSize(file_type* self) {
+static u64 rawromfs_GetSize(file_type* self)
+{
     return romfs_sz;
 }
 
@@ -82,12 +83,14 @@ static const file_type rawromfs_file = {
 
 /* ____ RomFS ____ */
 
-bool romfs_FileExists(archive* self, file_path path) {
+bool romfs_FileExists(archive* self, file_path path)
+{
     DEBUG("romfs_FileExists\n");
     return false;
 }
 
-u32 romfs_OpenFile(archive* self, file_path path, u32 flags, u32 attr) {
+u32 romfs_OpenFile(archive* self, file_path path, u32 flags, u32 attr)
+{
     DEBUG("romfs_OpenFile\n");
 
     // RomFS has support for raw reads.
@@ -106,7 +109,8 @@ static archive romfs = {
 };
 
 
-archive* romfs_OpenArchive(file_path path) {
+archive* romfs_OpenArchive(file_path path)
+{
     if(path.type != 1) {
         ERROR("LowPath was not EMPTY.\n");
         return NULL;
@@ -120,7 +124,8 @@ archive* romfs_OpenArchive(file_path path) {
     return &romfs;
 }
 
-void romfs_Setup(FILE* fd, u32 off, u32 sz) {
+void romfs_Setup(FILE* fd, u32 off, u32 sz)
+{
     // This function is called by loader if loaded file contains RomFS.
     in_fd = fd;
     romfs_off = off;

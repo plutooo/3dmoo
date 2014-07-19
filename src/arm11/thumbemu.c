@@ -346,8 +346,7 @@ u32 *ainstr;
             // *ainstr = 0xEF000000 | SWI_Breakpoint;
             *ainstr = 0xEF000000 | 0;
         else {
-            if ((tinstr & 0x600) == 0x400)
-            {
+            if ((tinstr & 0x600) == 0x400) {
                 /* Format 14 */
                 u32 subset[4] = {
                     0xE92D0000,	/* STMDB sp!,{rlist}    */
@@ -356,10 +355,8 @@ u32 *ainstr;
                     0xE8BD8000	/* LDMIA sp!,{rlist,pc} */
                 };
                 *ainstr = subset[((tinstr & (1 << 11)) >> 10) | ((tinstr & (1 << 8)) >> 8)]	/* base */
-                    | (tinstr & 0x00FF);	/* mask8 */
-            }
-            else
-            {
+                          | (tinstr & 0x00FF);	/* mask8 */
+            } else {
                 //e6bf1071 	sxth	r1, r1
                 //e6af1071 	sxtb	r1, r1
                 //e6ff1078 	uxth	r1, r8
@@ -372,18 +369,15 @@ u32 *ainstr;
                     0xe6af0070	/* sxtb */
                 };
 
-                if ((tinstr & 0xF00) == 0x200) //Bit(7) unsigned (set = sxt. cleared = uxt) Bit(6) byte (set = .xtb cleared = .xth) Bit 5-3    Rb src                Bit 2-0    Rd dest
-                {
+                if ((tinstr & 0xF00) == 0x200) { //Bit(7) unsigned (set = sxt. cleared = uxt) Bit(6) byte (set = .xtb cleared = .xth) Bit 5-3    Rb src                Bit 2-0    Rd dest
                     *ainstr = subset[((tinstr & (0x3 << 6)) >> 6)] |
-                        (tinstr & 0x7) << 12 |
-                        (tinstr & 0x38) >> 3;
-                } 
-                else
-                {
+                              (tinstr & 0x7) << 12 |
+                              (tinstr & 0x38) >> 3;
+                } else {
                     valid = t_undefined;
                     DEBUG("unk thumb instr %04x", tinstr);
                 }
-                
+
             }
         }
         break;
@@ -416,66 +410,65 @@ u32 *ainstr;
                 *ainstr |= 0;
             else
                 *ainstr |= (tinstr & 0x00FF);
-        }
-        else if ((tinstr & 0x0F00) != 0x0E00) {
+        } else if ((tinstr & 0x0F00) != 0x0E00) {
             /* Format 16 */
             int doit = FALSE;
             /* TODO: Since we are doing a switch here, we could just add
                the SWI and undefined instruction checks into this
                switch to same on a couple of conditionals: */
             switch ((tinstr & 0x0F00) >> 8) {
-                case EQ:
-                    doit = ZFLAG;
-                    break;
-                case NE:
-                    doit = !ZFLAG;
-                    break;
-                case VS:
-                    doit = VFLAG;
-                    break;
-                case VC:
-                    doit = !VFLAG;
-                    break;
-                case MI:
-                    doit = NFLAG;
-                    break;
-                case PL:
-                    doit = !NFLAG;
-                    break;
-                case CS:
-                    doit = CFLAG;
-                    break;
-                case CC:
-                    doit = !CFLAG;
-                    break;
-                case HI:
-                    doit = (CFLAG && !ZFLAG);
-                    break;
-                case LS:
-                    doit = (!CFLAG || ZFLAG);
-                    break;
-                case GE:
-                    doit = ((!NFLAG && !VFLAG)
+            case EQ:
+                doit = ZFLAG;
+                break;
+            case NE:
+                doit = !ZFLAG;
+                break;
+            case VS:
+                doit = VFLAG;
+                break;
+            case VC:
+                doit = !VFLAG;
+                break;
+            case MI:
+                doit = NFLAG;
+                break;
+            case PL:
+                doit = !NFLAG;
+                break;
+            case CS:
+                doit = CFLAG;
+                break;
+            case CC:
+                doit = !CFLAG;
+                break;
+            case HI:
+                doit = (CFLAG && !ZFLAG);
+                break;
+            case LS:
+                doit = (!CFLAG || ZFLAG);
+                break;
+            case GE:
+                doit = ((!NFLAG && !VFLAG)
                         || (NFLAG && VFLAG));
-                    break;
-                case LT:
-                    doit = ((NFLAG && !VFLAG)
+                break;
+            case LT:
+                doit = ((NFLAG && !VFLAG)
                         || (!NFLAG && VFLAG));
-                    break;
-                case GT:
-                    doit = ((!NFLAG && !VFLAG && !ZFLAG)
+                break;
+            case GT:
+                doit = ((!NFLAG && !VFLAG && !ZFLAG)
                         || (NFLAG && VFLAG && !ZFLAG));
-                    break;
-                case LE:
-                    doit = ((NFLAG && !VFLAG)
+                break;
+            case LE:
+                doit = ((NFLAG && !VFLAG)
                         || (!NFLAG && VFLAG)) || ZFLAG;
-                    break;
+                break;
             }
             if (doit) {
                 state->Reg[15] = (pc + 4
-                    + (((tinstr & 0x7F) << 1)
-                    | ((tinstr & (1 << 7)) ?
-                    0xFFFFFF00 : 0)));
+                                  + (((tinstr & 0x7F) << 1)
+                                     | ((tinstr & (1 << 7)) ?
+                                        0xFFFFFF00 : 0)));
                 FLUSHPIPE;
             }
             valid = t_branch;

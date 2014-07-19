@@ -108,8 +108,7 @@ u32 svcSendSyncRequest()
         }
 
         return ret;
-    }
-    else {
+    } else {
         ERROR("svcSyncRequest undefined for handle-type \"%s\".\n",
               handle_types[hi->type].name);
         PAUSE();
@@ -194,8 +193,7 @@ u32 svcWaitSynchronization1() //todo timeout
         }
 
         return ret;
-    }
-    else {
+    } else {
         ERROR("WaitSynchronization undefined for handle-type \"%s\".\n",
               handle_types[hi->type].name);
         PAUSE();
@@ -238,8 +236,7 @@ u32 wrapWaitSynchronizationN(u32 nanoseconds1,u32 handles_ptr,u32 handles_count,
             if (!locked && !wait_all) {
                 arm11_SetR(1, i);
                 return 0;
-            }
-            else
+            } else
                 all_unlocked = false;
 
         } else {

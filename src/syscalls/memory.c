@@ -229,14 +229,12 @@ u32 svcControlMemory()
             return mem_AddSegment(addr0, size, NULL);
         }
     }
-    if ((op & 0xF) == 0x4) //MAP
-    {
+    if ((op & 0xF) == 0x4) { //MAP
         u8* buffer = mem_rawaddr(addr1, size);
         if (buffer == 0)return -1;
         return mem_AddMappingShared(addr0, size, buffer);
     }
-    if ((op & 0xF) == 0x6) //Protect we don't protect mem sorry
-    {
+    if ((op & 0xF) == 0x6) { //Protect we don't protect mem sorry
         DEBUG("STUBBED!\n");
         return 0;
     }
@@ -296,7 +294,7 @@ u32 svcMapMemoryBlock()
     }
 
     DEBUG("h->type=%x, h->subtype=%08x\n",
-        h->type, h->subtype);
+          h->type, h->subtype);
 
     if(h->type == HANDLE_TYPE_SHAREDMEM) {
         switch (h->subtype) {
@@ -332,8 +330,7 @@ u32 svcMapMemoryBlock()
             break;
 
         case MEM_TYPE_ALLOC:
-            if (h->misc[0] != 0)
-            {
+            if (h->misc[0] != 0) {
                 DEBUG("meaning of addr unk %08x", h->misc[0]);
             }
             mem_AddMappingShared(addr,h->misc[1] ,h->misc_ptr[0] );
@@ -342,8 +339,7 @@ u32 svcMapMemoryBlock()
             ERROR("Trying to map unknown memory\n");
             return -1;
         }
-    }
-    else {
+    } else {
         ERROR("Handle has incorrect type\n");
         return -1;
     }

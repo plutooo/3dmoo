@@ -24,7 +24,8 @@
 
 SERVICE_START(pdn_g);
 
-SERVICE_CMD(0x000100c0) { //unk
+SERVICE_CMD(0x000100c0)   //unk
+{
     DEBUG("PDN GSP %02x %02x %02x", (u8)CMD(1), (u8)CMD(2), (u8)CMD(3));
     RESP(1, 0); // Result
     return 0;

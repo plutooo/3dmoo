@@ -36,7 +36,8 @@ void hid_spvr_init()
 
 SERVICE_START(hid_SPVR);
 
-SERVICE_CMD(0xA0000) { //GetIPCHandles
+SERVICE_CMD(0xA0000)   //GetIPCHandles
+{
     RESP(1, 0); // Result
     RESP(2, 0xDEADF00D); // Unused
     RESP(3, memhandel2);
@@ -48,22 +49,26 @@ SERVICE_CMD(0xA0000) { //GetIPCHandles
     return 0;
 }
 
-SERVICE_CMD(0x110000) { //EnableAccelerometer
+SERVICE_CMD(0x110000)   //EnableAccelerometer
+{
     RESP(1, 0); // Result
     return 0;
 }
 
-SERVICE_CMD(0x130000) { //EnableGyroscopeLow
+SERVICE_CMD(0x130000)   //EnableGyroscopeLow
+{
     RESP(1, 0); // Result
     return 0;
 }
-SERVICE_CMD(0x150000) {
+SERVICE_CMD(0x150000)
+{
     DEBUG("GetGyroscopeLowRawToDpsCoefficient (not working yet)\n");
 
     RESP(1, 0); // Result
     return 0;
 }
-SERVICE_CMD(0x160000) {
+SERVICE_CMD(0x160000)
+{
     DEBUG("GetGyroscopeLowCalibrateParam (not working yet)\n");
 
     RESP(1, 0); // Result

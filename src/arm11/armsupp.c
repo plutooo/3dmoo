@@ -659,8 +659,7 @@ ARMul_MCR (ARMul_State * state, ARMword instr, ARMword source)
     int cn = BITS(16, 19) & 0xf;
     int cpopc = BITS(21, 23) & 0x7;
 
-    if (CPNum == 15 && source == 0) //Cache flush
-    {
+    if (CPNum == 15 && source == 0) { //Cache flush
         return;
     }
 

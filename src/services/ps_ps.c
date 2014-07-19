@@ -24,7 +24,8 @@
 
 SERVICE_START(ps_ps);
 
-SERVICE_CMD(0x00020244) {
+SERVICE_CMD(0x00020244)
+{
     u32 a1 = CMD(1);
     u32 a2 = CMD(2);
     u32 a3 = CMD(3);

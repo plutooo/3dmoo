@@ -22,7 +22,7 @@
 #include "arm11.h"
 
 #include "service_macros.h"
- 
+
 SERVICE_START(boss_P);
 
 SERVICE_END();

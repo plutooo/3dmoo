@@ -39,7 +39,8 @@ void mcu_GPU_init()
 
 SERVICE_START(mcu_GPU);
 
-SERVICE_CMD(0x000d0000) { //unk 0xD
+SERVICE_CMD(0x000d0000)   //unk 0xD
+{
     DEBUG("unk 0xD\n");
 
     RESP(3, mcumutex);
@@ -47,7 +48,8 @@ SERVICE_CMD(0x000d0000) { //unk 0xD
     RESP(1, 0); // Result
     return 0;
 }
-SERVICE_CMD(0x00090000) { //unk 0x9
+SERVICE_CMD(0x00090000)   //unk 0x9
+{
     DEBUG("unk 0x9\n");
 
     RESP(2, 0); // return //u8
@@ -55,7 +57,8 @@ SERVICE_CMD(0x00090000) { //unk 0x9
     RESP(1, 0); // Result
     return 0;
 }
-SERVICE_CMD(0x000a0000) { //unk 0xa
+SERVICE_CMD(0x000a0000)   //unk 0xa
+{
     DEBUG("unk 0xa\n");
 
     RESP(2, 0); // return //u8
@@ -63,7 +66,8 @@ SERVICE_CMD(0x000a0000) { //unk 0xa
     RESP(1, 0); // Result
     return 0;
 }
-SERVICE_CMD(0x00010000) { //unk 0x1
+SERVICE_CMD(0x00010000)   //unk 0x1
+{
     DEBUG("unk 0x1\n");
 
     RESP(3, 0); // return //u8
@@ -72,7 +76,8 @@ SERVICE_CMD(0x00010000) { //unk 0x1
     RESP(1, 0); // Result
     return 0;
 }
-SERVICE_CMD(0x00030000) { //unk 0x3
+SERVICE_CMD(0x00030000)   //unk 0x3
+{
     DEBUG("unk 0x3\n");
 
     RESP(2, 0); // return //u8
@@ -80,13 +85,15 @@ SERVICE_CMD(0x00030000) { //unk 0x3
     RESP(1, 0); // Result
     return 0;
 }
-SERVICE_CMD(0x00040040) { //unk 0x4
+SERVICE_CMD(0x00040040)   //unk 0x4
+{
     DEBUG("unk 0x4 %02x\n",(u8)CMD(1));
 
     RESP(1, 0); // Result
     return 0;
 }
-SERVICE_CMD(0x000e0000) { //unk 0xE
+SERVICE_CMD(0x000e0000)   //unk 0xE
+{
     DEBUG("unk 0xE\n");
 
     RESP(2, 0x02000000); // return //u32
@@ -94,13 +101,15 @@ SERVICE_CMD(0x000e0000) { //unk 0xE
     RESP(1, 0); // Result
     return 0;
 }
-SERVICE_CMD(0x00020080) { //unk 0x2
+SERVICE_CMD(0x00020080)   //unk 0x2
+{
     DEBUG("unk 0x2 %02x  %02x\n", (u8)CMD(1), (u8)CMD(2));
 
     RESP(1, 0); // Result
     return 0;
 }
-SERVICE_CMD(0x000B0040) { //unk 0xB
+SERVICE_CMD(0x000B0040)   //unk 0xB
+{
     DEBUG("unk 0xB %02x\n", (u8)CMD(1));
 
     RESP(1, 0); // Result

@@ -85,21 +85,24 @@ struct _file_type {
 
 
 
-// archives/romfs.c
+// fs/romfs.c
 archive* romfs_OpenArchive(file_path path);
 void romfs_Setup(FILE* fd, u32 off, u32 sz);
 
-// archives/shared_extdata.c
+// fs/shared_extdata.c
 archive* sharedextd_OpenArchive(file_path path);
 
-// archives/sysdata.c
+// fs/sysdata.c
 archive* sysdata_OpenArchive(file_path path);
 
-// archives/sdmc.c
+// fs/sdmc.c
 archive* sdmc_OpenArchive(file_path path);
 
-// archives/savedata.c
+// fs/savedata.c
 archive* savedata_OpenArchive(file_path path);
+
+// fs/extsavedata.c
+archive* extsavedata_OpenArchive(file_path path);
 
 
 typedef struct {
@@ -122,7 +125,7 @@ static archive_type archive_types[] =  {
     {
         "ExtData",
         6,
-        NULL
+        extsavedata_OpenArchive
     },
     {
         "SharedExtData",

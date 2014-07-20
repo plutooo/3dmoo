@@ -234,6 +234,9 @@
     <ClCompile Include="..\src\fs\savedata.c">
       <Filter>Source Files\fs</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\fs\extsavedata.c">
+      <Filter>Source Files\fs</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\inc\handles.h">

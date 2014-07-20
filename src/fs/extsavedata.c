@@ -28,9 +28,9 @@
 #include "fs.h"
 
 
-/* ____ Save Data implementation ____ */
+/* ____ Extended Save Data implementation ____ */
 
-static u32 savedatafile_Read(file_type* self, u32 ptr, u32 sz, u64 off, u32* read_out)
+static u32 extsavedatafile_Read(file_type* self, u32 ptr, u32 sz, u64 off, u32* read_out)
 {
     FILE* fd = self->type_specific.sysdata.fd;
     *read_out = 0;
@@ -70,7 +70,7 @@ static u32 savedatafile_Read(file_type* self, u32 ptr, u32 sz, u64 off, u32* rea
     return 0; // Result
 }
 
-static u32 savedatafile_Write(file_type* self, u32 ptr, u32 sz, u64 off, u32 flush_flags, u32* written_out)
+static u32 extsavedatafile_Write(file_type* self, u32 ptr, u32 sz, u64 off, u32 flush_flags, u32* written_out)
 {
     FILE* fd = self->type_specific.sysdata.fd;
     *written_out = 0;
@@ -110,12 +110,12 @@ static u32 savedatafile_Write(file_type* self, u32 ptr, u32 sz, u64 off, u32 flu
     return 0; // Result
 }
 
-static u64 savedatafile_GetSize(file_type* self)
+static u64 extsavedatafile_GetSize(file_type* self)
 {
     return self->type_specific.sysdata.sz;
 }
 
-static u64 savedatafile_SetSize(file_type* self, u64 sz)
+static u64 extsavedatafile_SetSize(file_type* self, u64 sz)
 {
     FILE* fd = self->type_specific.sysdata.fd;
     u64 current_size = self->type_specific.sysdata.sz;
@@ -135,7 +135,7 @@ static u64 savedatafile_SetSize(file_type* self, u64 sz)
     return 0;
 }
 
-static u32 savedatafile_Close(file_type* self)
+static u32 extsavedatafile_Close(file_type* self)
 {
     // Close file and free yourself
     fclose(self->type_specific.sysdata.fd);
@@ -148,13 +148,13 @@ static u32 savedatafile_Close(file_type* self)
 
 /* ____ FS implementation ____ */
 
-static bool savedata_FileExists(archive* self, file_path path)
+static bool extsavedata_FileExists(archive* self, file_path path)
 {
     char p[256], tmp[256];
     struct stat st;
 
     // Generate path on host file system
-    snprintf(p, 256, "savedata/%s",
+    snprintf(p, 256, "extsavedata/%s",
              fs_PathToString(path.type, path.ptr, path.size, tmp, 256));
 
     if(!fs_IsSafePath(p)) {
@@ -165,12 +165,12 @@ static bool savedata_FileExists(archive* self, file_path path)
     return stat(p, &st) == 0;
 }
 
-static u32 savedata_OpenFile(archive* self, file_path path, u32 flags, u32 attr)
+static u32 extsavedata_OpenFile(archive* self, file_path path, u32 flags, u32 attr)
 {
     char p[256], tmp[256];
 
     // Generate path on host file system
-    snprintf(p, 256, "savedata/%s",
+    snprintf(p, 256, "extsavedata/%s",
              fs_PathToString(path.type, path.ptr, path.size, tmp, 256));
 
     if(!fs_IsSafePath(p)) {
@@ -199,7 +199,7 @@ static u32 savedata_OpenFile(archive* self, file_path path, u32 flags, u32 attr)
     FILE* fd = fopen(p, mode);
 
     if(fd == NULL) {
-        ERROR("Failed to open SaveData, path=%s\n", p);
+        ERROR("Failed to open extsavedata, path=%s\n", p);
         return 0;
     }
 
@@ -225,28 +225,28 @@ static u32 savedata_OpenFile(archive* self, file_path path, u32 flags, u32 attr)
     file->type_specific.sysdata.sz = (u64) sz;
 
     // Setup function pointers.
-    file->fnRead = &savedatafile_Read;
-    file->fnWrite = &savedatafile_Write;
-    file->fnGetSize = &savedatafile_GetSize;
-    file->fnSetSize = &savedatafile_SetSize;
-    file->fnClose = &savedatafile_Close;
+    file->fnRead = &extsavedatafile_Read;
+    file->fnWrite = &extsavedatafile_Write;
+    file->fnGetSize = &extsavedatafile_GetSize;
+    file->fnSetSize = &extsavedatafile_SetSize;
+    file->fnClose = &extsavedatafile_Close;
 
     return handle_New(HANDLE_TYPE_FILE, (uintptr_t) file);
 }
 
-static void savedata_Deinitialize(archive* self)
+static void extsavedata_Deinitialize(archive* self)
 {
     // Free yourself
     free(self);
 }
 
-archive* savedata_OpenArchive(file_path path)
+archive* extsavedata_OpenArchive(file_path path)
 {
     // SysData needs a binary path with an 8-byte id.
-    if(path.type != PATH_EMPTY) {
-        ERROR("Unknown savedata path.\n");
+    /*if(path.type != PATH_EMPTY) {
+        ERROR("Unknown extsavedata path.\n");
         return NULL;
-    }
+    }*/
 
     archive* arch = calloc(sizeof(archive), 1);
 
@@ -256,17 +256,17 @@ archive* savedata_OpenArchive(file_path path)
     }
 
     // Setup function pointers
-    arch->fnFileExists = &savedata_FileExists;
-    arch->fnOpenFile = &savedata_OpenFile;
-    arch->fnDeinitialize = &savedata_Deinitialize;
+    arch->fnFileExists = &extsavedata_FileExists;
+    arch->fnOpenFile = &extsavedata_OpenFile;
+    arch->fnDeinitialize = &extsavedata_Deinitialize;
 
-    u8 buf[8];
+/*    u8 buf[8];
 
     if(mem_Read(buf, path.ptr, 8) != 0) {
         ERROR("Failed to read path.\n");
         free(arch);
         return NULL;
-    }
+    }*/
 
     snprintf(arch->type_specific.sysdata.path,
              sizeof(arch->type_specific.sysdata.path),

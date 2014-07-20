@@ -161,6 +161,7 @@
     <ClCompile Include="..\src\arm11\vfp\vfpsingle.c" />
     <ClCompile Include="..\src\arm11\wrap.c" />
     <ClCompile Include="..\src\dsp\dspemu.c" />
+    <ClCompile Include="..\src\fs\extsavedata.c" />
     <ClCompile Include="..\src\fs\romfs.c" />
     <ClCompile Include="..\src\fs\savedata.c" />
     <ClCompile Include="..\src\fs\sdmc.c" />

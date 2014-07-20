@@ -153,6 +153,74 @@ SERVICE_CMD(0x08030204)   // OpenFileDirectly
     return 0;
 }
 
+SERVICE_CMD(0x08080202)   // CreateFile
+{
+    u32 transaction = CMD(1);
+    u32 handle_arch_lo = CMD(2);
+    u32 handle_arch = CMD(3);
+    u32 file_lowpath_type = CMD(4);
+    u32 file_lowpath_sz = CMD(5);
+    u32 unk0 = CMD(6);
+    u32 size = CMD(7);
+    u32 unk1 = CMD(8);
+    u32 unk2 = CMD(9);
+    u32 file_lowpath_ptr = CMD(10);
+    u32 unk3 = CMD(11);
+    u32 unk4 = CMD(12);
+
+    u32 flags = 6; //Create
+    u32 attr = 0;
+
+    char tmp[256];
+
+    DEBUG("CreateFile\n");
+    DEBUG("   archive_handle=%08x\n",
+        handle_arch);
+    DEBUG("   flags=%s\n",
+        fs_FlagsToString(flags, tmp));
+    DEBUG("   file_lowpath_type=%s\n",
+        fs_PathTypeToString(file_lowpath_type));
+    DEBUG("   file_lowpath=%s\n",
+        fs_PathToString(file_lowpath_type, file_lowpath_ptr, file_lowpath_sz, tmp, sizeof(tmp)));
+    DEBUG("   attr=%s\n",
+        fs_AttrToString(attr, tmp));
+
+    handleinfo* arch_hi = handle_Get(handle_arch);
+
+    if (arch_hi == NULL) {
+        ERROR("Invalid handle.\n");
+        RESP(1, -1);
+        return 0;
+    }
+
+    archive* arch = (archive*)arch_hi->subtype;
+    u32 file_handle = 0;
+
+    // Call OpenFile
+    if (arch != NULL && arch->fnOpenFile != NULL) {
+        file_handle = arch->fnOpenFile(arch,
+            (file_path) {
+            file_lowpath_type, file_lowpath_sz, file_lowpath_ptr
+        },
+        flags, attr);
+
+            if (file_handle == 0) {
+                ERROR("CreateFile has failed.\n");
+                RESP(1, -1);
+                return 0;
+            }
+    }
+    else {
+        ERROR("Archive has not implemented CreateFile/OpenFile.\n");
+        RESP(1, -1);
+        return 0;
+    }
+
+    RESP(1, 0); // Result
+    RESP(3, file_handle); // File handle
+    return 0;
+}
+
 SERVICE_CMD(0x080C00C2)   // OpenArchive
 {
     u32 arch_id           = CMD(1);

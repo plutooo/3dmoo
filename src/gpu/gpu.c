@@ -329,7 +329,7 @@ void GPUTriggerCmdReqQueue()
                 src = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x4);
                 dest = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x8);
                 size = *(u32*)(baseaddr + (j + 1) * 0x20 + 0xC);
-                DEBUG("GX RequestDma 0x%08X 0x%08X 0x%08X\r\n", addr, size, flags);
+                DEBUG("GX RequestDma 0x%08X 0x%08X 0x%08X\r\n", src, dest, size);
                 if (dest - 0x1f000000 > 0x600000 || dest + size - 0x1f000000 > 0x600000) {
                     DEBUG("dma copy into non VRAM not suported\r\n");
                     continue;

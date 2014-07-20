@@ -155,6 +155,10 @@ u32 thread_WaitSynchronization(handleinfo* h, bool *locked);
 u32 semaphore_WaitSynchronization(handleinfo* h, bool *locked);
 u32 semaphore_SyncRequest(handleinfo* h, bool *locked);
 
+//fs/archive.c
+u32 archive_SyncRequest(handleinfo* h, bool *locked);
+u32 archive_WaitSynchronization(handleinfo* h, bool *locked);
+
 static struct {
     char* name;
     u32(*fnSyncRequest)(handleinfo* h, bool *locked);
@@ -236,9 +240,9 @@ static struct {
     },
     {
         "archive",
+        &archive_SyncRequest,
         NULL,
-        NULL,
-        NULL
+        &archive_WaitSynchronization
     },
     {
         "session",

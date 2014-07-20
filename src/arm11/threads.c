@@ -274,9 +274,9 @@ void threads_Execute()
 
         threads_Switch(t);
 
-        //arm11_Run(11172); //process one line
+        arm11_Run(11172*16); //process one line
 
-        arm11_Run(0x7FFFFFFF);
+        //arm11_Run(0x7FFFF);
 
     }
 

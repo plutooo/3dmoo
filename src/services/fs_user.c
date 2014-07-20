@@ -44,7 +44,7 @@ SERVICE_CMD(0x080201C2)   // OpenFile
     DEBUG("   file_lowpath=%s\n",
           fs_PathToString(file_lowpath_type, file_lowpath_ptr, file_lowpath_sz, tmp, sizeof(tmp)));
     DEBUG("   attr=%s\n",
-          fs_AttrToString(flags, tmp));
+          fs_AttrToString(attr, tmp));
 
     handleinfo* arch_hi = handle_Get(handle_arch);
 
@@ -198,7 +198,7 @@ SERVICE_CMD(0x080C00C2)   // OpenArchive
     u32 arch_handle = handle_New(HANDLE_TYPE_ARCHIVE, (uintptr_t) arch);
 
     RESP(1, 0); // Result
-    RESP(2, 0xDEADC0DE); // Arch handle lo (not used)
+    RESP(2, arch_handle); // Arch handle lo (not used)
     RESP(3, arch_handle);  // Arch handle hi
     return 0;
 }

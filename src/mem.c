@@ -450,12 +450,30 @@ int mem_Read(uint8_t* buf_out, uint32_t addr, uint32_t size)
 #endif
 
     size_t i;
+    uint32_t map = 0xdeadc0de;
     for(i=0; i<num_mappings; i++) {
         if(Contains(&mappings[i], addr, size)) {
             memcpy(buf_out, &mappings[i].phys[addr - mappings[i].base], size);
             return 0;
         }
+        else if (Contains(&mappings[i], addr, 1))
+        {
+            map = i;
+        }
     }
+
+    //If spread across multiple mappings
+    if (map != 0xdeadc0de)
+    {
+        uint32_t base = mappings[map].base;
+        uint32_t base_size = mappings[map].size;
+        uint32_t part2_size = (addr + size) - (base + base_size);
+        uint32_t part1_size = size - part2_size;
+        mem_Read(buf_out, addr, part1_size);
+        mem_Read(buf_out + part1_size, addr + part1_size, part2_size);
+        return 0;
+    }
+
 #ifdef PRINT_ILLEGAL
     ERROR("trying to read 0x%x bytes unmapped addr %08x\n", size, addr);
     arm11_Dump();

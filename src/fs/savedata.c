@@ -242,12 +242,6 @@ static void savedata_Deinitialize(archive* self)
 
 archive* savedata_OpenArchive(file_path path)
 {
-    // SysData needs a binary path with an 8-byte id.
-    if(path.type != PATH_EMPTY) {
-        ERROR("Unknown savedata path.\n");
-        return NULL;
-    }
-
     archive* arch = calloc(sizeof(archive), 1);
 
     if(arch == NULL) {
@@ -259,14 +253,6 @@ archive* savedata_OpenArchive(file_path path)
     arch->fnFileExists = &savedata_FileExists;
     arch->fnOpenFile = &savedata_OpenFile;
     arch->fnDeinitialize = &savedata_Deinitialize;
-
-    u8 buf[8];
-
-    if(mem_Read(buf, path.ptr, 8) != 0) {
-        ERROR("Failed to read path.\n");
-        free(arch);
-        return NULL;
-    }
 
     snprintf(arch->type_specific.sysdata.path,
              sizeof(arch->type_specific.sysdata.path),

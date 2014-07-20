@@ -57,7 +57,14 @@ u32 dsp_dsp_SyncRequest()
         mem_Write32(arm11_ServiceBufferAddress() + 0x84, 0x0); //no error
         mem_Write32(arm11_ServiceBufferAddress() + 0x88, 0x1); //loaded
         return 0;
-        break;
+    }
+    case 0x00130082: { //FlushDataCache
+        DEBUG("FlushDataCache\n");
+        return 0;
+    }
+    case 0x00140082: { //InvalidateDCache
+        DEBUG("InvalidateDCache\n");
+        return 0;
     }
     case 0x00150082: { //RegisterInterruptEvents
         u32 param0 = mem_Read32(arm11_ServiceBufferAddress() + 0x84);
@@ -66,13 +73,11 @@ u32 dsp_dsp_SyncRequest()
         DEBUG("RegisterInterruptEvents %08X %08X %08X\n", param0, param1, myeventhandel);
         mem_Write32(arm11_ServiceBufferAddress() + 0x84, 0); //no error
         return 0;
-        break;
     }
     case 0x00160000: { //GetSemaphoreEventHandle
         mem_Write32(arm11_ServiceBufferAddress() + 0x8C, mutex_handle);
         mem_Write32(arm11_ServiceBufferAddress() + 0x84, 0); //no error
         return 0;
-        break;
     }
     case 0x00170040: { //SetSemaphoreMask
         u32 mask = mem_Read16(arm11_ServiceBufferAddress() + 0x84);

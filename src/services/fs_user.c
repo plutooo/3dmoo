@@ -23,8 +23,8 @@ SERVICE_CMD(0x08010002)   // Initialize
 SERVICE_CMD(0x080201C2)   // OpenFile
 {
     u32 transaction       = CMD(1);
-    u32 handle_arch       = CMD(2);
-    u32 handle_arch_hi    = CMD(3);
+    u32 handle_arch_lo    = CMD(2);
+    u32 handle_arch       = CMD(3);
     u32 file_lowpath_type = CMD(4);
     u32 file_lowpath_sz   = CMD(5);
     u32 flags             = CMD(6);
@@ -77,7 +77,7 @@ SERVICE_CMD(0x080201C2)   // OpenFile
     }
 
     RESP(1, 0); // Result
-    RESP(2, file_handle); // File handle
+    RESP(3, file_handle); // File handle
     return 0;
 }
 
@@ -198,7 +198,7 @@ SERVICE_CMD(0x080C00C2)   // OpenArchive
     u32 arch_handle = handle_New(HANDLE_TYPE_ARCHIVE, (uintptr_t) arch);
 
     RESP(1, 0); // Result
-    RESP(2, arch_handle); // Arch handle lo (not used)
+    RESP(2, 0xdeadc0de); // Arch handle lo (not used)
     RESP(3, arch_handle);  // Arch handle hi
     return 0;
 }
@@ -333,8 +333,39 @@ SERVICE_CMD(0x08030102)   // Write
 
 SERVICE_CMD(0x08040000)   // GetSize
 {
-    DEBUG("GetSize - STUB\n");
-    return 0;
+    u32 rc;
+
+    DEBUG("GetSize\n");
+
+    file_type* type = (file_type*)h->subtype;
+
+    if (type->fnGetSize != NULL) {
+        rc = type->fnGetSize(type);
+    }
+    else {
+        ERROR("GetSize() not implemented for this type.\n");
+        rc = -1;
+    }
+    return rc;
+}
+
+SERVICE_CMD(0x08050080)   // SetSize
+{
+    u32 rc;
+    u64 sz = CMD(1) | ((u64)CMD(2)) << 32;
+
+    DEBUG("SetSize, sz=%llx(%d)\n", sz, sz);
+
+    file_type* type = (file_type*)h->subtype;
+
+    if (type->fnSetSize != NULL) {
+        rc = type->fnSetSize(type, sz);
+    }
+    else {
+        ERROR("SetSize() not implemented for this type.\n");
+        rc = -1;
+    }
+    return rc;
 }
 
 SERVICE_CMD(0x08080000)   // Close

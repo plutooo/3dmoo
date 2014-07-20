@@ -155,9 +155,10 @@ u32 thread_WaitSynchronization(handleinfo* h, bool *locked);
 u32 semaphore_WaitSynchronization(handleinfo* h, bool *locked);
 u32 semaphore_SyncRequest(handleinfo* h, bool *locked);
 
-//fs/archive.c
-u32 archive_SyncRequest(handleinfo* h, bool *locked);
-u32 archive_WaitSynchronization(handleinfo* h, bool *locked);
+//services/file.c
+u32 file_SyncRequest(handleinfo* h, bool *locked);
+u32 file_CloseHandle(ARMul_State *state, handleinfo* h);
+u32 file_WaitSynchronization(handleinfo* h, bool *locked);
 
 static struct {
     char* name;
@@ -229,7 +230,7 @@ static struct {
     {
         "file",
         &file_SyncRequest,
-        NULL,
+        &file_CloseHandle,
         NULL
     },
     {
@@ -240,9 +241,9 @@ static struct {
     },
     {
         "archive",
-        &archive_SyncRequest,
         NULL,
-        &archive_WaitSynchronization
+        NULL,
+        NULL
     },
     {
         "session",

@@ -142,6 +142,132 @@ u32 getsizeofframebuffer(u32 val)
     }
 }
 
+u32 renderaddr = 0;
+u32 unknownaddr = 0;
+
+void runGPU_Commands(u8* buffer, u32 size)
+{
+    u32 i;
+    for (i = 0; i < size; i+=8)
+    {
+        u32 cmd = *(u32*)(buffer + 4 + i);
+        u32 dataone = *(u32*)(buffer + i);
+        u16 ID = cmd & 0xFFFF;
+        u16 mask = (cmd>>16) & 0xF;
+        u16 size = (cmd >> 20) & 0x7FF;
+        u8 grouping = (cmd >> 31);
+        switch (ID)
+        {
+            case 0x10:
+                if (cmd == 0x000F0010 && dataone == 0x12345678)
+                {
+                    DEBUG("END\n");
+                    continue;
+                }
+            case 0x111:
+                if (cmd == 0x000F0111)
+                {
+                    DEBUG("cmd 0x000F0111 %x\n", dataone);
+                    continue;
+                }
+            case 0x110:
+                if (cmd == 0x000F0110)
+                {
+                    DEBUG("cmd 0x000F0110 %x\n", dataone);
+                    continue;
+                }
+            case 0x117:
+                if (cmd == 0x000F0117)
+                {
+                    DEBUG("cmd 0x000F0117 %04x %04x\n", dataone & 0xFFFF, (dataone>>16) & 0xFFFF);
+                    continue;
+                }
+            case 0x11D:
+                if (cmd == 0x000F011D)
+                {
+                    renderaddr = dataone << 3;
+                    DEBUG("setrederaddr %08x\n", renderaddr);
+                    continue;
+                }
+            case 0x116:
+                if (cmd == 0x000F0116)
+                {
+                    DEBUG("cmd 0x000F0116 %08x\n", dataone);
+                    continue;
+                }
+            case 0x11C:
+                if (cmd == 0x000F011C)
+                {
+                    unknownaddr = dataone << 3;
+                    DEBUG("set unknownaddr %08x\n", unknownaddr);
+                    continue;
+                }
+            case 0x011E:
+                if (cmd == 0x000F011E)
+                {
+                    DEBUG("configframebuffer --todo-- width=%04x height= %04x\n", dataone & 0xFFF, ((dataone >> 12) & 0xFFF) + 1);
+                    continue;
+                }
+            case 0x006E:
+                if (cmd == 0x000F006E)
+                {
+                    DEBUG("configframebuffer --todo-- width=%04x height= %04x\n", dataone & 0xFFF, ((dataone >> 12) & 0xFFF) + 1);
+                    continue;
+                }
+                
+
+            case 0x41:
+                if (cmd == 0x000F0041)
+                {
+                    DEBUG("VIEWPORT_WIDTH %08x\n", dataone);
+                    continue;
+                }
+            case 0x42:
+                if (cmd == 0x000F0042)
+                {
+                    DEBUG("VIEWPORT_WIDTH_INV %08x\n", dataone);
+                    continue;
+                }
+            case 0x43:
+                if (cmd == 0x000F0043)
+                {
+                    DEBUG("VIEWPORT_HEIGHT %08x\n", dataone);
+                    continue;
+                }
+            case 0x44:
+                if (cmd == 0x000F0044)
+                {
+                    DEBUG("VIEWPORT_HEIGHT_INV %08x\n", dataone);
+                    continue;
+                }
+
+            case 0x68:
+                if (cmd == 0x000F0068)
+                {
+                    DEBUG("glViewport %08x\n", dataone);
+                    continue;
+                }
+
+            default:
+                break;
+        }
+        DEBUG("cmd %04x mask %01x size %03x (%08x) %s \n", ID, mask, size, dataone, grouping ? "grouping" : "")
+        int j;
+        for (j = 0; j < size; j++)
+        {
+            u32 data = *(u32*)(buffer + 8 + i);
+            DEBUG("data %08x\n",data);
+            i += 4;
+        }
+        if (size & 0x1)
+        {
+            u32 data = *(u32*)(buffer + 8 + i);
+            DEBUG("padding data %08x\n", data);
+            i += 4;
+        }
+    }
+}
+
 
 void updateFramebuffer()
 {
@@ -183,7 +309,7 @@ void updateFramebuffer()
 }
 u32 GPUnum = 0;
 
-void GPUTriggerCmdReqQueue() //todo
+void GPUTriggerCmdReqQueue()
 {
     for (int i = 0; i < 0x4; i++) { //for all threads
         u8 *baseaddr = (u8*)(GSPsharedbuff + 0x800 + i * 0x200);
@@ -229,6 +355,8 @@ void GPUTriggerCmdReqQueue() //todo
 
                 u8* buffer = malloc(size);
                 mem_Read(buffer, addr, size);
+
+                runGPU_Commands(buffer,size);
 
                 //u8* buffer = get_pymembuffer(addr);
 

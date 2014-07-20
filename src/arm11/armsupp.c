@@ -667,12 +667,12 @@ ARMul_MCR (ARMul_State * state, ARMword instr, ARMword source)
     //if (!CP_ACCESS_ALLOWED (state, CPNum)) {
     if (!state->MCR[CPNum]) {
         //chy 2004-07-19 should fix in the future ????!!!!
+        DEBUG("SKYEYE ARMul_MCR p%d, %d, r%d, c%d, c%d, %d\n", CPNum, cpopc, rd, cn, cm, cp);
         DEBUG("SKYEYE ARMul_MCR, ACCESS_not ALLOWed, UndefinedInstr  CPnum is %x, source %x\n",CPNum, source);
         ARMul_UndefInstr (state, instr);
         return;
     }
 
-    DEBUG("SKYEYE ARMul_MCR p%d, %d, r%d, c%d, c%d, %d\n", CPNum, cpopc, rd, cn, cm, cp);
     //DEBUG("plutoo: MCR not implemented\n");
     //exit(1);
     //return;
@@ -748,8 +748,6 @@ ARMword ARMul_MRC (ARMul_State * state, ARMword instr)
     if (cn == 13 && cm == 0 && cp == 3) { //c13,c0,3; returns CPU svc buffer
         return state->servaddr;
     }
-
-    DEBUG("SKYEYE ARMul_MRC p%d, %d, r%d, c%d, c%d, %d\n", CPNum, cpopc, rd, cn, cm, cp);
     //DEBUG("plutoo: MRC not implemented\n");
     //return;
 
@@ -760,6 +758,7 @@ ARMword ARMul_MRC (ARMul_State * state, ARMword instr)
     //if (!CP_ACCESS_ALLOWED (state, CPNum)) {
     if (!state->MRC[CPNum]) {
         //chy 2004-07-19 should fix in the future????!!!!
+        DEBUG("SKYEYE ARMul_MRC p%d, %d, r%d, c%d, c%d, %d\n", CPNum, cpopc, rd, cn, cm, cp);
         DEBUG("SKYEYE ARMul_MRC,NOT ALLOWed UndefInstr  CPnum is %x, instr %x\n", CPNum, instr);
         ARMul_UndefInstr (state, instr);
         return -1;

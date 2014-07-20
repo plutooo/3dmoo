@@ -109,7 +109,7 @@ static u32 savedata_OpenFile(archive* self, file_path path, u32 flags, u32 attr)
     char p[256], tmp[256];
 
     // Generate path on host file system
-    snprintf(p, 256, "savedata%s",
+    snprintf(p, 256, "savedata/%s",
              fs_PathToString(path.type, path.ptr, path.size, tmp, 256));
 
     if(!fs_IsSafePath(p)) {

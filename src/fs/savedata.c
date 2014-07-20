@@ -69,9 +69,69 @@ static u32 savedatafile_Read(file_type* self, u32 ptr, u32 sz, u64 off, u32* rea
     return 0; // Result
 }
 
+static u32 savedatafile_Write(file_type* self, u32 ptr, u32 sz, u64 off, u32 flush_flags, u32* written_out)
+{
+    FILE* fd = self->type_specific.sysdata.fd;
+    *written_out = 0;
+
+    if (off >> 32) {
+        ERROR("64-bit offset not supported.\n");
+        return -1;
+    }
+
+    if (fseek(fd, off, SEEK_SET) == -1) {
+        ERROR("fseek failed.\n");
+        return -1;
+    }
+
+    u8* b = malloc(sz);
+    if (b == NULL) {
+        ERROR("Not enough mem.\n");
+        return -1;
+    }
+
+    if (mem_Read(b, ptr, sz) != 0) {
+        ERROR("mem_Read failed.\n");
+        free(b);
+        return -1;
+    }
+
+    u32 written = fwrite(b, 1, sz, fd);
+    if (written == 0) {
+        ERROR("fwrite failed\n");
+        free(b);
+        return -1;
+    }
+
+    *written_out = written;
+    free(b);
+
+    return 0; // Result
+}
+
 static u64 savedatafile_GetSize(file_type* self)
 {
     return self->type_specific.sysdata.sz;
+}
+
+static u64 savedatafile_SetSize(file_type* self, u64 sz)
+{
+    FILE* fd = self->type_specific.sysdata.fd;
+    u64 current_size = self->type_specific.sysdata.sz;
+
+    if (sz >= current_size)
+    {
+        if (fseek(fd, sz, SEEK_SET) == -1) {
+            ERROR("fseek failed.\n");
+            return -1;
+        }
+    }
+    else
+    {
+        DEBUG("Truncating a file is unsupported.\n");
+    }
+
+    return 0;
 }
 
 static u32 savedatafile_Close(file_type* self)
@@ -165,7 +225,9 @@ static u32 savedata_OpenFile(archive* self, file_path path, u32 flags, u32 attr)
 
     // Setup function pointers.
     file->fnRead = &savedatafile_Read;
+    file->fnWrite = &savedatafile_Write;
     file->fnGetSize = &savedatafile_GetSize;
+    file->fnSetSize = &savedatafile_SetSize;
     file->fnClose = &savedatafile_Close;
 
     return handle_New(HANDLE_TYPE_FILE, (uintptr_t) file);

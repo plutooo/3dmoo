@@ -308,7 +308,7 @@ SERVICE_CMD(0x080200C2)   // Read
 
 SERVICE_CMD(0x08030102)   // Write
 {
-    u32 rc, written;
+    u32 rc, written=0;
     u64 off = CMD(1) | ((u64) CMD(2)) << 32;
     u32 sz  = CMD(3);
     u32 flush_flags = CMD(4);
@@ -333,19 +333,24 @@ SERVICE_CMD(0x08030102)   // Write
 
 SERVICE_CMD(0x08040000)   // GetSize
 {
-    u32 rc;
+    u32 rc = 0;
+    u64 sz = 0;
 
     DEBUG("GetSize\n");
 
     file_type* type = (file_type*)h->subtype;
 
     if (type->fnGetSize != NULL) {
-        rc = type->fnGetSize(type);
+        sz = type->fnGetSize(type);
     }
     else {
         ERROR("GetSize() not implemented for this type.\n");
         rc = -1;
     }
+
+    RESP(1, rc); // Result
+    RESP(2, (u32)sz>>32);
+    RESP(3, (u32)sz);
     return rc;
 }
 
@@ -365,6 +370,8 @@ SERVICE_CMD(0x08050080)   // SetSize
         ERROR("SetSize() not implemented for this type.\n");
         rc = -1;
     }
+
+    RESP(1, rc); // Result
     return rc;
 }
 

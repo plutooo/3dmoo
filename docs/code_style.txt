@@ -1,0 +1,32 @@
+--- #define's ---
+
+Correct:
+   ALL_UPPER_CASE_WITH_UNDERSCORES
+
+Incorrect:
+   ALLUPPERCASE
+   alllowercase
+
+--- functions ---
+
+Correct:
+  ModuleName_Func1();
+  GPU_Func1(); (if consistent with rest of module)
+  gpu_Func1(); (if consistent with rest of module)
+
+Incorrect:
+  gpufunc();
+  GPUFunc();
+  init_GPU();
+  initGPU();
+
+--- vars ---
+
+Correct:
+  this_is_correct
+
+Incorrect:
+  notlikethis
+  Not_Like_This
+  NOTLIKETHIS
+  pNotlikethis

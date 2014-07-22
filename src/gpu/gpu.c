@@ -48,6 +48,7 @@ void initGPU()
     GPUwritereg32(frameselectoben, 0);
     GPUwritereg32(RGBuponeleft, 0x18000000);
     GPUwritereg32(RGBuptwoleft, 0x18000000 + 0x46500 * 1);
+    GPUwritereg32(frameselectbot, 0);
     GPUwritereg32(RGBdownoneleft, 0x18000000 + 0x46500 * 4);
     GPUwritereg32(RGBdowntwoleft, 0x18000000 + 0x46500 * 5);
 }
@@ -89,7 +90,7 @@ void sendGPUinterall(u32 ID)
     }
 
 }
-void GPUwritereg32(u32 addr, u32 data)
+void GPUwritereg32(u32 addr, u32 data) //1eb00000 + addr
 {
     DEBUG("GPU write %08x to %08x\n",data,addr);
     if (addr >= 0x420000) {
@@ -211,7 +212,7 @@ void runGPU_Commands(u8* buffer, u32 size)
             case 0x006E:
                 if (cmd == 0x000F006E)
                 {
-                    DEBUG("configframebuffer --todo-- width=%04x height= %04x\n", dataone & 0xFFF, ((dataone >> 12) & 0xFFF) + 1);
+                    DEBUG("configframebuffer2 --todo-- width=%04x height= %04x\n", dataone & 0xFFF, ((dataone >> 12) & 0xFFF) + 1);
                     continue;
                 }
                 
@@ -281,11 +282,11 @@ void updateFramebuffer()
                 baseaddrtop += 0x20; //get the other
             else
                 baseaddrtop += 0x4;
-            GPUwritereg32(frameselectoben, *(u32*)(baseaddrtop));
             if ((*(u32*)(baseaddrtop)& 0x1) == 0)
                 GPUwritereg32(RGBuponeleft, convertvirtualtopys(*(u32*)(baseaddrtop + 4)));
             else
                 GPUwritereg32(RGBuptwoleft, convertvirtualtopys(*(u32*)(baseaddrtop + 4)));
+            GPUwritereg32(frameselectoben, *(u32*)(baseaddrtop + 0x14));
             //the rest is todo
         }
         u8 *baseaddrbot = (u8*)(GSPsharedbuff + 0x240 + i * 0x80); //bot
@@ -295,11 +296,11 @@ void updateFramebuffer()
                 baseaddrbot += 0x20; //get the other
             else
                 baseaddrbot += 0x4;
-            //GPUwritereg32(frameselectoben, *(u32*)(baseaddrbot)); //todo
             if ((*(u32*)(baseaddrbot) &0x1) == 0)
                 GPUwritereg32(RGBdownoneleft, convertvirtualtopys(*(u32*)(baseaddrbot + 4)));
             else
                 GPUwritereg32(RGBdowntwoleft, convertvirtualtopys(*(u32*)(baseaddrbot + 4)));
+            GPUwritereg32(frameselectbot, *(u32*)(baseaddrbot + 0x14)); //todo
             //the rest is todo
 
 
@@ -393,8 +394,8 @@ void GPUTriggerCmdReqQueue()
                     u32 k;
                     for (k = 0; k*size + addr2 < addrend2; k++) {
                         u32 m;
-                        for (m = 0; m<size; m++)
-                            VRAMbuff[m + k*size + addr2 - 0x1F000000] = (u8)(val1 >> (m * 8));
+                        for (m = 0; m < size; m++)
+                            VRAMbuff[m + k*size + addr2 - 0x1F000000] = (u8)(val2 >> (m * 8));
                     }
                 }
                 break;

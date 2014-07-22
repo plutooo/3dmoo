@@ -23,6 +23,7 @@
 #define RGBuponeleft 0x400468
 #define RGBuptwoleft 0x40046C
 
+#define frameselectbot 0x400478
 #define RGBdownoneleft 0x400494
 #define RGBdowntwoleft 0x400498
 

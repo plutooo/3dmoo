@@ -109,7 +109,7 @@ void screen_RenderGPU()
         rect.h = 240;
         SDL_FillRect(bitmapSurface, &rect, SDL_MapRGB(bitmapSurface->format, r, g, b));
     } else {
-        addr = GPUreadreg32(RGBdownoneleft);
+        u32 addr = ((GPUreadreg32(frameselectbot) & 0x1) == 0) ? GPUreadreg32(RGBdownoneleft) : GPUreadreg32(RGBdowntwoleft);
         buffer = get_pymembuffer(addr);
         if (buffer != NULL) {
             if (!updateSurface) {

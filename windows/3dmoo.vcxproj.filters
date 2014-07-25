@@ -237,6 +237,15 @@
     <ClCompile Include="..\src\fs\extsavedata.c">
       <Filter>Source Files\fs</Filter>
     </ClCompile>
+    <ClCompile Include="floatconverter.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\services\cdc_csn.c">
+      <Filter>Source Files\services</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\syscalls\timer.c">
+      <Filter>Source Files\syscalls</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\inc\handles.h">

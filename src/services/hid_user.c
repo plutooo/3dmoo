@@ -32,6 +32,8 @@ u32 memhandel;
 void hid_user_init()
 {
     memhandel = handle_New(HANDLE_TYPE_SHAREDMEM, MEM_TYPE_HID_0);
+
+    HIDsharedbuff[0xb8] = 0x3;
 }
 
 SERVICE_START(hid_user);

@@ -74,9 +74,9 @@ u32 gsp_gpu_SyncRequest()
         return 0;
     }
     case 0xB0040: { //SetLcdForceBlack
-        DEBUG("SetLcdForceBlack\n");
+        DEBUG("SetLcdForceBlack %02x --todo--\n", mem_Read8(arm11_ServiceBufferAddress() + 0x84));
         unsigned char* buffer = get_pymembuffer(0x18000000);
-        memset(buffer, 0, 0x46500 * 6);
+        //memset(buffer, 0, 0x46500 * 6); //no this is todo
         mem_Write32(arm11_ServiceBufferAddress() + 0x84, 0); //no error
         return 0;
     }
@@ -96,7 +96,7 @@ u32 gsp_gpu_SyncRequest()
         return 0;
     }
     case 0x160042: { //AcquireRight
-        DEBUG("AcquireRight %08x %08x\n", mem_Read32(arm11_ServiceBufferAddress() + 0x84), mem_Read32(arm11_ServiceBufferAddress() + 0x8C));
+        DEBUG("AcquireRight %08x %08x --todo--\n", mem_Read32(arm11_ServiceBufferAddress() + 0x84), mem_Read32(arm11_ServiceBufferAddress() + 0x8C));
         mem_Write32(arm11_ServiceBufferAddress() + 0x84, 0); //no error
         return 0;
     }

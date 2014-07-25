@@ -52,6 +52,14 @@ void initGPU()
     GPUwritereg32(RGBdownoneleft, 0x18000000 + 0x46500 * 4);
     GPUwritereg32(RGBdowntwoleft, 0x18000000 + 0x46500 * 5);
 }
+
+u32 convertvirtualtopys(u32 addr) //todo
+{
+    if (addr >= 0x14000000 && addr < 0x1C000000)return addr + 0xC000000; //FCRAM
+    if (addr >= 0x1F000000 && addr < 0x1F600000)return addr - 0x7000000; //VRAM
+    DEBUG("can't convert vitual to py %08x",addr);
+    return 0;
+}
 /*
 0 = PSC0 private?
 1 = PSC1 private?
@@ -65,14 +73,6 @@ PDC0 called every line?
 PDC1 called every VBlank?
 
 */
-
-u32 convertvirtualtopys(u32 addr) //topo
-{
-    if (addr >= 0x14000000 && addr < 0x1C000000)return addr + 0xC000000; //FCRAM
-    if (addr >= 0x1F000000 && addr < 0x1F600000)return addr - 0x7000000; //VRAM
-    DEBUG("can't convert vitual to py %08x",addr);
-    return 0;
-}
 void sendGPUinterall(u32 ID)
 {
     int i;
@@ -215,12 +215,10 @@ void runGPU_Commands(u8* buffer, u32 size)
                     DEBUG("configframebuffer2 --todo-- width=%04x height= %04x\n", dataone & 0xFFF, ((dataone >> 12) & 0xFFF) + 1);
                     continue;
                 }
-                
-
             case 0x41:
                 if (cmd == 0x000F0041)
                 {
-                    DEBUG("VIEWPORT_WIDTH %08x\n", dataone);
+                    DEBUG("VIEWPORT_WIDTH %f %08x\n", (float)fix16tof(dataone), dataone);
                     continue;
                 }
             case 0x42:
@@ -347,7 +345,7 @@ void GPUTriggerCmdReqQueue()
                 addr = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x4);
                 size = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x8);
                 flags = *(u32*)(baseaddr + (j + 1) * 0x20 + 0xC);
-                DEBUG("GX SetCommandList Last 0x%08X 0x%08X 0x%08X --todo--\r\n",addr,size,flags);
+                DEBUG("GX SetCommandList Last 0x%08X 0x%08X 0x%08X\r\n",addr,size,flags);
 
                 char name[0x100];
                 sprintf(name, "Cmdlist%08x.dat", GPUnum);
@@ -407,7 +405,7 @@ void GPUTriggerCmdReqQueue()
                 inputdim = *(u32*)(baseaddr + (j + 1) * 0x20 + 0xC);
                 outputdim = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x10);
                 flags = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x14);
-                DEBUG("GX SetDisplayTransfer 0x%08X 0x%08X 0x%08X 0x%08X 0x%08X --todo--\r\n", inpaddr, outputaddr, inputdim, outputdim, flags);
+                DEBUG("GX SetDisplayTransfer 0x%08X 0x%08X 0x%08X 0x%08X 0x%08X\r\n", inpaddr, outputaddr, inputdim, outputdim, flags);
 
                 if (inputdim != outputdim) {
                     DEBUG("error converting from %08x to %08x", inputdim, outputdim);
@@ -435,7 +433,7 @@ void GPUTriggerCmdReqQueue()
                 inputdim = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x10);
                 outputdim = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x14);
                 flags = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x18);
-                DEBUG("GX SetTextureCopy 0x%08X 0x%08X 0x%08X 0x%08X 0x%08X 0x%08X --todo--\r\n", inpaddr, outputaddr,size, inputdim, outputdim, flags);
+                DEBUG("GX SetTextureCopy 0x%08X 0x%08X 0x%08X 0x%08X 0x%08X 0x%08X\r\n", inpaddr, outputaddr,size, inputdim, outputdim, flags);
 
                 updateFramebuffer();
                 break;
@@ -448,7 +446,7 @@ void GPUTriggerCmdReqQueue()
                 size2 = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x10);
                 addr3 = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x14);
                 size3 = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x18);
-                DEBUG("GX SetCommandList First 0x%08X 0x%08X 0x%08X 0x%08X 0x%08X 0x%08X --todo--\r\n",addr1, size1, addr2, size2, addr3, size3);
+                DEBUG("GX SetCommandList First 0x%08X 0x%08X 0x%08X 0x%08X 0x%08X 0x%08X\r\n",addr1, size1, addr2, size2, addr3, size3);
                 break;
             }
             default:

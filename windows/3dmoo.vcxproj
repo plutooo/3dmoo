@@ -180,6 +180,7 @@
     <ClCompile Include="..\src\services\apt_u.c" />
     <ClCompile Include="..\src\services\boss_p.c" />
     <ClCompile Include="..\src\services\boss_u.c" />
+    <ClCompile Include="..\src\services\cdc_csn.c" />
     <ClCompile Include="..\src\services\cdc_DSP.c" />
     <ClCompile Include="..\src\services\cecd_u.c" />
     <ClCompile Include="..\src\services\cfg_i.c" />
@@ -213,6 +214,8 @@
     <ClCompile Include="..\src\syscalls\memory.c" />
     <ClCompile Include="..\src\syscalls\ports.c" />
     <ClCompile Include="..\src\syscalls\syn.c" />
+    <ClCompile Include="..\src\syscalls\timer.c" />
+    <ClCompile Include="floatconverter.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\inc\arm11.h" />

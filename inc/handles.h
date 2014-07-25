@@ -76,6 +76,7 @@
 #define SERVICE_TYPE_PDN_G      30
 #define SERVICE_TYPE_MCU_GPU      31
 #define SERVICE_TYPE_I2C_LCD      32
+#define SERVICE_TYPE_CDC_CSN      33
 
 #define HANDLE_SUBEVENT_USER          0
 #define HANDLE_SUBEVENT_APTMENUEVENT  1

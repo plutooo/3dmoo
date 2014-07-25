@@ -404,4 +404,6 @@ void arm11_LoadContext(thread *t)
     s.currentexaddr = t->currentexaddr;
     s.currentexval = t->currentexval;
     s.servaddr = t->servaddr;
+    if (s.Cpsr & 0x20)s.TFlag = true;
+    else s.TFlag = false;
 }

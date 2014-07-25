@@ -131,9 +131,19 @@ static int AddMapping(uint32_t base, uint32_t size)
     }
 
 #ifdef logext
-    if ((base & 0xFFFF0000) == 0x1FF80000 || base == 0x10000000 || base == 0x10002000)
+    if (
+        (base & 0xFFFF0000) == 0x1FF80000
+        || base == 0x10000000
+        || base == 0x14000000
+        //|| base == 0x10002000
+        )
+    {
         mappings[i].dolog = true;
-    else mappings[i].dolog = false;
+    }
+    else
+    {
+        mappings[i].dolog = false;
+    }
 #endif
 
     num_mappings++;
@@ -165,9 +175,19 @@ int mem_AddMappingShared(uint32_t base, uint32_t size, u8* data)
     mappings[i].phys = data;
 
 #ifdef logext
-    if ((base & 0xFFFF0000) == 0x1FF80000 || base == 0x10000000 || base == 0x10002000)
+    if (
+        (base & 0xFFFF0000) == 0x1FF80000
+        || base == 0x10000000
+        || base == 0x14000000
+        //|| base == 0x10002000
+        )
+    {
         mappings[i].dolog = true;
-    else mappings[i].dolog = false;
+    }
+    else
+    {
+        mappings[i].dolog = false;
+    }
 #endif
 
     num_mappings++;
@@ -364,6 +384,10 @@ u32 mem_Read32(uint32_t addr)
     fprintf(stderr, "r32 %08x\n", addr);
 #endif
     size_t i;
+    if (addr == 0x133f84)
+    {
+        int asdf = 0;
+    }
     for(i=0; i<num_mappings; i++) {
         if(Contains(&mappings[i], addr, 4)) {
 

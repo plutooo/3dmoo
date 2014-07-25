@@ -460,8 +460,17 @@ u32 svcCreateThread()
     threads[numthread].priority = prio;
     threads[numthread].r[0] = ent_r0;
     threads[numthread].sp = ent_sp;
-    threads[numthread].r15 = ent_pc;
-    threads[numthread].cpsr = 0x1F; //usermode
+    threads[numthread].r15 = ent_pc &~0x1;
+
+    if (ent_pc & 0x1)
+    {
+        threads[numthread].cpsr = 0x3F; //usermode
+    }
+    else
+    {
+        threads[numthread].cpsr = 0x1F; //usermode
+    }
+
     threads[numthread].mode = RESUME;
 
     arm11_SetR(1, hand); // r1 = handle_out

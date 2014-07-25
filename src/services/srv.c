@@ -55,6 +55,7 @@ u32 apt_s_SyncRequest();
 u32 pdn_g_SyncRequest();
 u32 mcu_GPU_SyncRequest();
 u32 i2c_LCD_SyncRequest();
+u32 cdc_csn_SyncRequest();
 
 
 #ifndef _WIN32
@@ -269,6 +270,12 @@ static struct {
         SERVICE_TYPE_I2C_LCD,
         0,
         &i2c_LCD_SyncRequest
+    },
+    {
+        "cdc:CSN",
+        SERVICE_TYPE_CDC_CSN,
+        0,
+        &cdc_csn_SyncRequest
     }
 };
 

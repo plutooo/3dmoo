@@ -1,25 +1,15 @@
 
 #include "util.h"
 
-short ftofix16(float num) {
-
-    short i, f;
-
-    if (fabs(num) > 2047.999f) {
-        printf("Error: number out of range (num=%f)\n", num);
-    }
-
-    i = (short)num;
-    f = (short)(fabs(num * 16)) & 15;
-    return (i << 4) | f;
-}
-
-float fix16tof(int n)
+void f24to32(u32 data,u32 *dataa) //this is not 100% correct fix it
 {
-    float s = 1.0f;
-    if (n < 0) {
-        s = -1.0f;
-        n = -n;
+    u32 dataout = (data << 8) &0x80000000; //Sign bit
+    dataout |= (data << 7)&~0xFF800000;
+    u32 exponent = (data >> 16) & 0x7F;
+    if (exponent != 0)
+    {
+        exponent += 0x40;
     }
-    return s * ((float)(n >> 4) + ((n & 15) / 16.0f));
+    dataout |= exponent << 23;
+    *dataa = dataout;
 }

@@ -334,7 +334,10 @@ int mem_Write32(uint32_t addr, uint32_t w)
 #ifdef MEM_TRACE
     fprintf(stderr, "w32 %08x <- w=%08x\n", addr, w);
 #endif
-
+    if (addr == 0x14003720 + 0x2610 - 4)
+    {
+        int iasdf = 0;
+    }
     size_t i;
     for(i=0; i<num_mappings; i++) {
         if(Contains(&mappings[i], addr, 4)) {
@@ -384,10 +387,6 @@ u32 mem_Read32(uint32_t addr)
     fprintf(stderr, "r32 %08x\n", addr);
 #endif
     size_t i;
-    if (addr == 0x133f84)
-    {
-        int asdf = 0;
-    }
     for(i=0; i<num_mappings; i++) {
         if(Contains(&mappings[i], addr, 4)) {
 

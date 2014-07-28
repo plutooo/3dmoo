@@ -205,6 +205,7 @@
     <ClCompile Include="..\src\services\ps_ps.c" />
     <ClCompile Include="..\src\services\ptm_s.c" />
     <ClCompile Include="..\src\services\ptm_u.c" />
+    <ClCompile Include="..\src\services\PxiFS0.c" />
     <ClCompile Include="..\src\services\PxiPM.c" />
     <ClCompile Include="..\src\services\srv.c" />
     <ClCompile Include="..\src\svc.c" />

@@ -246,6 +246,9 @@
     <ClCompile Include="..\src\syscalls\timer.c">
       <Filter>Source Files\syscalls</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\services\PxiFS0.c">
+      <Filter>Source Files\services</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\inc\handles.h">

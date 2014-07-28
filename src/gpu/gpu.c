@@ -23,6 +23,8 @@
 #include "mem.h"
 #include "gpu.h"
 
+float f24to32(u32 data, u32 *dataa);
+
 /*u8* IObuffer;
 u8* LINEmembuffer;
 u8* VRAMbuff;
@@ -146,116 +148,271 @@ u32 getsizeofframebuffer(u32 val)
 u32 renderaddr = 0;
 u32 unknownaddr = 0;
 
+char* GLenumname[] = { "GL_BYTE", "GL_UNSIGNED_BYTE", "GL_UNSIGNED_SHORT", "GL_FLOAT" };
+
+u32 GPUshaderbuffer[0xFFFF];
+
+
+void runshadr(u32 entry)
+{
+    bool exit = false;
+    do
+    {
+        entry++;
+        u32 cmd = GPUshaderbuffer[entry];
+        switch (cmd >> 26)
+        {
+        case 0x0:
+            DEBUG("add\n");
+            break;
+        case 0x1:
+            DEBUG("dp3\n");
+            break;
+        case 0x2:
+            DEBUG("dp4\n");
+            break;
+        case 0x8:
+            DEBUG("mul\n");
+            break;
+        case 0x9:
+            DEBUG("max\n");
+            break;
+        case 0xA:
+            DEBUG("min\n");
+            break;
+        case 0x13:
+            DEBUG("mov d%02x, d%02x (%02x)\n", (cmd >> 21) & 0x1F, (cmd >> 12) & 0x7F, cmd & 0x7F);
+            break;
+        case 0x21:
+            DEBUG("end\n");
+            exit = true;
+            break;
+        case 0x22:
+            DEBUG("flush\n");
+            break;
+        case 0x28:
+            DEBUG("if\n");
+            break;
+        default:
+            DEBUG("unknown gpu cmd %08x\n",cmd);
+            break;
+        }
+    } while (!exit && entry < 0xFF);
+}
+
 void runGPU_Commands(u8* buffer, u32 size)
 {
     u32 i;
-    for (i = 0; i < size; i+=8)
+    s32 shdaddr = -1;
+    u32 shdrentr = 0;
+    for (i = 0; i < size; i += 8)
     {
         u32 cmd = *(u32*)(buffer + 4 + i);
         u32 dataone = *(u32*)(buffer + i);
         u16 ID = cmd & 0xFFFF;
-        u16 mask = (cmd>>16) & 0xF;
+        u16 mask = (cmd >> 16) & 0xF;
         u16 size = (cmd >> 20) & 0x7FF;
         u8 grouping = (cmd >> 31);
         switch (ID)
         {
-            case 0x10:
-                if (cmd == 0x000F0010 && dataone == 0x12345678)
+
+        case 0x025e:
+            if (cmd == 0x0008025e && dataone == 0x00000000)
+            {
+                DEBUG("shader program start %04x --not correct--\n", shdrentr);
+                runshadr(shdrentr);
+                continue;
+            }
+        case 0x2BA:
+            if (cmd == 0x800f02ba && ((dataone & 0xFFFF0000) == 0x7FFF0000))
+            {
+                shdrentr = dataone & 0xFFFF;
+                DEBUG("shader program entry %04x\n", shdrentr);
+                continue;
+            }
+        case 0x2cb:
+            if (cmd == 0x000f02cb && dataone == 0x00000000)
+            {
+                DEBUG("shader program data start\n", size);
+                shdaddr = 0;
+                continue;
+            }
+        case 0x2cc:
+            if ((cmd & 0x800FFFFF) == 0x000f02cc)
+            {
+                DEBUG("shader program data %04x\n", size);
+                if (shdaddr < 0) DEBUG("error uninted shader program data");
+                GPUshaderbuffer[shdaddr++] = dataone;
+                u32 j;
+                for (j = 0; j < size; j++)
                 {
-                    DEBUG("END\n");
-                    continue;
+                    GPUshaderbuffer[shdaddr++] = *(u32*)(buffer + 0x8 + i);
+                    i += 4;
                 }
-            case 0x111:
-                if (cmd == 0x000F0111)
+                if (size & 0x1)
                 {
-                    DEBUG("cmd 0x000F0111 %x\n", dataone);
-                    continue;
-                }
-            case 0x110:
-                if (cmd == 0x000F0110)
-                {
-                    DEBUG("cmd 0x000F0110 %x\n", dataone);
-                    continue;
-                }
-            case 0x117:
-                if (cmd == 0x000F0117)
-                {
-                    DEBUG("cmd 0x000F0117 %04x %04x\n", dataone & 0xFFFF, (dataone>>16) & 0xFFFF);
-                    continue;
-                }
-            case 0x11D:
-                if (cmd == 0x000F011D)
-                {
-                    renderaddr = dataone << 3;
-                    DEBUG("setrederaddr %08x\n", renderaddr);
-                    continue;
-                }
-            case 0x116:
-                if (cmd == 0x000F0116)
-                {
-                    DEBUG("cmd 0x000F0116 %08x\n", dataone);
-                    continue;
-                }
-            case 0x11C:
-                if (cmd == 0x000F011C)
-                {
-                    unknownaddr = dataone << 3;
-                    DEBUG("set unknownaddr %08x\n", unknownaddr);
-                    continue;
-                }
-            case 0x011E:
-                if (cmd == 0x000F011E)
-                {
-                    DEBUG("configframebuffer --todo-- width=%04x height= %04x\n", dataone & 0xFFF, ((dataone >> 12) & 0xFFF) + 1);
-                    continue;
-                }
-            case 0x006E:
-                if (cmd == 0x000F006E)
-                {
-                    DEBUG("configframebuffer2 --todo-- width=%04x height= %04x\n", dataone & 0xFFF, ((dataone >> 12) & 0xFFF) + 1);
-                    continue;
-                }
-            case 0x41:
-                if (cmd == 0x000F0041)
-                {
-                    DEBUG("VIEWPORT_WIDTH %f %08x\n", (float)fix16tof(dataone), dataone);
-                    continue;
-                }
-            case 0x42:
-                if (cmd == 0x000F0042)
-                {
-                    DEBUG("VIEWPORT_WIDTH_INV %08x\n", dataone);
-                    continue;
-                }
-            case 0x43:
-                if (cmd == 0x000F0043)
-                {
-                    DEBUG("VIEWPORT_HEIGHT %08x\n", dataone);
-                    continue;
-                }
-            case 0x44:
-                if (cmd == 0x000F0044)
-                {
-                    DEBUG("VIEWPORT_HEIGHT_INV %08x\n", dataone);
-                    continue;
+                    u32 data = *(u32*)(buffer + 8 + i);
+                    DEBUG("padding data %08x\n", data);
+                    i += 4;
                 }
 
-            case 0x68:
-                if (cmd == 0x000F0068)
+                //runshadr(0);
+                continue;
+            }
+        case 0x2bf:
+            if (cmd == 0x000f02bf && dataone == 0x00000001)
+            {
+                DEBUG("shader program end\n", size);
+                shdaddr = -1;
+                continue;
+            }
+        case 0x200:
+            if (cmd == 0x826f0200)
+            {
+                DEBUG("SetAttributeBuffers %08x\n", dataone << 3);
+                u32 data1 = *(u32*)(buffer + 8 + i);
+                u32 data2 = *(u32*)(buffer + 0xC + i);
+
+                u32 count = ((data2 >> 28) & 0xF) + 1;
+                u32 mask = ((data2 >> 16) & 0xFFF);
+                printf("count %02x mask %03x\n", count, mask);
+
+                int k;
+                for (k = 0; k < count; k++)
                 {
-                    DEBUG("glViewport %08x\n", dataone);
-                    continue;
+                    u8 format;
+                    if (k < 8)
+                    {
+                        format = (data1 >> (k * 4)) & 0xF;
+                    }
+                    else
+                    {
+                        format = (data2 >> ((k - 8) * 4)) & 0xF;
+                    }
+                    printf("Format: %s %01x (%01x)\n", GLenumname[format & 0x3], ((format >> 2) & 0x3) + 1, format);
+                    u32 enddata1 = *(u32*)(buffer + 0x10 + i + k * 0xC);
+                    u32 enddata2 = *(u32*)(buffer + 0x14 + i + k * 0xC);
+                    u32 enddata3 = *(u32*)(buffer + 0x18 + i + k * 0xC);
+                    printf("addr: %08x\n", (dataone << 3) + enddata1);
+                    printf("Permutations: %04x%08x\n", enddata3 & 0xFFFF, enddata2);
+
+                    printf("stride: %03x\n", (enddata3 >> 16) & 0xFFF);
+                    printf("NumAttributes: %01x\n", (enddata3 >> 28) & 0xF);
                 }
 
-            default:
-                break;
+
+                i += 4 * 0x26;
+
+                if (size & 0x1)
+                {
+                    u32 data = *(u32*)(buffer + 8 + i);
+                    DEBUG("padding data %08x\n", data);
+                    i += 4;
+                }
+
+                continue;
+            }
+        case 0x10:
+            if (cmd == 0x000F0010 && dataone == 0x12345678)
+            {
+                DEBUG("END\n");
+                continue;
+            }
+        case 0x111:
+            if (cmd == 0x000F0111)
+            {
+                DEBUG("cmd 0x000F0111 %x\n", dataone);
+                continue;
+            }
+        case 0x110:
+            if (cmd == 0x000F0110)
+            {
+                DEBUG("cmd 0x000F0110 %x\n", dataone);
+                continue;
+            }
+        case 0x117:
+            if (cmd == 0x000F0117)
+            {
+                DEBUG("cmd 0x000F0117 %04x %04x\n", dataone & 0xFFFF, (dataone >> 16) & 0xFFFF);
+                continue;
+            }
+        case 0x11D:
+            if (cmd == 0x000F011D)
+            {
+                renderaddr = dataone << 3;
+                DEBUG("setrederaddr %08x\n", renderaddr);
+                continue;
+            }
+        case 0x116:
+            if (cmd == 0x000F0116)
+            {
+                DEBUG("cmd 0x000F0116 %08x\n", dataone);
+                continue;
+            }
+        case 0x11C:
+            if (cmd == 0x000F011C)
+            {
+                unknownaddr = dataone << 3;
+                DEBUG("set unknownaddr %08x\n", unknownaddr);
+                continue;
+            }
+        case 0x011E:
+            if (cmd == 0x000F011E)
+            {
+                DEBUG("configframebuffer --todo-- width=%04x height= %04x\n", dataone & 0xFFF, ((dataone >> 12) & 0xFFF) + 1);
+                continue;
+            }
+        case 0x006E:
+            if (cmd == 0x000F006E)
+            {
+                DEBUG("configframebuffer2 --todo-- width=%04x height= %04x\n", dataone & 0xFFF, ((dataone >> 12) & 0xFFF) + 1);
+                continue;
+            }
+        case 0x41:
+            if (cmd == 0x000F0041)
+            {
+                float temp23;
+                f24to32(dataone, &temp23);
+                DEBUG("VIEWPORT_WIDTH %f\n", temp23);
+                continue;
+            }
+        case 0x42:
+            if (cmd == 0x000F0042)
+            {
+                DEBUG("VIEWPORT_WIDTH_INV %08x\n", dataone);
+                continue;
+            }
+        case 0x43:
+            if (cmd == 0x000F0043)
+            {
+                float temp23;
+                f24to32(dataone, &temp23);
+                DEBUG("VIEWPORT_HEIGHT %f\n", temp23);
+                continue;
+            }
+        case 0x44:
+            if (cmd == 0x000F0044)
+            {
+                DEBUG("VIEWPORT_HEIGHT_INV %08x\n", dataone);
+                continue;
+            }
+
+        case 0x68:
+            if (cmd == 0x000F0068)
+            {
+                DEBUG("glViewport %08x\n", dataone);
+                continue;
+            }
+
+        default:
+            break;
         }
         DEBUG("cmd %04x mask %01x size %03x (%08x) %s \n", ID, mask, size, dataone, grouping ? "grouping" : "")
-        int j;
+            int j;
         for (j = 0; j < size; j++)
         {
             u32 data = *(u32*)(buffer + 8 + i);
-            DEBUG("data %08x\n",data);
+            DEBUG("data %08x\n", data);
             i += 4;
         }
         if (size & 0x1)
@@ -265,6 +422,8 @@ void runGPU_Commands(u8* buffer, u32 size)
             i += 4;
         }
     }
+
+
 }
 
 

@@ -22,6 +22,184 @@
 #include "mem.h"
 #include "gpu.h"
 
+
+u32 numReqQueue = 1;
+
+u32 trigevent = 0;
+
+
+u32 GPUnum = 0;
+
+void GPUTriggerCmdReqQueue()
+{
+    for (int i = 0; i < 0x4; i++) { //for all threads
+        u8 *baseaddr = (u8*)(GSPsharedbuff + 0x800 + i * 0x200);
+        u32 header = *(u32*)baseaddr;
+        //Console.WriteLine(Convert.ToString(header,0x10));
+        u32 toprocess = (header >> 8) & 0xFF;
+        for (u32 j = 0; j < toprocess; j++) {
+            *(u32*)baseaddr = 0;
+            u32 CMDID = *(u32*)(baseaddr + (j + 1) * 0x20);
+            u32 src;
+            u32 dest;
+            u32 size;
+            u32 addr;
+            u32 flags;
+            switch (CMDID & 0xFF) {
+            case 0:
+                src = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x4);
+                dest = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x8);
+                size = *(u32*)(baseaddr + (j + 1) * 0x20 + 0xC);
+                DEBUG("GX RequestDma 0x%08X 0x%08X 0x%08X\r\n", src, dest, size);
+                if (dest - 0x1f000000 > 0x600000 || dest + size - 0x1f000000 > 0x600000) {
+                    DEBUG("dma copy into non VRAM not suported\r\n");
+                    continue;
+                }
+
+
+                //for (u32 k = 0; k < size; k++)
+                //    VRAMbuff[k + dest - 0x1F000000] = mem_Read8((src + k)); //todo speed up
+
+                mem_Read(&VRAMbuff[dest - 0x1F000000], src, size);
+
+                break;
+            case 1:
+                addr = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x4);
+                size = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x8);
+                flags = *(u32*)(baseaddr + (j + 1) * 0x20 + 0xC);
+                DEBUG("GX SetCommandList Last 0x%08X 0x%08X 0x%08X\r\n", addr, size, flags);
+
+                char name[0x100];
+                sprintf(name, "Cmdlist%08x.dat", GPUnum);
+                GPUnum++;
+                FILE* out = fopen(name, "wb");
+
+                u8* buffer = malloc(size);
+                mem_Read(buffer, addr, size);
+
+                runGPU_Commands(buffer, size);
+
+                //u8* buffer = get_pymembuffer(addr);
+
+                fwrite(buffer, size, 1, out);
+                fclose(out);
+
+                sendGPUinterall(5);//P3D
+                break;
+            case 2: {
+                        u32 addr1, val1, addrend1, addr2, val2, addrend2, width;
+                        addr1 = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x4);
+                        val1 = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x8);
+                        addrend1 = *(u32*)(baseaddr + (j + 1) * 0x20 + 0xC);
+                        addr2 = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x10);
+                        val2 = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x14);
+                        addrend2 = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x18);
+                        width = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x1C);
+                        DEBUG("GX SetMemoryFill 0x%08X 0x%08X 0x%08X 0x%08X 0x%08X 0x%08X 0x%08X\r\n", addr1, val1, addrend1, addr2, val2, addrend2, width);
+                        if (addr1 - 0x1f000000 > 0x600000 || addrend1 - 0x1f000000 > 0x600000) {
+                            DEBUG("SetMemoryFill into non VRAM not suported\r\n");
+                        }
+                        else {
+                            u32 size = getsizeofwight(width & 0xFFFF);
+                            u32 k;
+                            for (k = 0; k*size + addr1 < addrend1; k++) {
+                                u32 m;
+                                for (m = 0; m<size; m++)
+                                    VRAMbuff[m + k*size + addr1 - 0x1F000000] = (u8)(val1 >> (m * 8));
+                            }
+                        }
+                        if (addr2 - 0x1f000000 > 0x600000 || addrend2 - 0x1f000000 > 0x600000) {
+                            DEBUG("SetMemoryFill into non VRAM not suported\r\n");
+                        }
+                        else {
+                            u32 size = getsizeofwight((width >> 16) & 0xFFFF);
+                            u32 k;
+                            for (k = 0; k*size + addr2 < addrend2; k++) {
+                                u32 m;
+                                for (m = 0; m < size; m++)
+                                    VRAMbuff[m + k*size + addr2 - 0x1F000000] = (u8)(val2 >> (m * 8));
+                            }
+                        }
+                        break;
+            }
+            case 3: {
+                        u32 inpaddr, outputaddr, inputdim, outputdim, flags;
+                        inpaddr = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x4);
+                        outputaddr = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x8);
+                        inputdim = *(u32*)(baseaddr + (j + 1) * 0x20 + 0xC);
+                        outputdim = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x10);
+                        flags = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x14);
+                        DEBUG("GX SetDisplayTransfer 0x%08X 0x%08X 0x%08X 0x%08X 0x%08X\r\n", inpaddr, outputaddr, inputdim, outputdim, flags);
+
+                        if (inputdim != outputdim) {
+                            DEBUG("error converting from %08x to %08x", inputdim, outputdim);
+                        }
+                        u32 sizeoutp = getsizeofwight32(inputdim);
+
+                        memcpy(get_pymembuffer(convertvirtualtopys(outputaddr)), get_pymembuffer(convertvirtualtopys(inpaddr)), sizeoutp);
+                        updateFramebuffer();
+
+                        sendGPUinterall(0);
+                        sendGPUinterall(1);
+                        sendGPUinterall(4);
+                        sendGPUinterall(5);
+                        sendGPUinterall(6);
+
+                        mem_Dbugdump();
+
+                        break;
+            }
+            case 4: {
+                        u32 inpaddr, outputaddr /*,size*/, inputdim, outputdim, flags;
+                        inpaddr = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x4);
+                        outputaddr = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x8);
+                        size = *(u32*)(baseaddr + (j + 1) * 0x20 + 0xC);
+                        inputdim = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x10);
+                        outputdim = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x14);
+                        flags = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x18);
+                        DEBUG("GX SetTextureCopy 0x%08X 0x%08X 0x%08X 0x%08X 0x%08X 0x%08X\r\n", inpaddr, outputaddr, size, inputdim, outputdim, flags);
+
+                        updateFramebuffer();
+                        break;
+            }
+            case 5: {
+                        u32 addr1, size1, addr2, size2, addr3, size3;
+                        addr1 = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x4);
+                        size1 = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x8);
+                        addr2 = *(u32*)(baseaddr + (j + 1) * 0x20 + 0xC);
+                        size2 = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x10);
+                        addr3 = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x14);
+                        size3 = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x18);
+                        DEBUG("GX SetCommandList First 0x%08X 0x%08X 0x%08X 0x%08X 0x%08X 0x%08X\r\n", addr1, size1, addr2, size2, addr3, size3);
+                        break;
+            }
+            default:
+                DEBUG("GX cmd 0x%08X 0x%08X 0x%08X 0x%08X 0x%08X 0x%08X 0x%08X 0x%08X\r\n", *(u32*)(baseaddr + (j + 1) * 0x20), *(u32*)((baseaddr + (j + 1) * 0x20) + 0x4), *(u32*)((baseaddr + (j + 1) * 0x20) + 0x8), *(u32*)((baseaddr + (j + 1) * 0x20) + 0xC), *(u32*)((baseaddr + (j + 1) * 0x20) + 0x10), *(u32*)((baseaddr + (j + 1) * 0x20) + 0x14), *(u32*)((baseaddr + (j + 1) * 0x20) + 0x18), *(u32*)((baseaddr + (j + 1) * 0x20)) + 0x1C);
+                break;
+            }
+        }
+    }
+}
+
+u32 GPURegisterInterruptRelayQueue(u32 flags, u32 Kevent, u32*threadID, u32*outMemHandle)
+{
+    *threadID = numReqQueue++;
+    *outMemHandle = handle_New(HANDLE_TYPE_SHAREDMEM, MEM_TYPE_GSP_0);
+    trigevent = Kevent;
+    handleinfo* h = handle_Get(Kevent);
+    if (h == NULL) {
+        DEBUG("failed to get Event\n");
+        PAUSE();
+        return -1;// -1;
+    }
+    h->locked = false; //unlock we are fast
+
+    *(u32*)(GSPsharedbuff + *threadID * 0x40) = 0x0; //dump from save GSP v0 flags 0
+    *(u32*)(GSPsharedbuff + *threadID * 0x44) = 0x0; //dump from save GSP v0 flags 0
+    *(u32*)(GSPsharedbuff + *threadID * 0x48) = 0x0; //dump from save GSP v0 flags 0
+    return 0x2A07; //dump from save GSP v0 flags 0
+}
+
 u32 gsp_gpu_SyncRequest()
 {
     u32 cid = mem_Read32(arm11_ServiceBufferAddress() + 0x80);
@@ -106,4 +284,36 @@ u32 gsp_gpu_SyncRequest()
     PAUSE();
 
     return 0;
+}
+
+
+/*
+0 = PSC0 private?
+1 = PSC1 private?
+2 = PDC0 public?
+3 = PDC1 public?
+4 = PPF  private?
+5 = P3D  private?
+6 = DMA  private?
+
+PDC0 called every line?
+PDC1 called every VBlank?
+
+*/
+void sendGPUinterall(u32 ID)
+{
+    int i;
+    handleinfo* h = handle_Get(trigevent);
+    if (h == NULL) {
+        return;
+    }
+    h->locked = false; //unlock we are fast
+    for (i = 0; i < 4; i++) {
+        u8 next = *(u8*)(GSPsharedbuff + i * 0x40);        //0x33 next is 00
+        next += *(u8*)(GSPsharedbuff + i * 0x40 + 1) = *(u8*)(GSPsharedbuff + i * 0x40 + 1) + 1;
+        *(u8*)(GSPsharedbuff + i * 0x40 + 2) = 0x0; //no error
+        next = next % 0x34;
+        *(u8*)(GSPsharedbuff + i * 0x40 + 0xC + next) = ID;
+    }
+
 }

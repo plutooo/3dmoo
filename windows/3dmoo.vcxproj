@@ -168,6 +168,7 @@
     <ClCompile Include="..\src\fs\shared_extdata.c" />
     <ClCompile Include="..\src\fs\sysdata.c" />
     <ClCompile Include="..\src\fs\util.c" />
+    <ClCompile Include="..\src\gpu\vec4.c" />
     <ClCompile Include="..\src\handles.c" />
     <ClCompile Include="..\src\gpu\gpu.c" />
     <ClCompile Include="..\src\loader.c" />
@@ -205,6 +206,7 @@
     <ClCompile Include="..\src\services\ps_ps.c" />
     <ClCompile Include="..\src\services\ptm_s.c" />
     <ClCompile Include="..\src\services\ptm_u.c" />
+    <ClCompile Include="..\src\services\Pxiam9.c" />
     <ClCompile Include="..\src\services\PxiFS0.c" />
     <ClCompile Include="..\src\services\PxiPM.c" />
     <ClCompile Include="..\src\services\srv.c" />
@@ -239,6 +241,7 @@
     <ClInclude Include="..\src\arm11\vfp\asm_vfp.h" />
     <ClInclude Include="..\src\arm11\vfp\vfp.h" />
     <ClInclude Include="..\src\arm11\vfp\vfp_helper.h" />
+    <ClInclude Include="..\src\gpu\vec4.h" />
     <ClInclude Include="..\src\services\service_macros.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

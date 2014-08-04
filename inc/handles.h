@@ -81,6 +81,7 @@
 #define SERVICE_TYPE_PxiFS1     35
 #define SERVICE_TYPE_PxiFS2     36
 #define SERVICE_TYPE_PxiFS3     37
+#define SERVICE_TYPE_PxiAM9     38
 
 #define HANDLE_SUBEVENT_USER          0
 #define HANDLE_SUBEVENT_APTMENUEVENT  1

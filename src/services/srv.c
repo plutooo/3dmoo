@@ -60,6 +60,7 @@ u32 PxiFS0_SyncRequest();
 u32 PxiFS1_SyncRequest();
 u32 PxiFS2_SyncRequest();
 u32 PxiFS3_SyncRequest();
+u32 Pxiam9_SyncRequest();
 
 
 #ifndef _WIN32
@@ -304,8 +305,13 @@ static struct {
         SERVICE_TYPE_PxiFS3,
         0,
         &PxiFS3_SyncRequest
+    },
+    {
+        "pxi:am9",
+        SERVICE_TYPE_PxiAM9,
+        0,
+        &Pxiam9_SyncRequest
     }
-
     
 };
 

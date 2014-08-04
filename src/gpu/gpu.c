@@ -22,8 +22,19 @@
 #include "handles.h"
 #include "mem.h"
 #include "gpu.h"
+#include "vec4.h"
+
+#define logGSPparser
 
 float f24to32(u32 data, u32 *dataa);
+
+u32 GPUregs[0xFFFF]; //do they all exist don't know but well
+
+u32 GPUshadercodebuffer[0xFFFF]; //how big is the buffer?
+
+u32 swizzle_data[0xFFFF]; //how big is the buffer?
+
+struct vec4 vectors[96];
 
 /*u8* IObuffer;
 u8* LINEmembuffer;
@@ -32,9 +43,7 @@ u8* GSPsharedbuff;*/
 
 extern int noscreen;
 
-u32 numReqQueue = 1;
 
-u32 trigevent = 0;
 void initGPU()
 {
     IObuffer = malloc(0x420000);
@@ -59,38 +68,8 @@ u32 convertvirtualtopys(u32 addr) //todo
 {
     if (addr >= 0x14000000 && addr < 0x1C000000)return addr + 0xC000000; //FCRAM
     if (addr >= 0x1F000000 && addr < 0x1F600000)return addr - 0x7000000; //VRAM
-    DEBUG("can't convert vitual to py %08x",addr);
+    DEBUG("can't convert vitual to py %08x\n",addr);
     return 0;
-}
-/*
-0 = PSC0 private?
-1 = PSC1 private?
-2 = PDC0 public?
-3 = PDC1 public?
-4 = PPF  private?
-5 = P3D  private?
-6 = DMA  private?
-
-PDC0 called every line?
-PDC1 called every VBlank?
-
-*/
-void sendGPUinterall(u32 ID)
-{
-    int i;
-    handleinfo* h = handle_Get(trigevent);
-    if (h == NULL) {
-        return;
-    }
-    h->locked = false; //unlock we are fast
-    for (i = 0; i < 4; i++) {
-        u8 next = *(u8*)(GSPsharedbuff + i * 0x40);        //0x33 next is 00
-        next  += *(u8*)(GSPsharedbuff + i * 0x40 + 1) = *(u8*)(GSPsharedbuff + i * 0x40 + 1) + 1;
-        *(u8*)(GSPsharedbuff + i * 0x40 + 2) = 0x0; //no error
-        next = next % 0x34;
-        *(u8*)(GSPsharedbuff + i * 0x40 + 0xC + next) = ID;
-    }
-
 }
 void GPUwritereg32(u32 addr, u32 data) //1eb00000 + addr
 {
@@ -120,7 +99,7 @@ u32 getsizeofwight(u16 val) //this is the size of pixel
     case 0x0201:
         return 3;
     default:
-        DEBUG("unknown len %04x",val);
+        DEBUG("unknown len %04x\n",val);
         return 3;
     }
 }
@@ -140,7 +119,7 @@ u32 getsizeofframebuffer(u32 val)
     case 0x0201:
         return 3;
     default:
-        DEBUG("unknown len %08x", val);
+        DEBUG("unknown len %08x\n", val);
         return 3;
     }
 }
@@ -148,6 +127,192 @@ u32 getsizeofframebuffer(u32 val)
 u32 renderaddr = 0;
 u32 unknownaddr = 0;
 
+
+
+
+
+updateGPUintreg(u32 data,u32 ID,u8 mask)
+{
+    int i;
+    for (i = 0; i < 4; i++)
+    {
+        if (mask&(1 << i))
+        {
+            GPUregs[ID] = (GPUregs[ID] & ~(0xFF << (8 * i))) | (data & (0xFF << (8 * i)));
+        }
+    }
+}
+
+#define VSBeginLoadProgramData 0x2cb
+#define VSLoadProgramData 0x2cc
+
+#define VSBeginLoadSwizzleData 0x2d5
+#define VSLoadSwizzleData 0x2d6
+// untill 0x2DD
+
+#define VSFloatUniformSetup 0x2c0
+// untill 0x2C8
+
+u8 VSFloatUniformSetuptembuffercurrent = 0;
+u32 VSFloatUniformSetuptembuffer[4];
+//s32 swizzledataaddr = 0; //todo that may be a pointer that is also in mem but unk
+//s32 vs_swizzle_write_offset = 0; //todo that may be a pointer that is also in mem but unk
+
+writeGPUID(u16 ID, u8 mask, u32 size, u32* buffer)
+{
+    int i;
+    switch (ID)
+    {
+        // Load shader program code
+    case VSLoadProgramData:
+    case VSLoadProgramData + 1:
+    case VSLoadProgramData + 2:
+    case VSLoadProgramData + 3:
+    case VSLoadProgramData + 4:
+    case VSLoadProgramData + 5:
+    case VSLoadProgramData + 6:
+    case VSLoadProgramData + 7:
+        if (mask != 0xF)
+        {
+            DEBUG("abnormal VSLoadProgramData %0x1 %0x3\n", mask, size);
+        }
+        for (i = 0; i < size; i++)
+            GPUshadercodebuffer[GPUregs[VSBeginLoadProgramData]++] = *(buffer + i);
+        break;
+
+    case VSLoadSwizzleData:
+    case VSLoadSwizzleData + 1:
+    case VSLoadSwizzleData + 2:
+    case VSLoadSwizzleData + 3:
+    case VSLoadSwizzleData + 4:
+    case VSLoadSwizzleData + 5:
+    case VSLoadSwizzleData + 6:
+    case VSLoadSwizzleData + 7:
+        if (mask != 0xF)
+        {
+            DEBUG("abnormal VSLoadSwizzleData %0x1 %0x3\n", mask, size);
+        }
+        for (i = 0; i < size; i++)
+            swizzle_data[GPUregs[VSBeginLoadSwizzleData]++] = *(buffer + i);
+        break;
+    case VSFloatUniformSetup:
+        updateGPUintreg(*buffer, ID, mask);
+        buffer++;
+        size--;
+    case VSFloatUniformSetup + 1:
+    case VSFloatUniformSetup + 2:
+    case VSFloatUniformSetup + 3:
+    case VSFloatUniformSetup + 4:
+    case VSFloatUniformSetup + 5:
+    case VSFloatUniformSetup + 6:
+    case VSFloatUniformSetup + 7:
+    case VSFloatUniformSetup + 8:
+        for (i = 0; i < size; i++)
+        {
+            VSFloatUniformSetuptembuffer[VSFloatUniformSetuptembuffercurrent++] = *(buffer + i);
+            bool isfloat32 = (GPUregs[VSFloatUniformSetup] >> 31) == 1;
+
+            if (VSFloatUniformSetuptembuffercurrent == (isfloat32 ? 4 : 3))
+            {
+                VSFloatUniformSetuptembuffercurrent = 0;
+                u8 index = GPUregs[VSFloatUniformSetup] & 0xFF;
+                if (index > 95) {
+                    DEBUG("Invalid VS uniform index %02x\n", index);
+                    break;
+                }
+                // NOTE: The destination component order indeed is "backwards"
+                if (isfloat32) {
+                    vectors[index].w = *(float*)(&VSFloatUniformSetuptembuffer[0]);
+                    vectors[index].z = *(float*)(&VSFloatUniformSetuptembuffer[1]);
+                    vectors[index].y = *(float*)(&VSFloatUniformSetuptembuffer[2]);
+                    vectors[index].x = *(float*)(&VSFloatUniformSetuptembuffer[3]);
+                }
+                else {
+                    f24to32(VSFloatUniformSetuptembuffer[0] >> 8, &vectors[index].w);
+                    f24to32(((VSFloatUniformSetuptembuffer[0] & 0xFF) << 16) | ((VSFloatUniformSetuptembuffer[1] >> 16) & 0xFFFF), &vectors[index].z);
+                    f24to32(((VSFloatUniformSetuptembuffer[1] & 0xFFFF) << 8) | ((VSFloatUniformSetuptembuffer[2] >> 24) & 0xFF), &vectors[index].y);
+                    f24to32(VSFloatUniformSetuptembuffer[2] & 0xFFFFFF, &vectors[index].x);
+
+                }
+
+                DEBUG("Set uniform %02x to (%f %f %f %f)\n", index,
+                    vectors[index].x, vectors[index].y, vectors[index].z,
+                    vectors[index].w);
+                // TODO: Verify that this actually modifies the register!
+                GPUregs[VSFloatUniformSetup]++;
+            }
+
+
+
+        }
+        break;
+    default:
+        updateGPUintreg(*buffer, ID, mask);
+    }
+}
+
+
+void runGPU_Commands(u8* buffer, u32 size)
+{
+    u32 i;
+    for (i = 0; i < size; i += 8)
+    {
+        u32 cmd = *(u32*)(buffer + 4 + i);
+        u32 dataone = *(u32*)(buffer + i);
+        u16 ID = cmd & 0xFFFF;
+        u16 mask = (cmd >> 16) & 0xF;
+        u16 size = (cmd >> 20) & 0x7FF;
+        u8 grouping = (cmd >> 31);
+        u32 datafild[0x800]; //maximal size
+        datafild[0] = dataone;
+#ifdef logGSPparser
+        DEBUG("cmd %04x mask %01x size %03x (%08x) %s \n", ID, mask, size, dataone, grouping ? "grouping" : "")
+#endif
+        int j;
+        for (j = 0; j < size; j++)
+        {
+            datafild[1 + j] = *(u32*)(buffer + 8 + i);
+#ifdef logGSPparser
+            DEBUG("data %08x\n", datafild[1 + j]);
+#endif
+            i += 4;
+        }
+        if (size & 0x1)
+        {
+            u32 data = *(u32*)(buffer + 8 + i);
+#ifdef logGSPparser
+            DEBUG("padding data %08x\n", data);
+#endif
+            i += 4;
+        }
+        if (mask != 0)
+        {
+            if (size > 0 && mask != 0xF)
+                DEBUG("masked data? cmd %04x mask %01x size %03x (%08x) %s \n", ID, mask, size, dataone, grouping ? "grouping" : "");
+            if (grouping)
+            {
+                for (j = 0; j <= size; j++)writeGPUID(ID + j, mask, 1, &datafild[j]);
+            }
+            else
+            {
+                writeGPUID(ID, mask, size + 1, datafild);
+            }
+        }
+        else
+        {
+            DEBUG("masked out data is ignored cmd %04x mask %01x size %03x (%08x) %s \n", ID, mask, size, dataone, grouping ? "grouping" : "");
+        }
+
+    }
+}
+
+
+
+
+
+
+
+#ifdef oldga2
 char* GLenumname[] = { "GL_BYTE", "GL_UNSIGNED_BYTE", "GL_UNSIGNED_SHORT", "GL_FLOAT" };
 
 u32 GPUshaderbuffer[0xFFFF];
@@ -200,6 +365,18 @@ void runshadr(u32 entry)
     } while (!exit && entry < 0xFF);
 }
 
+typedef struct {
+    float w;
+    float z;
+    float y;
+    float x;
+} uniformtype;
+
+uniformtype uniforms[96];
+
+bool IsFloat2c0 = 0;
+u8 index2c0 = 0;
+
 void runGPU_Commands(u8* buffer, u32 size)
 {
     u32 i;
@@ -216,13 +393,82 @@ void runGPU_Commands(u8* buffer, u32 size)
         switch (ID)
         {
 
-        case 0x025e:
-            if (cmd == 0x0008025e && dataone == 0x00000000)
-            {
-                DEBUG("shader program start %04x --not correct--\n", shdrentr);
-                runshadr(shdrentr);
-                continue;
-            }
+        case 0x22e:
+        case 0x22f:
+        {
+               runshadr(shdrentr);
+               DEBUG("starter\n");
+               break;
+        }
+
+        case 0x2c1:
+        {
+                      int k;
+                      u32 temp = *(u32*)(buffer + 0x4);
+                      *(u32*)(buffer + 0x4) = dataone;
+                      for (k = 0; k < ((size + 1) / (IsFloat2c0 ? 4 : 3)); k++)
+                      {
+                          if (IsFloat2c0)
+                          {
+                              uniforms[index2c0].w = *(float*)(buffer + 0x4 + i + k * 4 * 4);
+                              uniforms[index2c0].z = *(float*)(buffer + 0x8 + i + k * 4 * 4);
+                              uniforms[index2c0].y = *(float*)(buffer + 0xC + i + k * 4 * 4);
+                              uniforms[index2c0].x = *(float*)(buffer + 0x10 + i + k * 4 * 4);
+                          }
+                          else
+                          {
+                              uniforms[index2c0].w = *(u32*)(buffer + 0x4 + i + k * 4 * 3) >> 8;
+                              uniforms[index2c0].z = ((*(u32*)(buffer + 0x8 + i + k * 4 * 3) >> 16) & 0xFFFF) | (*(u32*)(buffer + 0x4 + i + k * 4 * 3) & 0xFF) << 16;
+                              uniforms[index2c0].y = (((*(u32*)(buffer + 0x8 + i + k * 4 * 3) >> 16) & 0xFFFF) << 8) | *(u32*)(buffer + 0xC + i + k * 4 * 3) >> 24;
+                              uniforms[index2c0].x = *(u32*)(buffer + 0xC + i + k * 4 * 3) & 0xFFFFFF;
+
+                              f24to32(uniforms[index2c0].w, &uniforms[index2c0].w);
+                              f24to32(uniforms[index2c0].z, &uniforms[index2c0].z);
+                              f24to32(uniforms[index2c0].y, &uniforms[index2c0].y);
+                              f24to32(uniforms[index2c0].x, &uniforms[index2c0].x);
+                          }
+                          DEBUG("VSFloatUniform %02x (%f %f %f %f) %s\n", index2c0, uniforms[index2c0].w, uniforms[index2c0].z, uniforms[index2c0].y, uniforms[index2c0].x, IsFloat2c0 ? "float32" : "float24");
+                          index2c0++;
+                      }
+                      *(u32*)(buffer + 0x4) = temp;
+                      break;
+        }
+        case 0x2c0:
+        {
+                      if (size != 0)
+                      {
+                          bool IsFloat = (dataone >> 31);
+                          u8 index = (dataone & 0xFF);
+                          if (IsFloat)
+                          {
+                              uniforms[index].w = *(float*)(buffer + 0x8 + i);
+                              uniforms[index].z = *(float*)(buffer + 0xC + i);
+                              uniforms[index].y = *(float*)(buffer + 0x10 + i);
+                              uniforms[index].x = *(float*)(buffer + 0x14 + i);
+                          }
+                          else
+                          {
+                              uniforms[index].w = *(u32*)(buffer + 0x8 + i) >> 8;
+                              uniforms[index].z = ((*(u32*)(buffer + 0xC + i) >> 16) & 0xFFFF) | (*(u32*)(buffer + 0x8 + i) & 0xFF) << 16;
+                              uniforms[index].y = (((*(u32*)(buffer + 0xC + i) >> 16) & 0xFFFF) << 8) | *(u32*)(buffer + 0x10 + i) >> 24;
+                              uniforms[index].x = *(u32*)(buffer + 0x10 + i) & 0xFFFFFF;
+
+                              f24to32(uniforms[index].w, &uniforms[index].w);
+                              f24to32(uniforms[index].z, &uniforms[index].z);
+                              f24to32(uniforms[index].y, &uniforms[index].y);
+                              f24to32(uniforms[index].x, &uniforms[index].x);
+                          }
+                          DEBUG("VSFloatUniform %02x (%f %f %f %f) %s\n", index, uniforms[index].w, uniforms[index].z, uniforms[index].y, uniforms[index].x, IsFloat ? "float32" : "float24");
+                      }
+                      else
+                      {
+                          IsFloat2c0 = (dataone >> 31);
+                          index2c0 = (dataone & 0xFF);
+                          DEBUG("VSFloatUniform %02x (?) %s\n", index2c0, IsFloat2c0 ? "float32" : "float24");
+                      }
+
+                      break;
+        }
         case 0x2BA:
             if (cmd == 0x800f02ba && ((dataone & 0xFFFF0000) == 0x7FFF0000))
             {
@@ -425,6 +671,7 @@ void runGPU_Commands(u8* buffer, u32 size)
 
 
 }
+#endif
 
 
 void updateFramebuffer()
@@ -465,175 +712,7 @@ void updateFramebuffer()
     }
     return;
 }
-u32 GPUnum = 0;
 
-void GPUTriggerCmdReqQueue()
-{
-    for (int i = 0; i < 0x4; i++) { //for all threads
-        u8 *baseaddr = (u8*)(GSPsharedbuff + 0x800 + i * 0x200);
-        u32 header = *(u32*)baseaddr;
-        //Console.WriteLine(Convert.ToString(header,0x10));
-        u32 toprocess = (header >> 8) & 0xFF;
-        for (u32 j = 0; j < toprocess; j++) {
-            *(u32*)baseaddr = 0;
-            u32 CMDID = *(u32*)(baseaddr + (j + 1) * 0x20);
-            u32 src;
-            u32 dest;
-            u32 size;
-            u32 addr;
-            u32 flags;
-            switch (CMDID & 0xFF) {
-            case 0:
-                src = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x4);
-                dest = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x8);
-                size = *(u32*)(baseaddr + (j + 1) * 0x20 + 0xC);
-                DEBUG("GX RequestDma 0x%08X 0x%08X 0x%08X\r\n", src, dest, size);
-                if (dest - 0x1f000000 > 0x600000 || dest + size - 0x1f000000 > 0x600000) {
-                    DEBUG("dma copy into non VRAM not suported\r\n");
-                    continue;
-                }
-
-
-                //for (u32 k = 0; k < size; k++)
-                //    VRAMbuff[k + dest - 0x1F000000] = mem_Read8((src + k)); //todo speed up
-
-                mem_Read(&VRAMbuff[dest - 0x1F000000], src, size);
-
-                break;
-            case 1:
-                addr = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x4);
-                size = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x8);
-                flags = *(u32*)(baseaddr + (j + 1) * 0x20 + 0xC);
-                DEBUG("GX SetCommandList Last 0x%08X 0x%08X 0x%08X\r\n",addr,size,flags);
-
-                char name[0x100];
-                sprintf(name, "Cmdlist%08x.dat", GPUnum);
-                GPUnum++;
-                FILE* out = fopen(name,"wb");
-
-                u8* buffer = malloc(size);
-                mem_Read(buffer, addr, size);
-
-                runGPU_Commands(buffer,size);
-
-                //u8* buffer = get_pymembuffer(addr);
-
-                fwrite(buffer, size, 1, out);
-                fclose(out);
-
-                sendGPUinterall(5);//P3D
-                break;
-            case 2: {
-                u32 addr1, val1, addrend1, addr2, val2, addrend2,width;
-                addr1 = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x4);
-                val1 = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x8);
-                addrend1 = *(u32*)(baseaddr + (j + 1) * 0x20 + 0xC);
-                addr2 = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x10);
-                val2 = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x14);
-                addrend2 = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x18);
-                width = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x1C);
-                DEBUG("GX SetMemoryFill 0x%08X 0x%08X 0x%08X 0x%08X 0x%08X 0x%08X 0x%08X\r\n", addr1, val1, addrend1, addr2, val2, addrend2, width);
-                if (addr1 - 0x1f000000 > 0x600000 || addrend1 - 0x1f000000 > 0x600000) {
-                    DEBUG("SetMemoryFill into non VRAM not suported\r\n");
-                } else {
-                    u32 size = getsizeofwight(width&0xFFFF);
-                    u32 k;
-                    for (k = 0; k*size + addr1 < addrend1; k++) {
-                        u32 m;
-                        for (m = 0; m<size; m++)
-                            VRAMbuff[m + k*size + addr1 - 0x1F000000] = (u8)(val1 >> (m * 8));
-                    }
-                }
-                if (addr2 - 0x1f000000 > 0x600000 || addrend2 - 0x1f000000 > 0x600000) {
-                    DEBUG("SetMemoryFill into non VRAM not suported\r\n");
-                } else {
-                    u32 size = getsizeofwight((width >> 16) & 0xFFFF);
-                    u32 k;
-                    for (k = 0; k*size + addr2 < addrend2; k++) {
-                        u32 m;
-                        for (m = 0; m < size; m++)
-                            VRAMbuff[m + k*size + addr2 - 0x1F000000] = (u8)(val2 >> (m * 8));
-                    }
-                }
-                break;
-            }
-            case 3: {
-                u32 inpaddr, outputaddr, inputdim, outputdim, flags;
-                inpaddr = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x4);
-                outputaddr = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x8);
-                inputdim = *(u32*)(baseaddr + (j + 1) * 0x20 + 0xC);
-                outputdim = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x10);
-                flags = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x14);
-                DEBUG("GX SetDisplayTransfer 0x%08X 0x%08X 0x%08X 0x%08X 0x%08X\r\n", inpaddr, outputaddr, inputdim, outputdim, flags);
-
-                if (inputdim != outputdim) {
-                    DEBUG("error converting from %08x to %08x", inputdim, outputdim);
-                }
-                u32 sizeoutp = getsizeofwight32(inputdim);
-
-                memcpy(get_pymembuffer(convertvirtualtopys(outputaddr)),get_pymembuffer(convertvirtualtopys(inpaddr)) , sizeoutp);
-                updateFramebuffer();
-
-                sendGPUinterall(0);
-                sendGPUinterall(1);
-                sendGPUinterall(4);
-                sendGPUinterall(5);
-                sendGPUinterall(6);
-
-                mem_Dbugdump();
-
-                break;
-            }
-            case 4: {
-                u32 inpaddr, outputaddr /*,size*/, inputdim, outputdim, flags;
-                inpaddr = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x4);
-                outputaddr = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x8);
-                size = *(u32*)(baseaddr + (j + 1) * 0x20 + 0xC);
-                inputdim = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x10);
-                outputdim = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x14);
-                flags = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x18);
-                DEBUG("GX SetTextureCopy 0x%08X 0x%08X 0x%08X 0x%08X 0x%08X 0x%08X\r\n", inpaddr, outputaddr,size, inputdim, outputdim, flags);
-
-                updateFramebuffer();
-                break;
-            }
-            case 5: {
-                u32 addr1, size1, addr2, size2, addr3, size3;
-                addr1 = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x4);
-                size1 = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x8);
-                addr2 = *(u32*)(baseaddr + (j + 1) * 0x20 + 0xC);
-                size2 = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x10);
-                addr3 = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x14);
-                size3 = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x18);
-                DEBUG("GX SetCommandList First 0x%08X 0x%08X 0x%08X 0x%08X 0x%08X 0x%08X\r\n",addr1, size1, addr2, size2, addr3, size3);
-                break;
-            }
-            default:
-                DEBUG("GX cmd 0x%08X 0x%08X 0x%08X 0x%08X 0x%08X 0x%08X 0x%08X 0x%08X\r\n", *(u32*)(baseaddr + (j + 1) * 0x20), *(u32*)((baseaddr + (j + 1) * 0x20) + 0x4), *(u32*)((baseaddr + (j + 1) * 0x20) + 0x8), *(u32*)((baseaddr + (j + 1) * 0x20) + 0xC), *(u32*)((baseaddr + (j + 1) * 0x20) + 0x10), *(u32*)((baseaddr + (j + 1) * 0x20) + 0x14), *(u32*)((baseaddr + (j + 1) * 0x20) + 0x18), *(u32*)((baseaddr + (j + 1) * 0x20)) + 0x1C);
-                break;
-            }
-        }
-    }
-}
-
-u32 GPURegisterInterruptRelayQueue(u32 flags, u32 Kevent, u32*threadID, u32*outMemHandle)
-{
-    *threadID = numReqQueue++;
-    *outMemHandle = handle_New(HANDLE_TYPE_SHAREDMEM, MEM_TYPE_GSP_0);
-    trigevent = Kevent;
-    handleinfo* h = handle_Get(Kevent);
-    if (h == NULL) {
-        DEBUG("failed to get Event\n");
-        PAUSE();
-        return -1;// -1;
-    }
-    h->locked = false; //unlock we are fast
-
-    *(u32*)(GSPsharedbuff + *threadID * 0x40) = 0x0; //dump from save GSP v0 flags 0
-    *(u32*)(GSPsharedbuff + *threadID * 0x44) = 0x0; //dump from save GSP v0 flags 0
-    *(u32*)(GSPsharedbuff + *threadID * 0x48) = 0x0; //dump from save GSP v0 flags 0
-    return 0x2A07; //dump from save GSP v0 flags 0
-}
 u8* get_pymembuffer(u32 addr)
 {
     if (addr >= 0x18000000 && addr < 0x18600000)return VRAMbuff + (addr - 0x18000000);

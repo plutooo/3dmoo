@@ -17,6 +17,8 @@
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+//Parts of this file are based on code taken from Citra, copyright (C) 2014 Tony Wasserka.
+
 #include "util.h"
 #include "arm11.h"
 #include "handles.h"
@@ -327,6 +329,8 @@ bool swizzle_DestComponentEnabled(int i, u32 swizzle)
 }
 
 struct vec4 shader_uniforms[96];
+
+
 
 void ProcessShaderCode(struct VertexShaderState state) {
     while (true) {

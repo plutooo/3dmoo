@@ -60,3 +60,63 @@ t.w = s * v.w;
 return t;
 }
 
+struct vec4 vec4_set(int num, scalar val, struct vec4 v)
+{
+    switch (num)
+    {
+    case 0:
+        v.x = val;
+        break;
+    case 1:
+        v.y = val;
+        break;
+    case 2:
+        v.z = val;
+        break;
+    case 3:
+        v.w = val;
+        break;
+    default:
+        //DEBUG("vec4_set out of range");
+        break;
+
+    }
+    return v;
+}
+
+float vec4_get(int num, struct vec4 v)
+{
+    switch (num)
+    {
+    case 0:
+        return v.x;
+    case 1:
+        return v.y;
+    case 2:
+        return v.z;
+    case 3:
+        return v.w;
+    default:
+        //DEBUG("vec4_get out of range");
+        return 0;
+
+    }
+}
+float *vec4_getp(int num, struct vec4 v)
+{
+    switch (num)
+    {
+    case 0:
+        return &v.x;
+    case 1:
+        return &v.y;
+    case 2:
+        return &v.z;
+    case 3:
+        return &v.w;
+    default:
+        //DEBUG("vec4_get out of range");
+        return (float*)0;
+
+    }
+}

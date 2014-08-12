@@ -168,3 +168,5 @@ map
 windows/maptest
 decode.code
 dspfirm.bin
+*/shared_font.bin
+*/dspram.bin 

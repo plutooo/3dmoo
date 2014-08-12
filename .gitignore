@@ -166,3 +166,4 @@ windows/dspfirm.bin
 windows/dspfirm.bin.bak
 ConsoleApplication1/*
 sys/shared_font.bin
+*/dspram.bin

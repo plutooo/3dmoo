@@ -383,9 +383,7 @@ bool mem_test(uint32_t addr)
 
 u32 mem_Read32(uint32_t addr)
 {
-#ifdef MEM_TRACE
-    fprintf(stderr, "r32 %08x\n", addr);
-#endif
+
     size_t i;
     for(i=0; i<num_mappings; i++) {
         if(Contains(&mappings[i], addr, 4)) {
@@ -400,6 +398,9 @@ u32 mem_Read32(uint32_t addr)
 
             // Unaligned.
             u32 temp = *(uint32_t*)(&mappings[i].phys[addr - mappings[i].base]);
+#ifdef MEM_TRACE
+            fprintf(stderr, "r32 %08x --> %08x\n", addr,temp);
+#endif 
             switch (addr & 3) {
             case 0:
                 return temp;

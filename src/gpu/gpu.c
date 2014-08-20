@@ -329,8 +329,6 @@ bool swizzle_DestComponentEnabled(int i, u32 swizzle)
     return (swizzle & (0x8 >> i));
 }
 
-struct vec4 shader_uniforms[96];
-
 
 
 void ProcessShaderCode(struct VertexShaderState state) {
@@ -341,7 +339,7 @@ void ProcessShaderCode(struct VertexShaderState state) {
 
         const float* src1_ = (instr_common_src1(instr) < 0x10) ? state.input_register_table[instr_common_src1(instr)]
             : (instr_common_src1(instr) < 0x20) ? &state.temporary_registers[instr_common_src1(instr) - 0x10].v[0]
-            : (instr_common_src1(instr) < 0x80) ? &shader_uniforms[instr_common_src1(instr) - 0x20].v[0]
+            : (instr_common_src1(instr) < 0x80) ? &vectors[instr_common_src1(instr) - 0x20].v[0]
             : (float*)0;
         const float* src2_ = (instr_common_src2(instr) < 0x10) ? state.input_register_table[instr_common_src2(instr)]
             : &state.temporary_registers[instr_common_src2(instr) - 0x10].v[0];
@@ -494,7 +492,7 @@ void ProcessShaderCode(struct VertexShaderState state) {
 
 
 
-RunShader(struct vec4 input[17], int num_attributes, struct OutputVertex ret)
+RunShader(struct vec4 input[17], int num_attributes, struct OutputVertex *ret)
 {
     struct VertexShaderState state;
 
@@ -503,7 +501,11 @@ RunShader(struct vec4 input[17], int num_attributes, struct OutputVertex ret)
 
     // Setup input register table
 
-    if (num_attributes > 0) state.input_register_table[getattribute_register_map(0, GPUregs[VSInputRegisterMap], GPUregs[VSInputRegisterMap + 1])] = &input[0].v[0];
+    float dummy_register = (0.f);
+    for (int i = 0; i < 16; i++)state.input_register_table[i] = &dummy_register;
+    for (int i = 0; i<num_attributes; i++)
+        state.input_register_table[getattribute_register_map(i, GPUregs[VSInputRegisterMap], GPUregs[VSInputRegisterMap + 1])] = &input[i].v[0];
+    /*if (num_attributes > 0) state.input_register_table[getattribute_register_map(0, GPUregs[VSInputRegisterMap], GPUregs[VSInputRegisterMap + 1])] = &input[0].v[0];
     if (num_attributes > 1) state.input_register_table[getattribute_register_map(1, GPUregs[VSInputRegisterMap], GPUregs[VSInputRegisterMap + 1])] = &input[1].v[0];
     if (num_attributes > 2) state.input_register_table[getattribute_register_map(2, GPUregs[VSInputRegisterMap], GPUregs[VSInputRegisterMap + 1])] = &input[2].v[0];
     if (num_attributes > 3) state.input_register_table[getattribute_register_map(3, GPUregs[VSInputRegisterMap], GPUregs[VSInputRegisterMap + 1])] = &input[3].v[0];
@@ -518,8 +520,8 @@ RunShader(struct vec4 input[17], int num_attributes, struct OutputVertex ret)
     if (num_attributes > 12) state.input_register_table[getattribute_register_map(12, GPUregs[VSInputRegisterMap], GPUregs[VSInputRegisterMap + 1])] = &input[12].v[0];
     if (num_attributes > 13) state.input_register_table[getattribute_register_map(13, GPUregs[VSInputRegisterMap], GPUregs[VSInputRegisterMap + 1])] = &input[13].v[0];
     if (num_attributes > 14) state.input_register_table[getattribute_register_map(14, GPUregs[VSInputRegisterMap], GPUregs[VSInputRegisterMap + 1])] = &input[14].v[0];
-    if (num_attributes > 15) state.input_register_table[getattribute_register_map(15, GPUregs[VSInputRegisterMap], GPUregs[VSInputRegisterMap + 1])] = &input[15].v[0];
-
+    if (num_attributes > 15) state.input_register_table[getattribute_register_map(15, GPUregs[VSInputRegisterMap], GPUregs[VSInputRegisterMap + 1])] = &input[15].v[0];*/
+    
     // Setup output register table
     //struct OutputVertex ret;
     for (int i = 0; i < 7; ++i) {
@@ -531,7 +533,7 @@ RunShader(struct vec4 input[17], int num_attributes, struct OutputVertex ret)
         };
 
         for (int comp = 0; comp < 4; ++comp)
-            state.output_register_table[4 * i + comp] = ((float*)&ret) + semantics[comp];
+            state.output_register_table[4 * i + comp] = ((float*)ret) + semantics[comp];
     }
 
 
@@ -544,9 +546,9 @@ RunShader(struct vec4 input[17], int num_attributes, struct OutputVertex ret)
     ProcessShaderCode(state);
 
     DEBUG("Output vertex: pos (%.2f, %.2f, %.2f, %.2f), col(%.2f, %.2f, %.2f, %.2f), tc0(%.2f, %.2f)\n",
-        ret.pos.v[0], ret.pos.v[1], ret.pos.v[2], ret.pos.v[3],
-        ret.color.v[0], ret.color.v[1], ret.color.v[2], ret.color.v[3],
-        ret.tc0.v[0], ret.tc0.v[1]);
+        ret->pos.v[0], ret->pos.v[1], ret->pos.v[2], ret->pos.v[3],
+        ret->color.v[0], ret->color.v[1], ret->color.v[2], ret->color.v[3],
+        ret->tc0.v[0], ret->tc0.v[1]);
 
     //return ret;
 }
@@ -678,7 +680,7 @@ void writeGPUID(u16 ID, u8 mask, u32 size, u32* buffer)
                                        }
                                    }
                                    struct OutputVertex output;
-                                   RunShader(input, NumTotalAttributes, output);
+                                   RunShader(input, NumTotalAttributes, &output);
                                    //VertexShader::OutputVertex output = VertexShader::RunShader(input, attribute_config.GetNumTotalAttributes());
 
                                    if (is_indexed) {

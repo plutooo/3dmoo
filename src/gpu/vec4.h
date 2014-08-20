@@ -4,13 +4,13 @@
 typedef float scalar;
 
 struct vec4 {
-scalar x, y, z, w;
+    scalar v[4];//x, y, z, w;
 };
 struct vec3 {
-    scalar x, y, z;
+    scalar v[3];//x, y, z;
 };
 struct vec2 {
-    scalar u, v;
+    scalar v[2];//u, v;
 };
 
 struct vec4 _vec4(scalar, scalar, scalar, scalar);

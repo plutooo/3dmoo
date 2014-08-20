@@ -290,6 +290,9 @@ static u32 LoadElfFile(u8 *addr)
         u32 filesz = Read32((u8*) &phdr[4]);
         u32 memsz = Read32((u8*) &phdr[5]);
 
+        //round up (this fixes bad malloc implementation in some homebrew)
+        memsz = (memsz + 0xFFF)&~0xFFF;
+
         u8* data = malloc(memsz);
         memset(data, 0, memsz);
         memcpy(data, addr + off, filesz);
@@ -394,8 +397,10 @@ int loader_LoadFile(FILE* fd)
     }
 
     bool is_compressed = ex.codesetinfo.flags.flag & 1;
-    ex.codesetinfo.name[7] = '\0';
-    DEBUG("Name: %s\n", ex.codesetinfo.name);
+    //ex.codesetinfo.name[7] = '\0';
+    u8 namereal[9];
+    strcpy_s(namereal, 9, ex.codesetinfo.name);
+    DEBUG("Name: %s\n", namereal);
     DEBUG("Code compressed: %s\n", is_compressed ? "YES" : "NO");
 
     // Read ExeFS.

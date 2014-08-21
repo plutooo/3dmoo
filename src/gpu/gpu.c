@@ -568,11 +568,11 @@ u32 GetComponent(u32 n,u32* data)
 {
     if (n < 8)
     {
-        return ((*data) >> n * 4) & 0xF;
+        return ((*(data + 1)) >> n * 4) & 0xF;
     }
     else
     {
-        return ((*(data + 1)) >> (n - 8) * 4) & 0xF;
+        return ((*(data + 2)) >> (n - 8) * 4) & 0xF;
     }
 }
 
@@ -580,7 +580,8 @@ u32 GetNumElements(u32 n, u32* data)
 {
     if (n < 8)
     {
-        return ((*(data + 1)) >> ((n * 4)) +2 ) & 0x3;
+        u32 temp = *(data + 1);
+        return ((temp >> ((n * 4)) + 2) & 0x3) + 1;
     }
     else
     {
@@ -662,7 +663,7 @@ void writeGPUID(u16 ID, u8 mask, u32 size, u32* buffer)
 
                                    // Initialize data for the current vertex
                                    struct vec4 input[17];
-                                   u8 NumTotalAttributes = (attribute_config[1] >> 28) + 1;
+                                   u8 NumTotalAttributes = (attribute_config[2] >> 28) + 1;
                                    for (int i = 0; i < NumTotalAttributes; i++) {
                                        for (int comp = 0; comp < vertex_attribute_elements[i]; comp++) {
                                            const u8* srcdata = vertex_attribute_sources[i] + vertex_attribute_strides[i] * vertex + comp * vertex_attribute_element_size[i];
@@ -674,7 +675,7 @@ void writeGPUID(u16 ID, u8 mask, u32 size, u32* buffer)
                                            DEBUG("Loaded component %x of attribute %x for vertex %x (index %x) from 0x%08x + 0x%08x + 0x%04x: %f\n",
                                                comp, i, vertex, index,
                                                base_address,
-                                               vertex_attribute_sources[i] - base_address,
+                                               vertex_attribute_sources[i] - (u8*)get_pymembuffer(base_address),
                                                srcdata - vertex_attribute_sources[i],
                                                input[i].v[comp]);
                                        }
@@ -745,7 +746,7 @@ void writeGPUID(u16 ID, u8 mask, u32 size, u32* buffer)
             if (VSFloatUniformSetuptembuffercurrent == (isfloat32 ? 4 : 3))
             {
                 VSFloatUniformSetuptembuffercurrent = 0;
-                u8 index = GPUregs[VSFloatUniformSetup] & 0xFF;
+                u8 index = GPUregs[VSFloatUniformSetup] & 0x7F;
                 if (index > 95) {
                     DEBUG("Invalid VS uniform index %02x\n", index);
                     break;

@@ -358,10 +358,10 @@ void ProcessShaderCode(struct VertexShaderState state) {
             src1_[(int)((swizzle >> 5) & 0x3)],
         };
         const float src2[4] = {
-            src2_[(int)((swizzle >> 14) & 0x3)],
-            src2_[(int)((swizzle >> 16) & 0x3)],
-            src2_[(int)((swizzle >> 18) & 0x3)],
             src2_[(int)((swizzle >> 20) & 0x3)],
+            src2_[(int)((swizzle >> 18) & 0x3)],
+            src2_[(int)((swizzle >> 16) & 0x3)],
+            src2_[(int)((swizzle >> 14) & 0x3)],
         };
 
         switch (instr_opcode(instr)) {
@@ -540,7 +540,7 @@ RunShader(struct vec4 input[17], int num_attributes, struct OutputVertex *ret)
     state.status_registers[0] = false;
     state.status_registers[1] = false;
     int k;
-    for (k = 0; k < 7; k++)state.call_stack[k] = VertexShaderState_INVALID_ADDRESS;
+    for (k = 0; k < 8; k++)state.call_stack[k] = VertexShaderState_INVALID_ADDRESS;
     state.call_stack_pointer = &state.call_stack[0];
 
     ProcessShaderCode(state);

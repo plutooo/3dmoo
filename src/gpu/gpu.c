@@ -111,7 +111,7 @@ u32 getsizeofwight32(u32 val)
     case 0x00800080: //no idea why
         return 0x8000;
     default:
-        return (val & 0xFFFF) * ((val>>16) & 0xFFFF) * 3;
+        return (val & 0xFFFF) * ((val>>16) & 0xFFFF) * 3/ 2;
     }
 }
 

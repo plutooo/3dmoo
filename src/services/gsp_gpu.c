@@ -85,6 +85,7 @@ void GPUTriggerCmdReqQueue()
                 fclose(out);
 
                 sendGPUinterall(5);//P3D
+
                 break;
             case 2: {
                         u32 addr1, val1, addrend1, addr2, val2, addrend2, width;
@@ -123,6 +124,9 @@ void GPUTriggerCmdReqQueue()
                         break;
             }
             case 3: {
+
+
+
                         u32 inpaddr, outputaddr, inputdim, outputdim, flags;
                         inpaddr = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x4);
                         outputaddr = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x8);
@@ -144,6 +148,7 @@ void GPUTriggerCmdReqQueue()
                         sendGPUinterall(4);
                         sendGPUinterall(5);
                         sendGPUinterall(6);
+
 
                         //mem_Dbugdump();
 

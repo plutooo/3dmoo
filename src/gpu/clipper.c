@@ -16,7 +16,7 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-//this is based on citra
+//this is based on citra, copyright (C) 2014 Tony Wasserka.
 
 #include "util.h"
 #include "arm11.h"
@@ -136,6 +136,8 @@ void Clipper_ProcessTriangle(struct OutputVertex *v0, struct OutputVertex *v1, s
     memcpy(&output_list[0], v0, sizeof(struct OutputVertex));
     memcpy(&output_list[1], v1, sizeof(struct OutputVertex));
     memcpy(&output_list[2], v2, sizeof(struct OutputVertex));
+
+    buffer_vertices_num = 0;
 
     output_list_num = 3;
 

@@ -145,7 +145,7 @@ void GPUTriggerCmdReqQueue()
                         sendGPUinterall(5);
                         sendGPUinterall(6);
 
-                        mem_Dbugdump();
+                        //mem_Dbugdump();
 
                         break;
             }

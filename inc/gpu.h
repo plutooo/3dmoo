@@ -16,6 +16,8 @@
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include "vec4.h"
+
 #define LCDCOLORFILLMAIN 0x202204
 #define LCDCOLORFILLSUB 0x202A04
 
@@ -43,3 +45,72 @@ u32 GPURegisterInterruptRelayQueue(u32 Flags, u32 Kevent, u32*threadID, u32*outM
 u8* get_pymembuffer(u32 addr);
 u32 get_py_memrestsize(u32 addr);
 void sendGPUinterall(u32 ID);
+
+u32 GPUregs[0xFFFF];
+
+#define VIEWPORT_WIDTH 0x41
+
+#define VIEWPORT_HEIGHT 0x43
+
+#define VIEWPORT_HEIGHT 0x43
+
+#define GLViewport 0x68
+
+#define Viewport_depth_range 0x4D
+
+#define Viewport_depth_far_plane 0x4E
+
+#define VSVertexAttributeOutputMap 0x50 
+// untill 0x56
+
+#define DEPTHBUFFER_ADDRESS 0x11C
+
+#define COLORBUFFER_ADDRESS 0x11D
+
+#define Framebuffer_FORMAT11E  0x11E
+
+#define VertexAttributeConfig 0x200
+// untill 0x226 
+#define IndexArrayConfig 0x227
+#define NumVertices 0x228
+#define TriggerDraw 0x22E
+#define TriggerDrawIndexed 0x22F
+
+#define TriangleTopology 0x25e
+
+#define VSMainOffset 0x2BA
+#define VSInputRegisterMap 0x2BB
+// untill 0x2BC
+#define VSFloatUniformSetup 0x2C0
+// untill 0x2C8
+#define VSBeginLoadProgramData 0x2CB
+#define VSLoadProgramData 0x2CC
+//untill 0x2D3
+#define VSBeginLoadSwizzleData 0x2D5
+#define VSLoadSwizzleData 0x2D6
+// untill 0x2DD
+
+
+
+struct OutputVertex {
+
+    // VS output attributes
+    struct vec4 pos;
+    struct vec4 dummy; // quaternions (not implemented, yet)
+    struct vec4 color;
+    struct vec2 tc0;
+    float tc0_v;
+
+    // Padding for optimal alignment
+    float pad[14];
+
+    // Attributes used to store intermediate results
+
+    // position after perspective divide
+    struct vec3 screenpos;
+};
+
+struct clov4 {
+    u8 v[4];
+};
+

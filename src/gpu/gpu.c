@@ -24,7 +24,6 @@
 #include "handles.h"
 #include "mem.h"
 #include "gpu.h"
-#include "vec4.h"
 
 #define logGSPparser
 
@@ -147,31 +146,6 @@ updateGPUintreg(u32 data,u32 ID,u8 mask)
 }
 
 
-#define VSVertexAttributeOutputMap 0x50 
-// untill 0x56
-
-#define VertexAttributeConfig 0x200
-// untill 0x226 
-#define IndexArrayConfig 0x227
-#define NumVertices 0x228
-#define TriggerDraw 0x22E
-#define TriggerDrawIndexed 0x22F
-
-#define TriangleTopology 0x25e
-
-#define VSMainOffset 0x2BA
-#define VSInputRegisterMap 0x2BB
-// untill 0x2BC
-#define VSFloatUniformSetup 0x2C0
-// untill 0x2C8
-#define VSBeginLoadProgramData 0x2CB
-#define VSLoadProgramData 0x2CC
-//untill 0x2D3
-#define VSBeginLoadSwizzleData 0x2D5
-#define VSLoadSwizzleData 0x2D6
-// untill 0x2DD
-
-
 
 u8 VSFloatUniformSetuptembuffercurrent = 0;
 u32 VSFloatUniformSetuptembuffer[4];
@@ -213,27 +187,6 @@ u32 getattribute_register_map(u32 reg,u32 data1,u32 data2)
 }
 
 
-struct OutputVertex {
-    
-        // VS output attributes
-       struct vec4 pos;
-       struct vec4 dummy; // quaternions (not implemented, yet)
-       struct vec4 color;
-       struct vec2 tc0;
-        float tc0_v;
-    
-        // Padding for optimal alignment
-       float pad[14];
-    
-       // Attributes used to store intermediate results
-       
-        // position after perspective divide
-       struct vec3 screenpos;
-};
-
-
-
-
 
 
 
@@ -241,19 +194,20 @@ struct OutputVertex {
 static struct OutputVertex buffer[2];
 static int buffer_index = 0; // TODO: reset this on emulation restart
 
-void PrimitiveAssembly_SubmitVertex(struct OutputVertex vtx)
+void PrimitiveAssembly_SubmitVertex(struct OutputVertex* vtx)
 {
     u32 topology = (GPUregs[TriangleTopology] >> 8) & 0x3;
     switch (topology) {
     case 0://List:
     case 3://ListIndexed:
         if (buffer_index < 2) {
-            buffer[buffer_index++] = vtx;
+            memcpy(&buffer[buffer_index++], vtx, sizeof(struct OutputVertex));
+            //buffer[buffer_index++] = vtx;
         }
         else {
             buffer_index = 0;
 
-            //Clipper_ProcessTriangle(buffer[0], buffer[1], vtx);
+            Clipper_ProcessTriangle(&buffer[0], &buffer[1], vtx);
         }
         break;
 
@@ -261,17 +215,36 @@ void PrimitiveAssembly_SubmitVertex(struct OutputVertex vtx)
         if (buffer_index == 2) {
             buffer_index = 0;
 
-           //Clipper_ProcessTriangle(buffer[0], buffer[1], vtx);
+           Clipper_ProcessTriangle(&buffer[0], &buffer[1], &vtx);
 
-            buffer[1] = vtx;
+            //buffer[1] = vtx;
+           memcpy(&buffer[1], vtx, sizeof(struct OutputVertex));
         }
         else {
-            buffer[buffer_index++] = vtx;
+            //buffer[buffer_index++] = vtx;
+            memcpy(&buffer[buffer_index++], vtx, sizeof(struct OutputVertex));
         }
         break;
 
+      case 1: //Strip
+             if (buffer_index < 2) {
+                //buffer[buffer_index++] = vtx;
+                 memcpy(&buffer[buffer_index++], vtx, sizeof(struct OutputVertex));
+            }
+            else {
+                Clipper_ProcessTriangle(&buffer[0], &buffer[1], &vtx);
+                // TODO: This could be done a lot more efficiently...
+                /*buffer[buffer_index] = vtx;
+                std::swap(buffer[0], buffer[1]);
+                std::swap(buffer[1], buffer[2]);*/
+                /*buffer[0] = buffer[1];
+                buffer[1] = vtx;*/
+                memcpy(&buffer[0], &buffer[1], sizeof(struct OutputVertex));
+                memcpy(&buffer[1], vtx, sizeof(struct OutputVertex));
+            }
+            break;
     default:
-        DEBUG("Unknown triangle mode %x:", (int)topology);
+        DEBUG("Unknown triangle mode %x\n", (int)topology);
         break;
     }
 }
@@ -306,7 +279,7 @@ u32 instr_common_src1(u32 hex)
 }
 u32 instr_common_dest(u32 hex)
 {
-    return (hex >> 0x13) & 0x7F;
+    return (hex >> 0x15) & 0x1F;
 }
 u32 instr_common_src2(u32 hex)
 {
@@ -329,29 +302,32 @@ bool swizzle_DestComponentEnabled(int i, u32 swizzle)
     return (swizzle & (0x8 >> i));
 }
 
+#define printfunc
 
-
-void ProcessShaderCode(struct VertexShaderState state) {
+void ProcessShaderCode(struct VertexShaderState* state) {
     while (true) {
         bool increment_pc = true;
         bool exit_loop = false;
-        u32 instr = *(u32*)state.program_counter;
+        u32 instr = *(u32*)state->program_counter;
 
-        const float* src1_ = (instr_common_src1(instr) < 0x10) ? state.input_register_table[instr_common_src1(instr)]
-            : (instr_common_src1(instr) < 0x20) ? &state.temporary_registers[instr_common_src1(instr) - 0x10].v[0]
-            : (instr_common_src1(instr) < 0x80) ? &vectors[instr_common_src1(instr) - 0x20].v[0]
+        u32 instr_common_src1v = instr_common_src1(instr);
+        const float* src1_ = (instr_common_src1v < 0x10) ? state->input_register_table[instr_common_src1v]
+            : (instr_common_src1v < 0x20) ? &state->temporary_registers[instr_common_src1v - 0x10].v[0]
+            : (instr_common_src1v < 0x80) ? &vectors[instr_common_src1v - 0x20].v[0]
             : (float*)0;
-        const float* src2_ = (instr_common_src2(instr) < 0x10) ? state.input_register_table[instr_common_src2(instr)]
-            : &state.temporary_registers[instr_common_src2(instr) - 0x10].v[0];
-        // TODO: Unsure about the limit values
-        float* dest = (instr_common_dest(instr) <= 0x1C) ? state.output_register_table[instr_common_dest(instr)]
-            : (instr_common_dest(instr) <= 0x3C) ? (float*)0
-            : (instr_common_dest(instr) <= 0x7C) ? &state.temporary_registers[(instr_common_dest(instr) - 0x40) / 4].v[instr_common_dest(instr) % 4] //vec4_getp(instr_common_dest(instr) % 4, state.temporary_registers[(instr_common_dest(instr) - 0x40) / 4])
+
+        u32 instr_common_src2v = instr_common_src2(instr);
+        const float* src2_ = (instr_common_src2v < 0x10) ? state->input_register_table[instr_common_src2v]
+            : &state->temporary_registers[instr_common_src2v - 0x10].v[0];
+        u32 instr_common_destv = instr_common_dest(instr);
+        float* dest = (instr_common_destv < 8) ? state->output_register_table[4 * instr_common_destv]
+            : (instr_common_destv < 0x10) ? (float*)0
+            : (instr_common_destv < 0x20) ? &state->temporary_registers[instr_common_destv - 0x10].v[0]
             : (float*)0;
 
         u32 swizzle = swizzle_data[instr_common_operand_desc_id(instr)];
 
-        const float src1[4] = {
+        float src1[4] = {
             src1_[(int)((swizzle>>11)&0x3)],
             src1_[(int)((swizzle >> 9) & 0x3)],
             src1_[(int)((swizzle >> 7) & 0x3)],
@@ -364,9 +340,19 @@ void ProcessShaderCode(struct VertexShaderState state) {
             src2_[(int)((swizzle >> 14) & 0x3)],
         };
 
+        if (swizzle&0x10) {
+            src1[0] = src1[0] * (-1.f);
+            src1[1] = src1[1] * (-1.f);
+            src1[2] = src1[2] * (-1.f);
+            src1[3] = src1[3] * (-1.f);
+        }
+
         switch (instr_opcode(instr)) {
         case SHDR_ADD:
         {
+#ifdef printfunc
+                         DEBUG("ADD %02X %02X %02X %08x\n", instr_common_destv, instr_common_src1v, instr_common_src2v, swizzle);
+#endif
                                          for (int i = 0; i < 4; ++i) {
                                              if (!swizzle_DestComponentEnabled(i, swizzle))
                                                  continue;
@@ -379,6 +365,9 @@ void ProcessShaderCode(struct VertexShaderState state) {
 
         case SHDR_MUL:
         {
+#ifdef printfunc
+                         DEBUG("MUL %02X %02X %02X %08x\n", instr_common_destv, instr_common_src1v, instr_common_src2v, swizzle);
+#endif
                                          for (int i = 0; i < 4; ++i) {
                                              if (!swizzle_DestComponentEnabled(i, swizzle))
                                                  continue;
@@ -392,6 +381,9 @@ void ProcessShaderCode(struct VertexShaderState state) {
         case SHDR_DP3:
         case SHDR_DP4:
         {
+#ifdef printfunc
+                         DEBUG("DP3/4 %02X %02X %02X %08x\n", instr_common_destv, instr_common_src1v, instr_common_src2v, swizzle);
+#endif
                                          float dot = (0.f);
                                          int num_components = (instr_opcode(instr) == SHDR_DP3) ? 3 : 4;
                                          for (int i = 0; i < num_components; ++i)
@@ -409,6 +401,9 @@ void ProcessShaderCode(struct VertexShaderState state) {
             // Reciprocal
         case SHDR_RCP:
         {
+#ifdef printfunc
+                         DEBUG("RCP %02X %02X %08x\n", instr_common_destv, instr_common_src1v, swizzle);
+#endif
                                          for (int i = 0; i < 4; ++i) {
                                              if (!swizzle_DestComponentEnabled(i, swizzle))
                                                  continue;
@@ -424,6 +419,9 @@ void ProcessShaderCode(struct VertexShaderState state) {
             // Reciprocal Square Root
         case SHDR_RSQ:
         {
+#ifdef printfunc
+                         DEBUG("RSQ %02X %02X %08x\n", instr_common_destv, instr_common_src1v, swizzle);
+#endif     
                                          for (int i = 0; i < 4; ++i) {
                                              if (!swizzle_DestComponentEnabled(i, swizzle))
                                                  continue;
@@ -438,6 +436,9 @@ void ProcessShaderCode(struct VertexShaderState state) {
 
         case SHDR_MOV:
         {
+#ifdef printfunc
+                         DEBUG("MOV %02X %02X %08x\n", instr_common_destv, instr_common_src1v, swizzle);
+#endif   
                                          for (int i = 0; i < 4; ++i) {
                                              if (!swizzle_DestComponentEnabled(i, swizzle))
                                                  continue;
@@ -448,41 +449,50 @@ void ProcessShaderCode(struct VertexShaderState state) {
         }
 
         case SHDR_RET:
-            if (*state.call_stack_pointer == VertexShaderState_INVALID_ADDRESS) {
+#ifdef printfunc
+            DEBUG("RET\n");
+#endif
+            *state->call_stack_pointer = VertexShaderState_INVALID_ADDRESS;
+            state->call_stack_pointer--;
+            if (*state->call_stack_pointer == VertexShaderState_INVALID_ADDRESS) {
                 exit_loop = true;
             }
             else {
-                state.program_counter = &GPUshadercodebuffer[*state.call_stack_pointer--];
-                *state.call_stack_pointer = VertexShaderState_INVALID_ADDRESS;
-            }
+                state->program_counter = &GPUshadercodebuffer[*state->call_stack_pointer];
+           }
 
             break;
 
         case SHDR_CALL:
+#ifdef printfunc
+            DEBUG("CALL %08x\n",instr_flow_control_offset_words(instr));
+#endif   
             increment_pc = false;
 
             //_dbg_assert_(GPU, state.call_stack_pointer - state.call_stack < sizeof(state.call_stack)); //todo
 
-            *++state.call_stack_pointer = state.program_counter - (u32)(&GPUshadercodebuffer[0]);
+            *state->call_stack_pointer = ((u32)state->program_counter - (u32)(&GPUshadercodebuffer[0])) / 4;
+            state->call_stack_pointer++;
             // TODO: Does this offset refer to the beginning of shader memory?
-            state.program_counter = &GPUshadercodebuffer[instr_flow_control_offset_words(instr)];
+            state->program_counter = &GPUshadercodebuffer[instr_flow_control_offset_words(instr)];
             break;
 
         case SHDR_FLS:
+#ifdef printfunc
+            DEBUG("FLS\n");
+#endif   
             // TODO: Do whatever needs to be done here?
             break;
 
         default:
-            DEBUG("Unhandled instruction: 0x%08x",instr);
+            DEBUG("Unhandled instruction: 0x%08x\n",instr);
             break;
         }
 
         if (increment_pc)
-            state.program_counter++;
+            state->program_counter++;
 
         if (exit_loop)
-            break;
-        if (0xFFFF>state.program_counter)
             break;
     }
 }
@@ -497,7 +507,7 @@ RunShader(struct vec4 input[17], int num_attributes, struct OutputVertex *ret)
     struct VertexShaderState state;
 
     //const u32* main = &shader_memory[registers.Get<Regs::VSMainOffset>().offset_words];
-    state.program_counter = (u32*)((u32)(&GPUshadercodebuffer[0]) + (u16)GPUregs[VSMainOffset]);;
+    state.program_counter = (u32*)((u32)(&GPUshadercodebuffer[0]) + (u16)GPUregs[VSMainOffset]*4);
 
     // Setup input register table
 
@@ -541,9 +551,14 @@ RunShader(struct vec4 input[17], int num_attributes, struct OutputVertex *ret)
     state.status_registers[1] = false;
     int k;
     for (k = 0; k < 8; k++)state.call_stack[k] = VertexShaderState_INVALID_ADDRESS;
-    state.call_stack_pointer = &state.call_stack[0];
+    state.call_stack_pointer = &state.call_stack[1];
 
-    ProcessShaderCode(state);
+    for (int i = 0; i < 16; i++)
+    {
+        for (int j = 0; j < 4; j++)state.temporary_registers[i].v[j] = (0.f);
+    }
+
+    ProcessShaderCode(&state);
 
     DEBUG("Output vertex: pos (%.2f, %.2f, %.2f, %.2f), col(%.2f, %.2f, %.2f, %.2f), tc0(%.2f, %.2f)\n",
         ret->pos.v[0], ret->pos.v[1], ret->pos.v[2], ret->pos.v[3],
@@ -689,7 +704,8 @@ void writeGPUID(u16 ID, u8 mask, u32 size, u32* buffer)
 
                                    }
 
-                                   PrimitiveAssembly_SubmitVertex(output);
+                                   // Send to triangle clipper
+                                   PrimitiveAssembly_SubmitVertex(&output);
 
                                }
 
@@ -833,373 +849,6 @@ void runGPU_Commands(u8* buffer, u32 size)
 
     }
 }
-
-
-
-
-
-
-
-#ifdef oldga2
-char* GLenumname[] = { "GL_BYTE", "GL_UNSIGNED_BYTE", "GL_UNSIGNED_SHORT", "GL_FLOAT" };
-
-u32 GPUshaderbuffer[0xFFFF];
-
-
-void runshadr(u32 entry)
-{
-    bool exit = false;
-    do
-    {
-        entry++;
-        u32 cmd = GPUshaderbuffer[entry];
-        switch (cmd >> 26)
-        {
-        case 0x0:
-            DEBUG("add\n");
-            break;
-        case 0x1:
-            DEBUG("dp3\n");
-            break;
-        case 0x2:
-            DEBUG("dp4\n");
-            break;
-        case 0x8:
-            DEBUG("mul\n");
-            break;
-        case 0x9:
-            DEBUG("max\n");
-            break;
-        case 0xA:
-            DEBUG("min\n");
-            break;
-        case 0x13:
-            DEBUG("mov d%02x, d%02x (%02x)\n", (cmd >> 21) & 0x1F, (cmd >> 12) & 0x7F, cmd & 0x7F);
-            break;
-        case 0x21:
-            DEBUG("end\n");
-            exit = true;
-            break;
-        case 0x22:
-            DEBUG("flush\n");
-            break;
-        case 0x28:
-            DEBUG("if\n");
-            break;
-        default:
-            DEBUG("unknown gpu cmd %08x\n",cmd);
-            break;
-        }
-    } while (!exit && entry < 0xFF);
-}
-
-typedef struct {
-    float w;
-    float z;
-    float y;
-    float x;
-} uniformtype;
-
-uniformtype uniforms[96];
-
-bool IsFloat2c0 = 0;
-u8 index2c0 = 0;
-
-void runGPU_Commands(u8* buffer, u32 size)
-{
-    u32 i;
-    s32 shdaddr = -1;
-    u32 shdrentr = 0;
-    for (i = 0; i < size; i += 8)
-    {
-        u32 cmd = *(u32*)(buffer + 4 + i);
-        u32 dataone = *(u32*)(buffer + i);
-        u16 ID = cmd & 0xFFFF;
-        u16 mask = (cmd >> 16) & 0xF;
-        u16 size = (cmd >> 20) & 0x7FF;
-        u8 grouping = (cmd >> 31);
-        switch (ID)
-        {
-
-        case 0x22e:
-        case 0x22f:
-        {
-               runshadr(shdrentr);
-               DEBUG("starter\n");
-               break;
-        }
-
-        case 0x2c1:
-        {
-                      int k;
-                      u32 temp = *(u32*)(buffer + 0x4);
-                      *(u32*)(buffer + 0x4) = dataone;
-                      for (k = 0; k < ((size + 1) / (IsFloat2c0 ? 4 : 3)); k++)
-                      {
-                          if (IsFloat2c0)
-                          {
-                              uniforms[index2c0].w = *(float*)(buffer + 0x4 + i + k * 4 * 4);
-                              uniforms[index2c0].z = *(float*)(buffer + 0x8 + i + k * 4 * 4);
-                              uniforms[index2c0].y = *(float*)(buffer + 0xC + i + k * 4 * 4);
-                              uniforms[index2c0].x = *(float*)(buffer + 0x10 + i + k * 4 * 4);
-                          }
-                          else
-                          {
-                              uniforms[index2c0].w = *(u32*)(buffer + 0x4 + i + k * 4 * 3) >> 8;
-                              uniforms[index2c0].z = ((*(u32*)(buffer + 0x8 + i + k * 4 * 3) >> 16) & 0xFFFF) | (*(u32*)(buffer + 0x4 + i + k * 4 * 3) & 0xFF) << 16;
-                              uniforms[index2c0].y = (((*(u32*)(buffer + 0x8 + i + k * 4 * 3) >> 16) & 0xFFFF) << 8) | *(u32*)(buffer + 0xC + i + k * 4 * 3) >> 24;
-                              uniforms[index2c0].x = *(u32*)(buffer + 0xC + i + k * 4 * 3) & 0xFFFFFF;
-
-                              f24to32(uniforms[index2c0].w, &uniforms[index2c0].w);
-                              f24to32(uniforms[index2c0].z, &uniforms[index2c0].z);
-                              f24to32(uniforms[index2c0].y, &uniforms[index2c0].y);
-                              f24to32(uniforms[index2c0].x, &uniforms[index2c0].x);
-                          }
-                          DEBUG("VSFloatUniform %02x (%f %f %f %f) %s\n", index2c0, uniforms[index2c0].w, uniforms[index2c0].z, uniforms[index2c0].y, uniforms[index2c0].x, IsFloat2c0 ? "float32" : "float24");
-                          index2c0++;
-                      }
-                      *(u32*)(buffer + 0x4) = temp;
-                      break;
-        }
-        case 0x2c0:
-        {
-                      if (size != 0)
-                      {
-                          bool IsFloat = (dataone >> 31);
-                          u8 index = (dataone & 0xFF);
-                          if (IsFloat)
-                          {
-                              uniforms[index].w = *(float*)(buffer + 0x8 + i);
-                              uniforms[index].z = *(float*)(buffer + 0xC + i);
-                              uniforms[index].y = *(float*)(buffer + 0x10 + i);
-                              uniforms[index].x = *(float*)(buffer + 0x14 + i);
-                          }
-                          else
-                          {
-                              uniforms[index].w = *(u32*)(buffer + 0x8 + i) >> 8;
-                              uniforms[index].z = ((*(u32*)(buffer + 0xC + i) >> 16) & 0xFFFF) | (*(u32*)(buffer + 0x8 + i) & 0xFF) << 16;
-                              uniforms[index].y = (((*(u32*)(buffer + 0xC + i) >> 16) & 0xFFFF) << 8) | *(u32*)(buffer + 0x10 + i) >> 24;
-                              uniforms[index].x = *(u32*)(buffer + 0x10 + i) & 0xFFFFFF;
-
-                              f24to32(uniforms[index].w, &uniforms[index].w);
-                              f24to32(uniforms[index].z, &uniforms[index].z);
-                              f24to32(uniforms[index].y, &uniforms[index].y);
-                              f24to32(uniforms[index].x, &uniforms[index].x);
-                          }
-                          DEBUG("VSFloatUniform %02x (%f %f %f %f) %s\n", index, uniforms[index].w, uniforms[index].z, uniforms[index].y, uniforms[index].x, IsFloat ? "float32" : "float24");
-                      }
-                      else
-                      {
-                          IsFloat2c0 = (dataone >> 31);
-                          index2c0 = (dataone & 0xFF);
-                          DEBUG("VSFloatUniform %02x (?) %s\n", index2c0, IsFloat2c0 ? "float32" : "float24");
-                      }
-
-                      break;
-        }
-        case 0x2BA:
-            if (cmd == 0x800f02ba && ((dataone & 0xFFFF0000) == 0x7FFF0000))
-            {
-                shdrentr = dataone & 0xFFFF;
-                DEBUG("shader program entry %04x\n", shdrentr);
-                continue;
-            }
-        case 0x2cb:
-            if (cmd == 0x000f02cb && dataone == 0x00000000)
-            {
-                DEBUG("shader program data start\n", size);
-                shdaddr = 0;
-                continue;
-            }
-        case 0x2cc:
-            if ((cmd & 0x800FFFFF) == 0x000f02cc)
-            {
-                DEBUG("shader program data %04x\n", size);
-                if (shdaddr < 0) DEBUG("error uninted shader program data");
-                GPUshaderbuffer[shdaddr++] = dataone;
-                u32 j;
-                for (j = 0; j < size; j++)
-                {
-                    GPUshaderbuffer[shdaddr++] = *(u32*)(buffer + 0x8 + i);
-                    i += 4;
-                }
-                if (size & 0x1)
-                {
-                    u32 data = *(u32*)(buffer + 8 + i);
-                    DEBUG("padding data %08x\n", data);
-                    i += 4;
-                }
-
-                //runshadr(0);
-                continue;
-            }
-        case 0x2bf:
-            if (cmd == 0x000f02bf && dataone == 0x00000001)
-            {
-                DEBUG("shader program end\n", size);
-                shdaddr = -1;
-                continue;
-            }
-        case 0x200:
-            if (cmd == 0x826f0200)
-            {
-                DEBUG("SetAttributeBuffers %08x\n", dataone << 3);
-                u32 data1 = *(u32*)(buffer + 8 + i);
-                u32 data2 = *(u32*)(buffer + 0xC + i);
-
-                u32 count = ((data2 >> 28) & 0xF) + 1;
-                u32 mask = ((data2 >> 16) & 0xFFF);
-                printf("count %02x mask %03x\n", count, mask);
-
-                int k;
-                for (k = 0; k < count; k++)
-                {
-                    u8 format;
-                    if (k < 8)
-                    {
-                        format = (data1 >> (k * 4)) & 0xF;
-                    }
-                    else
-                    {
-                        format = (data2 >> ((k - 8) * 4)) & 0xF;
-                    }
-                    printf("Format: %s %01x (%01x)\n", GLenumname[format & 0x3], ((format >> 2) & 0x3) + 1, format);
-                    u32 enddata1 = *(u32*)(buffer + 0x10 + i + k * 0xC);
-                    u32 enddata2 = *(u32*)(buffer + 0x14 + i + k * 0xC);
-                    u32 enddata3 = *(u32*)(buffer + 0x18 + i + k * 0xC);
-                    printf("addr: %08x\n", (dataone << 3) + enddata1);
-                    printf("Permutations: %04x%08x\n", enddata3 & 0xFFFF, enddata2);
-
-                    printf("stride: %03x\n", (enddata3 >> 16) & 0xFFF);
-                    printf("NumAttributes: %01x\n", (enddata3 >> 28) & 0xF);
-                }
-
-
-                i += 4 * 0x26;
-
-                if (size & 0x1)
-                {
-                    u32 data = *(u32*)(buffer + 8 + i);
-                    DEBUG("padding data %08x\n", data);
-                    i += 4;
-                }
-
-                continue;
-            }
-        case 0x10:
-            if (cmd == 0x000F0010 && dataone == 0x12345678)
-            {
-                DEBUG("END\n");
-                continue;
-            }
-        case 0x111:
-            if (cmd == 0x000F0111)
-            {
-                DEBUG("cmd 0x000F0111 %x\n", dataone);
-                continue;
-            }
-        case 0x110:
-            if (cmd == 0x000F0110)
-            {
-                DEBUG("cmd 0x000F0110 %x\n", dataone);
-                continue;
-            }
-        case 0x117:
-            if (cmd == 0x000F0117)
-            {
-                DEBUG("cmd 0x000F0117 %04x %04x\n", dataone & 0xFFFF, (dataone >> 16) & 0xFFFF);
-                continue;
-            }
-        case 0x11D:
-            if (cmd == 0x000F011D)
-            {
-                renderaddr = dataone << 3;
-                DEBUG("setrederaddr %08x\n", renderaddr);
-                continue;
-            }
-        case 0x116:
-            if (cmd == 0x000F0116)
-            {
-                DEBUG("cmd 0x000F0116 %08x\n", dataone);
-                continue;
-            }
-        case 0x11C:
-            if (cmd == 0x000F011C)
-            {
-                unknownaddr = dataone << 3;
-                DEBUG("set unknownaddr %08x\n", unknownaddr);
-                continue;
-            }
-        case 0x011E:
-            if (cmd == 0x000F011E)
-            {
-                DEBUG("configframebuffer --todo-- width=%04x height= %04x\n", dataone & 0xFFF, ((dataone >> 12) & 0xFFF) + 1);
-                continue;
-            }
-        case 0x006E:
-            if (cmd == 0x000F006E)
-            {
-                DEBUG("configframebuffer2 --todo-- width=%04x height= %04x\n", dataone & 0xFFF, ((dataone >> 12) & 0xFFF) + 1);
-                continue;
-            }
-        case 0x41:
-            if (cmd == 0x000F0041)
-            {
-                float temp23;
-                f24to32(dataone, &temp23);
-                DEBUG("VIEWPORT_WIDTH %f\n", temp23);
-                continue;
-            }
-        case 0x42:
-            if (cmd == 0x000F0042)
-            {
-                DEBUG("VIEWPORT_WIDTH_INV %08x\n", dataone);
-                continue;
-            }
-        case 0x43:
-            if (cmd == 0x000F0043)
-            {
-                float temp23;
-                f24to32(dataone, &temp23);
-                DEBUG("VIEWPORT_HEIGHT %f\n", temp23);
-                continue;
-            }
-        case 0x44:
-            if (cmd == 0x000F0044)
-            {
-                DEBUG("VIEWPORT_HEIGHT_INV %08x\n", dataone);
-                continue;
-            }
-
-        case 0x68:
-            if (cmd == 0x000F0068)
-            {
-                DEBUG("glViewport %08x\n", dataone);
-                continue;
-            }
-
-        default:
-            break;
-        }
-        DEBUG("cmd %04x mask %01x size %03x (%08x) %s \n", ID, mask, size, dataone, grouping ? "grouping" : "")
-            int j;
-        for (j = 0; j < size; j++)
-        {
-            u32 data = *(u32*)(buffer + 8 + i);
-            DEBUG("data %08x\n", data);
-            i += 4;
-        }
-        if (size & 0x1)
-        {
-            u32 data = *(u32*)(buffer + 8 + i);
-            DEBUG("padding data %08x\n", data);
-            i += 4;
-        }
-    }
-
-
-}
-#endif
 
 
 void updateFramebuffer()

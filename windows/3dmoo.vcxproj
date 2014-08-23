@@ -168,6 +168,8 @@
     <ClCompile Include="..\src\fs\shared_extdata.c" />
     <ClCompile Include="..\src\fs\sysdata.c" />
     <ClCompile Include="..\src\fs\util.c" />
+    <ClCompile Include="..\src\gpu\clipper.c" />
+    <ClCompile Include="..\src\gpu\rasterizer.c" />
     <ClCompile Include="..\src\gpu\vec4.c" />
     <ClCompile Include="..\src\handles.c" />
     <ClCompile Include="..\src\gpu\gpu.c" />
@@ -234,6 +236,7 @@
     <ClInclude Include="..\inc\svc.h" />
     <ClInclude Include="..\inc\threads.h" />
     <ClInclude Include="..\inc\util.h" />
+    <ClInclude Include="..\inc\vec4.h" />
     <ClInclude Include="..\src\arm11\armdefs.h" />
     <ClInclude Include="..\src\arm11\armemu.h" />
     <ClInclude Include="..\src\arm11\arm_arch_interface.h" />
@@ -241,7 +244,6 @@
     <ClInclude Include="..\src\arm11\vfp\asm_vfp.h" />
     <ClInclude Include="..\src\arm11\vfp\vfp.h" />
     <ClInclude Include="..\src\arm11\vfp\vfp_helper.h" />
-    <ClInclude Include="..\src\gpu\vec4.h" />
     <ClInclude Include="..\src\services\service_macros.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -43,6 +43,9 @@
     <Filter Include="Source Files\fs">
       <UniqueIdentifier>{9265e831-aa02-44bd-b36c-ba96e00bf407}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\GPU">
+      <UniqueIdentifier>{5ead8c7a-c097-437c-954c-52d1e6fd4b17}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\handles.c">
@@ -153,9 +156,6 @@
     <ClCompile Include="..\src\dsp\dspemu.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\gpu\gpu.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\services\boss_u.c">
       <Filter>Source Files\services</Filter>
     </ClCompile>
@@ -255,6 +255,15 @@
     <ClCompile Include="..\src\gpu\vec4.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\gpu\gpu.c">
+      <Filter>Source Files\GPU</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\gpu\rasterizer.c">
+      <Filter>Source Files\GPU</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\gpu\clipper.c">
+      <Filter>Source Files\GPU</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\inc\handles.h">
@@ -320,7 +329,7 @@
     <ClInclude Include="..\src\services\service_macros.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\gpu\vec4.h">
+    <ClInclude Include="..\inc\vec4.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

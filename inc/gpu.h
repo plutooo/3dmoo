@@ -63,6 +63,13 @@ u32 GPUregs[0xFFFF];
 #define VSVertexAttributeOutputMap 0x50 
 // untill 0x56
 
+#define TEXTURINGSETINGS80 0x80
+#define TEXTURCONFIG0ADDR 0x85
+#define TEXTURCONFIG0SIZE 0x82
+
+#define GLTEXENV 0xC0
+// untill 0x100 with a jump at 0xE0- 0xF0
+
 #define DEPTHBUFFER_ADDRESS 0x11C
 
 #define COLORBUFFER_ADDRESS 0x11D
@@ -111,6 +118,10 @@ struct OutputVertex {
 };
 
 struct clov4 {
+    u8 v[4];
+};
+
+struct clov3 {
     u8 v[4];
 };
 

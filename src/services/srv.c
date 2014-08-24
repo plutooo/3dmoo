@@ -417,7 +417,7 @@ u32 srv_SyncRequest()
         return 0;
 
     case 0x20000:
-        DEBUG("srv_EnableNotification\n");
+        DEBUG("srv_GetProcSemaphore");
 
         mem_Write32(arm11_ServiceBufferAddress() + 0x84, 0); //no error
         mem_Write32(arm11_ServiceBufferAddress() + 0x88, 0); //done in sm 4.4
@@ -426,7 +426,20 @@ u32 srv_SyncRequest()
 
         char names[9];
     case 0x00030100:
-        DEBUG("srv_RegisterService\n");
+        DEBUG("srv_UnRegisterService --todo--\n");
+
+        // Read rest of command header
+        mem_Read((u8*)&req, arm11_ServiceBufferAddress() + 0x84, sizeof(req));
+
+        memcpy(names, req.name, 8);
+        names[8] = '\0';
+
+        DEBUG("name=%s, namelen=%u\n", names, req.name_len);
+
+        return 0;
+
+    case 0x000400C0:
+        DEBUG("srv_registerService\n");
 
         // Read rest of command header
         mem_Read((u8*)&req, arm11_ServiceBufferAddress() + 0x84, sizeof(req));
@@ -435,11 +448,11 @@ u32 srv_SyncRequest()
         names[8] = '\0';
 
         DEBUG("name=%s, namelen=%u, unk=0x%x\n", names, req.name_len,
-              req.unk2);
+            req.unk2);
 
 
         ownservice[ownservice_num].name = malloc(9);
-        memcpy(ownservice[ownservice_num].name,req.name , 9);
+        memcpy(ownservice[ownservice_num].name, req.name, 9);
 
         ownservice[ownservice_num].handle = handle_New(HANDLE_TYPE_SERVICE, SERVICE_DIRECT);
 
@@ -521,7 +534,7 @@ u32 srv_SyncRequest()
         DEBUG("srv_GetNotificationType\n");
         //mem_Dbugdump();
         mem_Write32(arm11_ServiceBufferAddress() + 0x84, 0); //worked
-        mem_Write32(arm11_ServiceBufferAddress() + 0x88, 0xFFFF); //type
+        mem_Write32(arm11_ServiceBufferAddress() + 0x88, 0x100); //type
         return 0;
 
     default:
@@ -564,7 +577,7 @@ u32 svcReplyAndReceive()
     for (u32 i = 0; i < handleCount; i++) {
         DEBUG("%08x\n", mem_Read32(handles + i * 4));
     }
-    wrapWaitSynchronizationN(0xFFFFFFFF, handles, handleCount, 0, 0xFFFFFFFF,0);
+    /*wrapWaitSynchronizationN(0xFFFFFFFF, handles, handleCount, 0, 0xFFFFFFFF,0);
 
 
 
@@ -595,8 +608,9 @@ u32 svcReplyAndReceive()
 
     //feed end
 
-    times++;
+    times++;*/
 
+    arm11_SetR(1, 0);
     return 1;
 }
 u32 svcAcceptSession()

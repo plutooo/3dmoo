@@ -81,6 +81,60 @@ static void DrawPixel(int x, int y, const struct clov4* color) {
     *(color_buffer + x * 3 + y * (GPUregs[Framebuffer_FORMAT11E] & 0xFFF) / 2 * 3 + 1) = color->v[1];
     *(color_buffer + x * 3 + y * (GPUregs[Framebuffer_FORMAT11E] & 0xFFF) / 2 * 3 + 2) = color->v[2];
 }
+static float GetInterpolatedAttribute(float attr0, float attr1, float attr2, struct OutputVertex *v0, struct OutputVertex * v1, struct OutputVertex * v2,float w0,float w1, float w2)
+{
+    float interpolated_attr_over_w = (attr0 / v0->pos.v[3])*w0 + (attr1 / v1->pos.v[3])*w1 + (attr2 / v2->pos.v[3])*w2;
+    float interpolated_w_inverse = ((1.f) / v0->pos.v[3])*w0 + ((1.f) / v1->pos.v[3])*w1 + ((1.f) / v2->pos.v[3])*w2;
+    return interpolated_attr_over_w / interpolated_w_inverse;
+}
+void GetColorModifier(u32 factor, struct clov3 * values)
+{
+    switch (factor)
+    {
+    case 0: //SourceColor
+        return;
+    default:
+        DEBUG("Unknown color factor %d\n", (int)factor);
+        return;
+    }
+}
+u8 AlphaCombine(u32 op, struct clov3* input)
+{
+    switch (op) {
+    case 0://Replace:
+        return input->v[0];
+    case 1://Modulate:
+        return input->v[0] * input->v[1] / 255;
+    default:
+        DEBUG("Unknown alpha combiner operation %d\n", (int)op);
+        return 0;
+    }
+};
+
+void ColorCombine(u32 op, struct clov4 input[3])
+{
+    switch (op) {
+    case 0://Replace:
+        //return input[0];
+        return;
+    case 1://Modulate:
+        (input)[0].v[0] = (input)[0].v[0] * (input)[1].v[0] / 255;
+        (input)[0].v[1] = (input)[0].v[1] * (input)[1].v[1] / 255;
+        (input)[0].v[2] = (input)[0].v[2] * (input)[1].v[2] / 255;
+        return;  //((input[0] * input[1]) / 255);
+    default:
+        DEBUG("Unknown color combiner operation %d\n", (int)op);
+    }
+}
+u8 GetAlphaModifier(u32 factor, u8 value){
+    switch (factor) {
+    case 0://SourceAlpha:
+        return value;
+    default:
+        DEBUG("Unknown color factor %d\n", (int)factor);
+        return 0;
+    }
+}
 void rasterizer_ProcessTriangle(const struct OutputVertex *v0,
     const struct OutputVertex * v1,
     const struct OutputVertex * v2)
@@ -142,35 +196,27 @@ void rasterizer_ProcessTriangle(const struct OutputVertex *v0,
             // u = u_over_w / one_over_w
             //
             // The generalization to three vertices is straightforward in baricentric coordinates.
-            /*auto GetInterpolatedAttribute = [&](float24 attr0, float24 attr1, float24 attr2) {
-                auto attr_over_w = Math::MakeVec(attr0 / v0.pos.w,
-                    attr1 / v1.pos.w,
-                    attr2 / v2.pos.w);
-                auto w_inverse = Math::MakeVec(float24::FromFloat32(1.f) / v0.pos.w,
-                    float24::FromFloat32(1.f) / v1.pos.w,
-                    float24::FromFloat32(1.f) / v2.pos.w);
-                auto baricentric_coordinates = Math::MakeVec(float24::FromFloat32(w0),
-                    float24::FromFloat32(w1),
-                    float24::FromFloat32(w2));
-                float24 interpolated_attr_over_w = Math::Dot(attr_over_w, baricentric_coordinates);
-                float24 interpolated_w_inverse = Math::Dot(w_inverse, baricentric_coordinates);
-                return interpolated_attr_over_w / interpolated_w_inverse;
-            };
-            Math::Vec4<u8> primary_color{
+
+            struct clov4 primary_color;
+            primary_color.v[0] = GetInterpolatedAttribute(v0->color.v[0], v1->color.v[0], v2->color.v[0], v0, v1, v2, w0, w1, w2) * 255;
+            primary_color.v[1] = GetInterpolatedAttribute(v0->color.v[1], v1->color.v[1], v2->color.v[1], v0, v1, v2, w0, w1, w2) * 255;
+            primary_color.v[2] = GetInterpolatedAttribute(v0->color.v[2], v1->color.v[2], v2->color.v[2], v0, v1, v2, w0, w1, w2) * 255;
+            primary_color.v[3] = GetInterpolatedAttribute(v0->color.v[3], v1->color.v[3], v2->color.v[3], v0, v1, v2, w0, w1, w2) * 255;
+            /*Math::Vec4<u8> primary_color{
                 (u8)(GetInterpolatedAttribute(v0.color.r(), v1.color.r(), v2.color.r()).ToFloat32() * 255),
                 (u8)(GetInterpolatedAttribute(v0.color.g(), v1.color.g(), v2.color.g()).ToFloat32() * 255),
                 (u8)(GetInterpolatedAttribute(v0.color.b(), v1.color.b(), v2.color.b()).ToFloat32() * 255),
                 (u8)(GetInterpolatedAttribute(v0.color.a(), v1.color.a(), v2.color.a()).ToFloat32() * 255)
-            };
-            Math::Vec4<u8> texture_color{};
+            };*/
+            struct clov4 texture_color;
             
-            float u = GetInterpolatedAttribute(v0.tc0.u(), v1.tc0.u(), v2.tc0.u());
-            float v = GetInterpolatedAttribute(v0.tc0.v(), v1.tc0.v(), v2.tc0.v());
-            if (registers.texturing_enable) {
+            float u = GetInterpolatedAttribute(v0->tc0.v[0], v1->tc0.v[0], v2->tc0.v[0], v0, v1, v2, w0, w1, w2);
+            float v = GetInterpolatedAttribute(v0->tc0.v[1], v1->tc0.v[1], v2->tc0.v[1], v0, v1, v2, w0, w1, w2);
+            if (GPUregs[TEXTURINGSETINGS80] & 0x1) {
                 // TODO: This is currently hardcoded for RGB8
-                u32* texture_data = (u32*)Memory::GetPointer(registers.texture0.GetPhysicalAddress());
-                int s = (int)(u * float24::FromFloat32(registers.texture0.width)).ToFloat32();
-                int t = (int)(v * float24::FromFloat32(registers.texture0.height)).ToFloat32();
+                u32* texture_data = (u32*)(get_pymembuffer(GPUregs[TEXTURCONFIG0ADDR] << 3));
+                int s = (int)(u * (GPUregs[TEXTURCONFIG0SIZE] >> 16));
+                int t = (int)(v * (GPUregs[TEXTURCONFIG0SIZE]&0xFFFF));
                 int texel_index_within_tile = 0;
                 for (int block_size_index = 0; block_size_index < 3; ++block_size_index) {
                     int sub_tile_width = 1 << block_size_index;
@@ -183,121 +229,94 @@ void rasterizer_ProcessTriangle(const struct OutputVertex *v0,
                 const int block_height = 8;
                 int coarse_s = (s / block_width) * block_width;
                 int coarse_t = (t / block_height) * block_height;
-                const int row_stride = registers.texture0.width * 3;
+                const int row_stride = (GPUregs[TEXTURCONFIG0SIZE] >> 16) * 3;
                 u8* source_ptr = (u8*)texture_data + coarse_s * block_height * 3 + coarse_t * row_stride + texel_index_within_tile * 3;
-                texture_color.r() = source_ptr[2];
-                texture_color.g() = source_ptr[1];
-                texture_color.b() = source_ptr[0];
-                texture_color.a() = 0xFF;
-                DebugUtils::DumpTexture(registers.texture0, (u8*)texture_data);
+                texture_color.v[0] = source_ptr[2];
+                texture_color.v[1] = source_ptr[1];
+                texture_color.v[2] = source_ptr[0];
+                texture_color.v[3] = 0xFF;
             }
-            Math::Vec4<u8> combiner_output;
-            for (auto tev_stage : registers.GetTevStages()) {
-                using Source = Regs::TevStageConfig::Source;
-                using ColorModifier = Regs::TevStageConfig::ColorModifier;
-                using AlphaModifier = Regs::TevStageConfig::AlphaModifier;
-                using Operation = Regs::TevStageConfig::Operation;
-                auto GetColorSource = [&](Source source) -> Math::Vec3<u8> {
-                    switch (source) {
-                    case Source::PrimaryColor:
-                        return primary_color.rgb();
-                    case Source::Texture0:
-                        return texture_color.rgb();
-                    case Source::Constant:
-                        return{ tev_stage.const_r, tev_stage.const_g, tev_stage.const_b };
-                    case Source::Previous:
-                        return combiner_output.rgb();
+            struct clov4 combiner_output;
+            combiner_output.v[3] = 0xFF;
+            for (int i = 0; i < 6; i++)
+            {
+                u32 regnumaddr = GLTEXENV + i * 8;
+                if (i > 3)regnumaddr += 0x10;
+
+                struct clov4 color_result[3]; /*= {
+                    GetColorSource(tev_stage.color_source1)),
+                    GetColorSource(tev_stage.color_source2)),
+                    GetColorSource(tev_stage.color_source3))
+                    };*/
+                for (int j = 0; j < 3; j++)
+                {
+                    switch ((GPUregs[regnumaddr] >> (j * 4))&0xF) {
+                    case 0://PrimaryColor
+                        memcpy(&color_result[j], &primary_color, sizeof(struct clov3));
+                        break;
+                    case 3: //Texture0
+                        memcpy(&color_result[j], &texture_color, sizeof(struct clov3));
+                        break;
+                    case 0xE: //Constant
+                        color_result[j].v[0] = GPUregs[regnumaddr + 3] & 0xFF;
+                        color_result[j].v[1] = (GPUregs[regnumaddr + 3] >> 8) & 0xFF;
+                        color_result[j].v[2] = (GPUregs[regnumaddr + 3] >> 0x10) & 0xFF;
+                        break;
+                    case 0xF://Previous
+                        memcpy(&color_result[j], &combiner_output, sizeof(struct clov3));
+                        break;
                     default:
-                        ERROR_LOG(GPU, "Unknown color combiner source %d\n", (int)source);
-                        return{};
+                        DEBUG("Unknown color combiner source %d\n", (int)(GPUregs[regnumaddr] >> (j * 4)) & 0xF);
+                        break;
                     }
-                };
-                auto GetAlphaSource = [&](Source source) -> u8 {
-                    switch (source) {
-                    case Source::PrimaryColor:
-                        return primary_color.a();
-                    case Source::Texture0:
-                        return texture_color.a();
-                    case Source::Constant:
-                        return tev_stage.const_a;
-                    case Source::Previous:
-                        return combiner_output.a();
-                    default:
-                        ERROR_LOG(GPU, "Unknown alpha combiner source %d\n", (int)source);
-                        return 0;
-                    }
-                };
-                auto GetColorModifier = [](ColorModifier factor, const Math::Vec3<u8>& values) -> Math::Vec3<u8> {
-                    switch (factor)
-                    {
-                    case ColorModifier::SourceColor:
-                        return values;
-                    default:
-                        ERROR_LOG(GPU, "Unknown color factor %d\n", (int)factor);
-                        return{};
-                    }
-                };
-                auto GetAlphaModifier = [](AlphaModifier factor, u8 value) -> u8 {
-                    switch (factor) {
-                    case AlphaModifier::SourceAlpha:
-                        return value;
-                    default:
-                        ERROR_LOG(GPU, "Unknown color factor %d\n", (int)factor);
-                        return 0;
-                    }
-                };
-                auto ColorCombine = [](Operation op, const Math::Vec3<u8> input[3]) -> Math::Vec3<u8> {
-                    switch (op) {
-                    case Operation::Replace:
-                        return input[0];
-                    case Operation::Modulate:
-                        return ((input[0] * input[1]) / 255).Cast<u8>();
-                    default:
-                        ERROR_LOG(GPU, "Unknown color combiner operation %d\n", (int)op);
-                        return{};
-                    }
-                };
-                auto AlphaCombine = [](Operation op, const std::array<u8, 3>& input) -> u8 {
-                    switch (op) {
-                    case Operation::Replace:
-                        return input[0];
-                    case Operation::Modulate:
-                        return input[0] * input[1] / 255;
-                    default:
-                        ERROR_LOG(GPU, "Unknown alpha combiner operation %d\n", (int)op);
-                        return 0;
-                    }
-                };
+                }
+                GetColorModifier((GPUregs[regnumaddr + 1] >> 0) & 0xF, &color_result[0]);
+                GetColorModifier((GPUregs[regnumaddr + 1] >> 4) & 0xF, &color_result[1]);
+                GetColorModifier((GPUregs[regnumaddr + 1] >> 8) & 0xF, &color_result[2]);
                 // color combiner
                 // NOTE: Not sure if the alpha combiner might use the color output of the previous
                 // stage as input. Hence, we currently don't directly write the result to
                 // combiner_output.rgb(), but instead store it in a temporary variable until
                 // alpha combining has been done.
-                Math::Vec3<u8> color_result[3] = {
-                    GetColorModifier(tev_stage.color_modifier1, GetColorSource(tev_stage.color_source1)),
-                    GetColorModifier(tev_stage.color_modifier2, GetColorSource(tev_stage.color_source2)),
-                    GetColorModifier(tev_stage.color_modifier3, GetColorSource(tev_stage.color_source3))
-                };
-                auto color_output = ColorCombine(tev_stage.color_op, color_result);
-                // alpha combiner
-                std::array<u8, 3> alpha_result = {
-                    GetAlphaModifier(tev_stage.alpha_modifier1, GetAlphaSource(tev_stage.alpha_source1)),
-                    GetAlphaModifier(tev_stage.alpha_modifier2, GetAlphaSource(tev_stage.alpha_source2)),
-                    GetAlphaModifier(tev_stage.alpha_modifier3, GetAlphaSource(tev_stage.alpha_source3))
-                };
-                auto alpha_output = AlphaCombine(tev_stage.alpha_op, alpha_result);
-                combiner_output = Math::MakeVec(color_output, alpha_output);
-            }*/
+                ColorCombine(GPUregs[regnumaddr + 2] & 0xF, color_result);
+                struct clov3 alpha_result;
+                for (int j = 0; j < 3; j++)
+                {
+                    u8 alpha = 0;
+                    switch ((GPUregs[regnumaddr] >> (16 + j * 4)) & 0xF)
+                    {
+                    case 0://PrimaryColor:
+                        alpha = primary_color.v[3];
+                        break;
+                    case 3://Texture0:
+                        alpha = texture_color.v[3];
+                        break;
+                    case 0xE://Constant:
+                        alpha = (GPUregs[regnumaddr + 3] >> 0x18) & 0xFF;
+                        break;
+                    case 0xF://Previous:
+                        alpha = combiner_output.v[3];
+                        break;
+                    default:
+                        DEBUG("Unknown alpha combiner source %d\n", (int)((GPUregs[regnumaddr] >> (16 + j * 4))) & 0xF);
+                        break;
+                    }
+                    alpha_result.v[j] = GetAlphaModifier((GPUregs[regnumaddr + 1] >> 12 + 3 * j) & 0x7, alpha);
+                }
+                color_result[0].v[3] = AlphaCombine((GPUregs[regnumaddr + 2] >> 16) & 0xF, &alpha_result);
+                memcpy(&combiner_output, &color_result[0], sizeof(struct clov4));
+            }
             u16 z = (u16)(((float)v0->screenpos.v[2] * w0 +
                 (float)v1->screenpos.v[2] * w1 +
                 (float)v2->screenpos.v[2] * w2) * 65535.f / wsum); // TODO: Shouldn't need to multiply by 65536?
+            
             SetDepth(x >> 4, y >> 4, z);
 
-            struct clov4 combiner_output;
-            combiner_output.v[0] = 0xFF;
-            combiner_output.v[1] = 0xFF;
-            combiner_output.v[2] = 0xFF;
-            combiner_output.v[3] = 0xFF;
+            /*struct clov4 combiner_output;
+            combiner_output.v[0] = 0x0;
+            combiner_output.v[1] = 0x0;
+            combiner_output.v[2] = 0x0;
+            combiner_output.v[3] = 0x0;*/
 
             DrawPixel(x >> 4, y >> 4, &combiner_output);
         }

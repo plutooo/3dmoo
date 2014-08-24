@@ -108,8 +108,6 @@ u32 getsizeofwight(u16 val) //this is the size of pixel
 u32 getsizeofwight32(u32 val)
 {
     switch (val) {
-    case 0x00800080: //no idea why
-        return 0x8000;
     default:
         return (val & 0xFFFF) * ((val>>16) & 0xFFFF) * 3/ 2;
     }
@@ -868,6 +866,9 @@ void updateFramebuffer()
             else
                 GPUwritereg32(RGBuptwoleft, convertvirtualtopys(*(u32*)(baseaddrtop + 4)));
             GPUwritereg32(frameselectoben, *(u32*)(baseaddrtop + 0x14));
+            u32 u90 =*(u32*)(baseaddrtop + 0xC);
+            u32 format = *(u32*)(baseaddrtop + 0x10);
+            int i = 0;
             //the rest is todo
         }
         u8 *baseaddrbot = (u8*)(GSPsharedbuff + 0x240 + i * 0x80); //bot

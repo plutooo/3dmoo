@@ -119,7 +119,7 @@ u32 port_SyncRequest(handleinfo* h, bool *locked)
 
     // This should never happen.
     ERROR("svcCloseHandle undefined for port-type \"%x\".\n",
-          h->subtype);
+          (unsigned int)h->subtype);
     arm11_Dump();
     PAUSE();
     return 0;

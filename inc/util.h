@@ -164,4 +164,6 @@ static void color_restore(int old)
 #define snprintf sprintf_s
 #endif
 
+float f24to32(u32 data, void *dataa);
+
 #endif

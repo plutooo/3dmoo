@@ -16,6 +16,9 @@
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#ifndef _GPU_H_
+#define _GPU_H_
+
 #include "vec4.h"
 
 #define LCDCOLORFILLMAIN 0x202204
@@ -34,30 +37,16 @@ u8* IObuffer;
 u8* LINEmembuffer;
 u8* VRAMbuff;
 u8* GSPsharedbuff;
+u32 GPUregs[0xFFFF];
 
 #define GSPsharebuffsize 0x1000 //dumped from GSP module in Firm 4.4
 
-void initGPU();
-void GPUwritereg32(u32 addr, u32 data);
-u32 GPUreadreg32(u32 addr);
-void GPUTriggerCmdReqQueue();
-u32 GPURegisterInterruptRelayQueue(u32 Flags, u32 Kevent, u32*threadID, u32*outMemHandle);
-u8* get_pymembuffer(u32 addr);
-u32 get_py_memrestsize(u32 addr);
-void sendGPUinterall(u32 ID);
-
-u32 GPUregs[0xFFFF];
-
 #define VIEWPORT_WIDTH 0x41
-
 #define VIEWPORT_HEIGHT 0x43
-
 #define VIEWPORT_HEIGHT 0x43
 
 #define GLViewport 0x68
-
 #define Viewport_depth_range 0x4D
-
 #define Viewport_depth_far_plane 0x4E
 
 #define VSVertexAttributeOutputMap 0x50 
@@ -71,7 +60,6 @@ u32 GPUregs[0xFFFF];
 // untill 0x100 with a jump at 0xE0- 0xF0
 
 #define DEPTHBUFFER_ADDRESS 0x11C
-
 #define COLORBUFFER_ADDRESS 0x11D
 
 #define Framebuffer_FORMAT11E  0x11E
@@ -96,7 +84,6 @@ u32 GPUregs[0xFFFF];
 #define VSBeginLoadSwizzleData 0x2D5
 #define VSLoadSwizzleData 0x2D6
 // untill 0x2DD
-
 
 
 struct OutputVertex {
@@ -125,3 +112,27 @@ struct clov3 {
     u8 v[4];
 };
 
+
+void initGPU();
+void GPUwritereg32(u32 addr, u32 data);
+u32 GPUreadreg32(u32 addr);
+void GPUTriggerCmdReqQueue();
+u32 GPURegisterInterruptRelayQueue(u32 Flags, u32 Kevent, u32*threadID, u32*outMemHandle);
+u8* get_pymembuffer(u32 addr);
+u32 get_py_memrestsize(u32 addr);
+void sendGPUinterall(u32 ID);
+void runGPU_Commands(u8* buffer, u32 size);
+u32 getsizeofwight(u16 val);
+u32 getsizeofwight32(u32 val);
+u32 convertvirtualtopys(u32 addr);
+void updateFramebuffer();
+
+//clipper.c
+void Clipper_ProcessTriangle(struct OutputVertex *v0, struct OutputVertex *v1, struct OutputVertex *v2);
+
+//rasterizer.c
+void rasterizer_ProcessTriangle(const struct OutputVertex *v0,
+    const struct OutputVertex * v1,
+    const struct OutputVertex * v2);
+    
+#endif

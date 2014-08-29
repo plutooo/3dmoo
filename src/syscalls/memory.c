@@ -294,7 +294,7 @@ u32 svcMapMemoryBlock()
     }
 
     DEBUG("h->type=%x, h->subtype=%08x\n",
-          h->type, h->subtype);
+          h->type, (unsigned int)h->subtype);
 
     if(h->type == HANDLE_TYPE_SHAREDMEM) {
         switch (h->subtype) {

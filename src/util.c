@@ -1,7 +1,7 @@
 
 #include "util.h"
 
-void f24to32(u32 data,u32 *dataa) //this is not 100% correct fix it
+float f24to32(u32 data, void *dataa) //this is not 100% correct fix it
 {
     u32 dataout = (data << 8) &0x80000000; //Sign bit
     dataout |= (data << 7)&~0xFF800000;
@@ -11,5 +11,6 @@ void f24to32(u32 data,u32 *dataa) //this is not 100% correct fix it
         exponent += 0x40;
     }
     dataout |= exponent << 23;
-    *dataa = dataout;
+    *(u32*)dataa = dataout;
+    return *(float*)&dataout;
 }

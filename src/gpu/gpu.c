@@ -24,10 +24,9 @@
 #include "handles.h"
 #include "mem.h"
 #include "gpu.h"
+#include <math.h>
 
 #define logGSPparser
-
-float f24to32(u32 data, u32 *dataa);
 
 u32 GPUregs[0xFFFF]; //do they all exist don't know but well
 
@@ -131,7 +130,7 @@ u32 unknownaddr = 0;
 
 
 
-updateGPUintreg(u32 data,u32 ID,u8 mask)
+void updateGPUintreg(u32 data,u32 ID,u8 mask)
 {
     int i;
     for (i = 0; i < 4; i++)
@@ -213,7 +212,7 @@ void PrimitiveAssembly_SubmitVertex(struct OutputVertex* vtx)
         if (buffer_index == 2) {
             buffer_index = 0;
 
-           Clipper_ProcessTriangle(&buffer[0], &buffer[1], &vtx);
+           Clipper_ProcessTriangle(&buffer[0], &buffer[1], vtx);
 
             //buffer[1] = vtx;
            memcpy(&buffer[1], vtx, sizeof(struct OutputVertex));
@@ -230,7 +229,7 @@ void PrimitiveAssembly_SubmitVertex(struct OutputVertex* vtx)
                  memcpy(&buffer[buffer_index++], vtx, sizeof(struct OutputVertex));
             }
             else {
-                Clipper_ProcessTriangle(&buffer[0], &buffer[1], &vtx);
+                Clipper_ProcessTriangle(&buffer[0], &buffer[1], vtx);
                 // TODO: This could be done a lot more efficiently...
                 /*buffer[buffer_index] = vtx;
                 std::swap(buffer[0], buffer[1]);
@@ -291,7 +290,7 @@ u32 instr_opcode(u32 hex)
 {
     return (hex >> 0x1A);
 }
-instr_flow_control_offset_words(u32 hex)
+u32 instr_flow_control_offset_words(u32 hex)
 {
     return (hex>>0xa)&0xFFF;
 }
@@ -469,7 +468,7 @@ void ProcessShaderCode(struct VertexShaderState* state) {
 
             //_dbg_assert_(GPU, state.call_stack_pointer - state.call_stack < sizeof(state.call_stack)); //todo
 
-            *state->call_stack_pointer = ((u32)state->program_counter - (u32)(&GPUshadercodebuffer[0])) / 4;
+            *state->call_stack_pointer = ((u32)(uintptr_t)state->program_counter - (u32)(uintptr_t)(&GPUshadercodebuffer[0])) / 4;
             state->call_stack_pointer++;
             // TODO: Does this offset refer to the beginning of shader memory?
             state->program_counter = &GPUshadercodebuffer[instr_flow_control_offset_words(instr)];
@@ -500,12 +499,12 @@ void ProcessShaderCode(struct VertexShaderState* state) {
 
 
 
-RunShader(struct vec4 input[17], int num_attributes, struct OutputVertex *ret)
+void RunShader(struct vec4 input[17], int num_attributes, struct OutputVertex *ret)
 {
     struct VertexShaderState state;
 
     //const u32* main = &shader_memory[registers.Get<Regs::VSMainOffset>().offset_words];
-    state.program_counter = (u32*)((u32)(&GPUshadercodebuffer[0]) + (u16)GPUregs[VSMainOffset]*4);
+    state.program_counter = (u32*)(uintptr_t)((u32)(uintptr_t)(&GPUshadercodebuffer[0]) + (u16)(uintptr_t)GPUregs[VSMainOffset]*4);
 
     // Setup input register table
 
@@ -685,7 +684,7 @@ void writeGPUID(u16 ID, u8 mask, u32 size, u32* buffer)
                                                (vertex_attribute_formats[i] == 2) ? *(s16*)srcdata :
                                                *(float*)srcdata;
                                            input[i].v[comp] = srcval;
-                                           DEBUG("Loaded component %x of attribute %x for vertex %x (index %x) from 0x%08x + 0x%08x + 0x%04x: %f\n",
+                                           DEBUG("Loaded component %x of attribute %x for vertex %x (index %x) from 0x%08x + 0x%08lx + 0x%04lx: %f\n",
                                                comp, i, vertex, index,
                                                base_address,
                                                vertex_attribute_sources[i] - (u8*)get_pymembuffer(base_address),

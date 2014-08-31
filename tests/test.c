@@ -3,6 +3,7 @@
 
 #include "../inc/util.h"
 #include "../inc/arm11.h"
+#include "../inc/loader.h"
 
 #define ASSERT(expr, ...)                                \
     if(!(expr)) {                                        \
@@ -10,6 +11,8 @@
         fprintf(stderr, __VA_ARGS__);                    \
         exit(1);                                         \
     }
+    
+char *codepath = NULL; //???
 
 int main() {
     return 0;

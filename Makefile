@@ -1,33 +1,22 @@
 ### 3dmoo Makefile ###
 
 CC      = gcc
-CFLAGS  = -c -std=c99 -Iinc -Isrc/arm11 -I/usr/include/SDL2/ -DMODET -DMODE32
-LIBS    = -lSDL2
-LDFLAGS = $(LIBS)
+CFLAGS  = -c -std=c99 -Wno-format-zero-length -Iinc -Isrc/arm11 -I/usr/include/SDL2/ -DMODET -DMODE32
+LIBS    = -lSDL2 -lm
+LDFLAGS =
 
-SRC_FILES = src/mem.c src/screen.c src/handles.c src/loader.c src/svc.c
+SRC_FILES = src/mem.c src/screen.c src/handles.c src/loader.c src/svc.c src/util.c
 
 INC_FILES = inc/*
 
-ARM11_FILES = src/arm11/armemu.c src/arm11/armsupp.c src/arm11/arminit.c \
-	src/arm11/thumbemu.c src/arm11/armcopro.c src/arm11/threads.c \
-	src/arm11/wrap.c src/arm11/vfp/vfp.c src/arm11/vfp/vfpdouble.c \
-	src/arm11/vfp/vfpinstr.c src/arm11/vfp/vfpsingle.c 
+ARM11_FILES = $(foreach dir, src/arm11, $(wildcard $(dir)/*.c)) \
+	$(foreach dir, src/arm11/vfp, $(wildcard $(dir)/*.c))
 
-SYSCALLS_FILES= src/syscalls/events.c src/syscalls/memory.c \
-	src/syscalls/ports.c src/syscalls/syn.c src/syscalls/arb.c
-
-SERVICES_FILES = src/services/am_u.c src/services/apt_u.c src/services/cfg_u.c \
-	src/services/dsp_dsp.c src/services/frd_u.c src/services/fs_user.c \
-	src/services/gsp_gpu.c src/services/hid_user.c src/services/ir_u.c \
-	src/services/ndm_u.c src/services/ns_s.c src/services/ptm_u.c \
-	src/services/cecd_u.c src/services/boss_u.c src/services/srv.c
-
-FS_FILES = src/fs/romfs.c src/fs/shared_extdata.c src/fs/sysdata.c src/fs/util.c
-
-GPU_FILES = src/gpu/gpu.c
-
-DSP_FILES = src/dsp/dspemu.c
+SYSCALLS_FILES = $(foreach dir, src/syscalls, $(wildcard $(dir)/*.c))
+SERVICES_FILES = $(foreach dir, src/services, $(wildcard $(dir)/*.c))
+FS_FILES       = $(foreach dir, src/fs,       $(wildcard $(dir)/*.c))
+GPU_FILES      = $(foreach dir, src/gpu,      $(wildcard $(dir)/*.c))
+DSP_FILES      = $(foreach dir, src/dsp,      $(wildcard $(dir)/*.c))
 
 C_FILES = $(SRC_FILES) $(ARM11_FILES) $(SYSCALLS_FILES) $(SERVICES_FILES) $(FS_FILES) $(GPU_FILES) $(DSP_FILES)
 OBJECTS=$(C_FILES:.c=.o)
@@ -48,7 +37,7 @@ all: $(FILES) $(MAIN_FILES) $(INC_FILES) $(TEST_FILES) $(ARM_FILE) 3dmoo test $(
 # -- MAIN EXECUTABLE ---
 
 3dmoo: $(OBJECTS) $(MAIN_OBJECTS)
-	$(CC) $(OBJECTS) $(MAIN_OBJECTS) $(LDFLAGS) -o $@
+	$(CC) $(OBJECTS) $(MAIN_OBJECTS) $(LDFLAGS) -o $@ $(LIBS)
 
 .c.o:
 	$(CC) $(CFLAGS) $< -o $@
@@ -65,5 +54,5 @@ $(ARM_OUT): $(ARM_FILE)
 	$(ARMCC) $(ARM_FILE) -nostdlib -o $(ARM_OUT)
 
 test: $(FILES) $(TEST_FILES) $(OBJECTS) $(TEST_OBJECTS) $(ARM_FILE) $(ARM_OUT)
-	$(CC) $(OBJECTS) $(TEST_OBJECTS) $(LDFLAGS) -o $@
+	$(CC) $(OBJECTS) $(TEST_OBJECTS) $(LDFLAGS) -o $@ $(LIBS)
 	./test

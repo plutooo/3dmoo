@@ -81,7 +81,7 @@ static void DrawPixel(int x, int y, const struct clov4* color) {
     *(color_buffer + x * 3 + y * (GPUregs[Framebuffer_FORMAT11E] & 0xFFF) / 2 * 3 + 1) = color->v[1];
     *(color_buffer + x * 3 + y * (GPUregs[Framebuffer_FORMAT11E] & 0xFFF) / 2 * 3 + 2) = color->v[2];
 }
-static float GetInterpolatedAttribute(float attr0, float attr1, float attr2, struct OutputVertex *v0, struct OutputVertex * v1, struct OutputVertex * v2,float w0,float w1, float w2)
+static float GetInterpolatedAttribute(float attr0, float attr1, float attr2, const struct OutputVertex *v0, const struct OutputVertex * v1, const struct OutputVertex * v2,float w0,float w1, float w2)
 {
     float interpolated_attr_over_w = (attr0 / v0->pos.v[3])*w0 + (attr1 / v1->pos.v[3])*w1 + (attr2 / v2->pos.v[3])*w2;
     float interpolated_w_inverse = ((1.f) / v0->pos.v[3])*w0 + ((1.f) / v1->pos.v[3])*w1 + ((1.f) / v2->pos.v[3])*w2;
@@ -111,7 +111,7 @@ u8 AlphaCombine(u32 op, struct clov3* input)
     }
 };
 
-void ColorCombine(u32 op, struct clov4 input[3])
+void ColorCombine(u32 op, struct clov3 input[3])
 {
     switch (op) {
     case 0://Replace:
@@ -243,7 +243,7 @@ void rasterizer_ProcessTriangle(const struct OutputVertex *v0,
                 u32 regnumaddr = GLTEXENV + i * 8;
                 if (i > 3)regnumaddr += 0x10;
 
-                struct clov4 color_result[3]; /*= {
+                struct clov3 color_result[3]; /*= {
                     GetColorSource(tev_stage.color_source1)),
                     GetColorSource(tev_stage.color_source2)),
                     GetColorSource(tev_stage.color_source3))

@@ -427,7 +427,7 @@ SERVICE_CMD(0x08050080)   // SetSize
     u32 rc;
     u64 sz = CMD(1) | ((u64)CMD(2)) << 32;
 
-    DEBUG("SetSize, sz=%llx(%d)\n", sz, sz);
+    DEBUG("SetSize, sz=%llx(%lld)\n", sz, sz);
 
     file_type* type = (file_type*)h->subtype;
 

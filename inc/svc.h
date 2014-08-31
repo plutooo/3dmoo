@@ -74,4 +74,7 @@ u32 svcSignalEvent();
 u32 svcCreatePort();
 u32 svcAcceptSession();
 
+//syscalls/timer.c
+u32 svccreatetimer();
+
 #endif

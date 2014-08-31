@@ -40,7 +40,7 @@ SERVICE_CMD(0x00020244)
     u32 ac = CMD(0xC);
     u32 ad = CMD(0xD);
 
-    DEBUG("VerifyRsaSha256 %08x %08x %08x %08x %08x %08x %08x %08x %08x %08x %08x %08x %08x %08x\n", a1, a2, a3, a4, a5, a6, a7, a8, a9, aa, ab, ac, ad);
+    DEBUG("VerifyRsaSha256 %08x %08x %08x %08x %08x %08x %08x %08x %08x %08x %08x %08x %08x\n", a1, a2, a3, a4, a5, a6, a7, a8, a9, aa, ab, ac, ad);
 
     RESP(1, 0); // Result this is a patch to allow homebrew
     return 0;

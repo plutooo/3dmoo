@@ -237,9 +237,6 @@
     <ClCompile Include="..\src\fs\extsavedata.c">
       <Filter>Source Files\fs</Filter>
     </ClCompile>
-    <ClCompile Include="floatconverter.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\services\cdc_csn.c">
       <Filter>Source Files\services</Filter>
     </ClCompile>
@@ -263,6 +260,9 @@
     </ClCompile>
     <ClCompile Include="..\src\gpu\clipper.c">
       <Filter>Source Files\GPU</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\utila.c">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

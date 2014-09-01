@@ -220,7 +220,7 @@
     <ClCompile Include="..\src\syscalls\ports.c" />
     <ClCompile Include="..\src\syscalls\syn.c" />
     <ClCompile Include="..\src\syscalls\timer.c" />
-    <ClCompile Include="floatconverter.c" />
+    <ClCompile Include="..\src\utila.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\inc\arm11.h" />

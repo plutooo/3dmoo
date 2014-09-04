@@ -137,39 +137,8 @@ void setrNstar(u8 op,u16 data)
 }
 s32 getlastbit(u32 val)
 {
-    if (val & 0x80000000)return 31;
-    if (val & 0x40000000)return 30;
-    if (val & 0x20000000)return 29;
-    if (val & 0x10000000)return 28;
-    if (val & 0x8000000)return 27;
-    if (val & 0x4000000)return 26;
-    if (val & 0x2000000)return 25;
-    if (val & 0x1000000)return 24;
-    if (val & 0x800000)return 23;
-    if (val & 0x400000)return 22;
-    if (val & 0x200000)return 21;
-    if (val & 0x100000)return 20;
-    if (val & 0x80000)return 19;
-    if (val & 0x40000)return 18;
-    if (val & 0x20000)return 17;
-    if (val & 0x10000)return 16;
-    if (val & 0x8000)return 15;
-    if (val & 0x4000)return 14;
-    if (val & 0x2000)return 13;
-    if (val & 0x1000)return 12;
-    if (val & 0x800)return 11;
-    if (val & 0x400)return 10;
-    if (val & 0x200)return 9;
-    if (val & 0x100)return 8;
-    if (val & 0x80)return 7;
-    if (val & 0x40)return 6;
-    if (val & 0x20)return 5;
-    if (val & 0x10)return 4;
-    if (val & 0x8)return 3;
-    if (val & 0x4)return 2;
-    if (val & 0x2)return 1;
-    if (val & 0x1)return 0;
-    if (val == 0)return -1; //that is needed
+    for (u32 i = 31; i >= 0; i--) { if (val & (1 << i)) return i + 1; }
+    return 0;
 }
 
 void setAB(u8 op, u32 data, u8 MSB)

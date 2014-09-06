@@ -23,6 +23,10 @@
 	THE SOFTWARE.
 */
 
+//todo read from the correct Thread
+
+
+
 #define NDS_debug_break() stub->cpu_ctrl->stall( stub->cpu_ctrl->data);
 #define NDS_debug_continue() stub->cpu_ctrl->unstall( stub->cpu_ctrl->data);
 
@@ -45,10 +49,13 @@
 
 #include "util.h"
 
+#include "threads.h"
+
 extern "C" u32 loader_txt;
 extern "C" u32 loader_data;
 extern "C" u32 loader_bss;
 extern "C" int mem_Write(uint8_t* in_buff, uint32_t addr, uint32_t size);
+extern "C" thread threads[MAX_THREADS];
 
 #define uint32_t u32
 #define uint16_t u16
@@ -56,6 +63,9 @@ extern "C" int mem_Write(uint8_t* in_buff, uint32_t addr, uint32_t size);
 
 #include "gdbstub.h"
 #include "gdbstub_internal.h"
+
+s32 gdb_id_loc = -2;
+s32 gdb_id_glob = -2;
 
 struct ptid
 {
@@ -603,10 +613,10 @@ u32 ishex(int ch, int *val)
     return 0;
 }
 
-char * unpack_varlen_hex(char *buff,	/* packet to parse */ ULONGLONG *result)
+char * unpack_varlen_hex(char *buff,	/* packet to parse */ int *result)
 {
     int nibble;
-    ULONGLONG retval = 0;
+    int retval = 0;
 
     while (ishex(*buff, &nibble))
     {
@@ -618,14 +628,14 @@ char * unpack_varlen_hex(char *buff,	/* packet to parse */ ULONGLONG *result)
     return buff;
 }
 
-ULONGLONG
+int
 hex_or_minus_one(char *buf, char **obuf)
 {
-    ULONGLONG ret;
+    int ret;
 
     if (strncmp(buf, "-1", 2) == 0)
     {
-        ret = (ULONGLONG)-1;
+        ret = (int)-1;
         buf += 2;
     }
     else
@@ -637,70 +647,6 @@ hex_or_minus_one(char *buf, char **obuf)
     return ret;
 }
 
-ptid_t
-ptid_build(int pid, long lwp, long tid)
-{
-    ptid_t ptid;
-
-    ptid.pid = pid;
-    ptid.lwp = lwp;
-    ptid.tid = tid;
-    return ptid;
-}
-int
-ptid_get_pid(ptid_t ptid)
-{
-    return ptid.pid;
-}
-
-ptid_t
-pid_to_ptid(int pid)
-{
-    return ptid_build(pid, 0, 0);
-}
-
-int
-ptid_equal(ptid_t ptid1, ptid_t ptid2)
-{
-    return (ptid1.pid == ptid2.pid
-        && ptid1.lwp == ptid2.lwp
-        && ptid1.tid == ptid2.tid);
-}
-/* Extract a PTID from BUF.  If non-null, OBUF is set to the to one
-passed the last parsed char.  Returns null_ptid on error.  */
-ptid_t
-read_ptid(char *buf, char **obuf)
-{
-    char *p = buf;
-    char *pp;
-    ULONGLONG pid = 0, tid = 0;
-
-    if (*p == 'p')
-    {
-        /* Multi-process ptid.  */
-        pp = unpack_varlen_hex(p + 1, &pid);
-        if (*pp != '.')
-            DEBUG("invalid remote ptid: %s\n", p);
-
-        p = pp + 1;
-
-        tid = hex_or_minus_one(p, &pp);
-
-        if (obuf)
-            *obuf = pp;
-        return ptid_build(pid, tid, 0);
-    }
-
-    /* No multi-process.  Just a tid.  */
-    tid = hex_or_minus_one(p, &pp);
-
-    /* Since the stub is not sending a process id*/
-    pid = 0x1;
-
-    if (obuf)
-        *obuf = pp;
-    return ptid_build(pid, tid, 0);
-}
 int
 fromhex(int a)
 {
@@ -770,6 +716,62 @@ processPacket_gdb( SOCKET_TYPE sock, const uint8_t *packet,
     break;
 
     //ichfly
+  case 'v':
+      if (strncmp((char*)packet, "vCont?", 6) == 0)
+      {
+          strcpy((char*)out_ptr, "vCont;c;s");
+          send_size = 9;
+          break;
+      }
+      DEBUG("unknown v");
+      break;
+  case 'H':
+      if (packet[1] == 'c' || packet[1] == 'g')
+      {
+          char *pp;
+          int pid = hex_or_minus_one((char*)&packet[2],NULL);
+          u32 handle = 0;
+          if (pid > 0)
+          {
+              for (int i = 0; i < MAX_THREADS; i++)
+              {
+                  if (threads[i].handle == pid)
+                  {
+                      handle = pid;
+                      break;
+                  }
+              }
+              if (handle == 0)
+              {
+                  strcpy((char *)out_ptr, "E01");
+                  send_size = 3;
+                  break;
+              }
+
+          }
+          else
+          {
+              if (pid == 0)handle = threads[0].handle;
+              if (pid == -1)handle = -1;
+          }
+          if (packet[1] == 'g')
+          {
+              gdb_id_glob = handle;
+          }
+          if (packet[1] == 'c')
+          {
+              gdb_id_loc = handle;
+          }
+          strcpy((char *)out_ptr, "OK");
+          send_size = 2;
+      }
+      else
+      {
+          /* Silently ignore it so that gdb can extend the protocol
+          without compatibility headaches.  */
+      }
+      break;
+
   case 'X':
   {
               u32 mem_addr, len;
@@ -794,6 +796,7 @@ processPacket_gdb( SOCKET_TYPE sock, const uint8_t *packet,
   }
   case 'q':
   {
+
       if (strcmp("qSymbol::", (char*)packet) == 0)
       {
           //cihfly don't need that
@@ -817,6 +820,15 @@ processPacket_gdb( SOCKET_TYPE sock, const uint8_t *packet,
 
           strcpy((char *)out_ptr, "OK");
           send_size = 2;
+          break;
+      }
+      if (strcmp("qC", (char*)packet) == 0)
+      {
+          if (gdb_id_glob == -1)
+              sprintf((char*)out_ptr, "QC-1");
+          else
+              sprintf((char*)out_ptr, "QC%x", gdb_id_glob);
+          send_size = strlen((char*)out_ptr);
           break;
       }
       if (strcmp("qOffsets", (char*)packet) == 0)

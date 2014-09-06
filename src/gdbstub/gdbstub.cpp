@@ -772,7 +772,7 @@ processPacket_gdb( SOCKET_TYPE sock, const uint8_t *packet,
       }
       break;
 
-  case 'X':
+  /*case 'X':
   {
               u32 mem_addr, len;
               unsigned char *mem_buf = NULL;
@@ -793,7 +793,7 @@ processPacket_gdb( SOCKET_TYPE sock, const uint8_t *packet,
                   send_size = 2;
               }
               break;
-  }
+  }*/ //not supported yet
   case 'q':
   {
 

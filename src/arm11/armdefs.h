@@ -459,6 +459,27 @@ So, if lateabtSig=1, then it means Late Abort Model(Base Updated Abort Model)
 
     uint32_t servaddr;
 
+
+#ifdef GDB_STUB
+    /** there is a pending irq for the cpu */
+    int irq_flag;
+
+    /** the post executed function (if installed) */
+    void(*post_ex_fn)(void *, u32 adr, int thumb);
+
+    /** data for the post executed function */
+    void *post_ex_fn_data;
+
+#ifdef notyet
+
+    /** the memory interface */
+    struct armcpu_memory_iface *mem_if;
+
+    /** the ctrl interface */
+    struct armcpu_ctrl_iface ctrl_iface;
+#endif
+#endif
+
 };
 #define DIFF_WRITE 0
 

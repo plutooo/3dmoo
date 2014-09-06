@@ -25,7 +25,10 @@
 
 //ichfly
 //#define callstacker 1
-
+#ifdef GDB_STUB
+#include "gdbstub.h"
+extern gdbstub_handle_t gdb_stub;
+#endif
 
 //#include "armos.h"
 
@@ -556,6 +559,7 @@ ARMul_Emulate26 (ARMul_State * state)
         }
         printf("\n");
 #endif
+
         instr = ARMul_LoadInstrN (state, pc, isize);
         state->last_instr = state->CurrInstr;
         state->CurrInstr = instr;
@@ -4014,6 +4018,20 @@ donext:
             } else {
                 state->tea_break_ok = 1;
             }
+#ifdef GDB_STUB
+        if (state->post_ex_fn != NULL) {
+            if (state->NextInstr == PRIMEPIPE)
+            {
+                state->post_ex_fn(state->post_ex_fn_data, state->Reg[0xF] - 4, state->tea_pc);
+            }
+            else
+            {
+                /* call the external post execute function */
+                state->post_ex_fn(state->post_ex_fn_data, state->Reg[0xF] - 8, state->tea_pc);
+            }
+        }
+#endif
+
 //AJ2D--------------------------------------------------------------------------
 //chy 2006-04-14 for ctrl-c debug
 #if 0
@@ -4047,7 +4065,9 @@ TEST_EMULATE:
             //        continue;
             else if (state->Emulate != RUN)
                 break;
-        }
+      
+    }
+
         while (state->NumInstrsToExecute--);
 
         state->decoded = decoded;

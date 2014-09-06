@@ -26,6 +26,9 @@
 #include "threads.h"
 #include "loader.h"
 
+u32 loader_txt = 0;
+u32 loader_data = 0;
+u32 loader_bss = 0;
 extern char* codepath;
 
 extern thread threads[MAX_THREADS];
@@ -136,7 +139,7 @@ static u32 LoadElfFile(u8 *addr)
     u32 *phdr = (u32*) (addr + Read32((u8*) &header[7]));
     u32 n = Read32((u8*)&header[11]) &0xFFFF;
     u32 i;
-
+    
     for (i = 0; i < n; i++, phdr += 8) {
         if (phdr[0] != 1) // PT_LOAD
             continue;
@@ -154,6 +157,8 @@ static u32 LoadElfFile(u8 *addr)
         memcpy(data, addr + off, filesz);
         mem_AddSegment(dest, memsz, data);
 
+        if ((phdr[6] & 0x5) == 0x5)loader_txt = dest; //read execute
+        if ((phdr[6] & 0x6) == 0x6)loader_data = loader_bss = dest;//read write
     }
 
     return Read32((u8*) &header[6]);
@@ -180,6 +185,7 @@ static void CommonMemSetup()
 
 }
 
+exheader_header ex;
 
 int loader_LoadFile(FILE* fd)
 {
@@ -246,7 +252,6 @@ int loader_LoadFile(FILE* fd)
     }
 
     // Read Exheader.
-    exheader_header ex;
     if (fread(&ex, sizeof(ex), 1, fd) != 1) {
         ERROR("failed to read exheader.\n");
         return 1;
@@ -365,6 +370,9 @@ int loader_LoadFile(FILE* fd)
                                         Read32(ex.codesetinfo.data.codesize));
                 mem_AddSegment(bss_off, AlignPage(Read32(ex.codesetinfo.bsssize)), NULL);
             }
+            loader_txt = Read32(ex.codesetinfo.text.address);
+            loader_data = Read32(ex.codesetinfo.ro.address);
+            loader_bss = Read32(ex.codesetinfo.data.address);
             free(sec);
         }
     }

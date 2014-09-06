@@ -88,13 +88,13 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;MODET;MODE32;_DEBUG;_CONSOLE;_LIB;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>GDB_STUB;WIN32;MODET;MODE32;_DEBUG;_CONSOLE;_LIB;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>..\inc;..\inc\arm11;..\src;..\src\arm11;$(SDL2)\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>SDL2.lib;SDL2main.lib;SDL2test.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>ws2_32.lib;SDL2.lib;SDL2main.lib;SDL2test.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -168,6 +168,7 @@
     <ClCompile Include="..\src\fs\shared_extdata.c" />
     <ClCompile Include="..\src\fs\sysdata.c" />
     <ClCompile Include="..\src\fs\util.c" />
+    <ClCompile Include="..\src\gdbstub\gdbstub.cpp" />
     <ClCompile Include="..\src\gpu\clipper.c" />
     <ClCompile Include="..\src\gpu\rasterizer.c" />
     <ClCompile Include="..\src\gpu\vec4.c" />
@@ -227,6 +228,8 @@
     <ClInclude Include="..\inc\dsp.h" />
     <ClInclude Include="..\inc\filemon.h" />
     <ClInclude Include="..\inc\fs.h" />
+    <ClInclude Include="..\inc\gdbstub.h" />
+    <ClInclude Include="..\inc\gdbstub_internal.h" />
     <ClInclude Include="..\inc\handles.h" />
     <ClInclude Include="..\inc\hid_user.h" />
     <ClInclude Include="..\inc\init.h" />

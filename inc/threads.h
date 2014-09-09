@@ -32,6 +32,7 @@ typedef struct {
     u32 pc;
     u32 cpsr;
     u32 fpu_r[32];
+    u32 fpunk;
     u32 fpscr;
     u32 fpexc;
     u32 mode;
@@ -54,6 +55,10 @@ typedef struct {
 
     u32 handle;
     s32 priority;
+
+    u32 NFlag, ZFlag, CFlag, VFlag, IFFlags;
+    u32 GEFlag, EFlag, AFlag, QFlags;
+
 } thread;
 
 

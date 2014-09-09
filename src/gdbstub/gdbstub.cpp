@@ -716,11 +716,15 @@ processPacket_gdb( SOCKET_TYPE sock, const uint8_t *packet,
     break;
 
     //ichfly
+  case 'D': //ichfly OK
+      strcpy((char *)out_ptr, "OK");
+      send_size = 2;
+      break;
   case 'v':
       if (strncmp((char*)packet, "vCont?", 6) == 0)
       {
           strcpy((char*)out_ptr, "vCont;c;s");
-          send_size = 9;
+          send_size = strlen((char*)out_ptr);
           break;
       }
       DEBUG("unknown v");

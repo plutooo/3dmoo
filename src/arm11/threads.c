@@ -280,7 +280,7 @@ void threads_Execute()
         extern volatile bool arm_stall;
         while (arm_stall)Sleep(1);
 #endif
-            arm11_Run(0x7FFFFFF);
+        arm11_Run(11172 * 16);
 
 
     }

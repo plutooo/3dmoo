@@ -249,7 +249,7 @@ void Clipper_ProcessTriangle(struct OutputVertex *v0, struct OutputVertex *v1, s
     InitScreenCoordinates(&output_list[0]);
     InitScreenCoordinates(&output_list[1]);
 
-    for (int i = 0; i < output_list_num - 2; i++) {
+    for (u32 i = 0; i < output_list_num - 2; i++) {
         struct OutputVertex* vtx0 = &output_list[0];
         struct OutputVertex* vtx1 = &output_list[i + 1];
         struct OutputVertex* vtx2 = &output_list[i + 2];

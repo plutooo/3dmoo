@@ -130,11 +130,20 @@ static void unstall_cpu(void *instance)
 static u32 read_cpu_reg(void *instance, u32 reg_num)
 {
     if (reg_num == 0x10)return s.Cpsr;
+#ifdef impropergdb
     if (reg_num == 0xF)
     {
         if (s.NextInstr == PRIMEPIPE)return arm11_R(reg_num);
         else return arm11_R(reg_num) - 4;
     }
+#else
+    if (reg_num == 0xF)
+    {
+        if (s.NextInstr == PRIMEPIPE)
+            return arm11_R(reg_num);
+        return arm11_R(reg_num) + 4;
+    }
+#endif
     return arm11_R(reg_num);
 }
 static void set_cpu_reg(void *instance, u32 reg_num, u32 value) 

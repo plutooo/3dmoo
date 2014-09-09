@@ -510,6 +510,15 @@ ARMul_Emulate26 (ARMul_State * state)
             state->AbortAddr = 1;
 
             instr = ARMul_LoadInstrN (state, pc, isize);
+
+#ifdef GDB_STUB
+            if (!state->NumInstrsToExecute)
+            {
+                state->Reg[15] = pc;
+                return pc;
+            }
+#endif
+
             //instr = ARMul_ReLoadInstr (state, pc, isize);
             //chy 2006-04-12, for ICE debug
             have_bp=ARMul_ICE_debug(state,instr,pc);
@@ -535,6 +544,13 @@ ARMul_Emulate26 (ARMul_State * state)
             state->AbortAddr = 1;
 
             instr = ARMul_LoadInstrN (state, pc, isize);
+#ifdef GDB_STUB
+            if (!state->NumInstrsToExecute)
+            {
+                state->Reg[15] = pc;
+                return pc;
+            }
+#endif
             //chy 2006-04-12, for ICE debug
             have_bp=ARMul_ICE_debug(state,instr,pc);
 #if 0
@@ -561,6 +577,23 @@ ARMul_Emulate26 (ARMul_State * state)
 #endif
 
         instr = ARMul_LoadInstrN (state, pc, isize);
+#ifdef GDB_STUB
+        if (!state->NumInstrsToExecute)
+        {
+
+            pc -= isize;
+            if (state->NextInstr == SEQ || state->NextInstr == NONSEQ)//case 0 and 1
+            {
+                state->Reg[15] -= isize;
+            }
+            else if (state->NextInstr == PCINCEDSEQ || state->NextInstr == PCINCEDNONSEQ)
+            {
+
+            }
+            state->Reg[15] = pc;
+            return pc;
+        }
+#endif
         state->last_instr = state->CurrInstr;
         state->CurrInstr = instr;
         ARMul_Debug(state, pc, instr);
@@ -4020,6 +4053,7 @@ donext:
             }
 #ifdef GDB_STUB
         if (state->post_ex_fn != NULL) {
+#ifdef impropergdb
             if (state->NextInstr == PRIMEPIPE)
             {
                 state->post_ex_fn(state->post_ex_fn_data, state->Reg[0xF] - 4, state->tea_pc);
@@ -4029,6 +4063,17 @@ donext:
                 /* call the external post execute function */
                 state->post_ex_fn(state->post_ex_fn_data, state->Reg[0xF] - 8, state->tea_pc);
             }
+#else
+            if (state->NextInstr == PRIMEPIPE)
+            {
+                state->post_ex_fn(state->post_ex_fn_data, state->Reg[0xF], state->tea_pc);
+            }
+            else
+            {
+                /* call the external post execute function */
+                state->post_ex_fn(state->post_ex_fn_data, state->Reg[0xF], state->tea_pc);
+            }
+#endif
         }
 #endif
 

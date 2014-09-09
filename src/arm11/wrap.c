@@ -426,11 +426,23 @@ void arm11_SaveContext(thread *t)
     t->r15 = s.Reg[15];
 
     for (int i = 0; i < 32; i++) t->fpu_r[i] = s.ExtReg[i];
+    t->fpunk = s.VFP[0];
     t->fpscr = s.VFP[1];
     t->fpexc = s.VFP[2];
 
     t->currentexaddr = s.currentexaddr;
     t->currentexval = s.currentexval;
+
+    //more flags
+    t->NFlag = s.NFlag;
+    t->ZFlag = s.ZFlag;
+    t->CFlag = s.CFlag;
+    t->VFlag = s.VFlag;
+    t->IFFlags = s.IFFlags;
+    t->GEFlag = s.GEFlag;
+    t->EFlag = s.EFlag;
+    t->AFlag = s.AFlag;
+    t->QFlags = s.QFlags;
 }
 void arm11_LoadContext(thread *t)
 {
@@ -443,12 +455,26 @@ void arm11_LoadContext(thread *t)
     s.Reg[15] = t->r15;
 
     for (int i = 0; i < 32; i++) s.ExtReg[i] = t->fpu_r[i];
+    s.VFP[0] = t->fpunk;
     s.VFP[1] = t->fpscr;
     s.VFP[2] = t->fpexc;
 
     s.currentexaddr = t->currentexaddr;
     s.currentexval = t->currentexval;
     s.servaddr = t->servaddr;
+
     if (s.Cpsr & 0x20)s.TFlag = true;
     else s.TFlag = false;
+
+    //more flags
+    s.NFlag = t->NFlag;
+    s.ZFlag = t->ZFlag;
+    s.CFlag = t->CFlag;
+    s.VFlag = t->VFlag;
+    s.IFFlags = t->IFFlags;
+    s.GEFlag = t->GEFlag;
+    s.EFlag = t->EFlag;
+    s.AFlag = t->AFlag;
+    s.QFlags = t->QFlags;
+
 }

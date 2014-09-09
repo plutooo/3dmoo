@@ -413,6 +413,7 @@ u32 srv_SyncRequest()
         DEBUG("srv_Initialize\n");
 
         // XXX: check +4, flags?
+        mem_Write32(arm11_ServiceBufferAddress() + 0x84, 0); //no error
         PAUSE();
         return 0;
 

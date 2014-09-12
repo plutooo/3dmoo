@@ -531,6 +531,15 @@ u32 srv_SyncRequest()
         mem_Write32(arm11_ServiceBufferAddress() + 0x84, 0);
         return 0;
 
+    case 0xa0040: // DisableNotificationType
+        DEBUG("srv_DisableNotificationType\n");
+
+        type = mem_Read32(arm11_ServiceBufferAddress() + 0x84);
+        DEBUG("STUBBED, type=%x\n", type);
+
+        mem_Write32(arm11_ServiceBufferAddress() + 0x84, 0); //no error
+        return 0;
+
     case 0xB0000: // GetNotificationType
         DEBUG("srv_GetNotificationType\n");
         //mem_Dbugdump();

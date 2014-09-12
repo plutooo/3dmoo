@@ -25,6 +25,12 @@
 #include "threads.h"
 
 
+
+#ifdef GDB_STUB
+#include "gdbstub.h"
+extern ARMul_State s;
+#endif
+
 extern ARMul_State s;
 
 typedef struct {
@@ -398,7 +404,7 @@ u32 mem_Read32(uint32_t addr)
             // Unaligned.
             u32 temp = *(uint32_t*)(&mappings[i].phys[addr - mappings[i].base]);
 #ifdef MEM_TRACE
-            fprintf(stderr, "r32 %08x --> %08x\n", addr,temp);
+            fprintf(stderr, "r32 %08x --> %08x (%08X)\n", addr, temp, s.Reg[15]);
 #endif 
             switch (addr & 3) {
             case 0:

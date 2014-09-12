@@ -25,7 +25,7 @@
 
 //todo read from the correct Thread
 
-
+#ifdef GDB_STUB
 
 #define NDS_debug_break() stub->cpu_ctrl->stall( stub->cpu_ctrl->data);
 #define NDS_debug_continue() stub->cpu_ctrl->unstall( stub->cpu_ctrl->data);
@@ -195,7 +195,7 @@ causeQuit_gdb( struct gdb_stub_state *stub) {
 #endif
 }
 
-static void
+extern "C" static void
 indicateCPUStop_gdb( struct gdb_stub_state *stub) {
   uint8_t command = CPU_STOPPED_STUB_MESSAGE;
 
@@ -214,7 +214,7 @@ indicateCPUStop_gdb( struct gdb_stub_state *stub) {
  *
  *
  */
-static void
+extern "C" static void
 break_execution( void *data, UNUSED_PARM(uint32_t addr), UNUSED_PARM(int thunmb)) {
   struct gdb_stub_state *stub = (struct gdb_stub_state *)data;
 
@@ -658,6 +658,7 @@ fromhex(int a)
         return a - 'A' + 10;
     else
         DEBUG("Reply contains invalid hex digit %d", a);
+    return 'I'; 
 }
 
 int
@@ -732,7 +733,6 @@ processPacket_gdb( SOCKET_TYPE sock, const uint8_t *packet,
   case 'H':
       if (packet[1] == 'c' || packet[1] == 'g')
       {
-          char *pp;
           int pid = hex_or_minus_one((char*)&packet[2],NULL);
           u32 handle = 0;
           if (pid > 0)
@@ -1952,3 +1952,4 @@ activateStub_gdb( gdbstub_handle_t instance,
 
   stub->active = 1;
 }
+#endif

@@ -482,6 +482,7 @@ ARMul_LDC (ARMul_State * state, ARMword instr, ARMword address)
     //exit(-1);
 
     //if (!CP_ACCESS_ALLOWED (state, CPNum)) {
+
     if (!state->LDC[CPNum]) {
         /*
            printf
@@ -590,6 +591,7 @@ ARMul_STC (ARMul_State * state, ARMword instr, ARMword address)
           INTERNALABORT (address);*/
 
     cpab = (state->STC[CPNum]) (state, ARMul_FIRST, instr, &data);
+    if (cpab == ARMul_OTHER) return;
     while (cpab == ARMul_BUSY) {
         ARMul_Icycles (state, 1, 0);
         if (IntPending (state)) {

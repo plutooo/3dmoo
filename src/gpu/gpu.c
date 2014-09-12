@@ -593,7 +593,7 @@ u32 GetNumElements(u32 n, u32* data)
     if (n < 8)
     {
         u32 temp = *(data + 1);
-        return ((temp >> ((n * 4)) + 2) & 0x3) + 1;
+        return ((temp >> ((n * 4) + 2)) & 0x3) + 1;
     }
     else
     {
@@ -622,7 +622,7 @@ u32 GetStride(int n, u32* data)
 }
 void writeGPUID(u16 ID, u8 mask, u32 size, u32* buffer)
 {
-    int i;
+    u32 i;
     switch (ID)
     {
     // It seems like these trigger vertex rendering
@@ -665,7 +665,7 @@ void writeGPUID(u16 ID, u8 mask, u32 size, u32* buffer)
                                const u8* index_address_8 = (u8*)get_pymembuffer(base_address) + index_info_offset;
                                const u16* index_address_16 = (u16*)index_address_8;
                                bool index_u16 = (GPUregs[IndexArrayConfig] >> 31);
-                               for (int index = 0; index < GPUregs[NumVertices]; index++)
+                               for (u32 index = 0; index < GPUregs[NumVertices]; index++)
                                {
                                    int vertex = is_indexed ? (index_u16 ? index_address_16[index] : index_address_8[index]) : index;
 
@@ -677,7 +677,7 @@ void writeGPUID(u16 ID, u8 mask, u32 size, u32* buffer)
                                    struct vec4 input[17];
                                    u8 NumTotalAttributes = (attribute_config[2] >> 28) + 1;
                                    for (int i = 0; i < NumTotalAttributes; i++) {
-                                       for (int comp = 0; comp < vertex_attribute_elements[i]; comp++) {
+                                       for (u32 comp = 0; comp < vertex_attribute_elements[i]; comp++) {
                                            const u8* srcdata = vertex_attribute_sources[i] + vertex_attribute_strides[i] * vertex + comp * vertex_attribute_element_size[i];
                                            const float srcval = (vertex_attribute_formats[i] == 0) ? *(s8*)srcdata :
                                                (vertex_attribute_formats[i] == 1) ? *(u8*)srcdata :
@@ -793,10 +793,10 @@ void writeGPUID(u16 ID, u8 mask, u32 size, u32* buffer)
 }
 
 
-void runGPU_Commands(u8* buffer, u32 size)
+void runGPU_Commands(u8* buffer, u32 sizea)
 {
     u32 i;
-    for (i = 0; i < size; i += 8)
+    for (i = 0; i < sizea; i += 8)
     {
         u32 cmd = *(u32*)(buffer + 4 + i);
         u32 dataone = *(u32*)(buffer + i);

@@ -301,7 +301,7 @@ void rasterizer_ProcessTriangle(const struct OutputVertex *v0,
                         DEBUG("Unknown alpha combiner source %d\n", (int)((GPUregs[regnumaddr] >> (16 + j * 4))) & 0xF);
                         break;
                     }
-                    alpha_result.v[j] = GetAlphaModifier((GPUregs[regnumaddr + 1] >> 12 + 3 * j) & 0x7, alpha);
+                    alpha_result.v[j] = GetAlphaModifier((GPUregs[regnumaddr + 1] >> (12 + 3 * j)) & 0x7, alpha);
                 }
                 color_result[0].v[3] = AlphaCombine((GPUregs[regnumaddr + 2] >> 16) & 0xF, &alpha_result);
                 memcpy(&combiner_output, &color_result[0], sizeof(struct clov4));

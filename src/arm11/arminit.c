@@ -453,6 +453,7 @@ ARMul_DoInstr (ARMul_State * state)
 void
 ARMul_Abort (ARMul_State * state, ARMword vector)
 {
+    DEBUG("error ARMul_Abort");
     ARMword temp;
     int isize = INSN_SIZE;
     int esize = (TFLAG ? 0 : 4);

@@ -730,6 +730,7 @@ extern ARMword ARMul_MemAccess (ARMul_State * state, ARMword, ARMword,
 #define ARMul_DONE 0
 #define ARMul_CANT 1
 #define ARMul_INC 3
+#define ARMul_OTHER 4
 
 #define ARMul_CP13_R0_FIQ       0x1
 #define ARMul_CP13_R0_IRQ       0x2

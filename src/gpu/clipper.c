@@ -151,7 +151,7 @@ void Clipper_ProcessTriangle(struct OutputVertex *v0, struct OutputVertex *v1, s
 
         struct OutputVertex* reference_vertex = &input_list[input_list_num - 1];
 
-        for (int j = 0; j < input_list_num; j++)
+        for (u32 j = 0; j < input_list_num; j++)
         {
             if (input_list[j].pos.v[i] <= +1.0 * input_list[j].pos.v[3]) //is inside
             {
@@ -203,7 +203,7 @@ void Clipper_ProcessTriangle(struct OutputVertex *v0, struct OutputVertex *v1, s
 
         reference_vertex = &input_list[input_list_num - 1];
 
-        for (int j = 0; j < input_list_num; j++)
+        for (u32 j = 0; j < input_list_num; j++)
         {
             if (input_list[j].pos.v[i] >= -1.0 * input_list[j].pos.v[3]) //is inside
             {
@@ -249,22 +249,25 @@ void Clipper_ProcessTriangle(struct OutputVertex *v0, struct OutputVertex *v1, s
     InitScreenCoordinates(&output_list[0]);
     InitScreenCoordinates(&output_list[1]);
 
-    for (u32 i = 0; i < output_list_num - 2; i++) {
-        struct OutputVertex* vtx0 = &output_list[0];
-        struct OutputVertex* vtx1 = &output_list[i + 1];
-        struct OutputVertex* vtx2 = &output_list[i + 2];
-        InitScreenCoordinates(vtx2);
-        DEBUG(
-            "Triangle %d/%d (%d buffer vertices) at position (%.3f, %.3f, %.3f, %.3f), "
-            "(%.3f, %.3f, %.3f, %.3f), (%.3f, %.3f, %.3f, %.3f) and "
-            "screen position (%.2f, %.2f, %.2f), (%.2f, %.2f, %.2f), (%.2f, %.2f, %.2f)\n",
-            i, output_list_num, buffer_vertices_num,
-            vtx0->pos.v[0], vtx0->pos.v[1], vtx0->pos.v[2], vtx0->pos.v[3],
-            vtx1->pos.v[0], vtx1->pos.v[1], vtx1->pos.v[2], vtx1->pos.v[3],
-            vtx2->pos.v[0], vtx2->pos.v[1], vtx2->pos.v[2], vtx2->pos.v[3],
-            vtx0->screenpos.v[0], vtx0->screenpos.v[1], vtx0->screenpos.v[2],
-            vtx1->screenpos.v[0], vtx1->screenpos.v[1], vtx1->screenpos.v[2],
-            vtx2->screenpos.v[0], vtx2->screenpos.v[1], vtx2->screenpos.v[2]);
-        rasterizer_ProcessTriangle(vtx0, vtx1, vtx2);
+    if (output_list_num > 2)
+    {
+        for (u32 i = 0; i < output_list_num - 2; i++) {
+            struct OutputVertex* vtx0 = &output_list[0];
+            struct OutputVertex* vtx1 = &output_list[i + 1];
+            struct OutputVertex* vtx2 = &output_list[i + 2];
+            InitScreenCoordinates(vtx2);
+            DEBUG(
+                "Triangle %d/%d (%d buffer vertices) at position (%.3f, %.3f, %.3f, %.3f), "
+                "(%.3f, %.3f, %.3f, %.3f), (%.3f, %.3f, %.3f, %.3f) and "
+                "screen position (%.2f, %.2f, %.2f), (%.2f, %.2f, %.2f), (%.2f, %.2f, %.2f)\n",
+                i, output_list_num, buffer_vertices_num,
+                vtx0->pos.v[0], vtx0->pos.v[1], vtx0->pos.v[2], vtx0->pos.v[3],
+                vtx1->pos.v[0], vtx1->pos.v[1], vtx1->pos.v[2], vtx1->pos.v[3],
+                vtx2->pos.v[0], vtx2->pos.v[1], vtx2->pos.v[2], vtx2->pos.v[3],
+                vtx0->screenpos.v[0], vtx0->screenpos.v[1], vtx0->screenpos.v[2],
+                vtx1->screenpos.v[0], vtx1->screenpos.v[1], vtx1->screenpos.v[2],
+                vtx2->screenpos.v[0], vtx2->screenpos.v[1], vtx2->screenpos.v[2]);
+            rasterizer_ProcessTriangle(vtx0, vtx1, vtx2);
+        }
     }
 }

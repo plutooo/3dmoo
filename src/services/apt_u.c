@@ -132,7 +132,7 @@ SERVICE_CMD(0x440000)
         }
 
         // Read it
-        if (fread(APTsharedfont + 4, APTsharedfontsize, 1, fd) != 1) {
+        if (fread(APTsharedfont, APTsharedfontsize, 1, fd) != 1) {
             ERROR("fread() failed trying to read shared font.\n");
             fclose(fd);
             free(APTsharedfont);
@@ -140,19 +140,20 @@ SERVICE_CMD(0x440000)
             RESP(1, -1);
             return 0;
         }
-        APTsharedfont[3] = 0x0;
+        /*APTsharedfont[3] = 0x0;
         APTsharedfont[2] = 0x0;
         APTsharedfont[1] = 0x0;
-        APTsharedfont[0] = 0x2;
+        APTsharedfont[0] = 0x2;*/
 
         fclose(fd);
     }
 
+    RESP(0, 0x00440082); // code
     RESP(1, 0); // Result
-    RESP(2, 0xDEAD0000); // mem addr
+    RESP(2, 0xDEAD0000); // mem addr (observed 0x18000000)
 
     // Handle for shared memory
-    RESP(4, handle_New(HANDLE_TYPE_SHAREDMEM, MEM_TYPE_APT_SHARED_FONT));
+    RESP(4, handle_New(HANDLE_TYPE_SHAREDMEM, MEM_TYPE_APT_SHARED_FONT)); //observed 0x0033001F stuff gets mapped here?
     return 0;
 }
 

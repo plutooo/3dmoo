@@ -577,8 +577,9 @@ ARMul_Emulate26 (ARMul_State * state)
 #endif
 
         instr = ARMul_LoadInstrN (state, pc, isize);
+
 #ifdef GDB_STUB
-        if (!state->NumInstrsToExecute)
+        if (!state->NumInstrsToExecute) //bug here
         {
 
             pc -= isize;
@@ -997,7 +998,6 @@ ARMul_Emulate26 (ARMul_State * state)
             }
         }
 #endif
-
         /* Check the condition codes.  */
         if ((temp = TOPBITS (28)) == AL) {
             /* Vile deed in the need for speed. */
@@ -1153,6 +1153,7 @@ ARMul_Emulate26 (ARMul_State * state)
         }		/* cc check */
 
 //chy 2003-08-24 now #if 0 .... #endif  process cp14, cp15.reg14, I disable it...
+
 
         /* Actual execution of instructions begins here.  */
         /* If the condition codes don't match, stop here.  */
@@ -3702,7 +3703,13 @@ mainswitch:
 
                 /* Co-Processor Data Transfers.  */
                 case 0xc4:
-                    if (state->is_v5) {
+                    if ((instr & 0x0FF00FF0) == 0xC400B10) //vmov BIT(0-3), BIT(12-15), BIT(16-20),  vmov d0, r0, r0
+                    {
+                        state->ExtReg[BIT(0, 3) << 1] = state->Reg[BITS(12, 15)];
+                        state->ExtReg[(BIT(0, 3) << 1) + 1] = state->Reg[BITS(16, 20)];
+                        break;
+                    }
+                    else if (state->is_v5) {
                         /* Reading from R15 is UNPREDICTABLE.  */
                         if (BITS (12, 15) == 15 || BITS (16, 19) == 15)
                             ARMul_UndefInstr (state, instr);
@@ -3722,13 +3729,21 @@ mainswitch:
                     break;
 
                 case 0xc5:
-                    if (state->is_v5) {
+                    if ((instr & 0x00000FF0) == 0xB10) //vmov BIT(12-15), BIT(16-20), BIT(0-3) vmov r0, r0, d0
+                    {
+                        state->Reg[BITS(12, 15)] = state->ExtReg[BIT(0, 3) << 1];
+                        state->Reg[BITS(16, 20)] = state->ExtReg[(BIT(0, 3) << 1) + 1];
+                        break;
+                    }
+                    else if (state->is_v5) {
                         /* Writes to R15 are UNPREDICATABLE.  */
                         if (DESTReg == 15 || LHSReg == 15)
                             ARMul_UndefInstr (state, instr);
                         /* Is access to the coprocessor allowed ?  */
                         else if (!CP_ACCESS_ALLOWED(state, CPNum))
-                            ARMul_UndefInstr (state, instr);
+                        {
+                            ARMul_UndefInstr(state, instr);
+                        }
                         else {
                             /* MRRC, ARMv5TE and up */
                             ARMul_MRRC (state, instr, &DEST, &(state->Reg[LHSReg]));

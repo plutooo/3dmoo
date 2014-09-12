@@ -58,6 +58,7 @@ typedef struct {
 
     u32 NFlag, ZFlag, CFlag, VFlag, IFFlags;
     u32 GEFlag, EFlag, AFlag, QFlags;
+    u32 decoded, loaded, decoded_addr, loaded_addr;
 
 } thread;
 

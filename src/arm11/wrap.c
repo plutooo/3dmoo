@@ -433,6 +433,11 @@ void arm11_SaveContext(thread *t)
     t->currentexaddr = s.currentexaddr;
     t->currentexval = s.currentexval;
 
+    t->decoded = s.decoded;
+    t->loaded = s.loaded;
+    t->decoded_addr = s.decoded_addr;
+    t->loaded_addr = s.loaded_addr;
+
     //more flags
     t->NFlag = s.NFlag;
     t->ZFlag = s.ZFlag;
@@ -466,6 +471,11 @@ void arm11_LoadContext(thread *t)
     if (s.Cpsr & 0x20)s.TFlag = true;
     else s.TFlag = false;
 
+    s.decoded = t->decoded;
+    s.loaded = t->loaded;
+    s.decoded_addr = t->decoded_addr;
+    s.loaded_addr = t->loaded_addr;
+
     //more flags
     s.NFlag = t->NFlag;
     s.ZFlag = t->ZFlag;
@@ -476,5 +486,4 @@ void arm11_LoadContext(thread *t)
     s.EFlag = t->EFlag;
     s.AFlag = t->AFlag;
     s.QFlags = t->QFlags;
-
 }

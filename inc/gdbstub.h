@@ -104,5 +104,14 @@ createThread_gdb( void (WINAPI *thread_function)( void *data),
 void
 joinThread_gdb( void *thread_handle);
 
+#ifdef __GNUC__
+#define UNUSED_PARM( parm) parm __attribute__((unused))
+#else
+#define UNUSED_PARM( parm) parm
+#endif
+
+static void
+break_execution(void *data, UNUSED_PARM(uint32_t addr), UNUSED_PARM(int thunmb));
+
 #endif /* End of _GDBSTUB_H_ */
 

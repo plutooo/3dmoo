@@ -324,14 +324,6 @@ int loader_LoadFile(FILE* fd)
                 }
                 DEBUG("  .. OK\n");
 
-
-                FILE * pFile;
-                pFile = fopen("decode.code", "wb");
-                if (pFile != NULL) {
-                    fwrite(dec, 1, dec_size, pFile);
-                    fclose(pFile);
-                }
-
                 if (codepath != NULL) {
                     pFile = fopen(codepath, "rb");
                     if (pFile != NULL) {

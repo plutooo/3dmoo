@@ -193,6 +193,7 @@ static void gdb_write32(void *data, u32 adr, u32 val) {
     mem_Write32(adr, val);
 }
 #endif
+
 int main(int argc, char* argv[])
 {
     atexit(AtExit);

@@ -120,6 +120,7 @@ typedef struct {
     u32  misc[4];
     void* misc_ptr[4];
 } handleinfo;
+
 //main.c
 u32 overdrivnum;
 char** overdrivnames;
@@ -134,7 +135,6 @@ u32 *curprocesshandlelist;
 u32 curprocesshandle;
 
 //handles.h
-
 u32 wrapWaitSynchronizationN(u32 nanoseconds1, u32 handles_ptr, u32 handles_count, u32 wait_all, u32 nanoseconds2, u32 out);
 
 // services/srv.c

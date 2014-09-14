@@ -27,20 +27,21 @@
 
 u32 mutex_SyncRequest(handleinfo* h, bool *locked)
 {
-    mutex_WaitSynchronization(h,locked);
-
-    DEBUG("locking mutex..\n");
-    PAUSE();
-
-    h->locked = true;
-    return 0;
+    ERROR("ERROR: mutex should not be SyncRequest'd\n");
+    return -1;
 }
 
 u32 mutex_WaitSynchronization(handleinfo* h, bool *locked)
 {
     PAUSE();
 
-    *locked = h->locked;
+    if(h->locked) { // If it's locked, then we say it's locked
+        *locked = 1;
+    }
+    else { // Otherwise we lock it
+        h->locked = 1;
+        *locked = 0;
+    }
 
     return 0;
 }
@@ -84,6 +85,8 @@ u32 svcReleaseMutex()
     return 0;
 }
 
+// -- This does not belong here --
+
 u32 svcDuplicateHandle()
 {
     u32 to_clone = arm11_R(1);
@@ -123,8 +126,6 @@ u32 svcCreateSemaphore()
         return -1;
     }
 
-    h->locked = true;
-
     h->misc[0] = initialCount;
     h->misc[1] = maxCount;
 
@@ -152,29 +153,32 @@ u32 svcReleaseSemaphore()
         return -1;
     }
 
-    h->misc[0] += releaseCount;
-    h->locked = (h->misc[0] != h->misc[1]);
-    arm11_SetR(1, h->misc[0]); // count_out
+    if(releaseCount > h->misc[0]) {
+        ERROR("Releasing too much on a semaphore!\n!");
+        h->misc[0] = 0;
+    }
+    else
+        h->misc[0] -= releaseCount;
 
+    arm11_SetR(1, h->misc[0]); // count_out
     return 0;
 }
 
 u32 semaphore_SyncRequest(handleinfo* h, bool *locked)
 {
-    mutex_WaitSynchronization(h, locked);
-
-    DEBUG("locking semaphore..\n");
-    PAUSE();
-
-    h->locked = true;
-    return 0;
+    ERROR("ERROR: semaphore should not be SyncRequest'd\n");
+    return -1;
 }
 
 u32 semaphore_WaitSynchronization(handleinfo* h, bool *locked)
 {
-    PAUSE();
-
-    *locked = h->locked;
+    if(h->misc[0] < h->misc[1]) {
+        h->misc[0]++;
+        *locked = 0;
+    }
+    else {
+        *locked = 1;
+    }
 
     return 0;
 }

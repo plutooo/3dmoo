@@ -3705,8 +3705,8 @@ mainswitch:
                 case 0xc4:
                     if ((instr & 0x0FF00FF0) == 0xC400B10) //vmov BIT(0-3), BIT(12-15), BIT(16-20),  vmov d0, r0, r0
                     {
-                        state->ExtReg[BIT(0, 3) << 1] = state->Reg[BITS(12, 15)];
-                        state->ExtReg[(BIT(0, 3) << 1) + 1] = state->Reg[BITS(16, 20)];
+                        state->ExtReg[BITS(0, 3) << 1] = state->Reg[BITS(12, 15)];
+                        state->ExtReg[(BITS(0, 3) << 1) + 1] = state->Reg[BITS(16, 20)];
                         break;
                     }
                     else if (state->is_v5) {
@@ -3731,8 +3731,8 @@ mainswitch:
                 case 0xc5:
                     if ((instr & 0x00000FF0) == 0xB10) //vmov BIT(12-15), BIT(16-20), BIT(0-3) vmov r0, r0, d0
                     {
-                        state->Reg[BITS(12, 15)] = state->ExtReg[BIT(0, 3) << 1];
-                        state->Reg[BITS(16, 20)] = state->ExtReg[(BIT(0, 3) << 1) + 1];
+                        state->Reg[BITS(12, 15)] = state->ExtReg[BITS(0, 3) << 1];
+                        state->Reg[BITS(16, 20)] = state->ExtReg[(BITS(0, 3) << 1) + 1];
                         break;
                     }
                     else if (state->is_v5) {

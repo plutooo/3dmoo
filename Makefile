@@ -5,7 +5,7 @@ CFLAGS  = -c -std=c99 -Wno-format-zero-length -Iinc -Isrc/arm11 -I/usr/include/S
 LIBS    = -lSDL2 -lm
 LDFLAGS =
 
-SRC_FILES = src/mem.c src/screen.c src/handles.c src/loader.c src/svc.c src/util.c
+SRC_FILES = src/mem.c src/screen.c src/handles.c src/loader.c src/utila.c src/svc.c
 
 INC_FILES = inc/*
 

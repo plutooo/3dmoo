@@ -214,7 +214,7 @@ indicateCPUStop_gdb( struct gdb_stub_state *stub) {
  *
  *
  */
-extern "C" static void
+extern "C" void
 break_execution( void *data, UNUSED_PARM(uint32_t addr), UNUSED_PARM(int thunmb)) {
   struct gdb_stub_state *stub = (struct gdb_stub_state *)data;
 

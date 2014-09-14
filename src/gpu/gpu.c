@@ -638,7 +638,7 @@ void writeGPUID(u16 ID, u8 mask, u32 size, u32* buffer)
                                u32 vertex_attribute_elements[16];
                                u32 vertex_attribute_element_size[16];
 
-
+                               mem_Dbugdump();
                                // Setup attribute data from loaders
                                for (int loader = 0; loader < 12; loader++) {
                                    u32* loader_config = (attribute_config + (loader + 1) * 3);

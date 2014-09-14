@@ -222,6 +222,51 @@ VFPCDP (ARMul_State * state, unsigned type, u32 instr)
     int CRm = BITS (0, 3);
     int OPC_2 = BITS (5, 7);
 
+    //ichfly
+    if ((instr & 0x0FBF0FD0) == 0x0EB70AC0) //vcvt.f64.f32	d8, s16 (s is bit 0-3 and LSB bit 22) (d is bit 12 - 15 MSB is Bit 6)
+    {
+        struct vfp_double vdd;
+        struct vfp_single vsd;
+        int dn = BITS(12, 15) + (BIT(22) << 4);
+        int sd = (BITS(0, 3) << 1) + BIT(5);
+        s32 n = vfp_get_float(state, sd);
+        vfp_single_unpack(&vsd, n);
+        if (vsd.exponent & 0x80)
+        {
+            vdd.exponent = (vsd.exponent&~0x80) | 0x400;
+        }
+        else
+        {
+            vdd.exponent = vsd.exponent | 0x380;
+        }
+        vdd.sign = vsd.sign;
+        vdd.significand = (u64)(vsd.significand & ~0xC0000000) << 32; // I have no idea why but the 2 uppern bits are not from the significand
+        vfp_put_double(state, vfp_double_pack(&vdd), dn);
+        return ARMul_DONE;
+    }
+    if ((instr & 0x0FBF0FD0) == 0x0EB70BC0) //vcvt.f32.f64	s15, d6
+    {
+        struct vfp_double vdd;
+        struct vfp_single vsd;
+        int sd = BITS(0, 3) + (BIT(5) << 4);
+        int dn = (BITS(12, 15) << 1) + BIT(22);
+        vfp_double_unpack(&vdd, vfp_get_double(state, sd));
+        if (vdd.exponent & 0x400) //todo if the exponent is to low or to high for this convert
+        {
+            vsd.exponent = (vdd.exponent) | 0x80;
+        }
+        else
+        {
+            vsd.exponent = vdd.exponent & ~0x80;
+        }
+        vsd.exponent &= 0xFF;
+       // vsd.exponent = vdd.exponent >> 3;
+        vsd.sign = vdd.sign;
+        vsd.significand = ((u64)(vdd.significand ) >> 32)& ~0xC0000000;
+        vfp_put_float(state, vfp_single_pack(&vsd), dn);
+        return ARMul_DONE;
+    }
+
     /* TODO check access permission */
 
     /* CRn/opc1 CRm/opc2 */

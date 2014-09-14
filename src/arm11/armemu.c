@@ -432,6 +432,7 @@ ARMul_Emulate26 (ARMul_State * state)
     }
 
     do {
+
         //print_func_name(state->pc);
         /* Just keep going.  */
         isize = INSN_SIZE;
@@ -578,8 +579,8 @@ ARMul_Emulate26 (ARMul_State * state)
 
         instr = ARMul_LoadInstrN (state, pc, isize);
 
-#ifdef GDB_STUB
-        if (!state->NumInstrsToExecute) //bug here
+#ifdef GDB_STUB //ichfly todo
+        /*if (!state->NumInstrsToExecute) //bug here
         {
 
             pc -= isize;
@@ -593,7 +594,7 @@ ARMul_Emulate26 (ARMul_State * state)
             }
             state->Reg[15] = pc;
             return pc;
-        }
+        }*/
 #endif
         state->last_instr = state->CurrInstr;
         state->CurrInstr = instr;

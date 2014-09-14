@@ -110,7 +110,10 @@ joinThread_gdb( void *thread_handle);
 #define UNUSED_PARM( parm) parm
 #endif
 
-static void
+#ifdef __cplusplus
+extern "C"
+#endif
+void
 break_execution(void *data, UNUSED_PARM(uint32_t addr), UNUSED_PARM(int thunmb));
 
 #endif /* End of _GDBSTUB_H_ */

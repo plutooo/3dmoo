@@ -28,7 +28,9 @@
 
 #ifdef GDB_STUB
 #include "gdbstub.h"
+#include "gdbstub_internal.h"
 extern ARMul_State s;
+extern struct armcpu_memory_iface *gdb_memio;
 #endif
 
 extern ARMul_State s;
@@ -216,6 +218,10 @@ int mem_AddSegment(uint32_t base, uint32_t size, uint8_t* data)
 
 int mem_Write8(uint32_t addr, uint8_t w)
 {
+    if (addr == 0x14189F28)
+    {
+        //break_execution(gdb_memio->data, addr, 0);
+    }
 #ifdef MEM_TRACE
     fprintf(stderr, "w8 %08x <- w=%02x\n", addr, w & 0xff);
 #endif
@@ -270,6 +276,10 @@ uint8_t mem_Read8(uint32_t addr)
 
 int mem_Write16(uint32_t addr, uint16_t w)
 {
+    if (addr == 0x14189F28)
+    {
+        //break_execution(gdb_memio->data, addr, 0);
+    }
 #ifdef MEM_TRACE
     fprintf(stderr, "w16 %08x <- w=%04x\n", addr, w & 0xffff);
 #endif
@@ -337,13 +347,13 @@ uint16_t mem_Read16(uint32_t addr)
 
 int mem_Write32(uint32_t addr, uint32_t w)
 {
+    if (addr == 0x14189F28)
+    {
+        //break_execution(gdb_memio->data, addr, 0);
+    }
 #ifdef MEM_TRACE
     fprintf(stderr, "w32 %08x <- w=%08x\n", addr, w);
 #endif
-    if (addr == 0x14003720 + 0x2610 - 4)
-    {
-        int iasdf = 0;
-    }
     size_t i;
     for(i=0; i<num_mappings; i++) {
         if(Contains(&mappings[i], addr, 4)) {

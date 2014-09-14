@@ -325,7 +325,7 @@ int loader_LoadFile(FILE* fd)
                 DEBUG("  .. OK\n");
 
                 if (codepath != NULL) {
-                    pFile = fopen(codepath, "rb");
+                    FILE* pFile = fopen(codepath, "rb");
                     if (pFile != NULL) {
                         fread(dec, 1, dec_size, pFile);
                         fclose(pFile);

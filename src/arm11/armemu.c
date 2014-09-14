@@ -545,6 +545,7 @@ ARMul_Emulate26 (ARMul_State * state)
             state->AbortAddr = 1;
 
             instr = ARMul_LoadInstrN (state, pc, isize);
+
 #ifdef GDB_STUB
             if (!state->NumInstrsToExecute)
             {
@@ -578,7 +579,10 @@ ARMul_Emulate26 (ARMul_State * state)
 #endif
 
         instr = ARMul_LoadInstrN (state, pc, isize);
-
+            if(instr == 0xee267b07)
+            {
+                int i = 0;
+            }
 #ifdef GDB_STUB //ichfly todo
         /*if (!state->NumInstrsToExecute) //bug here
         {

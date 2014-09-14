@@ -223,7 +223,7 @@ VFPCDP (ARMul_State * state, unsigned type, u32 instr)
     int OPC_2 = BITS (5, 7);
 
     //ichfly
-    if ((instr & 0x0FBF0FD0) == 0x0EB70AC0) //vcvt.f64.f32	d8, s16 (s is bit 0-3 and LSB bit 22) (d is bit 12 - 15 MSB is Bit 6)
+    /*if ((instr & 0x0FBF0FD0) == 0x0EB70AC0) //vcvt.f64.f32	d8, s16 (s is bit 0-3 and LSB bit 22) (d is bit 12 - 15 MSB is Bit 6)
     {
         struct vfp_double vdd;
         struct vfp_single vsd;
@@ -265,7 +265,7 @@ VFPCDP (ARMul_State * state, unsigned type, u32 instr)
         vsd.significand = ((u64)(vdd.significand ) >> 32)& ~0xC0000000;
         vfp_put_float(state, vfp_single_pack(&vsd), dn);
         return ARMul_DONE;
-    }
+    }*/
 
     /* TODO check access permission */
 

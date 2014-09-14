@@ -202,6 +202,7 @@
     <ClCompile Include="..\src\services\i2cLCD.c" />
     <ClCompile Include="..\src\services\ir_u.c" />
     <ClCompile Include="..\src\services\mcu_GPU.c" />
+    <ClCompile Include="..\src\services\mic_u.c" />
     <ClCompile Include="..\src\services\ndm_u.c" />
     <ClCompile Include="..\src\services\ns_s.c" />
     <ClCompile Include="..\src\services\pdn_d.c" />

@@ -61,6 +61,7 @@ u32 PxiFS1_SyncRequest();
 u32 PxiFS2_SyncRequest();
 u32 PxiFS3_SyncRequest();
 u32 Pxiam9_SyncRequest();
+u32 mic_u_SyncRequest();
 
 
 #ifndef _WIN32
@@ -311,8 +312,13 @@ static struct {
         SERVICE_TYPE_PxiAM9,
         0,
         &Pxiam9_SyncRequest
-    }
-    
+    },
+    {
+        "mic:u",
+        SERVICE_TYPE_MIC_U,
+        0,
+        &mic_u_SyncRequest
+    }    
 };
 
 

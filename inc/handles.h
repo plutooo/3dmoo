@@ -74,14 +74,15 @@
 #define SERVICE_TYPE_CFG_S      28
 #define SERVICE_TYPE_APT_S      29
 #define SERVICE_TYPE_PDN_G      30
-#define SERVICE_TYPE_MCU_GPU      31
-#define SERVICE_TYPE_I2C_LCD      32
-#define SERVICE_TYPE_CDC_CSN      33
+#define SERVICE_TYPE_MCU_GPU    31
+#define SERVICE_TYPE_I2C_LCD    32
+#define SERVICE_TYPE_CDC_CSN    33
 #define SERVICE_TYPE_PxiFS0     34
 #define SERVICE_TYPE_PxiFS1     35
 #define SERVICE_TYPE_PxiFS2     36
 #define SERVICE_TYPE_PxiFS3     37
 #define SERVICE_TYPE_PxiAM9     38
+#define SERVICE_TYPE_MIC_U      39
 
 #define HANDLE_SUBEVENT_USER          0
 #define HANDLE_SUBEVENT_APTMENUEVENT  1

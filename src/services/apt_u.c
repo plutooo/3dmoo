@@ -230,4 +230,13 @@ SERVICE_CMD(0xe0080)
     return 0;
 }
 
+SERVICE_CMD(0x4f0080)
+{
+    DEBUG("SetApplicationCpuTimeLimit: core=%u, percent=%u%\n",
+          CMD(1), CMD(2));
+
+    RESP(1, 0);
+    return 0;
+}
+
 SERVICE_END();

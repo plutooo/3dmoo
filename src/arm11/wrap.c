@@ -61,13 +61,6 @@ ARMword
 ARMul_LoadInstrN (ARMul_State * state, ARMword address, ARMword isize)
 {
     state->NumNcycles++;
-
-#ifdef GDB_STUB
-    if (isize == 2)
-        gdb_memio->prefetch16(gdb_memio->data, address);
-    else
-        gdb_memio->prefetch32(gdb_memio->data, address);
-#endif
     if(isize == 2)
         return (u16) mem_Read16 (address);
     else

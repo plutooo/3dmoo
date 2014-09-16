@@ -728,7 +728,7 @@ processPacket_gdb( SOCKET_TYPE sock, const uint8_t *packet,
           send_size = strlen((char*)out_ptr);
           break;
       }
-      DEBUG("unknown v");
+      DEBUG("unknown v %s", (char*)packet);
       break;
   case 'H':
       if (packet[1] == 'c' || packet[1] == 'g')
@@ -853,7 +853,7 @@ processPacket_gdb( SOCKET_TYPE sock, const uint8_t *packet,
           send_size = 1;
           break;
       }
-      DEBUG("unknown q\n");
+      DEBUG("unknown q %s\n", (char*)packet);
   }
   break;
   case '?':
@@ -1214,7 +1214,7 @@ processPacket_gdb( SOCKET_TYPE sock, const uint8_t *packet,
     }
     break;
   default:
-      DEBUG("unknown\n");
+      DEBUG("unknown %s\n", (char*)packet);
   }
 
   if ( send_reply) {

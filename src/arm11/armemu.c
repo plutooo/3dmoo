@@ -28,6 +28,7 @@
 #ifdef GDB_STUB
 #include "gdbstub.h"
 extern gdbstub_handle_t gdb_stub;
+extern struct armcpu_memory_iface *gdb_memio;
 #endif
 
 //#include "armos.h"
@@ -432,10 +433,41 @@ ARMul_Emulate26 (ARMul_State * state)
     }
 
     do {
+        isize = INSN_SIZE;
 
+#ifdef GDB_STUB
+
+
+        switch (state->NextInstr) {
+        case SEQ:
+            /* Advance the pipeline, and an S cycle.  */
+        case NONSEQ:
+            /* Advance the pipeline, and an N cycle.  */
+        case PCINCEDSEQ:
+            /* Program counter advanced, and an S cycle.  */
+        case PCINCEDNONSEQ:
+            /* Program counter advanced, and an N cycle.  */
+            if (isize == 2)
+                gdb_memio->prefetch16(gdb_memio->data, pc + isize);
+            else
+                gdb_memio->prefetch32(gdb_memio->data, pc + isize);
+            break;
+
+        case RESUME:
+            /* The program counter has been changed.  */
+        default:
+            /* The program counter has been changed.  */
+            if (isize == 2)
+                gdb_memio->prefetch16(gdb_memio->data, state->Reg[15]);
+            else
+                gdb_memio->prefetch32(gdb_memio->data, state->Reg[15]);
+            break;
+        }
+        if (!state->NumInstrsToExecute)
+            goto exit;
+#endif
         //print_func_name(state->pc);
         /* Just keep going.  */
-        isize = INSN_SIZE;
 
         switch (state->NextInstr) {
         case SEQ:
@@ -512,13 +544,6 @@ ARMul_Emulate26 (ARMul_State * state)
 
             instr = ARMul_LoadInstrN (state, pc, isize);
 
-#ifdef GDB_STUB
-            if (!state->NumInstrsToExecute)
-            {
-                state->Reg[15] = pc;
-                return pc;
-            }
-#endif
 
             //instr = ARMul_ReLoadInstr (state, pc, isize);
             //chy 2006-04-12, for ICE debug
@@ -546,13 +571,6 @@ ARMul_Emulate26 (ARMul_State * state)
 
             instr = ARMul_LoadInstrN (state, pc, isize);
 
-#ifdef GDB_STUB
-            if (!state->NumInstrsToExecute)
-            {
-                state->Reg[15] = pc;
-                return pc;
-            }
-#endif
             //chy 2006-04-12, for ICE debug
             have_bp=ARMul_ICE_debug(state,instr,pc);
 #if 0
@@ -579,27 +597,6 @@ ARMul_Emulate26 (ARMul_State * state)
 #endif
 
         instr = ARMul_LoadInstrN (state, pc, isize);
-            if(instr == 0xee267b07)
-            {
-                int i = 0;
-            }
-#ifdef GDB_STUB //ichfly todo
-        /*if (!state->NumInstrsToExecute) //bug here
-        {
-
-            pc -= isize;
-            if (state->NextInstr == SEQ || state->NextInstr == NONSEQ)//case 0 and 1
-            {
-                state->Reg[15] -= isize;
-            }
-            else if (state->NextInstr == PCINCEDSEQ || state->NextInstr == PCINCEDNONSEQ)
-            {
-
-            }
-            state->Reg[15] = pc;
-            return pc;
-        }*/
-#endif
         state->last_instr = state->CurrInstr;
         state->CurrInstr = instr;
         ARMul_Debug(state, pc, instr);
@@ -951,6 +948,35 @@ ARMul_Emulate26 (ARMul_State * state)
         	}
         }
         else*/
+
+#ifdef GDB_STUB
+        if (state->post_ex_fn != NULL) {
+#ifdef impropergdb
+            if (state->NextInstr == PRIMEPIPE)
+            {
+                state->post_ex_fn(state->post_ex_fn_data, state->Reg[0xF] - 4, state->tea_pc);
+            }
+            else
+            {
+                /* call the external post execute function */
+                state->post_ex_fn(state->post_ex_fn_data, state->Reg[0xF] - 8, state->tea_pc);
+            }
+#else
+            if (state->NextInstr >= PRIMEPIPE)
+            {
+                state->post_ex_fn(state->post_ex_fn_data, state->Reg[0xF], state->tea_pc);
+            }
+            else
+            {
+                /* call the external post execute function */
+                state->post_ex_fn(state->post_ex_fn_data, state->Reg[0xF] - 0x8, state->tea_pc);
+            }
+#endif
+        }
+#endif
+
+
+
         if (state->Emulate < ONCE) {
             state->NextInstr = RESUME;
             break;
@@ -4071,31 +4097,6 @@ donext:
             } else {
                 state->tea_break_ok = 1;
             }
-#ifdef GDB_STUB
-        if (state->post_ex_fn != NULL) {
-#ifdef impropergdb
-            if (state->NextInstr == PRIMEPIPE)
-            {
-                state->post_ex_fn(state->post_ex_fn_data, state->Reg[0xF] - 4, state->tea_pc);
-            }
-            else
-            {
-                /* call the external post execute function */
-                state->post_ex_fn(state->post_ex_fn_data, state->Reg[0xF] - 8, state->tea_pc);
-            }
-#else
-            if (state->NextInstr == PRIMEPIPE)
-            {
-                state->post_ex_fn(state->post_ex_fn_data, state->Reg[0xF], state->tea_pc);
-            }
-            else
-            {
-                /* call the external post execute function */
-                state->post_ex_fn(state->post_ex_fn_data, state->Reg[0xF], state->tea_pc);
-            }
-#endif
-        }
-#endif
 
 //AJ2D--------------------------------------------------------------------------
 //chy 2006-04-14 for ctrl-c debug
@@ -4134,7 +4135,7 @@ TEST_EMULATE:
     }
 
         while (state->NumInstrsToExecute--);
-
+exit:
         state->decoded = decoded;
         state->loaded = loaded;
         state->pc = pc;

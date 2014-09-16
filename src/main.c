@@ -139,9 +139,9 @@ static u32 read_cpu_reg(void *instance, u32 reg_num)
 #else
     if (reg_num == 0xF)
     {
-        if (s.NextInstr == PRIMEPIPE)
+        if (s.NextInstr >= PRIMEPIPE)
             return arm11_R(reg_num);
-        return arm11_R(reg_num) + 4;
+        return arm11_R(reg_num) - 4;
     }
 #endif
     return arm11_R(reg_num);

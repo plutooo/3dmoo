@@ -573,7 +573,8 @@ u32 svcReplyAndReceive()
     u32 handleCount = arm11_R(2);
     u32 replyTarget = arm11_R(3);
     DEBUG("svcReplyAndReceive %08x %08x %08x %08x\n", index, handles, handleCount, replyTarget);
-#ifdef modulesupport
+
+#ifdef MODULE_SUPPORT
     for (u32 i = 0; i < handleCount; i++) {
         DEBUG("%08x\n", mem_Read32(handles+i*4));
 
@@ -590,6 +591,7 @@ u32 svcReplyAndReceive()
         }
     }
 #endif
+
     for (u32 i = 0; i < handleCount; i++) {
         DEBUG("%08x\n", mem_Read32(handles + i * 4));
     }

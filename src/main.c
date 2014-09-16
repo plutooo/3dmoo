@@ -53,7 +53,8 @@ static int running = 1;
 int noscreen = 0;
 bool disasm = false;
 char* codepath = NULL;
-#ifdef modulesupport
+
+#ifdef MODULE_SUPPORT
 u32 modulenum = 0;
 char** modulenames = NULL;
 
@@ -199,11 +200,13 @@ int main(int argc, char* argv[])
     atexit(AtExit);
     if (argc < 2) {
         printf("Usage:\n");
-#ifdef modulesupport
+
+#ifdef MODULE_SUPPORT
         printf("%s <in.ncch> [-d|-noscreen|-codepatch <code>|-modules <num> <in.ncch>|-overdrivlist <num> <services>]\n", argv[0]);
 #else
         printf("%s <in.ncch> [-d|-noscreen|-codepatch <code>]\n", argv[0]);
 #endif
+
         return 1;
     }
 
@@ -252,7 +255,7 @@ int main(int argc, char* argv[])
         if (i >= argc)break;
 
 
-#ifdef modulesupport
+#ifdef MODULE_SUPPORT
         if ((strcmp(argv[i], "-modules") == 0)) {
             i++;
             modulenum = atoi(argv[i]);
@@ -278,12 +281,13 @@ int main(int argc, char* argv[])
         }
         if (i >= argc)break;
 #endif
-    }
-#ifdef modulesupport
-    curprocesshandlelist = malloc(sizeof(u32)*(modulenum + 1));
-    mem_init(modulenum);
-#endif
 
+    }
+
+#ifdef MODULE_SUPPORT
+    curprocesshandlelist = malloc(sizeof(u32)*(modulenum + 1));
+    ModuleSupport_MemInit(modulenum);
+#endif
 
     signal(SIGINT, AtSig);
 
@@ -299,13 +303,16 @@ int main(int argc, char* argv[])
 
     arm11_Init();
 
-#ifdef modulesupport
+#ifdef MODULE_SUPPORT
     int i;
+
     for (i = 0; i<modulenum; i++) {
         u32 handzwei = handle_New(HANDLE_TYPE_PROCESS, 0);
         curprocesshandle = handzwei;
         *(curprocesshandlelist + i) = handzwei;
-        swapprocess(i);
+
+        ModuleSupport_SwapProcessMem(i);
+
         u32 hand = handle_New(HANDLE_TYPE_THREAD, 0);
         threads_New(hand);
 
@@ -315,6 +322,7 @@ int main(int argc, char* argv[])
             perror("Error opening file");
             return 1;
         }
+
         if (loader_LoadFile(fd) != 0) {
             fclose(fd);
             return 1;
@@ -323,7 +331,7 @@ int main(int argc, char* argv[])
 
     u32 handzwei = handle_New(HANDLE_TYPE_PROCESS, 0);
     *(curprocesshandlelist + modulenum) = handzwei;
-    swapprocess(modulenum);
+    ModuleSupport_SwapProcessMem(modulenum);
 #else
     u32 handzwei = handle_New(HANDLE_TYPE_PROCESS, 0);
     curprocesshandle = handzwei;
@@ -338,13 +346,12 @@ int main(int argc, char* argv[])
     u32 hand = handle_New(HANDLE_TYPE_THREAD, 0);
     threads_New(hand);
 
-
-
     // Load file.
     if (loader_LoadFile(fd) != 0) {
         fclose(fd);
         return 1;
     }
+
 #ifdef GDB_STUB
     if (global_gdb_port)
     {
@@ -364,15 +371,14 @@ int main(int argc, char* argv[])
         if (!noscreen)
             screen_HandleEvent();
 
-#ifdef modulesupport
+#ifdef MODULE_SUPPORT
         int k;
         for (k = 0; k <= modulenum; k++) {
-            swapprocess(k);
-            DEBUG("process %X\n",k);
-#endif
-            threads_Execute();
-#ifdef modulesupport
+            ModuleSupport_SwapProcess(k);
+            DEBUG("Process %X\n",k);
         }
+#else
+        threads_Execute();
 #endif
 
         if (!noscreen)

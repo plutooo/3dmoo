@@ -27,11 +27,6 @@
 
 #include "gpu.h"
 
-#ifdef modulesupport
-thread** threadsproc;
-u32*    num_threadsproc;
-u32     current_proc = 0;
-#endif
 
 thread threads[MAX_THREADS];
 static u32    num_threads = 0;
@@ -39,11 +34,16 @@ static s32    current_thread = 0;
 static u32    reschedule = 0;
 
 //#define PROPER_THREADING
-
 #define THREAD_ID_OFFSET 0xC
 
-#ifdef modulesupport
-void threadmod_init(u32 modulenum)
+
+#ifdef MODULE_SUPPORT
+
+thread** threadsproc;
+u32*    num_threadsproc;
+u32     current_proc = 0;
+
+void ModuleSupport_ThreadsInit(u32 modulenum)
 {
     u32 i;
     threadsproc = (thread **)malloc(sizeof(thread *)*(modulenum + 1));
@@ -54,7 +54,7 @@ void threadmod_init(u32 modulenum)
     num_threadsproc = (thread **)malloc(sizeof(u32*)*(modulenum + 1));
     memset(num_threadsproc, 0, sizeof(u32*)*(modulenum + 1));
 }
-void threadmodswapprocess(u32 newproc)
+void ModuleSupport_SwapProcessThreads(u32 newproc)
 {
     threads_SaveContextCurrentThread();
     memcpy(*(threadsproc + current_proc), threads, sizeof(thread)*(MAX_THREADS)); //save maps
@@ -69,6 +69,7 @@ void threadmodswapprocess(u32 newproc)
 }
 
 #endif
+
 
 u32 threads_New(u32 handle)
 {

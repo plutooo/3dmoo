@@ -30,6 +30,8 @@
 #define NDS_debug_break() stub->cpu_ctrl->stall( stub->cpu_ctrl->data);
 #define NDS_debug_continue() stub->cpu_ctrl->unstall( stub->cpu_ctrl->data);
 
+#define MAXREGS 0x11 //CSPR is also a reg
+
 #include <errno.h>
 //#include <stdint.h>
 #include <stdlib.h>
@@ -64,8 +66,8 @@ extern "C" thread threads[MAX_THREADS];
 #include "gdbstub.h"
 #include "gdbstub_internal.h"
 
-s32 gdb_id_loc = -2;
-s32 gdb_id_glob = -2;
+s32 gdb_id_loc = -1;
+s32 gdb_id_glob = -1;
 
 struct ptid
 {
@@ -803,7 +805,7 @@ processPacket_gdb( SOCKET_TYPE sock, const uint8_t *packet,
 
       if (strcmp("qSymbol::", (char*)packet) == 0)
       {
-          //cihfly don't need that
+          //ichfly don't need that
           /* GDB is suggesting new symbols have been loaded.  This may
           mean a new shared library has been detected as loaded, so
           take the opportunity to check if breakpoints we think are
@@ -1151,7 +1153,33 @@ processPacket_gdb( SOCKET_TYPE sock, const uint8_t *packet,
       send_size = 2;
       break;
     }
-
+  case 'p': /* return the value of the CPU registers */
+  {
+              const uint8_t *rx_ptr = &packet[1];
+              uint8_t tmp_mem[4];
+              rx_ptr = hex2mem(rx_ptr, tmp_mem, 4);
+              uint32_t reg_value;
+              reg_value = LITTLE_ENDIAN_TO_UINT32_T(tmp_mem);
+              int out_index = 0;
+              if (MAXREGS > reg_value)
+              {
+                  uint32_t reg = stub->cpu_ctrl->read_reg(stub->cpu_ctrl->data, reg_value);
+                  out_ptr[out_index++] = hexchars[(reg >> 4) & 0xf];
+                  out_ptr[out_index++] = hexchars[(reg >> 0) & 0xf];
+                  out_ptr[out_index++] = hexchars[(reg >> 12) & 0xf];
+                  out_ptr[out_index++] = hexchars[(reg >> 8) & 0xf];
+                  out_ptr[out_index++] = hexchars[(reg >> 20) & 0xf];
+                  out_ptr[out_index++] = hexchars[(reg >> 16) & 0xf];
+                  out_ptr[out_index++] = hexchars[(reg >> 28) & 0xf];
+                  out_ptr[out_index++] = hexchars[(reg >> 24) & 0xf];
+              }
+              else
+              {
+                  DEBUG("out of range 'p'\n");
+                  strcpy((char *)out_ptr, "E02");
+                  send_size = 3;
+              }
+  }
   case 'g':		/* return the value of the CPU registers */
     {
       int i;

@@ -129,9 +129,10 @@ char** overdrivnames;
 handleinfo* handle_Get(u32 handle);
 u32 handle_New(u32 type, u32 subtype);
 
-#ifdef modulesupport
+#ifdef MODULE_SUPPORT
 u32 *curprocesshandlelist;
 #endif
+
 u32 curprocesshandle;
 
 //handles.h

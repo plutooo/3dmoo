@@ -28,10 +28,12 @@
 #include <signal.h>
 #include <SDL.h>
 
+
 #ifdef GDB_STUB
 #include "armemu.h"
 #include "gdbstub.h"
 #include "armdefs.h"
+#include "gdbstubchelper.h"
 volatile bool arm_stall = false;
 #endif
 
@@ -92,108 +94,6 @@ void FPS_Lock(void)
     NextTick = SDL_GetTicks() + interval;
     return;
 }
-
-#ifdef GDB_STUB
-
-void *
-createThread_gdb(void(*thread_function)(void *data),
-void *thread_data)
-{
-    u32 ThreadId;
-    HANDLE *new_thread = CreateThread(
-        NULL,                   // default security attributes
-        0,                      // use default stack size  
-        (LPTHREAD_START_ROUTINE) thread_function,       // thread function name
-        thread_data,          // argument to thread function 
-        0,                      // use default creation flags 
-        &ThreadId);   // returns the thread identifier 
-
-    return new_thread;
-}
-
-void
-joinThread_gdb(void *thread_handle) {
-    return;//todo
-}
-
-#endif
-
-#ifdef GDB_STUB
-static void stall_cpu(void *instance) 
-{
-    arm_stall = true;
-    s.NumInstrsToExecute = 0;
-}
-static void unstall_cpu(void *instance) 
-{
-    arm_stall = false;
-}
-static u32 read_cpu_reg(void *instance, u32 reg_num)
-{
-    if (reg_num == 0x10)return s.Cpsr;
-#ifdef impropergdb
-    if (reg_num == 0xF)
-    {
-        if (s.NextInstr == PRIMEPIPE)return arm11_R(reg_num);
-        else return arm11_R(reg_num) - 4;
-    }
-#else
-    if (reg_num == 0xF)
-    {
-        if (s.NextInstr >= PRIMEPIPE)
-            return arm11_R(reg_num);
-        return arm11_R(reg_num) - 4;
-    }
-#endif
-    return arm11_R(reg_num);
-}
-static void set_cpu_reg(void *instance, u32 reg_num, u32 value) 
-{
-    arm11_SetR(reg_num, value);
-
-}
-static void install_post_exec_fn(void *instance,void(*ex_fn)(void *, u32 adr, int thumb),void *fn_data) 
-{
-    //armcpu_t *armcpu = (armcpu_t *)instance;
-    s.post_ex_fn = ex_fn;
-    s.post_ex_fn_data = fn_data;
-}
-static void remove_post_exec_fn(void *instance) 
-{
-    s.post_ex_fn = NULL;
-}
-static u16 gdb_prefetch16(void *data, u32 adr) {
-    return mem_Read16(adr);
-}
-
-static u32 gdb_prefetch32(void *data, u32 adr) {
-    return mem_Read32(adr);
-}
-
-static u8 gdb_read8(void *data, u32 adr) {
-    return mem_Read8(adr);
-}
-
-static u16 gdb_read16(void *data, u32 adr) {
-    return mem_Read16(adr);
-}
-
-static u32 gdb_read32(void *data, u32 adr) {
-    return mem_Read32(adr);
-}
-
-static void gdb_write8(void *data, u32 adr, u8 val) {
-    mem_Write8(adr,val);
-}
-
-static void gdb_write16(void *data, u32 adr, u16 val) {
-    mem_Write16(adr, val);
-}
-
-static void gdb_write32(void *data, u32 adr, u32 val) {
-    mem_Write32(adr, val);
-}
-#endif
 
 int main(int argc, char* argv[])
 {

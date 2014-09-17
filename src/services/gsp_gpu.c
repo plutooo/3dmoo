@@ -256,6 +256,10 @@ u32 gsp_gpu_SyncRequest()
         mem_Write32(arm11_ServiceBufferAddress() + 0x84, 0); //no error
         return 0;
     }
+    case 0x50200:
+        updateFramebufferaddr(arm11_ServiceBufferAddress() + 0x84, mem_Read8(arm11_ServiceBufferAddress() + 0x84) & 0x1);
+        mem_Write32(arm11_ServiceBufferAddress() + 0x84, 0); //no error
+        return 0;
     case 0xB0040: { //SetLcdForceBlack
         DEBUG("SetLcdForceBlack %02x --todo--\n", mem_Read8(arm11_ServiceBufferAddress() + 0x84));
         unsigned char* buffer = get_pymembuffer(0x18000000);

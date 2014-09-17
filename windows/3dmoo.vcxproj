@@ -169,6 +169,7 @@
     <ClCompile Include="..\src\fs\sysdata.c" />
     <ClCompile Include="..\src\fs\util.c" />
     <ClCompile Include="..\src\gdbstub\gdbstub.cpp" />
+    <ClCompile Include="..\src\gdbstub\gdbstubchelper.c" />
     <ClCompile Include="..\src\gpu\clipper.c" />
     <ClCompile Include="..\src\gpu\rasterizer.c" />
     <ClCompile Include="..\src\gpu\vec4.c" />
@@ -230,6 +231,7 @@
     <ClInclude Include="..\inc\filemon.h" />
     <ClInclude Include="..\inc\fs.h" />
     <ClInclude Include="..\inc\gdbstub.h" />
+    <ClInclude Include="..\inc\gdbstubchelper.h" />
     <ClInclude Include="..\inc\gdbstub_internal.h" />
     <ClInclude Include="..\inc\handles.h" />
     <ClInclude Include="..\inc\hid_user.h" />

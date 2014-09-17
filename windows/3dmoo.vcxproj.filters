@@ -270,6 +270,9 @@
     <ClCompile Include="..\src\services\mic_u.c">
       <Filter>Source Files\services</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\gdbstub\gdbstubchelper.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\inc\handles.h">
@@ -342,6 +345,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\inc\gdbstub.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\inc\gdbstubchelper.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

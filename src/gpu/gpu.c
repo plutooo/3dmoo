@@ -848,6 +848,32 @@ void runGPU_Commands(u8* buffer, u32 sizea)
 }
 
 
+void updateFramebufferaddr(u32 addr,bool bot)
+{
+    //we use the last in buffer with flag set
+    if (!bot) {
+            if ((mem_Read32(addr + 4) & 0x1) == 0)
+                GPUwritereg32(RGBuponeleft, convertvirtualtopys(mem_Read32(addr + 8)));
+            else
+                GPUwritereg32(RGBuptwoleft, convertvirtualtopys(mem_Read32(addr + 8)));
+            GPUwritereg32(frameselectoben, mem_Read32(addr + 0x18));
+            u32 u90 = mem_Read32(addr + 0x10);
+            u32 format = mem_Read32(addr + 0x14);
+            int i = 0;
+            //the rest is todo
+        }
+        else
+        {
+            if ((mem_Read32(addr + 4)& 0x1) == 0)
+                GPUwritereg32(RGBdownoneleft, mem_Read32(addr + 8));
+            else
+                GPUwritereg32(RGBdowntwoleft, mem_Read32(addr + 8));
+            GPUwritereg32(frameselectbot, mem_Read32(addr + 0x18));
+            //the rest is todo
+    }
+    return;
+}
+
 void updateFramebuffer()
 {
     //we use the last in buffer with flag set

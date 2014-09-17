@@ -865,6 +865,11 @@ processPacket_gdb( SOCKET_TYPE sock, const uint8_t *packet,
           sprintf((char*)out_ptr, "PacketSize=%u;ReverseContinue-;ReverseStep-", sizeof(packet)); //it is how it is
           break;
       }
+      if (strcmp((char*)packet, "qSupported:qRelocInsn+") == 0) {
+          /* query of supported features */
+          sprintf((char*)out_ptr, "PacketSize=%u;RelocInsn-;ReverseContinue-;ReverseStep-", sizeof(packet)); //it is how it is
+          break;
+      }
       DEBUG_LOG("unknown q %s\n", (char*)packet);
   }
   break;

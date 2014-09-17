@@ -34,6 +34,8 @@ void hid_user_init()
     memhandel = handle_New(HANDLE_TYPE_SHAREDMEM, MEM_TYPE_HID_0);
 
     HIDsharedbuff[0xb8] = 0x3;
+
+    *(u32*)&HIDsharedbuffSPVR[0x8] = *(u32*)&HIDsharedbuff[0x8] = 1;
 }
 
 SERVICE_START(hid_user);
@@ -111,13 +113,40 @@ u32 translate_to_bit(const SDL_KeyboardEvent* key)
     }
 
 }
+void hid_update() //todo
+{
+    *(u32*)&HIDsharedbuffSPVR[0x0] = *(u32*)&HIDsharedbuff[0x0] = (*(u64*)&HIDsharedbuff[0x0])++;
+    *(u32*)&HIDsharedbuffSPVR[0x8] = *(u32*)&HIDsharedbuff[0x8] = (*(u64*)&HIDsharedbuff[0x8])++;
+}
 void hid_keyup(const SDL_KeyboardEvent* key)
 {
     *(u32*)&HIDsharedbuff[0x1C] &= ~translate_to_bit(key);
     *(u32*)&HIDsharedbuffSPVR[0x1C] = *(u32*)&HIDsharedbuff[0x1C];
+    u32 offset = *(u32*)&HIDsharedbuff[0x10];
+    if (offset = 7)offset = 0;
+    else offset++;
+
+    *(u32*)&HIDsharedbuffSPVR[0x28 + offset * 0x10] = *(u32*)&HIDsharedbuff[0x28 + offset * 0x10] = *(u32*)&HIDsharedbuffSPVR[0x1C]; //	Current PAD state
+    *(u32*)&HIDsharedbuffSPVR[0x28 + offset * 0x10 + 4] = *(u32*)&HIDsharedbuff[0x28 + offset * 0x10 + 4] = 0; //pressed
+    *(u32*)&HIDsharedbuffSPVR[0x28 + offset * 0x10 + 8] = *(u32*)&HIDsharedbuff[0x28 + offset * 0x10 + 8] = translate_to_bit(key); //released
+
+    *(u32*)&HIDsharedbuffSPVR[0x10]  = *(u32*)&HIDsharedbuff[0x10] = offset;
+
+    hid_update();
 }
 void hid_keypress(const SDL_KeyboardEvent* key)
 {
     *(u32*)&HIDsharedbuff[0x1C] |= translate_to_bit(key);
     *(u32*)&HIDsharedbuffSPVR[0x1C] = *(u32*)&HIDsharedbuff[0x1C];
+
+    u32 offset = *(u32*)&HIDsharedbuff[0x10];
+    if (offset = 7)offset = 0;
+    else offset++;
+
+    *(u32*)&HIDsharedbuffSPVR[0x28 + offset * 0x10] = *(u32*)&HIDsharedbuff[0x28 + offset * 0x10] = *(u32*)&HIDsharedbuffSPVR[0x1C]; //	Current PAD state
+    *(u32*)&HIDsharedbuffSPVR[0x28 + offset * 0x10 + 4] = *(u32*)&HIDsharedbuff[0x28 + offset * 0x10 + 4] = translate_to_bit(key); //pressed
+    *(u32*)&HIDsharedbuffSPVR[0x28 + offset * 0x10 + 8] = *(u32*)&HIDsharedbuff[0x28 + offset * 0x10 + 8] = 0; //released
+
+    *(u32*)&HIDsharedbuffSPVR[0x10] = *(u32*)&HIDsharedbuff[0x10] = offset;
+    hid_update();
 }

@@ -726,14 +726,16 @@ processPacket_gdb( SOCKET_TYPE sock, const uint8_t *packet,
   case 'v':
       if (strncmp((char*)packet, "vCont?", 6) == 0)
       {
-          strcpy((char*)out_ptr, "vCont;c;s");
-          send_size = strlen((char*)out_ptr);
+          //strcpy((char*)out_ptr, "vCont;c;s");
+          //send_size = strlen((char*)out_ptr);
+          out_ptr[0] = 0;
+          send_size = 0;
           break;
       }
-      DEBUG("unknown v %s", (char*)packet);
+      DEBUG_LOG("unknown v %s", (char*)packet);
       break;
   case 'H':
-      if (packet[1] == 'c' || packet[1] == 'g')
+      /*if (packet[1] == 'c' || packet[1] == 'g')
       {
           int pid = hex_or_minus_one((char*)&packet[2],NULL);
           u32 handle = 0;
@@ -771,10 +773,12 @@ processPacket_gdb( SOCKET_TYPE sock, const uint8_t *packet,
           strcpy((char *)out_ptr, "OK");
           send_size = 2;
       }
-      else
+      else*/
       {
           /* Silently ignore it so that gdb can extend the protocol
           without compatibility headaches.  */
+          strcpy((char *)out_ptr, "OK");
+          send_size = 2;
       }
       break;
 
@@ -855,7 +859,13 @@ processPacket_gdb( SOCKET_TYPE sock, const uint8_t *packet,
           send_size = 1;
           break;
       }
-      DEBUG("unknown q %s\n", (char*)packet);
+
+      if (strcmp((char*)packet, "qSupported") == 0) {
+          /* query of supported features */
+          sprintf((char*)out_ptr, "PacketSize=%u;ReverseContinue-;ReverseStep-", sizeof(packet)); //it is how it is
+          break;
+      }
+      DEBUG_LOG("unknown q %s\n", (char*)packet);
   }
   break;
   case '?':
@@ -1138,6 +1148,7 @@ processPacket_gdb( SOCKET_TYPE sock, const uint8_t *packet,
 
         reg_values[i] = LITTLE_ENDIAN_TO_UINT32_T( tmp_mem);
         DEBUG_LOG("Setting reg %d to %08x\n", i, reg_values[i]);
+        stub->cpu_ctrl->set_reg(stub->cpu_ctrl->data, i, reg_values[i]);
       }
 
       /* skip the floaing point registers and floating point status register */
@@ -1148,6 +1159,7 @@ processPacket_gdb( SOCKET_TYPE sock, const uint8_t *packet,
       rx_ptr = hex2mem( rx_ptr, tmp_mem, 4);
       cpsr = LITTLE_ENDIAN_TO_UINT32_T( tmp_mem);
       DEBUG_LOG("Setting cpsr to %08x\n", cpsr);
+      stub->cpu_ctrl->set_reg(stub->cpu_ctrl->data, 16, cpsr);
 
       strcpy( (char *)out_ptr, "OK");
       send_size = 2;
@@ -1155,6 +1167,11 @@ processPacket_gdb( SOCKET_TYPE sock, const uint8_t *packet,
     }
   case 'p': /* return the value of the CPU registers */
   {
+      /* return no value, indicating that we don't support
+      * this command and that gdb should use 'g' instead */
+      send_size = 0;
+      break;
+      /*
               const uint8_t *rx_ptr = &packet[1];
               uint8_t tmp_mem[4];
               rx_ptr = hex2mem(rx_ptr, tmp_mem, 4);
@@ -1175,10 +1192,10 @@ processPacket_gdb( SOCKET_TYPE sock, const uint8_t *packet,
               }
               else
               {
-                  DEBUG("out of range 'p'\n");
+                  DEBUG("out of range 'p' %d\n", reg_value);
                   strcpy((char *)out_ptr, "E02");
                   send_size = 3;
-              }
+              }*/
   }
   case 'g':		/* return the value of the CPU registers */
     {
@@ -1242,7 +1259,7 @@ processPacket_gdb( SOCKET_TYPE sock, const uint8_t *packet,
     }
     break;
   default:
-      DEBUG("unknown %s\n", (char*)packet);
+      DEBUG_LOG("unknown %s\n", (char*)packet);
   }
 
   if ( send_reply) {

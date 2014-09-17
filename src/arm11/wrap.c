@@ -46,12 +46,6 @@ ARMul_LoadInstrS (ARMul_State * state, ARMword address, ARMword isize)
         HOURGLASS;
     }
 #endif
-#ifdef GDB_STUB
-    if (isize == 2)
-        gdb_memio->prefetch16(gdb_memio->data, address);
-    else
-        gdb_memio->prefetch32(gdb_memio->data, address);
-#endif
     if(isize == 2)
         return (u16) mem_Read16 (address);
     else
@@ -71,6 +65,13 @@ ARMword
 ARMul_ReLoadInstr (ARMul_State * state, ARMword address, ARMword isize)
 {
     ARMword data;
+
+#ifdef GDB_STUB
+    if (isize == 2)
+        gdb_memio->prefetch16(gdb_memio->data, address);
+    else
+        gdb_memio->prefetch32(gdb_memio->data, address);
+#endif
 
     if ((isize == 2) && (address & 0x2)) {
         ARMword lo;
@@ -166,15 +167,15 @@ ARMword ARMul_ReadByte (ARMul_State * state, ARMword address)
 }
 ARMword ARMul_LoadByte (ARMul_State * state, ARMword address)
 {
-#ifdef GDB_STUB
-    gdb_memio->read8(gdb_memio->data, address);
-#endif
     state->NumNcycles++;
     return ARMul_ReadByte (state, address);
 }
 void ARMul_StoreHalfWord (ARMul_State * state, ARMword address, ARMword data)
 {
     state->NumNcycles++;
+#ifdef GDB_STUB
+    gdb_memio->write16(gdb_memio->data, address, data);
+#endif
     mem_Write16(address, data);
     /*if (fault) {
     	ARMul_DATAABORT (address);
@@ -187,9 +188,6 @@ void ARMul_StoreHalfWord (ARMul_State * state, ARMword address, ARMword data)
 void ARMul_StoreByte (ARMul_State * state, ARMword address, ARMword data)
 {
     state->NumNcycles++;
-#ifdef GDB_STUB
-    gdb_memio->write8(gdb_memio->data, address,data);
-#endif
 #ifdef VALIDATE
     if (address == TUBE) {
         if (data == 4)
@@ -206,8 +204,8 @@ void ARMul_StoreByte (ARMul_State * state, ARMword address, ARMword data)
 ARMword ARMul_SwapWord (ARMul_State * state, ARMword address, ARMword data)
 {
 #ifdef GDB_STUB
-    gdb_memio->write32(gdb_memio->data, address, data);
     gdb_memio->read32(gdb_memio->data, address, data);
+    gdb_memio->write32(gdb_memio->data, address, data);
 #endif
     ARMword temp;
     state->NumNcycles++;
@@ -219,8 +217,8 @@ ARMword ARMul_SwapWord (ARMul_State * state, ARMword address, ARMword data)
 ARMword ARMul_SwapByte (ARMul_State * state, ARMword address, ARMword data)
 {
 #ifdef GDB_STUB
-    gdb_memio->write8(gdb_memio->data, address, data);
     gdb_memio->read8(gdb_memio->data, address, data);
+    gdb_memio->write8(gdb_memio->data, address, data);
 #endif
     ARMword temp;
     temp = ARMul_LoadByte (state, address);

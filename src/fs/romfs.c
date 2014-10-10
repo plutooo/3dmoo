@@ -103,6 +103,7 @@ u32 romfs_OpenFile(archive* self, file_path path, u32 flags, u32 attr)
 
 
 static archive romfs = {
+    .fnOpenDir = NULL,
     .fnFileExists   = &romfs_FileExists,
     .fnOpenFile     = &romfs_OpenFile,
     .fnDeinitialize = NULL

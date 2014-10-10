@@ -275,6 +275,8 @@ extern size_t APTsharedfontsize;
 
 extern u8* APTs_sharedfont;
 extern size_t APTs_sharedfontsize;
+extern u8* CSND_sharedmem;
+extern u32 CSND_sharedmemsize;
 
 u32 svcMapMemoryBlock()
 {
@@ -306,6 +308,9 @@ u32 svcMapMemoryBlock()
             break;
         case MEM_TYPE_HID_SPVR_0:
             mem_AddMappingShared(addr, 0x2000, HIDsharedbuffSPVR);
+            break;
+        case MEM_TYPE_CSND:
+            mem_AddMappingShared(addr, CSND_sharedmemsize, CSND_sharedmem);
             break;
         case MEM_TYPE_APT_SHARED_FONT:
 

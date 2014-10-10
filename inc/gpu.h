@@ -27,10 +27,12 @@
 #define frameselectoben 0x400478
 #define RGBuponeleft 0x400468
 #define RGBuptwoleft 0x40046C
+#define RGBuponeright 0x400494
+#define RGBuptworight 0x400498
 
-#define frameselectbot 0x400478
-#define RGBdownoneleft 0x400494
-#define RGBdowntwoleft 0x400498
+#define frameselectbot 0x400578
+#define RGBdownoneleft 0x400568
+#define RGBdowntwoleft 0x40056C
 
 
 u8* IObuffer;

@@ -250,6 +250,7 @@ archive* savedata_OpenArchive(file_path path)
     }
 
     // Setup function pointers
+    arch->fnOpenDir = NULL;
     arch->fnFileExists = &savedata_FileExists;
     arch->fnOpenFile = &savedata_OpenFile;
     arch->fnDeinitialize = &savedata_Deinitialize;

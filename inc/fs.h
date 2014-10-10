@@ -45,6 +45,7 @@ typedef struct {
 
 typedef struct _archive archive;
 struct _archive {
+    u32(*fnOpenDir)(archive* self, file_path path);
     bool (*fnFileExists)  (archive* self, file_path path);
     u32  (*fnOpenFile)    (archive* self, file_path path, u32 flags, u32 attr);
     void (*fnDeinitialize)(archive* self);
@@ -58,6 +59,18 @@ struct _archive {
             u8 path[16 + 1];
         } sysdata;
 
+    } type_specific;
+};
+
+typedef struct _dir_type dir_type;
+struct _dir_type {
+    u32(*fnRead) (dir_type* self, u32 ptr, u32 entrycount, u32* read_out);
+    union {
+        file_path f_path;
+        archive* self;
+        u8 path[255];
+        WIN32_FIND_DATA * ffd;
+        HANDLE hFind;
     } type_specific;
 };
 

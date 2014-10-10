@@ -183,6 +183,7 @@ archive* sysdata_OpenArchive(file_path path)
     }
 
     // Setup function pointers
+    arch->fnOpenDir = NULL;
     arch->fnFileExists   = &sysdata_FileExists;
     arch->fnOpenFile     = &sysdata_OpenFile;
     arch->fnDeinitialize = &sysdata_Deinitialize;

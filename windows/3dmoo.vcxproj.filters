@@ -273,6 +273,15 @@
     <ClCompile Include="..\src\gdbstub\gdbstubchelper.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\services\PxiPS9.c">
+      <Filter>Source Files\services</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\services\mcuPLS.c">
+      <Filter>Source Files\services</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\services\csnd_SND.c">
+      <Filter>Source Files\services</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\inc\handles.h">

@@ -490,6 +490,47 @@ static u32 vfp_single_fcmpez(ARMul_State* state, int sd, int unused, s32 m, u32 
     return vfp_compare(state, sd, 1, 0, fpscr);
 }
 
+static s64 vfp_single_to_doubleintern(ARMul_State* state, s32 m, u32 fpscr) //ichfly for internal use only
+{
+    struct vfp_single vsm;
+    struct vfp_double vdd;
+    int tm;
+    u32 exceptions = 0;
+
+    vfp_single_unpack(&vsm, m);
+
+    tm = vfp_single_type(&vsm);
+
+    /*
+    * If we have a signalling NaN, signal invalid operation.
+    */
+    if (tm == VFP_SNAN)
+        exceptions = FPSCR_IOC;
+
+    if (tm & VFP_DENORMAL)
+        vfp_single_normalise_denormal(&vsm);
+
+    vdd.sign = vsm.sign;
+    vdd.significand = (u64)vsm.significand << 32;
+
+    /*
+    * If we have an infinity or NaN, the exponent must be 2047.
+    */
+    if (tm & (VFP_INFINITY | VFP_NAN)) {
+        vdd.exponent = 2047;
+        if (tm == VFP_QNAN)
+            vdd.significand |= VFP_DOUBLE_SIGNIFICAND_QNAN;
+        goto pack_nan;
+    }
+    else if (tm & VFP_ZERO)
+        vdd.exponent = 0;
+    else
+        vdd.exponent = vsm.exponent + (1023 - 127);
+pack_nan:
+    vfp_double_normaliseroundintern(state, &vdd, fpscr, exceptions, "fcvtd");
+    return vfp_double_pack(&vdd);
+}
+
 static u32 vfp_single_fcvtd(ARMul_State* state, int dd, int unused, s32 m, u32 fpscr)
 {
     struct vfp_single vsm;
@@ -905,9 +946,11 @@ vfp_single_multiply(struct vfp_single *vsd, struct vfp_single *vsn, struct vfp_s
 static u32
 vfp_single_multiply_accumulate(ARMul_State* state, int sd, int sn, s32 m, u32 fpscr, u32 negate, char *func)
 {
-    struct vfp_single vsd, vsp, vsn, vsm;
+    /*struct vfp_single vsd, vsp, vsn, vsm;
     u32 exceptions;
     s32 v;
+
+
 
     v = vfp_get_float(state, sn);
     pr_debug("VFP: s%u = %08x\n", sn, v);
@@ -931,7 +974,38 @@ vfp_single_multiply_accumulate(ARMul_State* state, int sd, int sn, s32 m, u32 fp
 
     exceptions |= vfp_single_add(&vsd, &vsn, &vsp, fpscr);
 
-    return vfp_single_normaliseround(state, sd, &vsd, fpscr, exceptions, func);
+    return vfp_single_normaliseround(state, sd, &vsd, fpscr, exceptions, func);*/
+
+    struct vfp_double vsd, vsp, vsn, vsm;
+    u32 exceptions;
+    s32 v;
+    s64 vd;
+    s64 md;
+
+    v = vfp_get_float(state, sn);
+    vd = vfp_single_to_doubleintern(state, v, fpscr);
+    vfp_double_unpack(&vsn, vd);
+
+    md = vfp_single_to_doubleintern(state, m, fpscr);
+    vfp_double_unpack(&vsm, md);
+
+    exceptions = vfp_double_multiply(&vsp, &vsn, &vsm, fpscr);
+    if (negate & NEG_MULTIPLY)
+        vsp.sign = vfp_sign_negate(vsp.sign);
+
+    v = vfp_get_float(state, sd);
+    vd = vfp_single_to_doubleintern(state, v, fpscr);
+    vfp_double_unpack(&vsn, vd);
+
+    if (negate & NEG_SUBTRACT)
+        vsn.sign = vfp_sign_negate(vsn.sign);
+
+    exceptions |= vfp_double_add(&vsd, &vsn, &vsp, fpscr);
+
+    s64 debug = vfp_double_pack(&vsd);
+
+    return vfp_double_fcvtsinterncutting(state, sd, &vsd, func);
+
 }
 
 /*

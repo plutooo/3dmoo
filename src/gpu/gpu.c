@@ -60,6 +60,8 @@ void initGPU()
     GPUwritereg32(frameselectoben, 0);
     GPUwritereg32(RGBuponeleft, 0x18000000);
     GPUwritereg32(RGBuptwoleft, 0x18000000 + 0x46500 * 1);
+    GPUwritereg32(RGBuponeright, 0x18000000 + 0x46500 * 2);
+    GPUwritereg32(RGBuptworight, 0x18000000 + 0x46500 * 3);
     GPUwritereg32(frameselectbot, 0);
     GPUwritereg32(RGBdownoneleft, 0x18000000 + 0x46500 * 4);
     GPUwritereg32(RGBdowntwoleft, 0x18000000 + 0x46500 * 5);

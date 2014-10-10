@@ -82,6 +82,134 @@ static void vfp_double_normalise_denormal(struct vfp_double *vd)
     vfp_double_dump("normalise_denormal: out", vd);
 }
 
+u32 vfp_double_normaliseroundintern(ARMul_State* state, struct vfp_double *vd, u32 fpscr, u32 exceptions, const char *func)
+{
+    u64 significand, incr;
+    int exponent, shift, underflow;
+    u32 rmode;
+
+    vfp_double_dump("pack: in", vd);
+
+    /*
+    * Infinities and NaNs are a special case.
+    */
+    if (vd->exponent == 2047 && (vd->significand == 0 || exceptions))
+        goto pack;
+
+    /*
+    * Special-case zero.
+    */
+    if (vd->significand == 0) {
+        vd->exponent = 0;
+        goto pack;
+    }
+
+    exponent = vd->exponent;
+    significand = vd->significand;
+
+    shift = 32 - fls((ARMword)(significand >> 32));
+    if (shift == 32)
+        shift = 64 - fls((ARMword)significand);
+    if (shift) {
+        exponent -= shift;
+        significand <<= shift;
+    }
+
+#if 1
+    vd->exponent = exponent;
+    vd->significand = significand;
+    vfp_double_dump("pack: normalised", vd);
+#endif
+
+    /*
+    * Tiny number?
+    */
+    underflow = exponent < 0;
+    if (underflow) {
+        significand = vfp_shiftright64jamming(significand, -exponent);
+        exponent = 0;
+#if 1
+        vd->exponent = exponent;
+        vd->significand = significand;
+        vfp_double_dump("pack: tiny number", vd);
+#endif
+        if (!(significand & ((1ULL << (VFP_DOUBLE_LOW_BITS + 1)) - 1)))
+            underflow = 0;
+    }
+
+    /*
+    * Select rounding increment.
+    */
+    incr = 0;
+    rmode = fpscr & FPSCR_RMODE_MASK;
+
+    if (rmode == FPSCR_ROUND_NEAREST) {
+        incr = 1ULL << VFP_DOUBLE_LOW_BITS;
+        if ((significand & (1ULL << (VFP_DOUBLE_LOW_BITS + 1))) == 0)
+            incr -= 1;
+    }
+    else if (rmode == FPSCR_ROUND_TOZERO) {
+        incr = 0;
+    }
+    else if ((rmode == FPSCR_ROUND_PLUSINF) ^ (vd->sign != 0))
+        incr = (1ULL << (VFP_DOUBLE_LOW_BITS + 1)) - 1;
+
+    pr_debug("VFP: rounding increment = 0x%08llx\n", incr);
+
+    /*
+    * Is our rounding going to overflow?
+    */
+    if ((significand + incr) < significand) {
+        exponent += 1;
+        significand = (significand >> 1) | (significand & 1);
+        incr >>= 1;
+#if 1
+        vd->exponent = exponent;
+        vd->significand = significand;
+        vfp_double_dump("pack: overflow", vd);
+#endif
+    }
+
+    /*
+    * If any of the low bits (which will be shifted out of the
+    * number) are non-zero, the result is inexact.
+    */
+    if (significand & ((1 << (VFP_DOUBLE_LOW_BITS + 1)) - 1))
+        exceptions |= FPSCR_IXC;
+
+    /*
+    * Do our rounding.
+    */
+    significand += incr;
+
+    /*
+    * Infinity?
+    */
+    if (exponent >= 2046) {
+        exceptions |= FPSCR_OFC | FPSCR_IXC;
+        if (incr == 0) {
+            vd->exponent = 2045;
+            vd->significand = 0x7fffffffffffffffULL;
+        }
+        else {
+            vd->exponent = 2047;		/* infinity */
+            vd->significand = 0;
+        }
+    }
+    else {
+        if (significand >> (VFP_DOUBLE_LOW_BITS + 1) == 0)
+            exponent = 0;
+        if (exponent || significand > 0x8000000000000000ULL)
+            underflow = 0;
+        if (underflow)
+            exceptions |= FPSCR_UFC;
+        vd->exponent = exponent;
+        vd->significand = significand >> 1;
+    }
+ pack:
+    return;
+}
+
 u32 vfp_double_normaliseround(ARMul_State* state, int dd, struct vfp_double *vd, u32 fpscr, u32 exceptions, const char *func)
 {
     u64 significand, incr;
@@ -463,6 +591,49 @@ static u32 vfp_double_fcmpez(ARMul_State* state, int dd, int unused, int dm, u32
     return vfp_compare(state, dd, 1, VFP_REG_ZERO, fpscr);
 }
 
+u32 vfp_double_fcvtsinterncutting(ARMul_State* state, int sd, struct vfp_double* dm, u32 fpscr) //ichfly for internal use only
+{
+    struct vfp_single vsd;
+    int tm;
+    u32 exceptions = 0;
+
+    pr_debug("In %s\n", __FUNCTION__);
+
+    tm = vfp_double_type(dm);
+
+    /*
+    * If we have a signalling NaN, signal invalid operation.
+    */
+    if (tm == VFP_SNAN)
+        exceptions = FPSCR_IOC;
+
+    if (tm & VFP_DENORMAL)
+        vfp_double_normalise_denormal(dm);
+
+    vsd.sign = dm->sign;
+    vsd.significand = vfp_hi64to32jamming(dm->significand);
+
+    /*
+    * If we have an infinity or a NaN, the exponent must be 255
+    */
+    if (tm & (VFP_INFINITY | VFP_NAN)) {
+        vsd.exponent = 255;
+        if (tm == VFP_QNAN)
+            vsd.significand |= VFP_SINGLE_SIGNIFICAND_QNAN;
+        goto pack_nan;
+    }
+    else if (tm & VFP_ZERO)
+        vsd.exponent = 0;
+    else
+        vsd.exponent = dm->exponent - (1023 - 127);
+
+    return vfp_single_normaliseround(state, sd, &vsd, fpscr, exceptions, "fcvts");
+
+pack_nan:
+    vfp_put_float(state, vfp_single_pack(&vsd), sd);
+    return exceptions;
+}
+
 static u32 vfp_double_fcvts(ARMul_State* state, int sd, int unused, int dm, u32 fpscr)
 {
     struct vfp_double vdm;
@@ -755,9 +926,7 @@ vfp_double_fadd_nonnumber(struct vfp_double *vdd, struct vfp_double *vdn,
     return exceptions;
 }
 
-static u32
-vfp_double_add(struct vfp_double *vdd, struct vfp_double *vdn,
-               struct vfp_double *vdm, u32 fpscr)
+u32 vfp_double_add(struct vfp_double *vdd, struct vfp_double *vdn,struct vfp_double *vdm, u32 fpscr)
 {
     u32 exp_diff;
     u64 m_sig;
@@ -820,7 +989,7 @@ vfp_double_add(struct vfp_double *vdd, struct vfp_double *vdn,
     return 0;
 }
 
-static u32
+u32
 vfp_double_multiply(struct vfp_double *vdd, struct vfp_double *vdn,
                     struct vfp_double *vdm, u32 fpscr)
 {

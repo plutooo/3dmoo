@@ -183,6 +183,7 @@ archive* sharedextd_OpenArchive(file_path path)
     }
 
     // Setup function pointers
+    arch->fnOpenDir = NULL;
     arch->fnFileExists   = &sharedextd_FileExists;
     arch->fnOpenFile     = &sharedextd_OpenFile;
     arch->fnDeinitialize = &sharedextd_Deinitialize;

@@ -250,6 +250,7 @@ archive* extsavedata_OpenArchive(file_path path)
     }
 
     // Setup function pointers
+    arch->fnOpenDir = NULL;
     arch->fnFileExists = &extsavedata_FileExists;
     arch->fnOpenFile = &extsavedata_OpenFile;
     arch->fnDeinitialize = &extsavedata_Deinitialize;

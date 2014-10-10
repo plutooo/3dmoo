@@ -220,7 +220,9 @@ int loader_LoadFile(FILE* fd)
         fread(data, elfsize, 1, fd);
 
         // Set entrypoint and stack ptr.
-        arm11_SetPCSP(LoadElfFile(data), 0x10000000);
+        LoadElfFile(data);
+        arm11_SetPCSP(0x00100000, 0x10000000);
+        //arm11_SetPCSP(LoadElfFile(data), 0x10000000);
         CommonMemSetup();
 
         free(data);
@@ -323,6 +325,15 @@ int loader_LoadFile(FILE* fd)
                     return 1;
                 }
                 DEBUG("  .. OK\n");
+
+                /*FILE * pFile;
+                pFile = fopen("code.code", "wb");
+                if (pFile != NULL)
+                {
+                    fwrite(dec, 1, dec_size, pFile);
+                    fclose(pFile);
+                }*/
+
 
                 if (codepath != NULL) {
                     FILE* pFile = fopen(codepath, "rb");

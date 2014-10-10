@@ -3984,7 +3984,6 @@ donext:
                 printf("--------------------------------------------------\n");
             }
 #endif
-
 #if 0
             fprintf(state->state_log, "PC:0x%x\n", pc);
             for (reg_index = 0; reg_index < 16; reg_index ++) {

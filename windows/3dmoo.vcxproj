@@ -88,7 +88,7 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>GDB_STUB;WIN32;MODET;MODE32;_DEBUG;_CONSOLE;_LIB;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>1GDB_STUB;WIN32;MODET;MODE32;_DEBUG;_CONSOLE;_LIB;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>..\inc;..\inc\arm11;..\src;..\src\arm11;$(SDL2)\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
@@ -192,6 +192,7 @@
     <ClCompile Include="..\src\services\cfg_nor.c" />
     <ClCompile Include="..\src\services\cfg_s.c" />
     <ClCompile Include="..\src\services\cfg_u.c" />
+    <ClCompile Include="..\src\services\csnd_SND.c" />
     <ClCompile Include="..\src\services\dsp_dsp.c" />
     <ClCompile Include="..\src\services\frd_u.c" />
     <ClCompile Include="..\src\services\fs_ldr.c" />
@@ -202,6 +203,7 @@
     <ClCompile Include="..\src\services\hid_user.c" />
     <ClCompile Include="..\src\services\i2cLCD.c" />
     <ClCompile Include="..\src\services\ir_u.c" />
+    <ClCompile Include="..\src\services\mcuPLS.c" />
     <ClCompile Include="..\src\services\mcu_GPU.c" />
     <ClCompile Include="..\src\services\mic_u.c" />
     <ClCompile Include="..\src\services\ndm_u.c" />
@@ -214,6 +216,7 @@
     <ClCompile Include="..\src\services\Pxiam9.c" />
     <ClCompile Include="..\src\services\PxiFS0.c" />
     <ClCompile Include="..\src\services\PxiPM.c" />
+    <ClCompile Include="..\src\services\PxiPS9.c" />
     <ClCompile Include="..\src\services\srv.c" />
     <ClCompile Include="..\src\svc.c" />
     <ClCompile Include="..\src\syscalls\arb.c" />

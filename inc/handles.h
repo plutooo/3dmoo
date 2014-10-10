@@ -39,6 +39,7 @@
 #define HANDLE_TYPE_SEMAPHORE 11
 #define HANDLE_TYPE_ARCHIVE   12
 #define HANDLE_TYPE_SESSION   13
+#define HANDLE_TYPE_DIR   14
 
 
 #define PORT_TYPE_SRV         0
@@ -83,10 +84,14 @@
 #define SERVICE_TYPE_PxiFS3     37
 #define SERVICE_TYPE_PxiAM9     38
 #define SERVICE_TYPE_MIC_U      39
+#define SERVICE_TYPE_PxiPS9      40
+#define SERVICE_TYPE_mcuPLS      41
+#define SERVICE_TYPE_csndSND      42
 
 #define HANDLE_SUBEVENT_USER          0
 #define HANDLE_SUBEVENT_APTMENUEVENT  1
 #define HANDLE_SUBEVENT_APTPAUSEEVENT 2
+#define HANDLE_SUBEVENT_CSNDEVENT 3
 
 #define HANDLE_MUTEX_APTMUTEX 2
 
@@ -101,6 +106,7 @@
 #define MEM_TYPE_ALLOC 3
 #define MEM_TYPE_HID_SPVR_0           4
 #define MEM_TYPE_APT_S_SHARED_FONT 5
+#define MEM_TYPE_CSND 6
 
 
 #define HANDLE_CURRENT_THREAD  0xFFFF8000
@@ -153,6 +159,8 @@ u32 port_SyncRequest(handleinfo* h, bool *locked);
 u32 event_WaitSynchronization(handleinfo* h, bool *locked);
 
 u32 file_SyncRequest(handleinfo* h, bool *locked);
+
+u32 dir_SyncRequest(handleinfo* h, bool *locked);
 
 //arm11/threads.c
 u32 thread_SyncRequest(handleinfo* h, bool *locked);
@@ -256,6 +264,12 @@ static struct {
     {
         "session",
         NULL,
+        NULL,
+        NULL
+    },
+    {
+        "dir",
+        &dir_SyncRequest,
         NULL,
         NULL
     }

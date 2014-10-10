@@ -80,7 +80,57 @@ SERVICE_CMD(0x080201C2)   // OpenFile
     RESP(3, file_handle); // File handle
     return 0;
 }
+SERVICE_CMD(0x080b0102) //OpenDirectory
+{
+    char tmp[256];
+    u32 handle_arch_lo = CMD(1);
+    u32 handle_arch = CMD(2);
+    u32 dirtype = CMD(3);
+    u32 size = CMD(4);
+    u32 dirpointer = CMD(6);
 
+    DEBUG("OpenDirectory\n");
+    DEBUG("   archive_handle=%08x\n",
+        handle_arch);
+    DEBUG("   file_lowpath_type=%s\n",
+        fs_PathTypeToString(dirtype));
+    DEBUG("   file_lowpath=%s\n",
+        fs_PathToString(dirtype, dirpointer, size, tmp, sizeof(tmp)));
+
+    handleinfo* arch_hi = handle_Get(handle_arch);
+
+    if (arch_hi == NULL) {
+        ERROR("Invalid handle.\n");
+        RESP(1, -1);
+        return 0;
+    }
+
+    archive* arch = (archive*)arch_hi->subtype;
+    u32 file_handle = 0;
+
+    // Call OpenFile
+    if (arch != NULL && arch->fnOpenDir != NULL) {
+        file_handle = arch->fnOpenDir(arch, 
+            (file_path) {
+            dirtype, size,dirpointer 
+        });
+
+            if (file_handle == 0) {
+                ERROR("Dir has failed.\n");
+                RESP(1, -1);
+                return 0;
+            }
+    }
+    else {
+        ERROR("Archive has not implemented Dir.\n");
+        RESP(1, -1);
+        return 0;
+    }
+
+    RESP(1, 0); // Result
+    RESP(3, file_handle); // File handle
+    return 0;
+}
 SERVICE_CMD(0x08030204)   // OpenFileDirectly
 {
     u32 transaction       = CMD(1);
@@ -113,7 +163,7 @@ SERVICE_CMD(0x08030204)   // OpenFileDirectly
     DEBUG("   file_lowpath=%s\n",
           fs_PathToString(file_lowpath_type, file_lowpath_ptr, file_lowpath_sz, tmp, sizeof(tmp)));
     DEBUG("   attr=%s\n",
-          fs_AttrToString(flags, tmp));
+        fs_AttrToString(attr, tmp));
 
     // Call OpenArchive
     if(arch_type != NULL && arch_type->fnOpenArchive != NULL) {
@@ -419,7 +469,7 @@ SERVICE_CMD(0x08040000)   // GetSize
     RESP(1, rc); // Result
     RESP(2, (u32)(sz >> 32));
     RESP(3, (u32)sz);
-    return rc;
+    return 0;
 }
 
 SERVICE_CMD(0x08050080)   // SetSize
@@ -440,7 +490,7 @@ SERVICE_CMD(0x08050080)   // SetSize
     }
 
     RESP(1, rc); // Result
-    return rc;
+    return 0;
 }
 
 SERVICE_CMD(0x08080000)   // Close
@@ -464,3 +514,30 @@ u32 file_CloseHandle(ARMul_State *state, handleinfo* h)
     DEBUG("file_CloseHandle - STUB\n");
     return 0;
 }
+
+SERVICE_START(dir);
+SERVICE_CMD(0x08010042)   // Read
+{
+    u32 rc;
+    u32 max_out_count = CMD(1);
+    u32 outptr = CMD(3);
+
+    u32 count_read = 0;
+
+    DEBUG("DIRRead (%08x, %08x)\n", max_out_count, outptr);
+
+    dir_type* type = (dir_type*)h->subtype; //(dir_type* self, u32 ptr, u32 entrycount, u32* read_out);
+
+    if (type->fnRead != NULL) {
+        rc = type->fnRead(type, outptr, max_out_count, &count_read);
+    }
+    else {
+        ERROR("Dirread not implemented for this type.\n");
+        rc = -1;
+    }
+
+    RESP(1, rc); // Result
+    RESP(2, count_read); // count
+    return 0;
+}
+SERVICE_END();

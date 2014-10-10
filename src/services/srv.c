@@ -62,6 +62,9 @@ u32 PxiFS2_SyncRequest();
 u32 PxiFS3_SyncRequest();
 u32 Pxiam9_SyncRequest();
 u32 mic_u_SyncRequest();
+u32 Pxips9_SyncRequest();
+u32 mcuPLS_SyncRequest();
+u32 csnd_SND_SyncRequest();
 
 
 #ifndef _WIN32
@@ -308,6 +311,12 @@ static struct {
         &PxiFS3_SyncRequest
     },
     {
+        "pxi:ps9",
+        SERVICE_TYPE_PxiPS9,
+        0,
+        &Pxips9_SyncRequest
+    },
+    {
         "pxi:am9",
         SERVICE_TYPE_PxiAM9,
         0,
@@ -318,7 +327,20 @@ static struct {
         SERVICE_TYPE_MIC_U,
         0,
         &mic_u_SyncRequest
-    }    
+    },
+    {
+        "mcu::PLS",
+        SERVICE_TYPE_mcuPLS,
+        0,
+        &mcuPLS_SyncRequest
+    },
+    {
+        "csnd:SND",
+        SERVICE_TYPE_csndSND,
+        0,
+        &csnd_SND_SyncRequest
+    }
+    
 };
 
 
@@ -432,7 +454,7 @@ u32 srv_SyncRequest()
         return 0;
 
         char names[9];
-    case 0x00030100:
+    case 0x000400C0:
         DEBUG("srv_UnRegisterService --todo--\n");
 
         // Read rest of command header
@@ -445,7 +467,7 @@ u32 srv_SyncRequest()
 
         return 0;
 
-    case 0x000400C0:
+    case 0x00030100:
         DEBUG("srv_registerService\n");
 
         // Read rest of command header

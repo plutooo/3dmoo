@@ -65,13 +65,11 @@ struct _archive {
 typedef struct _dir_type dir_type;
 struct _dir_type {
     u32(*fnRead) (dir_type* self, u32 ptr, u32 entrycount, u32* read_out);
-    union {
-        file_path f_path;
-        archive* self;
-        u8 path[255];
-        WIN32_FIND_DATA * ffd;
-        HANDLE hFind;
-    } type_specific;
+    file_path f_path;
+    archive* self;
+    u8 path[255];
+    WIN32_FIND_DATAA * ffd;
+    HANDLE hFind;
 };
 
 typedef struct _file_type file_type;

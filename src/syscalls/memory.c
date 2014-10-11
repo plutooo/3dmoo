@@ -35,6 +35,7 @@
 
 #define CONTROL_GSP_FLAG 0x10000
 
+u32 linearalloced = 0;
 
 u32 svcControlMemory()
 {
@@ -43,7 +44,6 @@ u32 svcControlMemory()
     u32 addr1 = arm11_R(2);
     u32 size  = arm11_R(3);
     u32 perm    = arm11_R(4);
-    u32 outadr = mem_Read32(arm11_R(13));
 
     const char* ops;
     switch(op & 0xFF) {
@@ -217,7 +217,8 @@ u32 svcControlMemory()
             return mem_AddSegment(addr0, size, NULL);
         } else {
             if ((op & 0x10000) == 0x10000) { //LINEAR
-                addr0 = 0x14000000;
+                addr0 = 0x14000000 + linearalloced;
+                linearalloced += size;
                 arm11_SetR(1, addr0); // outaddr is in R1
                 return mem_AddMappingShared(addr0, size, LINEmembuffer);
             }

@@ -146,6 +146,8 @@ static bool sdmc_FileExists(archive* self, file_path path)
 
 static u32 sdmc_OpenFile(archive* self, file_path path, u32 flags, u32 attr)
 {
+
+
     char p[256], tmp[256];
 
     // Generate path on host file system
@@ -235,11 +237,106 @@ u32 fnReadDir(dir_type* self, u32 ptr, u32 entrycount, u32* read_out)
     int current = 0;
     while (current < entrycount) //the first entry is ignored
     {
-        if (FindNextFileA(self->type_specific.hFind, self->type_specific.ffd) == 0) //no more files
+        if (FindNextFileA(self->hFind, self->ffd) == 0) //no more files
         {
             break;
         }
-        mem_Write(self->type_specific.ffd->cFileName, ptr, 0x20C);
+        for (int i = 0; i < 0x106; i++) //todo non ASCII code
+        {
+            if (self->ffd->cFileName[i] == NULL) //this is the end
+            {
+                mem_Write8(ptr + i * 2, 0);
+                mem_Write8(ptr + i * 2 + 1, 0);
+                break;
+            }
+            mem_Write8(ptr + i * 2, self->ffd->cFileName[i]);
+            mem_Write8(ptr + i * 2 + 1, 0);
+        }
+
+        mem_Write8(ptr + 0x216, 0x0);
+        mem_Write8(ptr + 0x217, 0x0);
+        mem_Write8(ptr + 0x218, 0x0);
+        char * pch;
+        char * pcho;
+        if (self->ffd->cAlternateFileName[0] == 0)
+        {
+            pch = pcho = self->ffd->cFileName;
+        }
+        else
+        {
+            pch = pcho = self->ffd->cAlternateFileName;
+        }
+        char * pchtemp;
+        bool found = false;
+        while (true)
+        {
+            pchtemp = strchr(pch, '.');
+            if (!pchtemp)break;
+            pch = pchtemp + 1;
+            found = true;
+        }
+        if (found)
+        {
+            for (int i = 0; i < 3; i++)
+            {
+                mem_Write8(ptr + 0x216 + i, pch[i]);
+                if (pch[i] == 0)break;
+            }
+        }
+        for (int i = 0; i < 8; i++)
+        {
+            mem_Write8(ptr + 0x20C + i, pcho[i]);
+            if (pcho[i] == 0 || &pcho[i] == pch - 1)break;
+        }
+
+        //mem_Write(self->ffd->cFileName, ptr, 0x20C); //todo
+
+        mem_Write8(ptr + 0x215, 0xA); //unknown
+
+        //mem_Write(self->ffd->cFileName, ptr, 0x20C); //todo
+        mem_Write8(ptr + 0x21A, 0x1); //unknown
+        mem_Write8(ptr + 0x21B, 0x0); //unknown
+        if (self->ffd->dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+        {
+            mem_Write8(ptr + 0x21C, 0x1);
+
+            mem_Write8(ptr + 0x216, ' '); //8.3 file extension
+            mem_Write8(ptr + 0x217, ' ');
+            mem_Write8(ptr + 0x218, ' ');
+        }
+        else
+        {
+            mem_Write8(ptr + 0x21C, 0x0);
+        }
+        if (self->ffd->dwFileAttributes & FILE_ATTRIBUTE_HIDDEN)
+        {
+            mem_Write8(ptr + 0x21D, 0x1);
+        }
+        else
+        {
+            mem_Write8(ptr + 0x21D, 0x0);
+        }
+        if (self->ffd->dwFileAttributes & FILE_ATTRIBUTE_ARCHIVE)
+        {
+            mem_Write8(ptr + 0x21E, 0x1);
+        }
+        else
+        {
+            mem_Write8(ptr + 0x21E, 0x0);
+        }
+        if (self->ffd->dwFileAttributes & FILE_ATTRIBUTE_READONLY)
+        {
+            mem_Write8(ptr + 0x21F, 0x1);
+        }
+        else
+        {
+            mem_Write8(ptr + 0x21F, 0x0);
+        }
+        if (!(self->ffd->dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY))
+        {
+            mem_Write32(ptr + 0x220, self->ffd->nFileSizeLow);
+            mem_Write32(ptr + 0x224,self->ffd->nFileSizeHigh );
+        }
         current++;
     }
     *read_out = current;
@@ -255,14 +352,13 @@ wchar_t *convertCharArrayToLPCWSTR(const char* charArray)
 static u32 fnOpenDir(archive* self, file_path path)
 {
     // Create file object
-    dir_type* dir = calloc(sizeof(file_type), 1);
+    dir_type* dir = (dir_type*)malloc(sizeof(dir_type));
 
-
-    dir->type_specific.f_path = path;
-    dir->type_specific.self = self;
+    dir->f_path = path;
+    dir->self = self;
     
     
-    dir->type_specific.hFind = INVALID_HANDLE_VALUE;
+    dir->hFind = INVALID_HANDLE_VALUE;
 
     // Setup function pointers.
     dir->fnRead = fnReadDir;
@@ -271,15 +367,50 @@ static u32 fnOpenDir(archive* self, file_path path)
     snprintf(p, 256, "sdmc/%s/*",
         fs_PathToString(path.type, path.ptr, path.size, tmp, 256));
 
-    dir->type_specific.ffd = (WIN32_FIND_DATA *)malloc(sizeof(WIN32_FIND_DATA)); //this is a workaround
+    dir->ffd = (WIN32_FIND_DATAA *)malloc(sizeof(WIN32_FIND_DATAA));
 
-    dir->type_specific.hFind = FindFirstFileA(p, dir->type_specific.ffd);
+    dir->hFind = FindFirstFileA(p, dir->ffd);
 
-    if (dir->type_specific.hFind == INVALID_HANDLE_VALUE)
+    if (dir->hFind == INVALID_HANDLE_VALUE)
         return 0;
 
+    printf("First file name is %s.\n", dir->ffd->cFileName);
 
     return handle_New(HANDLE_TYPE_DIR, (uintptr_t)dir);
+
+
+    /*WIN32_FIND_DATA FindFileData;
+    DWORD dwError;
+    LPSTR DirSpec;
+    size_t length_of_arg;
+
+
+    // Find the first file in the directory.
+    dir->hFind = FindFirstFileA(p, dir->ffd);
+
+    if (dir->hFind == INVALID_HANDLE_VALUE)
+    {
+        printf("Invalid file handle. Error is %u.\n", GetLastError());
+        return (-1);
+    }
+    else
+    {
+        printf("First file name is %s.\n", dir->ffd->cFileName);
+
+        // List all the other files in the directory.
+        while (FindNextFileA(dir->hFind, dir->ffd) != 0)
+        {
+            printf("Next file name is %s.\n", dir->ffd->cFileName);
+        }
+
+        dwError = GetLastError();
+        FindClose(dir->hFind);
+        if (dwError != ERROR_NO_MORE_FILES)
+        {
+            printf("FindNextFile error. Error is %u.\n", dwError);
+            return (-1);
+        }
+    }*/
 }
 archive* sdmc_OpenArchive(file_path path)
 {

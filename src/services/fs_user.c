@@ -467,8 +467,8 @@ SERVICE_CMD(0x08040000)   // GetSize
     }
 
     RESP(1, rc); // Result
-    RESP(2, (u32)(sz >> 32));
-    RESP(3, (u32)sz);
+    RESP(2, (u32)sz);
+    RESP(3, (u32)(sz >> 32));
     return 0;
 }
 

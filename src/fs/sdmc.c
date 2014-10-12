@@ -114,6 +114,28 @@ static u64 sdmcfile_GetSize(file_type* self)
     return self->type_specific.sysdata.sz;
 }
 
+static u64 sdmcfile_SetSize(file_type* self, u64 sz)
+{
+    FILE* fd = self->type_specific.sysdata.fd;
+    u64 current_size = self->type_specific.sysdata.sz;
+
+    if (sz >= current_size)
+    {
+        if (fseek(fd, sz-1, SEEK_SET) == -1) {
+            ERROR("fseek failed.\n");
+            return -1;
+        }
+        u8 dummy = 0;
+        fwrite(&dummy, 1, 1, fd);
+    }
+    else
+    {
+        DEBUG("Truncating a file is unsupported.\n");
+    }
+
+    return 0;
+}
+
 static u32 sdmcfile_Close(file_type* self)
 {
     // Close file and free yourself
@@ -146,9 +168,9 @@ static bool sdmc_FileExists(archive* self, file_path path)
 
 static u32 sdmc_OpenFile(archive* self, file_path path, u32 flags, u32 attr)
 {
+    char *p = malloc(256);
 
-
-    char p[256], tmp[256];
+    char tmp[256];
 
     // Generate path on host file system
     snprintf(p, 256, "sdmc/%s",
@@ -215,6 +237,7 @@ static u32 sdmc_OpenFile(archive* self, file_path path, u32 flags, u32 attr)
         return 0;
     }
 
+    file->type_specific.sysdata.path = p;
     file->type_specific.sysdata.fd = fd;
     file->type_specific.sysdata.sz = (u64) sz;
 
@@ -222,6 +245,7 @@ static u32 sdmc_OpenFile(archive* self, file_path path, u32 flags, u32 attr)
     file->fnWrite = &sdmcfile_Write;
     file->fnRead = &sdmcfile_Read;
     file->fnGetSize = &sdmcfile_GetSize;
+    file->fnSetSize = &sdmcfile_SetSize;
     file->fnClose = &sdmcfile_Close;
 
     return handle_New(HANDLE_TYPE_FILE, (uintptr_t) file);

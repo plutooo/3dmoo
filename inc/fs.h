@@ -89,6 +89,7 @@ struct _file_type {
         struct {
             FILE* fd;
             u64   sz;
+            char *path;
         } sysdata;
 
     } type_specific;

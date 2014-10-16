@@ -309,6 +309,7 @@ int loader_LoadFile(FILE* fd)
 
             if (fread(sec, sec_size, 1, fd) != 1) {
                 ERROR("section fread failed.\n");
+                free(sec);
                 return 1;
             }
 
@@ -317,11 +318,18 @@ int loader_LoadFile(FILE* fd)
                 u32 dec_size = GetDecompressedSize(sec, sec_size);
                 u8* dec = malloc(AlignPage(dec_size));
 
+                if (!dec) {
+                    ERROR("decompressed data block allocation failed.\n");
+                    return 1;
+                }
+
                 u32 firmexpected = Read32(ex.codesetinfo.text.codesize) + Read32(ex.codesetinfo.ro.codesize) + Read32(ex.codesetinfo.data.codesize);
 
                 DEBUG("Decompressing..\n");
                 if (Decompress(sec, sec_size, dec, dec_size) == 0) {
                     ERROR("section decompression failed.\n");
+                    free(sec);
+                    free(dec);
                     return 1;
                 }
                 DEBUG("  .. OK\n");

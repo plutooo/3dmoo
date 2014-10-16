@@ -320,6 +320,7 @@ int loader_LoadFile(FILE* fd)
 
                 if (!dec) {
                     ERROR("decompressed data block allocation failed.\n");
+                    free(sec);
                     return 1;
                 }
 

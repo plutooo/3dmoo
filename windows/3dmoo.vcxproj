@@ -88,13 +88,15 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>GDB_STUB;WIN32;MODET;MODE32;_DEBUG;_CONSOLE;_LIB;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>1GDB_STUB;WIN32;MODET;MODE32;_DEBUG;_CONSOLE;_LIB;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>..\inc;..\inc\arm11;..\src;..\src\arm11;$(SDL2)\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>ws2_32.lib;SDL2.lib;SDL2main.lib;SDL2test.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <BaseAddress>
+      </BaseAddress>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -178,6 +180,11 @@
     <ClCompile Include="..\src\loader.c" />
     <ClCompile Include="..\src\main.c" />
     <ClCompile Include="..\src\mem.c" />
+    <ClCompile Include="..\src\polarssl\aes.c" />
+    <ClCompile Include="..\src\polarssl\bignum.c" />
+    <ClCompile Include="..\src\polarssl\nin_public_crypt.c" />
+    <ClCompile Include="..\src\polarssl\rsa.c" />
+    <ClCompile Include="..\src\polarssl\sha2.c" />
     <ClCompile Include="..\src\screen.c" />
     <ClCompile Include="..\src\services\am_sys.c" />
     <ClCompile Include="..\src\services\am_u.c" />
@@ -239,6 +246,7 @@
     <ClInclude Include="..\inc\handles.h" />
     <ClInclude Include="..\inc\hid_user.h" />
     <ClInclude Include="..\inc\init.h" />
+    <ClInclude Include="..\inc\loader.h" />
     <ClInclude Include="..\inc\mem.h" />
     <ClInclude Include="..\inc\screen.h" />
     <ClInclude Include="..\inc\gpu.h" />

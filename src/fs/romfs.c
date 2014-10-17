@@ -20,12 +20,15 @@
 #include "mem.h"
 #include "handles.h"
 #include "fs.h"
+#include "polarssl/aes.h"
+#include "loader.h"
 
 /* RomFS info: this is given by loader. */
 static FILE* in_fd = NULL;
 static u32   romfs_off;
 static u32   romfs_sz;
 
+extern bool loader_encrypted;
 
 /* ____ Raw RomFS ____ */
 
@@ -54,6 +57,15 @@ static u32 rawromfs_Read(file_type* self, u32 ptr, u32 sz, u64 off, u32* read_ou
         ERROR("fread failed\n");
         free(b);
         return -1;
+    }
+
+    ctr_aes_context ctx;
+
+    if (loader_encrypted)
+    {
+        ncch_extract_prepare(&ctx, &loader_h, NCCHTYPE_EXEFS, loader_key);
+        ctr_add_counter(&ctx, (0x1000 + off) / 0x10); //this is from loader
+        ctr_crypt_counter(&ctx, b, b, sz);
     }
 
     if(mem_Write(b, ptr, read) != 0) {

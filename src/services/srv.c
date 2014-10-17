@@ -409,7 +409,7 @@ u32 srv_InitHandle()
 
     h->locked = true;
 
-    h->misc[0] = 0; //there are 0x10 events we know 2 non of them are used here
+    h->misc[0] = 0x10; //there are 0x10 events we know 2 non of them are used here
     h->misc[1] = 0x10;
 
     return 0;
@@ -572,7 +572,7 @@ u32 srv_SyncRequest()
         DEBUG("srv_GetNotificationType\n");
         //mem_Dbugdump();
         mem_Write32(arm11_ServiceBufferAddress() + 0x84, 0); //worked
-        mem_Write32(arm11_ServiceBufferAddress() + 0x88, 0x100); //type
+        mem_Write32(arm11_ServiceBufferAddress() + 0x88, 0); //type
         return 0;
 
     default:

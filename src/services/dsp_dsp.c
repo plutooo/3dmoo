@@ -117,7 +117,7 @@ u32 dsp_dsp_SyncRequest()
     case 0x000c0040: { //ConvertProcessAddressFromDspDram
         u32 addrin = mem_Read32(arm11_ServiceBufferAddress() + 0x84);
         DEBUG("ConvertProcessAddressFromDspDram %08X\n", addrin);
-        mem_Write32(arm11_ServiceBufferAddress() + 0x88, DSPramaddr + addrin);
+        mem_Write32(arm11_ServiceBufferAddress() + 0x88, DSPramaddr + addrin + 0x40000);
         mem_Write32(arm11_ServiceBufferAddress() + 0x84, 0); //no error
         return 0;
     }

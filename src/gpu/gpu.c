@@ -707,6 +707,7 @@ void writeGPUID(u16 ID, u8 mask, u32 size, u32* buffer)
                                    PrimitiveAssembly_SubmitVertex(&output);
 
                                }
+                               break;
 
     }
     // Load shader program code

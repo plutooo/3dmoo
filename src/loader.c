@@ -24,12 +24,20 @@
 #include "fs.h"
 
 #include "threads.h"
+#include "polarssl/aes.h"
 #include "loader.h"
 
+u8 loader_key[0x10];
 u32 loader_txt = 0;
 u32 loader_data = 0;
 u32 loader_bss = 0;
 extern char* codepath;
+
+bool loader_encrypted;
+ctr_ncchheader loader_h;
+
+exheader_header ex;
+
 
 extern thread threads[MAX_THREADS];
 
@@ -185,30 +193,27 @@ static void CommonMemSetup()
 
 }
 
-exheader_header ex;
-
 int loader_LoadFile(FILE* fd)
 {
     u32 ncch_off = 0;
 
     // Read header.
-    ctr_ncchheader h;
-    if (fread(&h, sizeof(h), 1, fd) != 1) {
+    if (fread(&loader_h, sizeof(loader_h), 1, fd) != 1) {
         ERROR("failed to read header.\n");
         return 1;
     }
 
     // Load NCSD
-    if (memcmp(&h.magic, "NCSD", 4) == 0) {
+    if (memcmp(&loader_h.magic, "NCSD", 4) == 0) {
         ncch_off = 0x4000;
         fseek(fd, ncch_off, SEEK_SET);
-        if (fread(&h, sizeof(h), 1, fd) != 1) {
+        if (fread(&loader_h, sizeof(loader_h), 1, fd) != 1) {
             ERROR("failed to read header.\n");
             return 1;
         }
     }
 
-    if (Read32(h.signature) == 0x464c457f) { // Load ELF
+    if (Read32(loader_h.signature) == 0x464c457f) { // Load ELF
         // Add stack segment.
         mem_AddSegment(0x10000000 - 0x100000, 0x100000, NULL);
 
@@ -229,8 +234,8 @@ int loader_LoadFile(FILE* fd)
         return 0;
     }
 
-    if (Read32(h.signature) == CIA_MAGIC) { // Load CIA
-        cia_header* ch = (cia_header*)&h;
+    if (Read32(loader_h.signature) == CIA_MAGIC) { // Load CIA
+        cia_header* ch = (cia_header*)&loader_h;
 
         ncch_off = 0x20 + ch->hdr_sz;
 
@@ -242,13 +247,13 @@ int loader_LoadFile(FILE* fd)
         ncch_off += 0x100;
         fseek(fd, ncch_off, SEEK_SET);
 
-        if (fread(&h, sizeof(h), 1, fd) != 1) {
+        if (fread(&loader_h, sizeof(loader_h), 1, fd) != 1) {
             ERROR("failed to read header.\n");
             return 1;
         }
     }
     // Load NCCH
-    if (memcmp(&h.magic, "NCCH", 4) != 0) {
+    if (memcmp(&loader_h.magic, "NCCH", 4) != 0) {
         ERROR("invalid magic.. wrong file?\n");
         return 1;
     }
@@ -259,6 +264,55 @@ int loader_LoadFile(FILE* fd)
         return 1;
     }
 
+    ctr_aes_context ctx;
+    if (!memcmp(ex.arm11systemlocalcaps.programid, loader_h.programid, 8))
+    {
+        // program id's match, so it's probably not encrypted
+        loader_encrypted = false;
+    }
+    else if (loader_h.flags[7] & 4)
+    {
+        loader_encrypted = false; // not encrypted
+    }
+    else if (loader_h.flags[7] & 1)
+    {
+        if (programid_is_system(loader_h.programid))
+        {
+            // fixed system key
+#ifdef NYUU_DEC
+            Nyuu_getkey(NINKEY_TYPE_FIX,&loader_h,loader_key);
+#else
+            loader_encrypted = true;
+            ERROR("Fixed system key not included in 3dmoo\n");
+            return 1;
+#endif
+        }
+        else
+        {
+            // null key
+            loader_encrypted = true;
+            memset(loader_key, 0, 0x10);
+        }
+    }
+    else
+    {
+        // secure key (cannot decrypt!)
+        loader_encrypted = true;
+#ifdef NYUU_DEC
+        Nyuu_getkey(NINKEY_TYPE_SEC, &loader_h, loader_key);
+#else
+        ERROR("secure keys are not included in 3dmoo.\n");
+        return 1;
+#endif
+    }
+    if (loader_encrypted)
+    {
+        ncch_extract_prepare(&ctx, &loader_h, NCCHTYPE_EXHEADER, loader_key);
+        ctr_crypt_counter(&ctx,&ex, &ex, sizeof(ex));
+    }
+
+
+
     bool is_compressed = ex.codesetinfo.flags.flag & 1;
     //ex.codesetinfo.name[7] = '\0';
     u8 namereal[9];
@@ -267,8 +321,8 @@ int loader_LoadFile(FILE* fd)
     DEBUG("Code compressed: %s\n", is_compressed ? "YES" : "NO");
 
     // Read ExeFS.
-    u32 exefs_off = Read32(h.exefsoffset) * 0x200;
-    u32 exefs_sz = Read32(h.exefssize) * 0x200;
+    u32 exefs_off = Read32(loader_h.exefsoffset) * 0x200;
+    u32 exefs_sz = Read32(loader_h.exefssize) * 0x200;
     DEBUG("ExeFS offset:    %08x\n", exefs_off);
     DEBUG("ExeFS size:      %08x\n", exefs_sz);
 
@@ -279,6 +333,14 @@ int loader_LoadFile(FILE* fd)
         ERROR("failed to read ExeFS header.\n");
         return 1;
     }
+    if (loader_encrypted)
+    {
+        ncch_extract_prepare(&ctx, &loader_h, NCCHTYPE_EXEFS, loader_key);
+        ctr_crypt_counter(&ctx, &eh, &eh, sizeof(eh));
+    }
+
+
+
 
     u32 i;
     for (i = 0; i < 8; i++) {
@@ -312,6 +374,14 @@ int loader_LoadFile(FILE* fd)
                 free(sec);
                 return 1;
             }
+
+            if (loader_encrypted)
+            {
+                ncch_extract_prepare(&ctx, &loader_h, NCCHTYPE_EXEFS, loader_key);
+                ctr_add_counter(&ctx, (sec_off - (exefs_off + ncch_off)) / 0x10);
+                ctr_crypt_counter(&ctx, sec, sec, sec_size);
+            }
+
 
             // Decompress first section if flag set.
             if (i == 0 && is_compressed) {
@@ -389,9 +459,9 @@ int loader_LoadFile(FILE* fd)
         }
     }
 
-    if (Read32(h.romfsoffset) != 0 && Read32(h.romfssize) != 0) {
-        u32 romfs_off = ncch_off + (Read32(h.romfsoffset) * 0x200) + 0x1000;
-        u32 romfs_sz = (Read32(h.romfssize) * 0x200) - 0x1000;
+    if (Read32(loader_h.romfsoffset) != 0 && Read32(loader_h.romfssize) != 0) {
+        u32 romfs_off = ncch_off + (Read32(loader_h.romfsoffset) * 0x200) + 0x1000;
+        u32 romfs_sz = (Read32(loader_h.romfssize) * 0x200) - 0x1000;
 
         DEBUG("RomFS offset:    %08x\n", romfs_off);
         DEBUG("RomFS size:      %08x\n", romfs_sz);

@@ -355,10 +355,16 @@ uint16_t mem_Read16(uint32_t addr)
 
 int mem_Write32(uint32_t addr, uint32_t w)
 {
-    if (addr == 0x14189F28)
+    if (addr > 0xFFFFFFF0) //wrong
     {
-        //break_execution(gdb_memio->data, addr, 0);
+        ERROR("trying to write32 unmapped addr %08x, w=%08x\n", addr, w);
+        arm11_Dump();
+        return 0;
     }
+    /*if (addr == 0x14189F28)
+    {
+        break_execution(gdb_memio->data, addr, 0);
+    }*/
 #ifdef MEM_TRACE
     fprintf(stderr, "w32 %08x <- w=%08x\n", addr, w);
 #endif

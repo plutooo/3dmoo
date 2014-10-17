@@ -163,8 +163,22 @@ typedef struct {
 
 #define CIA_MAGIC sizeof(cia_header)
 
+typedef enum
+{
+    NCCHTYPE_EXHEADER = 1,
+    NCCHTYPE_EXEFS = 2,
+    NCCHTYPE_ROMFS = 3,
+} ctr_ncchtypes;
 
+typedef struct
+{
+    u8 ctr[16];
+    u8 iv[16];
+    aes_context aes;
+} ctr_aes_context;
 
+extern u8 loader_key[0x10];
+extern ctr_ncchheader loader_h;
 int loader_LoadFile(FILE* fd);
 
 

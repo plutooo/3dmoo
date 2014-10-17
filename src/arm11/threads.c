@@ -281,7 +281,8 @@ void threads_Execute()
         extern volatile bool arm_stall;
         while (arm_stall)Sleep(1);
 #endif
-        arm11_Run(11172 * 16);
+        //arm11_Run(11172 * 16);
+        arm11_Run(0xFFFFFFFF);
 #ifdef GDB_STUB
         extern volatile bool arm_stall;
         while (arm_stall)Sleep(1);

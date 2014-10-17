@@ -203,7 +203,7 @@ u32 svcControlMemory()
 
     if ((op & 0xF) == 0x3 || (op & 0xF) == 0x0) { //COMMIT
         if ((op & 0x10000) == 0x10000) { //LINEAR
-            if (size > 0x2000000) {
+            if (size > 0x08000000) {
                 //Console.WriteLine("out of linear mem");
                 return 0xFFFFFFFF;
             }

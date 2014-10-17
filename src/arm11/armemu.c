@@ -4133,7 +4133,7 @@ TEST_EMULATE:
       
     }
 
-        while (state->NumInstrsToExecute--);
+        while (state->NumInstrsToExecute);
 exit:
         state->decoded = decoded;
         state->loaded = loaded;

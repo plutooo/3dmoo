@@ -33,6 +33,8 @@ static u32    num_threads = 0;
 static s32    current_thread = 0;
 static u32    reschedule = 0;
 
+extern ARMul_State s;
+
 //#define PROPER_THREADING
 #define THREAD_ID_OFFSET 0xC
 
@@ -260,19 +262,25 @@ void threads_Execute()
     arm11_Run(0x7FFFFFFF);
 #else
     u32 t;
-
+    bool nothreadused = true;
     for (t = 0; t < threads_Count(); t++) {
-        sendGPUinterall(2);
-        line++;
-        if (line == 400) {
-            sendGPUinterall(3);
-            line = 0;
+
+        s.NumInstrs += 11172; //should be less but we have to debug stuff and that makes if faster (normal ~1000)
+
+        for (; s.NumInstrs >(11172 * 16); s.NumInstrs -= (11172 * 16))
+        {
+            sendGPUinterall(2);
+            line++;
+            if (line == 400) {
+                sendGPUinterall(3);
+                line = 0;
+            }
         }
         if (!threads_IsThreadActive(t)) {
             DEBUG("Skipping thread %d..\n", t);
             continue;
         }
-
+        nothreadused = false;
         threads_Switch(t);
 
         //arm11_Run(11172*16); //process one line
@@ -282,12 +290,22 @@ void threads_Execute()
         while (arm_stall)Sleep(1);
 #endif
         //arm11_Run(11172 * 16);
-        arm11_Run(0xFFFFFFFF);
+        arm11_Run(0xFFFFFFFF); //state->NumInstrsToExecute don't count down
 #ifdef GDB_STUB
         extern volatile bool arm_stall;
         while (arm_stall)Sleep(1);
 #endif
 
+    }
+
+    if (nothreadused) //waiting
+    {
+        sendGPUinterall(2);
+        line++;
+        if (line == 400) {
+            sendGPUinterall(3);
+            line = 0;
+        }
     }
 
     threads_SaveContextCurrentThread();

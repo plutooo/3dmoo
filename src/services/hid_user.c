@@ -78,6 +78,14 @@ SERVICE_CMD(0x160000)
     RESP(1, 0); // Result
     return 0;
 }
+SERVICE_CMD(0x170000)
+{
+    DEBUG("GetSoundVolume --todo--\n");
+
+    RESP(1, 0); // Result
+    RESP(1, 0); // off?
+    return 0;
+}
 
 SERVICE_END();
 

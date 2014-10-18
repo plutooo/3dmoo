@@ -60,6 +60,25 @@ SERVICE_CMD(0x00020000)   // SecureInfoGetRegion
     return 0;
 }
 
+SERVICE_CMD(0x00030040)   // GenHashConsoleUnique
+{
+    DEBUG("GenHashConsoleUnique\n");
+
+    RESP(1, 0); // Result
+    RESP(2, 0x33646D6F ^ (CMD(1) & 0xFFFFF)); //3dmooSHA
+    RESP(3, 0x6F534841 ^ (CMD(1) & 0xFFFFF));
+    return 0;
+}
+
+SERVICE_CMD(0x00040000)   // GetRegionCanadaUSA
+{
+    DEBUG("GetRegionCanadaUSA\n");
+
+    RESP(1, 0); // Result
+    RESP(2, 0); // not USA
+    return 0;
+}
+
 SERVICE_CMD(0x00050000)   // GetSystemModel
 {
     DEBUG("GetSystemModel\n");

@@ -119,10 +119,11 @@ static u32 sharedextd_OpenFile(archive* self, file_path path, u32 flags, u32 att
         return 0;
     }
 
-    if(flags != OPEN_READ) {
+    //this is not for all
+    /*if(flags != OPEN_READ) { 
         ERROR("Trying to write/create in SharedExtData\n");
         return 0;
-    }
+    }*/
 
     FILE* fd = fopen(p, "rb");
 

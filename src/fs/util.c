@@ -166,7 +166,7 @@ bool fs_IsSafePath(const char* p)
     }
 
     for(i=0; i<len; i++) {
-        if(!isalnum(p[i]) && !strchr("_./", p[i])) {
+        if (!isalnum(p[i]) && !strchr("_./", p[i]) && p[i] != ' '&& p[i] != '-') {
             ERROR("Unsafe path: %s\n", p);
             return false;
         }

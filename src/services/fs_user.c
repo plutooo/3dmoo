@@ -380,6 +380,7 @@ SERVICE_CMD(0x08170000)   // IsSdmcDetected
     DEBUG("IsSdmcDetected - STUBBED -\n");
 
     RESP(1, 0);
+    RESP(2, 0);
     return 0;
 }
 
@@ -388,6 +389,15 @@ SERVICE_CMD(0x08210000)   // CardSlotIsInserted
     DEBUG("CardSlotIsInserted - STUBBED -\n");
 
     RESP(1, 0);
+    RESP(2, 0);
+    return 0;
+}
+SERVICE_CMD(0x08180000)   //IsSdmcWritable
+{
+    DEBUG("IsSdmcWritable - STUBBED -\n");
+
+    RESP(1, 0);
+    RESP(2, 0);
     return 0;
 }
 

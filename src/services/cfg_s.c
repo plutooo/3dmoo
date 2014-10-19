@@ -41,6 +41,12 @@ SERVICE_CMD(0x00010082)   // GetConfigInfoBlk2
     case 0x000A0002: // Language
         mem_Write8(pointer, 1); // 1=English
         break;
+    case 0x000B0000: // CountryInfo
+        mem_Write8(pointer, 1); //?
+        mem_Write8(pointer + 1, 1); //?
+        mem_Write8(pointer + 2, 1); //?
+        mem_Write8(pointer + 3, 78); // 78=Germany	Country code, same as DSi/Wii country codes. Value 0xff is invalid.
+        break;
     default:
         ERROR("Unknown id %08x\n", id);
         break;
@@ -55,7 +61,7 @@ SERVICE_CMD(0x00020000)   // SecureInfoGetRegion
     DEBUG("SecureInfoGetRegion\n");
 
     RESP(1, 0); // Result
-    RESP(2, 2); // 2=Europe
+    RESP(2, 1); // 1 = USA 2=Europe
     return 0;
 }
 

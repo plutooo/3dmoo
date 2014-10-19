@@ -3138,7 +3138,6 @@ mainswitch:
                         byte rfis = BITS(16, 19);
                         byte rlast = BITS(0, 3);
                         byte ishi = BITS(7, 11);
-                        //((int)base >> (int)shamt)
                         state->Reg[idest] = (((int)(state->Reg[rlast]) >> (int)(ishi))& 0xFFFF) | ((state->Reg[rfis]) & 0xFFFF0000);
                         break;
                     }

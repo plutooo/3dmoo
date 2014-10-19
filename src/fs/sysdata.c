@@ -119,12 +119,44 @@ static u32 sysdata_OpenFile(archive* self, file_path path, u32 flags, u32 attr)
         return 0;
     }
 
-    if(flags != OPEN_READ) {
-        ERROR("Trying to write/create in SysData\n");
-        return 0;
+    FILE* fd = fopen(p, "rb");
+    if (fd == NULL)
+    {
+        if (flags & OPEN_CREATE)
+        {
+            fd = fopen(p, "wb");
+            if (fd == NULL)
+            {
+                ERROR("Failed to open/create sdmc, path=%s\n", p);
+                return 0;
+            }
+        }
+        else
+        {
+            ERROR("Failed to open sdmc, path=%s\n", p);
+            return 0;
+        }
+    }
+    fclose(fd);
+
+    switch (flags& (OPEN_READ | OPEN_WRITE))
+    {
+    case 0:
+        ERROR("Error open without write and read fallback to read only, path=%s\n", p);
+        fd = fopen(p, "rb");
+        break;
+    case OPEN_READ:
+        fd = fopen(p, "rb");
+        break;
+    case OPEN_WRITE:
+        DEBUG("--todo-- write only, path=%s\n", p);
+        fd = fopen(p, "r+b");
+        break;
+    case OPEN_WRITE | OPEN_READ:
+        fd = fopen(p, "r+b");
+        break;
     }
 
-    FILE* fd = fopen(p, "rb");
 
     if(fd == NULL) {
         ERROR("Failed to open SysData, path=%s\n", p);

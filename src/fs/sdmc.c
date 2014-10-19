@@ -366,12 +366,6 @@ u32 fnReadDir(dir_type* self, u32 ptr, u32 entrycount, u32* read_out)
     *read_out = current;
     return 0;
 }
-wchar_t *convertCharArrayToLPCWSTR(const char* charArray)
-{
-    wchar_t* wString = malloc(sizeof(wchar_t)*4096);
-    MultiByteToWideChar(CP_ACP, 0, charArray, -1, wString, 4096);
-    return wString;
-}
 
 static u32 fnOpenDir(archive* self, file_path path)
 {
@@ -401,41 +395,10 @@ static u32 fnOpenDir(archive* self, file_path path)
     printf("First file name is %s.\n", dir->ffd->cFileName);
 
     return handle_New(HANDLE_TYPE_DIR, (uintptr_t)dir);
-
-
-    /*WIN32_FIND_DATA FindFileData;
-    DWORD dwError;
-    LPSTR DirSpec;
-    size_t length_of_arg;
-
-
-    // Find the first file in the directory.
-    dir->hFind = FindFirstFileA(p, dir->ffd);
-
-    if (dir->hFind == INVALID_HANDLE_VALUE)
-    {
-        printf("Invalid file handle. Error is %u.\n", GetLastError());
-        return (-1);
-    }
-    else
-    {
-        printf("First file name is %s.\n", dir->ffd->cFileName);
-
-        // List all the other files in the directory.
-        while (FindNextFileA(dir->hFind, dir->ffd) != 0)
-        {
-            printf("Next file name is %s.\n", dir->ffd->cFileName);
-        }
-
-        dwError = GetLastError();
-        FindClose(dir->hFind);
-        if (dwError != ERROR_NO_MORE_FILES)
-        {
-            printf("FindNextFile error. Error is %u.\n", dwError);
-            return (-1);
-        }
-    }*/
 }
+
+
+
 archive* sdmc_OpenArchive(file_path path)
 {
     // SysData needs a binary path with an 8-byte id.

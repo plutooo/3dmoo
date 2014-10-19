@@ -3122,7 +3122,27 @@ mainswitch:
                     break;
 
                 case 0x68:	/* Store Word, No WriteBack, Post Inc, Reg.  */
-                    if (BIT (4)) {
+                    //ichfly PKHBT PKHTB todo check this
+                    if ((instr & 0x70) == 0x10) //pkhbt
+                    {
+                        byte idest = BITS(12, 15);
+                        byte rfis = BITS(16, 19);
+                        byte rlast = BITS(0, 3);
+                        byte ishi = BITS(7,11);
+                        state->Reg[idest] = (state->Reg[rfis] & 0xFFFF) | ((state->Reg[rlast] << ishi) & 0xFFFF0000);
+                        break;
+                    }
+                    else if ((instr & 0x70) == 0x50)//pkhtb
+                    {
+                        byte idest = BITS(12, 15);
+                        byte rfis = BITS(16, 19);
+                        byte rlast = BITS(0, 3);
+                        byte ishi = BITS(7, 11);
+                        //((int)base >> (int)shamt)
+                        state->Reg[idest] = (((int)(state->Reg[rlast]) >> (int)(ishi))& 0xFFFF) | ((state->Reg[rfis]) & 0xFFFF0000);
+                        break;
+                    }
+                    else if (BIT (4)) {
 #ifdef MODE32
                         if (state->is_v6
                                 && handle_v6_insn (state, instr))

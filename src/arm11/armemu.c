@@ -3138,6 +3138,7 @@ mainswitch:
                         byte rfis = BITS(16, 19);
                         byte rlast = BITS(0, 3);
                         byte ishi = BITS(7, 11);
+                        if (ishi == 0)ishi = 0x20;
                         state->Reg[idest] = (((int)(state->Reg[rlast]) >> (int)(ishi))& 0xFFFF) | ((state->Reg[rfis]) & 0xFFFF0000);
                         break;
                     }
@@ -5778,12 +5779,98 @@ L_stm_s_takeabort:
         case 0x3f:
             printf ("Unhandled v6 insn: rbit\n");
             break;
+#endif
         case 0x61:
-            printf ("Unhandled v6 insn: sadd/ssub\n");
+            if ((instr & 0xFF0) == 0xf70)//ssub16
+            {
+                u8 tar = BITS(12, 15);
+                u8 src1 = BITS(16, 19);
+                u8 src2 = BITS(0, 3);
+                s16 a1 = (state->Reg[src1] & 0xFFFF);
+                s16 a2 = ((state->Reg[src1] >> 0x10) & 0xFFFF);
+                s16 b1 = (state->Reg[src2] & 0xFFFF);
+                s16 b2 = ((state->Reg[src2] >> 0x10) & 0xFFFF);
+                state->Reg[tar] = (a1 - a2)&0xFFFF | (((b1 - b2)&0xFFFF)<< 0x10);
+                return 1;
+            }
+            else if ((instr & 0xFF0) == 0xf10)//sadd16
+            {
+                u8 tar = BITS(12, 15);
+                u8 src1 = BITS(16, 19);
+                u8 src2 = BITS(0, 3);
+                s16 a1 = (state->Reg[src1] & 0xFFFF);
+                s16 a2 = ((state->Reg[src1] >> 0x10) & 0xFFFF);
+                s16 b1 = (state->Reg[src2] & 0xFFFF);
+                s16 b2 = ((state->Reg[src2] >> 0x10) & 0xFFFF);
+                state->Reg[tar] = (a1 + a2)&0xFFFF | (((b1 + b2)&0xFFFF)<< 0x10);
+                return 1;
+            }
+            else if ((instr & 0xFF0) == 0xf50)//ssax
+            {
+                u8 tar = BITS(12, 15);
+                u8 src1 = BITS(16, 19);
+                u8 src2 = BITS(0, 3);
+                s16 a1 = (state->Reg[src1] & 0xFFFF);
+                s16 a2 = ((state->Reg[src1] >> 0x10) & 0xFFFF);
+                s16 b1 = (state->Reg[src2] & 0xFFFF);
+                s16 b2 = ((state->Reg[src2] >> 0x10) & 0xFFFF);
+                state->Reg[tar] = (a1 - b2) & 0xFFFF | (((a2 + b1) & 0xFFFF) << 0x10);
+                return 1;
+            }
+            else if ((instr & 0xFF0) == 0xf30)//sasx
+            {
+                u8 tar = BITS(12, 15);
+                u8 src1 = BITS(16, 19);
+                u8 src2 = BITS(0, 3);
+                s16 a1 = (state->Reg[src1] & 0xFFFF);
+                s16 a2 = ((state->Reg[src1] >> 0x10) & 0xFFFF);
+                s16 b1 = (state->Reg[src2] & 0xFFFF);
+                s16 b2 = ((state->Reg[src2] >> 0x10) & 0xFFFF);
+                state->Reg[tar] = (a2 - b1) & 0xFFFF | (((a2 + b1) & 0xFFFF) << 0x10);
+                return 1;
+            }
+            else printf ("Unhandled v6 insn: sadd/ssub\n");
             break;
         case 0x62:
-            printf ("Unhandled v6 insn: qadd/qsub\n");
+            if ((instr & 0xFF0) == 0xf70)//QSUB16
+            {
+                u8 tar = BITS(12, 15);
+                u8 src1 = BITS(16, 19);
+                u8 src2 = BITS(0, 3);
+                s16 a1 = (state->Reg[src1] & 0xFFFF);
+                s16 a2 = ((state->Reg[src1] >> 0x10) & 0xFFFF);
+                s16 b1 = (state->Reg[src2] & 0xFFFF);
+                s16 b2 = ((state->Reg[src2] >> 0x10) & 0xFFFF);
+                s32 res1 = (a1 - b1);
+                s32 res2 = (a2 - b2);
+                if (res1 > 0x7FFF) res1 = 0x7FFF;
+                if (res2 > 0x7FFF) res2 = 0x7FFF;
+                if (res1 < 0x7FFF) res1 = -0x8000;
+                if (res2 < 0x7FFF) res2 = -0x8000;
+                state->Reg[tar] = (res1 & 0xFFFF) | ((res2 & 0xFFFF) << 0x10);
+                return 1;
+            }
+            else if ((instr & 0xFF0) == 0xf10)//QADD16
+            {
+                u8 tar = BITS(12, 15);
+                u8 src1 = BITS(16, 19);
+                u8 src2 = BITS(0, 3);
+                s16 a1 = (state->Reg[src1] & 0xFFFF);
+                s16 a2 = ((state->Reg[src1] >> 0x10) & 0xFFFF);
+                s16 b1 = (state->Reg[src2] & 0xFFFF);
+                s16 b2 = ((state->Reg[src2] >> 0x10) & 0xFFFF);
+                s32 res1 = (a1 + b1);
+                s32 res2 = (a2 + b2);
+                if (res1 > 0x7FFF) res1 = 0x7FFF;
+                if (res2 > 0x7FFF) res2 = 0x7FFF;
+                if (res1 < 0x7FFF) res1 = -0x8000;
+                if (res2 < 0x7FFF) res2 = -0x8000;
+                state->Reg[tar] = ((res1) & 0xFFFF) | (((res2) & 0xFFFF) << 0x10);
+                return 1;
+            }
+            else printf ("Unhandled v6 insn: qadd/qsub\n");
             break;
+#if 0
         case 0x63:
             printf ("Unhandled v6 insn: shadd/shsub\n");
             break;
@@ -5804,7 +5891,34 @@ L_stm_s_takeabort:
             printf ("Unhandled v6 insn: uxtb16/uxtab16\n");
             break;
         case 0x70:
-            printf ("Unhandled v6 insn: smuad/smusd/smlad/smlsd\n");
+            if ((instr & 0xf0d0) == 0xf010)//smuad //ichfly
+            {
+                u8 tar = BITS(16, 19);
+                u8 src1 = BITS(0, 3);
+                u8 src2 = BITS(8, 11);
+                u8 swap = BIT(5);
+                s16 a1 = (state->Reg[src1] & 0xFFFF);
+                s16 a2 = ((state->Reg[src1] >> 0x10) & 0xFFFF);
+                s16 b1 = swap ? ((state->Reg[src2] >> 0x10) & 0xFFFF) : (state->Reg[src2] & 0xFFFF);
+                s16 b2 = swap ? (state->Reg[src2] & 0xFFFF) : ((state->Reg[src2] >> 0x10) & 0xFFFF);
+                state->Reg[tar] = a1*a2 + b1*b2;
+                return 1;
+
+            }
+            else if ((instr & 0xf0d0) == 0xf050)//smusd
+            {
+                u8 tar = BITS(16, 19);
+                u8 src1 = BITS(0, 3);
+                u8 src2 = BITS(8, 11);
+                u8 swap = BIT(5);
+                s16 a1 = (state->Reg[src1] & 0xFFFF);
+                s16 a2 = ((state->Reg[src1] >> 0x10) & 0xFFFF);
+                s16 b1 = swap ? ((state->Reg[src2] >> 0x10) & 0xFFFF) : (state->Reg[src2] & 0xFFFF);
+                s16 b2 = swap ? (state->Reg[src2] & 0xFFFF) : ((state->Reg[src2] >> 0x10) & 0xFFFF);
+                state->Reg[tar] = a1*a2 - b1*b2;
+                return 1;
+            }
+            else printf ("Unhandled v6 insn: smuad/smusd/smlad/smlsd\n");
             break;
         case 0x74:
             printf ("Unhandled v6 insn: smlald/smlsld\n");
@@ -5939,8 +6053,25 @@ L_stm_s_takeabort:
 
             case 0x01:
             case 0xf3:
-                printf ("Unhandled v6 insn: ssat\n");
-                return 0;
+                //ichfly
+                //SSAT16
+            {
+                         u8 tar = BITS(12,15);
+                         u8 src = BITS(0, 3);
+                         u8 val = BITS(16, 19) + 1;
+                         s16 a1 = (state->Reg[src]);
+                         s16 a2 = (state->Reg[src] >> 0x10);
+                         s16 min = (s16)(0x8000) >> (16 - val);
+                         s16 max = 0x7FFF >> (16 - val);
+                         if (min > a1) a1 = min;
+                         if (max < a1) a1 = max;
+                         if (min > a2) a2 = min;
+                         if (max < a2) a2 = max;
+                         u32 temp2 = ((u32)(a2)) << 0x10;
+                         state->Reg[tar] = (a1&0xFFFF) | (temp2);
+            }
+
+                return 1;
             default:
                 break;
             }

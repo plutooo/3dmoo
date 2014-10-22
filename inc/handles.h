@@ -87,6 +87,8 @@
 #define SERVICE_TYPE_PxiPS9      40
 #define SERVICE_TYPE_mcuPLS      41
 #define SERVICE_TYPE_csndSND      42
+#define SERVICE_TYPE_aci      43
+#define SERVICE_TYPE_acu      44
 
 #define HANDLE_SUBEVENT_USER          0
 #define HANDLE_SUBEVENT_APTMENUEVENT  1

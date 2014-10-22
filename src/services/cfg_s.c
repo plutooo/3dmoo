@@ -23,6 +23,7 @@
 
 #include "service_macros.h"
 
+u32 getconfigfromNAND(u32 size, u32 id, u32 pointer, u32 filter);
 
 SERVICE_START(cfg_s);
 
@@ -34,6 +35,7 @@ SERVICE_CMD(0x00010082)   // GetConfigInfoBlk2
 
     DEBUG("GetConfigInfoBlk2 %08x %08x %08x\n", size, id, pointer);
 
+    /*u32 getconfigfromNAND(u32 size, u32 id, u32 pointer, u32 filter)
     switch (id) {
     case 0x00070001:// Sound Mode?
         mem_Write8(pointer, 0);
@@ -50,13 +52,13 @@ SERVICE_CMD(0x00010082)   // GetConfigInfoBlk2
     default:
         ERROR("Unknown id %08x\n", id);
         break;
-    }
+    }*/
 
-    RESP(1, 0); // Result
+    RESP(1, getconfigfromNAND(size,id,pointer,0x2)); // Result
     return 0;
 }
 
-SERVICE_CMD(0x00020000)   // SecureInfoGetRegion
+SERVICE_CMD(0x00020000)   // SecureInfoGetRegion this is mirrored in all cfg change all if you change this
 {
     DEBUG("SecureInfoGetRegion\n");
 

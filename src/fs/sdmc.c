@@ -26,6 +26,7 @@
 #include "handles.h"
 #include "fs.h"
 
+#include "config.h"
 
 /* ____ File implementation ____ */
 
@@ -155,8 +156,16 @@ static bool sdmc_FileExists(archive* self, file_path path)
     struct stat st;
 
     // Generate path on host file system
-    snprintf(p, 256, "sdmc/%s",
-             fs_PathToString(path.type, path.ptr, path.size, tmp, 256));
+    if (config_has_sdmc)
+    {
+        snprintf(p, 256, "%s/%s", config_sdmc_path,
+            fs_PathToString(path.type, path.ptr, path.size, tmp, 256));
+    }
+    else
+    {
+        snprintf(p, 256, "sdmc/%s",
+            fs_PathToString(path.type, path.ptr, path.size, tmp, 256));
+    }
 
     if(!fs_IsSafePath(p)) {
         ERROR("Got unsafe path.\n");
@@ -173,8 +182,16 @@ static u32 sdmc_OpenFile(archive* self, file_path path, u32 flags, u32 attr)
     char tmp[256];
 
     // Generate path on host file system
-    snprintf(p, 256, "sdmc/%s",
-             fs_PathToString(path.type, path.ptr, path.size, tmp, 256));
+    if (config_has_sdmc)
+    {
+        snprintf(p, 256, "%s/%s", config_sdmc_path,
+            fs_PathToString(path.type, path.ptr, path.size, tmp, 256));
+    }
+    else
+    {
+        snprintf(p, 256, "sdmc/%s",
+            fs_PathToString(path.type, path.ptr, path.size, tmp, 256));
+    }
 
     if(!fs_IsSafePath(p)) {
         ERROR("Got unsafe path.\n");
@@ -382,8 +399,16 @@ static u32 fnOpenDir(archive* self, file_path path)
     dir->fnRead = fnReadDir;
 
     char p[256] ,tmp[256];
-    snprintf(p, 256, "sdmc/%s/*",
-        fs_PathToString(path.type, path.ptr, path.size, tmp, 256));
+    if (config_has_sdmc)
+    {
+        snprintf(p, 256, "%s/%s/*", config_sdmc_path,
+            fs_PathToString(path.type, path.ptr, path.size, tmp, 256));
+    }
+    else
+    {
+        snprintf(p, 256, "sdmc/%s/*",
+            fs_PathToString(path.type, path.ptr, path.size, tmp, 256));
+    }
 
     dir->ffd = (WIN32_FIND_DATAA *)malloc(sizeof(WIN32_FIND_DATAA));
 

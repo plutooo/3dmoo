@@ -26,6 +26,8 @@
 #include "handles.h"
 #include "fs.h"
 
+#include "config.h"
+
 
 /* ____ File implementation ____ */
 
@@ -93,9 +95,18 @@ static bool sysdata_FileExists(archive* self, file_path path)
     struct stat st;
 
     // Generate path on host file system
-    snprintf(p, 256, "sys/system/%s/%s",
-             self->type_specific.sysdata.path,
-             fs_PathToString(path.type, path.ptr, path.size, tmp, 256));
+    if (config_usesys)
+    {
+        snprintf(p, 256, "%s/%s/%s", config_sysdataoutpath, 
+            self->type_specific.sysdata.path,
+            fs_PathToString(path.type, path.ptr, path.size, tmp, 256));
+    }
+    else
+    {
+        snprintf(p, 256, "sys/system/%s/%s",
+        self->type_specific.sysdata.path,
+        fs_PathToString(path.type, path.ptr, path.size, tmp, 256));
+    }
 
     if(!fs_IsSafePath(p)) {
         ERROR("Got unsafe path.\n");
@@ -110,9 +121,18 @@ static u32 sysdata_OpenFile(archive* self, file_path path, u32 flags, u32 attr)
     char p[256], tmp[256];
 
     // Generate path on host file system
-    snprintf(p, 256, "sys/system/%s/%s",
-             self->type_specific.sysdata.path,
-             fs_PathToString(path.type, path.ptr, path.size, tmp, 256));
+    if (config_usesys)
+    {
+        snprintf(p, 256, "%s/%s/%s", config_sysdataoutpath,
+            self->type_specific.sysdata.path,
+            fs_PathToString(path.type, path.ptr, path.size, tmp, 256));
+    }
+    else
+    {
+        snprintf(p, 256, "sys/system/%s/%s",
+            self->type_specific.sysdata.path,
+            fs_PathToString(path.type, path.ptr, path.size, tmp, 256));
+    }
 
     if(!fs_IsSafePath(p)) {
         ERROR("Got unsafe path.\n");

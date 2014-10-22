@@ -162,6 +162,7 @@
     <ClCompile Include="..\src\arm11\vfp\vfpinstr.c" />
     <ClCompile Include="..\src\arm11\vfp\vfpsingle.c" />
     <ClCompile Include="..\src\arm11\wrap.c" />
+    <ClCompile Include="..\src\config.c" />
     <ClCompile Include="..\src\dsp\dspemu.c" />
     <ClCompile Include="..\src\fs\extsavedata.c" />
     <ClCompile Include="..\src\fs\romfs.c" />
@@ -186,6 +187,7 @@
     <ClCompile Include="..\src\polarssl\rsa.c" />
     <ClCompile Include="..\src\polarssl\sha2.c" />
     <ClCompile Include="..\src\screen.c" />
+    <ClCompile Include="..\src\services\aci.c" />
     <ClCompile Include="..\src\services\am_sys.c" />
     <ClCompile Include="..\src\services\am_u.c" />
     <ClCompile Include="..\src\services\apt_s.c" />
@@ -261,6 +263,7 @@
     <ClInclude Include="..\src\arm11\vfp\asm_vfp.h" />
     <ClInclude Include="..\src\arm11\vfp\vfp.h" />
     <ClInclude Include="..\src\arm11\vfp\vfp_helper.h" />
+    <ClInclude Include="..\src\config.h" />
     <ClInclude Include="..\src\services\service_macros.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

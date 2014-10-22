@@ -28,6 +28,7 @@
 #include <signal.h>
 #include <SDL.h>
 
+#include "config.h"
 
 #ifdef GDB_STUB
 #include "armemu.h"
@@ -102,9 +103,9 @@ int main(int argc, char* argv[])
         printf("Usage:\n");
 
 #ifdef MODULE_SUPPORT
-        printf("%s <in.ncch> [-d|-noscreen|-codepatch <code>|-modules <num> <in.ncch>|-overdrivlist <num> <services>]\n", argv[0]);
+        printf("%s <in.ncch> [-d|-noscreen|-codepatch <code>|-modules <num> <in.ncch>|-overdrivlist <num> <services>|-sdmc <path>|-sysdata <path>|-sdwrite|-slotone|-configsave|-gdbport <port>]\n", argv[0]);
 #else
-        printf("%s <in.ncch> [-d|-noscreen|-codepatch <code>]\n", argv[0]);
+        printf("%s <in.ncch> [-d|-noscreen|-codepatch <code>|-sdmc <path>|-sysdata <path>|-sdwrite|-slotone|-configsave|-gdbport <port>]\n", argv[0]);
 #endif
 
         return 1;
@@ -115,13 +116,28 @@ int main(int argc, char* argv[])
 
     for (int i = 2; i < argc; i++) {
         if ((strcmp(argv[i], "-d") == 0))disasm = true;
-        if ((strcmp(argv[i], "-noscreen") == 0))noscreen = true;
-        if ((strcmp(argv[i], "-codepatch") == 0)) {
+        else if ((strcmp(argv[i], "-noscreen") == 0))noscreen = true;
+        else if ((strcmp(argv[i], "-codepatch") == 0)) {
             i++;
             codepath = malloc(strlen(argv[i]));
             strcpy(codepath, argv[i]);
-            i++;
         }
+        else if ((strcmp(argv[i], "-sdmc") == 0))
+        {
+            i++;
+            strcpy(config_sdmc_path, argv[i]);
+            config_has_sdmc = true;
+        }
+        else if ((strcmp(argv[i], "-sysdata") == 0))
+        {
+            i++;
+            strcpy(config_sysdataoutpath, argv[i]);
+            config_usesys = true;
+        }
+        else if ((strcmp(argv[i], "-sdwrite") == 0))config_slotone = true;
+        else if ((strcmp(argv[i], "-slotone") == 0))config_sdmcwriteable = true;
+        else if ((strcmp(argv[i], "-configsave") == 0))config_nand_cfg_save = true;
+
 #ifdef GDB_STUB
         if ((strcmp(argv[i], "-gdbport") == 0))
         {

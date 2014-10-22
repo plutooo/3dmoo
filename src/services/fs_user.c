@@ -2,6 +2,7 @@
 #include "handles.h"
 #include "fs.h"
 #include "mem.h"
+#include "config.h"
 
 #include "service_macros.h"
 
@@ -377,27 +378,36 @@ SERVICE_CMD(0x08630000)   // GetPriority
 
 SERVICE_CMD(0x08170000)   // IsSdmcDetected
 {
-    DEBUG("IsSdmcDetected - STUBBED -\n");
+    DEBUG("IsSdmcDetected\n");
 
     RESP(1, 0);
-    RESP(2, 0); //false
+    if (config_has_sdmc)
+        RESP(2, 1); //true
+    else 
+        RESP(2, 0); //false
     return 0;
 }
 
 SERVICE_CMD(0x08210000)   // CardSlotIsInserted
 {
-    DEBUG("CardSlotIsInserted - STUBBED -\n");
+    DEBUG("CardSlotIsInserted\n");
 
     RESP(1, 0);
-    RESP(2, 0); //false
+    if (config_slotone)
+        RESP(2, 1); //true
+    else
+        RESP(2, 0); //false
     return 0;
 }
 SERVICE_CMD(0x08180000)   //IsSdmcWritable
 {
-    DEBUG("IsSdmcWritable - STUBBED -\n");
+    DEBUG("IsSdmcWritable\n");
 
     RESP(1, 0);
-    RESP(2, 1); //true
+    if (config_sdmcwriteable)
+        RESP(2, 1); //true
+    else
+        RESP(2, 0); //false
     return 0;
 }
 

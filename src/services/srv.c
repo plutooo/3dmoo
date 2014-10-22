@@ -65,6 +65,8 @@ u32 mic_u_SyncRequest();
 u32 Pxips9_SyncRequest();
 u32 mcuPLS_SyncRequest();
 u32 csnd_SND_SyncRequest();
+u32 ac_i_SyncRequest();
+u32 ac_u_SyncRequest();
 
 
 #ifndef _WIN32
@@ -339,7 +341,20 @@ static struct {
         SERVICE_TYPE_csndSND,
         0,
         &csnd_SND_SyncRequest
+    },
+    {
+        "ac:i",
+        SERVICE_TYPE_aci,
+        0,
+        &ac_i_SyncRequest
+    },
+    {
+        "ac:u",
+        SERVICE_TYPE_acu,
+        0,
+        &ac_u_SyncRequest
     }
+    
     
 };
 

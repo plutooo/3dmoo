@@ -23,8 +23,18 @@
 
 #include "service_macros.h"
 
+u32 getconfigfromNAND(u32 size, u32 id, u32 pointer, u32 filter);
 
 SERVICE_START(cfg_i);
+
+SERVICE_CMD(0x00020000)   // SecureInfoGetRegion this is mirrored in all cfg change all if you change this
+{
+    DEBUG("SecureInfoGetRegion\n");
+
+    RESP(1, 0); // Result
+    RESP(2, 1); // 1 = USA 2=Europe
+    return 0;
+}
 
 SERVICE_CMD(0x00010082)   // GetConfigInfoBlk8
 {
@@ -34,29 +44,28 @@ SERVICE_CMD(0x00010082)   // GetConfigInfoBlk8
 
     DEBUG("GetConfigInfoBlk8 %08x %08x %08x\n", size, id, pointer);
 
-    switch (id) {
-    case 0x00070001:// Sound Mode?
-        mem_Write8(pointer, 0);
-        break;
-    case 0x000A0002: // Language
-        mem_Write8(pointer, 1); // 1=English
-        break;
-    default:
-        ERROR("Unknown id %08x\n", id);
-        break;
-    }
-
-    RESP(1, 0); // Result
+    RESP(1, getconfigfromNAND(size, id, pointer, 0x8)); // Result
     return 0;
 }
 SERVICE_CMD(0x00040000)
 {
 
-    DEBUG("unk4\n");
+    DEBUG("GetRegionCanadaUSA\n");
 
     RESP(2, 0); // return byte
 
-    RESP(1, 0); // Result
+    RESP(1, 1); // Result is Canada or USA
+    return 0;
+}
+SERVICE_CMD(0x08010082)   // GetConfigInfoBlk4
+{
+    u32 size = CMD(1);
+    u32 id = CMD(2);
+    u32 pointer = CMD(4);
+
+    DEBUG("GetConfigInfoBlk4 %08x %08x %08x\n", size, id, pointer);
+
+    RESP(1, getconfigfromNAND(size, id, pointer, 0x4)); // Result
     return 0;
 }
 SERVICE_END();

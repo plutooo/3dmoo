@@ -67,6 +67,9 @@ u32 mcuPLS_SyncRequest();
 u32 csnd_SND_SyncRequest();
 u32 ac_i_SyncRequest();
 u32 ac_u_SyncRequest();
+u32 nim_s_SyncRequest();
+u32 ssl_c_SyncRequest();
+u32 http_c_SyncRequest();
 
 
 #ifndef _WIN32
@@ -353,9 +356,25 @@ static struct {
         SERVICE_TYPE_acu,
         0,
         &ac_u_SyncRequest
+    },
+    {
+        "nim:s",
+        SERVICE_TYPE_nims,
+        0,
+        &nim_s_SyncRequest
+    },
+    {
+        "ssl:C",
+        SERVICE_TYPE_ssl_c,
+        0,
+        &ssl_c_SyncRequest
+    },
+    {
+        "http:C",
+        SERVICE_TYPE_http_c,
+        0,
+        &http_c_SyncRequest
     }
-    
-    
 };
 
 

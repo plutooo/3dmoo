@@ -210,12 +210,14 @@
     <ClCompile Include="..\src\services\gsp_gpu.c" />
     <ClCompile Include="..\src\services\hid_SPVR.c" />
     <ClCompile Include="..\src\services\hid_user.c" />
+    <ClCompile Include="..\src\services\http_c.c" />
     <ClCompile Include="..\src\services\i2cLCD.c" />
     <ClCompile Include="..\src\services\ir_u.c" />
     <ClCompile Include="..\src\services\mcuPLS.c" />
     <ClCompile Include="..\src\services\mcu_GPU.c" />
     <ClCompile Include="..\src\services\mic_u.c" />
     <ClCompile Include="..\src\services\ndm_u.c" />
+    <ClCompile Include="..\src\services\nims.c" />
     <ClCompile Include="..\src\services\ns_s.c" />
     <ClCompile Include="..\src\services\pdn_d.c" />
     <ClCompile Include="..\src\services\pdn_g.c" />
@@ -227,6 +229,7 @@
     <ClCompile Include="..\src\services\PxiPM.c" />
     <ClCompile Include="..\src\services\PxiPS9.c" />
     <ClCompile Include="..\src\services\srv.c" />
+    <ClCompile Include="..\src\services\ssl_c.c" />
     <ClCompile Include="..\src\svc.c" />
     <ClCompile Include="..\src\syscalls\arb.c" />
     <ClCompile Include="..\src\syscalls\events.c" />

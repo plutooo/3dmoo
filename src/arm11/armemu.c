@@ -5888,7 +5888,18 @@ L_stm_s_takeabort:
             break;
 #endif
         case 0x6c:
-            printf ("Unhandled v6 insn: uxtb16/uxtab16\n");
+            if ((instr & 0xf03f0) == 0xf0070) //uxtb16
+            {
+                u8 src1 = BITS(0, 3);
+                u8 tar = BITS(12, 15);
+                u32 base = state->Reg[src1];
+                u32 shamt = BITS(9,10)* 8;
+                u32 in = ((base << (32 - shamt)) | (base >> shamt));
+                state->Reg[tar] = in & 0x00FF00FF;
+                return 1;
+            }
+            else
+                printf ("Unhandled v6 insn: uxtb16/uxtab16\n");
             break;
         case 0x70:
             if ((instr & 0xf0d0) == 0xf010)//smuad //ichfly
@@ -5916,6 +5927,23 @@ L_stm_s_takeabort:
                 s16 b1 = swap ? ((state->Reg[src2] >> 0x10) & 0xFFFF) : (state->Reg[src2] & 0xFFFF);
                 s16 b2 = swap ? (state->Reg[src2] & 0xFFFF) : ((state->Reg[src2] >> 0x10) & 0xFFFF);
                 state->Reg[tar] = a1*a2 - b1*b2;
+                return 1;
+            }
+            else if ((instr & 0xd0) == 0x10)//smlad
+            {
+                u8 tar = BITS(16, 19);
+                u8 src1 = BITS(0, 3);
+                u8 src2 = BITS(8, 11);
+                u8 src3 = BITS(12, 15);
+                u8 swap = BIT(5);
+
+                u32 a3 = state->Reg[src3];
+
+                s16 a1 = (state->Reg[src1] & 0xFFFF);
+                s16 a2 = ((state->Reg[src1] >> 0x10) & 0xFFFF);
+                s16 b1 = swap ? ((state->Reg[src2] >> 0x10) & 0xFFFF) : (state->Reg[src2] & 0xFFFF);
+                s16 b2 = swap ? (state->Reg[src2] & 0xFFFF) : ((state->Reg[src2] >> 0x10) & 0xFFFF);
+                state->Reg[tar] = a1*a2 + b1*b2 + a3;
                 return 1;
             }
             else printf ("Unhandled v6 insn: smuad/smusd/smlad/smlsd\n");
@@ -6161,8 +6189,21 @@ L_stm_s_takeabort:
 
             case 0x01:
             case 0xf3:
-                printf ("Unhandled v6 insn: usat\n");
-                return 0;
+                //ichfly
+                //USAT16
+                {
+                    u8 tar = BITS(12, 15);
+                    u8 src = BITS(0, 3);
+                    u8 val = BITS(16, 19);
+                    s16 a1 = (state->Reg[src]);
+                    s16 a2 = (state->Reg[src] >> 0x10);
+                    s16 max = 0xFFFF >> (16 - val);
+                    if (max < a1) a1 = max;
+                    if (max < a2) a2 = max;
+                    u32 temp2 = ((u32)(a2)) << 0x10;
+                    state->Reg[tar] = (a1 & 0xFFFF) | (temp2);
+                }
+                return 1;
             default:
                 break;
             }

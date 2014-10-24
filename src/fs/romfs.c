@@ -63,7 +63,7 @@ static u32 rawromfs_Read(file_type* self, u32 ptr, u32 sz, u64 off, u32* read_ou
 
     if (loader_encrypted)
     {
-        ncch_extract_prepare(&ctx, &loader_h, NCCHTYPE_EXEFS, loader_key);
+        ncch_extract_prepare(&ctx, &loader_h, NCCHTYPE_ROMFS, loader_key);
         ctr_add_counter(&ctx, (0x1000 + off) / 0x10); //this is from loader
         ctr_crypt_counter(&ctx, b, b, sz);
     }
@@ -115,10 +115,12 @@ u32 romfs_OpenFile(archive* self, file_path path, u32 flags, u32 attr)
 
 
 static archive romfs = {
-    .fnOpenDir = NULL,
+    .fncreateDir    = NULL,
+    .fnOpenDir      = NULL,
     .fnFileExists   = &romfs_FileExists,
     .fnOpenFile     = &romfs_OpenFile,
-    .fnDeinitialize = NULL
+    .fnDeinitialize = NULL,
+    .fndelDir       = NULL
 };
 
 

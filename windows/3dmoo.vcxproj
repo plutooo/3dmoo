@@ -170,6 +170,7 @@
     <ClCompile Include="..\src\fs\sdmc.c" />
     <ClCompile Include="..\src\fs\shared_extdata.c" />
     <ClCompile Include="..\src\fs\sysdata.c" />
+    <ClCompile Include="..\src\fs\sysdatac.c" />
     <ClCompile Include="..\src\fs\util.c" />
     <ClCompile Include="..\src\gdbstub\gdbstub.cpp" />
     <ClCompile Include="..\src\gdbstub\gdbstubchelper.c" />
@@ -203,6 +204,7 @@
     <ClCompile Include="..\src\services\cfg_u.c" />
     <ClCompile Include="..\src\services\csnd_SND.c" />
     <ClCompile Include="..\src\services\dsp_dsp.c" />
+    <ClCompile Include="..\src\services\frd_a.c" />
     <ClCompile Include="..\src\services\frd_u.c" />
     <ClCompile Include="..\src\services\fs_ldr.c" />
     <ClCompile Include="..\src\services\fs_REG.c" />
@@ -228,6 +230,7 @@
     <ClCompile Include="..\src\services\PxiFS0.c" />
     <ClCompile Include="..\src\services\PxiPM.c" />
     <ClCompile Include="..\src\services\PxiPS9.c" />
+    <ClCompile Include="..\src\services\soc_u.c" />
     <ClCompile Include="..\src\services\srv.c" />
     <ClCompile Include="..\src\services\ssl_c.c" />
     <ClCompile Include="..\src\svc.c" />

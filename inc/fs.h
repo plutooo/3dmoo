@@ -45,6 +45,8 @@ typedef struct {
 
 typedef struct _archive archive;
 struct _archive {
+    int(*fncreateDir)(archive* self, file_path path);
+    int (*fndelDir)(archive* self, file_path path);
     u32(*fnOpenDir)(archive* self, file_path path);
     bool (*fnFileExists)  (archive* self, file_path path);
     u32  (*fnOpenFile)    (archive* self, file_path path, u32 flags, u32 attr);
@@ -56,7 +58,7 @@ struct _archive {
         } sharedextd;
 
         struct {
-            u8 path[16 + 1];
+            u8 path[32 + 1];
         } sysdata;
 
     } type_specific;
@@ -116,6 +118,7 @@ archive* savedata_OpenArchive(file_path path);
 // fs/extsavedata.c
 archive* extsavedata_OpenArchive(file_path path);
 
+archive* SaveDatacheck_OpenArchive(file_path path);
 
 typedef struct {
     const char* name;
@@ -153,6 +156,11 @@ static archive_type archive_types[] =  {
         "SDMC",
         9,
         sdmc_OpenArchive
+    },
+    {
+        "SaveDatacheck",
+        0x2345678A,
+        SaveDatacheck_OpenArchive
     }
 };
 

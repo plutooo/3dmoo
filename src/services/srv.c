@@ -70,7 +70,8 @@ u32 ac_u_SyncRequest();
 u32 nim_s_SyncRequest();
 u32 ssl_c_SyncRequest();
 u32 http_c_SyncRequest();
-
+u32 frd_a_SyncRequest();
+u32 soc_u_SyncRequest();
 
 #ifndef _WIN32
 static size_t strnlen(const char* p, size_t n)
@@ -374,6 +375,18 @@ static struct {
         SERVICE_TYPE_http_c,
         0,
         &http_c_SyncRequest
+    },
+    {
+        "frd:a",
+        SERVICE_TYPE_frd_a,
+        0,
+        &frd_a_SyncRequest
+    },
+    {
+        "soc:U",
+        SERVICE_TYPE_soc_u,
+        0,
+        &soc_u_SyncRequest
     }
 };
 

@@ -124,12 +124,17 @@ u32 dsp_dsp_SyncRequest()
     case 0x00190040: { //GetVirtualAddress 
         u32 addr = mem_Read32(arm11_ServiceBufferAddress() + 0x84);
         DEBUG("GetVirtualAddress %08X\n", addr);
-        mem_Write32(arm11_ServiceBufferAddress() + 0x84, 0); //no error
         u32 ret = 0;
         if ((addr & 0xF8000000) == 0x20000000) ret = 0x14000000 + addr - 0x20000000;
         if ((addr & 0xFFF80000) == 0x1FF00000) ret = addr;
         mem_Write32(arm11_ServiceBufferAddress() + 0x84, 0); //no error
         mem_Write32(arm11_ServiceBufferAddress() + 0x88, ret);
+        return 0;
+    }
+    case 0x001f0000: { //GetHeadphoneStatus 
+        DEBUG("GetHeadphoneStatus\n");
+        mem_Write32(arm11_ServiceBufferAddress() + 0x84, 0); //no error
+        mem_Write32(arm11_ServiceBufferAddress() + 0x88, 0); //no
         return 0;
     }
     }

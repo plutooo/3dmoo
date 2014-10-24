@@ -28,14 +28,21 @@ SERVICE_START(ndm_u);
 
 SERVICE_CMD(0x60040)   //SuspendDaemons
 {
+    DEBUG("SuspendDaemons %08x", CMD(1));
     RESP(1, 0); // Result
     return 0;
 }
 
 SERVICE_CMD(0x140040)   //OverrideDefaultDaemons
 {
+    DEBUG("OverrideDefaultDaemons %08x",CMD(1));
     RESP(1, 0); // Result
     return 0;
 }
-
+SERVICE_CMD(0x00080040)//DisableWifiUsage
+{
+    DEBUG("DisableWifiUsage %08x", CMD(1));
+    RESP(1, 0); // Result
+    return 0;
+}
 SERVICE_END();

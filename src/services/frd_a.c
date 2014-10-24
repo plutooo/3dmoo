@@ -1,6 +1,5 @@
 /*
  * Copyright (C) 2014 - plutoo
- * Copyright (C) 2014 - ichfly
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,27 +22,6 @@
 
 #include "service_macros.h"
 
-
-SERVICE_START(ptm_u);
-
-SERVICE_CMD(0xC0000)   //GetTotalStepCount
-{
-    DEBUG("GetTotalStepCount");
-    RESP(1, 0); // Result
-    RESP(2, 0); //this is a pc it is not taking steps
-    return 0;
-}
-SERVICE_CMD(0xB00C2)   //GetStepHistory 
-{
-    u32 unk1 = CMD(1);
-    u32 unk2 = CMD(2);
-    u32 unk3 = CMD(3);
-    u32 unk4 = CMD(4);
-    u32 pointer = CMD(5);
-    DEBUG("GetStepHistory %08x %08x %08x %08x %08x --todo--", unk1, unk2, unk3, unk4, pointer);
-    RESP(1, 0); // Result
-    //RESP(2, 0); //this is a pc it is not taking steps
-    return 0;
-}
+SERVICE_START(frd_a);
 
 SERVICE_END();

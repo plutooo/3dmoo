@@ -21,6 +21,111 @@ SERVICE_CMD(0x08010002)   // Initialize
     return 0;
 }
 
+SERVICE_CMD(0x08070142)   // DeleteDirectoryRecursively
+{
+    u32 transaction = CMD(1);
+    u32 handle_arch_lo = CMD(2);
+    u32 handle_arch = CMD(3);
+    u32 dir_lowpath_type = CMD(4);
+    u32 dir_lowpath_sz = CMD(5);
+    u32 transaction2 = CMD(6);
+    u32 dir_lowpath_ptr = CMD(7);
+
+    char tmp[256];
+
+    DEBUG("DeleteDirectoryRecursively\n");
+    DEBUG("   archive_handle=%08x\n",
+        handle_arch);
+    DEBUG("   dir_lowpath_type=%s\n",
+        fs_PathTypeToString(dir_lowpath_type));
+    DEBUG("   dir_lowpath=%s\n",
+        fs_PathToString(dir_lowpath_type, dir_lowpath_ptr, dir_lowpath_sz, tmp, sizeof(tmp)));
+
+    handleinfo* arch_hi = handle_Get(handle_arch);
+
+    if (arch_hi == NULL) {
+        ERROR("Invalid handle.\n");
+        RESP(1, -1);
+        return 0;
+    }
+    archive* arch = (archive*)arch_hi->subtype;
+    // Call delarchive
+    if (arch != NULL && arch->fndelDir != NULL) {
+        int ret = arch->fndelDir(arch,
+            (file_path) {
+            dir_lowpath_type, dir_lowpath_sz, dir_lowpath_ptr
+        });
+
+            if (ret == 0) {
+                ERROR("fndelDir has failed.\n");
+                RESP(1, -1);
+                return 0;
+            }
+    }
+    else {
+        ERROR("Archive has not implemented fndelDir.\n");
+        RESP(1, -1);
+        return 0;
+    }
+
+    RESP(1, 0); // Result
+    return 0;
+}
+
+SERVICE_CMD(0x08090182)   // CreateDirectory
+{
+    u32 transaction = CMD(1);
+    u32 handle_arch_lo = CMD(2);
+    u32 handle_arch = CMD(3);
+    u32 dir_lowpath_type = CMD(4);
+    u32 dir_lowpath_sz = CMD(5);
+    u32 flags = CMD(6);
+    u32 transaction2 = CMD(7);
+    u32 dir_lowpath_ptr = CMD(8);
+
+    char tmp[256];
+
+    DEBUG("CreateDirectory\n");
+    DEBUG("   archive_handle=%08x\n",
+        handle_arch);
+    DEBUG("   dir_lowpath_type=%s\n",
+        fs_PathTypeToString(dir_lowpath_type));
+    DEBUG("   dir_lowpath=%s\n",
+        fs_PathToString(dir_lowpath_type, dir_lowpath_ptr, dir_lowpath_sz, tmp, sizeof(tmp)));
+
+    DEBUG("   dir_flags=%08x\n", flags);
+
+    handleinfo* arch_hi = handle_Get(handle_arch);
+
+    if (arch_hi == NULL) {
+        ERROR("Invalid handle.\n");
+        RESP(1, -1);
+        return 0;
+    }
+    archive* arch = (archive*)arch_hi->subtype;
+    // Call delarchive
+    if (arch != NULL && arch->fncreateDir != NULL) {
+        int ret = arch->fncreateDir(arch,
+            (file_path) {
+            dir_lowpath_type, dir_lowpath_sz, dir_lowpath_ptr
+        });
+
+        if (ret == 0) {
+            ERROR("fncreateDir has failed.\n");
+            RESP(1, -1);
+            return 0;
+        }
+    }
+    else {
+        ERROR("Archive has not implemented fncreateDir.\n");
+        RESP(1, -1);
+        return 0;
+    }
+
+    RESP(1, 0); // Result
+    return 0;
+}
+
 SERVICE_CMD(0x080201C2)   // OpenFile
 {
     u32 transaction       = CMD(1);

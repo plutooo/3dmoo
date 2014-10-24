@@ -376,7 +376,21 @@ static void sharedextd_Deinitialize(archive* self)
     free(self);
 }
 
+int sharedextd_deldir(archive* self, file_path path)
+{
+    char p[256], tmp[256];
 
+    // Generate path on host file system
+    snprintf(p, 256, "sys/shared/%s/%s",
+        self->type_specific.sharedextd.path,
+        fs_PathToString(path.type, path.ptr, path.size, tmp, 256));
+
+    if (!fs_IsSafePath(p)) {
+        ERROR("Got unsafe path.\n");
+        return 0;
+    }
+    return RemoveDirectoryA(p);
+}
 archive* sharedextd_OpenArchive(file_path path)
 {
     // Extdata needs a binary path with a 12-byte id.
@@ -393,6 +407,8 @@ archive* sharedextd_OpenArchive(file_path path)
     }
 
     // Setup function pointers
+    arch->fncreateDir    = NULL;
+    arch->fndelDir       = &sharedextd_deldir;
     arch->fnOpenDir      = &sharedextd_fnOpenDir;
     arch->fnFileExists   = &sharedextd_FileExists;
     arch->fnOpenFile     = &sharedextd_OpenFile;

@@ -92,6 +92,8 @@
 #define SERVICE_TYPE_nims      45
 #define SERVICE_TYPE_ssl_c      46
 #define SERVICE_TYPE_http_c     47
+#define SERVICE_TYPE_frd_a     48
+#define SERVICE_TYPE_soc_u     49
 
 #define HANDLE_SUBEVENT_USER          0
 #define HANDLE_SUBEVENT_APTMENUEVENT  1

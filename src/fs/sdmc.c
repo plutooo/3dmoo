@@ -440,6 +440,8 @@ archive* sdmc_OpenArchive(file_path path)
     }
 
     // Setup function pointers
+    arch->fncreateDir = NULL;
+    arch->fndelDir = NULL;
     arch->fnOpenDir = fnOpenDir;
     arch->fnFileExists = &sdmc_FileExists;
     arch->fnOpenFile = &sdmc_OpenFile;

@@ -532,7 +532,7 @@ SERVICE_CMD(0x080200C2)   // Read
     u32 sz  = CMD(3);
     u32 ptr = CMD(5);
 
-    DEBUG("Read, off=%llx, len=%x\n", off, sz);
+    DEBUG("Read, off=%llx, len=%x pointer=%08x\n", off, sz, ptr);
 
     file_type* type = (file_type*) h->subtype;
 

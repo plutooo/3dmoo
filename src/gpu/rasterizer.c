@@ -28,13 +28,13 @@ struct vec3_12P4 {
     s16 v[3];//x, y,z;
 };
 
-u16 min3(s16 v1,s16 v2,s16 v3)
+static u16 min3(s16 v1,s16 v2,s16 v3)
 {
     if (v1 < v2 && v1 < v3) return v1;
     if (v2 < v3) return v2;
     return v3;
 }
-u16 max3(s16 v1, s16 v2, s16 v3)
+static u16 max3(s16 v1, s16 v2, s16 v3)
 {
     if (v1 > v2 && v1 > v3) return v1;
     if (v2 > v3) return v2;
@@ -44,7 +44,7 @@ u16 max3(s16 v1, s16 v2, s16 v3)
 #define IntMask 0xFFF0
 #define FracMask 0xF
 
-bool IsRightSideOrFlatBottomEdge(struct vec3_12P4 * vtx, struct vec3_12P4 *line1, struct vec3_12P4 *line2)
+static bool IsRightSideOrFlatBottomEdge(struct vec3_12P4 * vtx, struct vec3_12P4 *line1, struct vec3_12P4 *line2)
 {
     if (line1->v[1] == line2->v[1]) {
         // just check if vertex is above us => bottom line parallel to x-axis
@@ -57,7 +57,7 @@ bool IsRightSideOrFlatBottomEdge(struct vec3_12P4 * vtx, struct vec3_12P4 *line1
     }
 }
 
-s32 orient2d(u16 vtx1x, u16  vtx1y, u16  vtx2x, u16  vtx2y, u16  vtx3x, u16  vtx3y)
+static s32 orient2d(u16 vtx1x, u16  vtx1y, u16  vtx2x, u16  vtx2y, u16  vtx3x, u16  vtx3y)
 {
     s32 vec1x = vtx2x - vtx1x;
     s32 vec1y = vtx2y - vtx1y;
@@ -87,31 +87,40 @@ static float GetInterpolatedAttribute(float attr0, float attr1, float attr2, con
     float interpolated_w_inverse = ((1.f) / v0->pos.v[3])*w0 + ((1.f) / v1->pos.v[3])*w1 + ((1.f) / v2->pos.v[3])*w2;
     return interpolated_attr_over_w / interpolated_w_inverse;
 }
-void GetColorModifier(u32 factor, struct clov3 * values)
+static void GetColorModifier(u32 factor, struct clov3 * values)
 {
     switch (factor)
     {
     case 0: //SourceColor
         return;
+    case 1: //SourceAlpha
+        // TODO: Ugh, I messed up here. Need to fix parameters and stuff..
+        return;
+
+
     default:
         DEBUG("Unknown color factor %d\n", (int)factor);
         return;
     }
 }
-u8 AlphaCombine(u32 op, struct clov3* input)
+static u8 AlphaCombine(u32 op, struct clov3* input)
 {
     switch (op) {
     case 0://Replace:
         return input->v[0];
     case 1://Modulate:
         return input->v[0] * input->v[1] / 255;
+    case 2://Add:
+        return input->v[0] + input->v[1];
+    case 4://Lerp:
+        return (input->v[0] * input->v[2] + input->v[1] * (255 - input->v[2])) / 255;
     default:
         DEBUG("Unknown alpha combiner operation %d\n", (int)op);
         return 0;
     }
 };
 
-void ColorCombine(u32 op, struct clov3 input[3])
+static void ColorCombine(u32 op, struct clov3 input[3])
 {
     switch (op) {
     case 0://Replace:
@@ -122,16 +131,28 @@ void ColorCombine(u32 op, struct clov3 input[3])
         (input)[0].v[1] = (input)[0].v[1] * (input)[1].v[1] / 255;
         (input)[0].v[2] = (input)[0].v[2] * (input)[1].v[2] / 255;
         return;  //((input[0] * input[1]) / 255);
+    case 2://Add:
+        (input)[0].v[0] = (input)[0].v[0] + (input)[1].v[0] / 255;
+        (input)[0].v[1] = (input)[0].v[1] + (input)[1].v[1] / 255;
+        (input)[0].v[2] = (input)[0].v[2] + (input)[1].v[2] / 255;
+        return; //input->v[0] + input->v[1];
+    case 4://Lerp:
+        (input)[0].v[0] = (input)[0].v[0] * (input)[2].v[0] + (input)[1].v[0] * (255 - (input)[2].v[0]) / 255;
+        (input)[0].v[1] = (input)[0].v[1] * (input)[2].v[1] + (input)[1].v[1] * (255 - (input)[2].v[1]) / 255;
+        (input)[0].v[2] = (input)[0].v[2] * (input)[2].v[2] + (input)[1].v[2] * (255 - (input)[2].v[2]) / 255;
+        return; //(input->v[0] * input->v[2] + input->v[1] * (255 - input->v[2])) / 255;
     default:
         DEBUG("Unknown color combiner operation %d\n", (int)op);
     }
 }
-u8 GetAlphaModifier(u32 factor, u8 value){
+static u8 GetAlphaModifier(u32 factor, u8 value){
     switch (factor) {
     case 0://SourceAlpha:
         return value;
+    case 3://OneMinusSourceAlpha:
+        return 255 - value;
     default:
-        DEBUG("Unknown color factor %d\n", (int)factor);
+        DEBUG("Unknown alpha factor %d\n", (int)factor);
         return 0;
     }
 }
@@ -208,33 +229,68 @@ void rasterizer_ProcessTriangle(const struct OutputVertex *v0,
                 (u8)(GetInterpolatedAttribute(v0.color.b(), v1.color.b(), v2.color.b()).ToFloat32() * 255),
                 (u8)(GetInterpolatedAttribute(v0.color.a(), v1.color.a(), v2.color.a()).ToFloat32() * 255)
             };*/
-            struct clov4 texture_color;
+            struct clov4 texture_color[4];
             
             float u = GetInterpolatedAttribute(v0->tc0.v[0], v1->tc0.v[0], v2->tc0.v[0], v0, v1, v2, w0, w1, w2);
             float v = GetInterpolatedAttribute(v0->tc0.v[1], v1->tc0.v[1], v2->tc0.v[1], v0, v1, v2, w0, w1, w2);
-            if (GPUregs[TEXTURINGSETINGS80] & 0x1) {
-                // TODO: This is currently hardcoded for RGB8
-                u32* texture_data = (u32*)(get_pymembuffer(GPUregs[TEXTURCONFIG0ADDR] << 3));
-                int s = (int)(u * (GPUregs[TEXTURCONFIG0SIZE] >> 16));
-                int t = (int)(v * (GPUregs[TEXTURCONFIG0SIZE]&0xFFFF));
-                int texel_index_within_tile = 0;
-                for (int block_size_index = 0; block_size_index < 3; ++block_size_index) {
-                    int sub_tile_width = 1 << block_size_index;
-                    int sub_tile_height = 1 << block_size_index;
-                    int sub_tile_index = (s & sub_tile_width) << block_size_index;
-                    sub_tile_index += 2 * ((t & sub_tile_height) << block_size_index);
-                    texel_index_within_tile += sub_tile_index;
+            for (int i = 0; i < 3; ++i) {
+                if (GPUregs[TEXTURINGSETINGS80] & (0x1<<i)) {
+                    // TODO: This is currently hardcoded for RGB8
+                    u32* texture_data;
+                    switch (i)
+                    {
+                    case 0:
+                        texture_data = (u32*)(get_pymembuffer(GPUregs[TEXTURCONFIG0ADDR] << 3));
+                        break;
+                    case 1:
+                        texture_data = (u32*)(get_pymembuffer(GPUregs[TEXTURCONFIG1ADDR] << 3));
+                        break;
+                    case 2:
+                        texture_data = (u32*)(get_pymembuffer(GPUregs[TEXTURCONFIG2ADDR] << 3));
+                        break;
+                    }
+                    
+                    int s;
+                    int t;
+                    int row_stride;
+                    switch (i)
+                    {
+                    case 0:
+                        s = (int)(u * (GPUregs[TEXTURCONFIG0SIZE] >> 16));
+                        t = (int)(v * (GPUregs[TEXTURCONFIG0SIZE] & 0xFFFF));
+                        row_stride = (GPUregs[TEXTURCONFIG0SIZE] >> 16) * 3;
+                        break;
+                    case 1:
+                        s = (int)(u * (GPUregs[TEXTURCONFIG1SIZE] >> 16));
+                        t = (int)(v * (GPUregs[TEXTURCONFIG1SIZE] & 0xFFFF));
+                        row_stride = (GPUregs[TEXTURCONFIG1SIZE] >> 16) * 3;
+                        break;
+                    case 2:
+                        s = (int)(u * (GPUregs[TEXTURCONFIG2SIZE] >> 16));
+                        t = (int)(v * (GPUregs[TEXTURCONFIG2SIZE] & 0xFFFF));
+                        row_stride = (GPUregs[TEXTURCONFIG2SIZE] >> 16) * 3;
+                        break;
+                    }
+                    
+                    int texel_index_within_tile = 0;
+                    for (int block_size_index = 0; block_size_index < 3; ++block_size_index) {
+                        int sub_tile_width = 1 << block_size_index;
+                        int sub_tile_height = 1 << block_size_index;
+                        int sub_tile_index = (s & sub_tile_width) << block_size_index;
+                        sub_tile_index += 2 * ((t & sub_tile_height) << block_size_index);
+                        texel_index_within_tile += sub_tile_index;
+                    }
+                    const int block_width = 8;
+                    const int block_height = 8;
+                    int coarse_s = (s / block_width) * block_width;
+                    int coarse_t = (t / block_height) * block_height;
+                    
+                    u8* source_ptr = (u8*)texture_data + coarse_s * block_height * 3 + coarse_t * row_stride + texel_index_within_tile * 3;
+                    texture_color[i].v[0] = source_ptr[2];
+                    texture_color[i].v[1] = source_ptr[1];
+                    texture_color[i].v[2] = source_ptr[0];
+                    texture_color[i].v[3] = 0xFF;
                 }
-                const int block_width = 8;
-                const int block_height = 8;
-                int coarse_s = (s / block_width) * block_width;
-                int coarse_t = (t / block_height) * block_height;
-                const int row_stride = (GPUregs[TEXTURCONFIG0SIZE] >> 16) * 3;
-                u8* source_ptr = (u8*)texture_data + coarse_s * block_height * 3 + coarse_t * row_stride + texel_index_within_tile * 3;
-                texture_color.v[0] = source_ptr[2];
-                texture_color.v[1] = source_ptr[1];
-                texture_color.v[2] = source_ptr[0];
-                texture_color.v[3] = 0xFF;
             }
             struct clov4 combiner_output;
             combiner_output.v[3] = 0xFF;
@@ -255,7 +311,13 @@ void rasterizer_ProcessTriangle(const struct OutputVertex *v0,
                         memcpy(&color_result[j], &primary_color, sizeof(struct clov3));
                         break;
                     case 3: //Texture0
-                        memcpy(&color_result[j], &texture_color, sizeof(struct clov3));
+                        memcpy(&color_result[j], &texture_color[0], sizeof(struct clov3));
+                        break;
+                    case 4: //Texture1
+                        memcpy(&color_result[j], &texture_color[1], sizeof(struct clov3));
+                        break;
+                    case 5: //Texture2
+                        memcpy(&color_result[j], &texture_color[2], sizeof(struct clov3));
                         break;
                     case 0xE: //Constant
                         color_result[j].v[0] = GPUregs[regnumaddr + 3] & 0xFF;
@@ -289,7 +351,13 @@ void rasterizer_ProcessTriangle(const struct OutputVertex *v0,
                         alpha = primary_color.v[3];
                         break;
                     case 3://Texture0:
-                        alpha = texture_color.v[3];
+                        alpha = texture_color[0].v[3];
+                        break;
+                    case 4://Texture1:
+                        alpha = texture_color[1].v[3];
+                        break;
+                    case 5://Texture2:
+                        alpha = texture_color[2].v[3];
                         break;
                     case 0xE://Constant:
                         alpha = (GPUregs[regnumaddr + 3] >> 0x18) & 0xFF;

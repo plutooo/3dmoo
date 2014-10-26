@@ -26,6 +26,26 @@ u32 mutex_handle;
 
 u32 myeventhandel = 0;
 
+static u32 ReadPipeIfPossibleCount = 0;
+u32 ReadPipeIfPossibleResp[] = {
+    0x000F, //Number of responses
+    0xBFFF,
+    0x9E8E,
+    0x8680,
+    0xA78E,
+    0x9430,
+    0x8400,
+    0x8540,
+    0x948E,
+    0x8710,
+    0x8410,
+    0xA90E,
+    0xAA0E,
+    0xAACE,
+    0xAC4E,
+    0xAC58
+};
+
 #define DSPramaddr 0x1FF00000
 
 void initDSP()
@@ -111,7 +131,20 @@ u32 dsp_dsp_SyncRequest()
         u32 size = mem_Read16(arm11_ServiceBufferAddress() + 0x8C);
         u32 buffer = mem_Read32(arm11_ServiceBufferAddress() + 0x184);
         DEBUG("ReadPipeIfPossible %08X %08X %04X %08X\n", unk1, unk2, size, buffer);
+
+        u32 initialSize = ReadPipeIfPossibleCount;
+
+        for (int i = 0; i < size; i += 2)
+        {
+            if (ReadPipeIfPossibleCount < 16)
+            {
+                mem_Write16(buffer + i, ReadPipeIfPossibleResp[ReadPipeIfPossibleCount]);
+            }
+            ReadPipeIfPossibleCount++;
+        }
+
         mem_Write32(arm11_ServiceBufferAddress() + 0x84, 0); //no error
+        mem_Write32(arm11_ServiceBufferAddress() + 0x88, (ReadPipeIfPossibleCount - initialSize) * 2); //read
         return 0;
     }
     case 0x000c0040: { //ConvertProcessAddressFromDspDram

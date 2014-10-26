@@ -182,13 +182,16 @@ static void CommonMemSetup()
 
     mem_AddSegment(0xFFFF0000 - 0x1000 * MAX_THREADS, 0x1000 * (MAX_THREADS+1), NULL);
 
-    // Add Read Only Shared Info
-    mem_AddSegment(0x1FF80000, 0x100, NULL);
+    // DSP memory
+    mem_AddSegment(0x1FF00000, 0x80000, NULL);
+
+    // Add Read Only Shared Info / AXI WRAM
+    mem_AddSegment(0x1FF80000, 0x80000, NULL);
     mem_Write8(0x1FF80014, 1); //Bit0 set for Retail
     mem_Write32(0x1FF80040, 64 * 1024 * 1024); //Set App Memory Size to 64MB?
 
     //Shared Memory Page For ARM11 Processes
-    mem_AddSegment(0x1FF81000, 0x100, NULL);
+    //mem_AddSegment(0x1FF81000, 0x100, NULL);
     mem_Write8(0x1FF800c0, 1); //headset connected
 
 }
@@ -378,7 +381,7 @@ int loader_LoadFile(FILE* fd)
             if (loader_encrypted)
             {
                 ncch_extract_prepare(&ctx, &loader_h, NCCHTYPE_EXEFS, loader_key);
-                ctr_add_counter(&ctx, (sec_off - (exefs_off + ncch_off)) / 0x10);
+                ctr_add_counter(&ctx, (sec_off - (exefs_off)) / 0x10);
                 ctr_crypt_counter(&ctx, sec, sec, sec_size);
             }
 

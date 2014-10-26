@@ -116,6 +116,33 @@ static bool sysdata_FileExists(archive* self, file_path path)
     return stat(p, &st) == 0;
 }
 
+static u32 sysdata_delFile(archive* self, file_path path, u32 flags, u32 attr)
+{
+    char p[256], tmp[256];
+
+    // Generate path on host file system
+    if (config_usesys)
+    {
+        snprintf(p, 256, "%s/%s/%s", config_sysdataoutpath,
+            self->type_specific.sysdata.path,
+            fs_PathToString(path.type, path.ptr, path.size, tmp, 256));
+    }
+    else
+    {
+        snprintf(p, 256, "sys/system/%s/%s",
+            self->type_specific.sysdata.path,
+            fs_PathToString(path.type, path.ptr, path.size, tmp, 256));
+    }
+
+    if (!fs_IsSafePath(p)) {
+        ERROR("Got unsafe path.\n");
+        return 1;
+    }
+
+    return DeleteFile(p);
+}
+
+
 static u32 sysdata_OpenFile(archive* self, file_path path, u32 flags, u32 attr)
 {
     char p[256], tmp[256];
@@ -284,6 +311,7 @@ archive* sysdata_OpenArchive(file_path path)
     }
 
     // Setup function pointers
+    arch->fndelfile      = &sysdata_delFile;
     arch->fncreateDir    = &sysdata_createdir;
     arch->fndelDir       = &sysdata_deldir;
     arch->fnOpenDir      = NULL;

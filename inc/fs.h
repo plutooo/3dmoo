@@ -45,6 +45,7 @@ typedef struct {
 
 typedef struct _archive archive;
 struct _archive {
+    int(*fndelfile)(archive* self, file_path path);
     int(*fncreateDir)(archive* self, file_path path);
     int (*fndelDir)(archive* self, file_path path);
     u32(*fnOpenDir)(archive* self, file_path path);

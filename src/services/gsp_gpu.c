@@ -61,9 +61,10 @@ void GPUTriggerCmdReqQueue()
                 //    VRAMbuff[k + dest - 0x1F000000] = mem_Read8((src + k)); //todo speed up
 
                 mem_Read(&VRAMbuff[dest - 0x1F000000], src, size);
-
+                sendGPUinterall(6);
                 break;
             case 1:
+                sendGPUinterall(5);//P3D
                 addr = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x4);
                 size = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x8);
                 flags = *(u32*)(baseaddr + (j + 1) * 0x20 + 0xC);
@@ -84,10 +85,10 @@ void GPUTriggerCmdReqQueue()
                 fwrite(buffer, size, 1, out);
                 fclose(out);
 
-                sendGPUinterall(5);//P3D
 
                 break;
             case 2: {
+                        sendGPUinterall(0);
                         u32 addr1, val1, addrend1, addr2, val2, addrend2, width;
                         addr1 = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x4);
                         val1 = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x8);
@@ -143,11 +144,8 @@ void GPUTriggerCmdReqQueue()
                         memcpy(get_pymembuffer(convertvirtualtopys(outputaddr)), get_pymembuffer(convertvirtualtopys(inpaddr)), sizeoutp);
                         updateFramebuffer();
 
-                        sendGPUinterall(0);
                         sendGPUinterall(1);
                         sendGPUinterall(4);
-                        sendGPUinterall(5);
-                        sendGPUinterall(6);
 
 
                         //mem_Dbugdump();
@@ -319,7 +317,12 @@ void sendGPUinterall(u32 ID)
     h->locked = false; //unlock we are fast
     for (i = 0; i < 4; i++) {
         u8 next = *(u8*)(GSPsharedbuff + i * 0x40);        //0x33 next is 00
-        next += *(u8*)(GSPsharedbuff + i * 0x40 + 1) = *(u8*)(GSPsharedbuff + i * 0x40 + 1) + 1;
+        u8 inuse = *(u8*)(GSPsharedbuff + i * 0x40 + 1);
+        next += inuse;
+        if (inuse > 0x20 && ((ID == 2) || (ID == 3)))
+            return; //todo
+
+        *(u8*)(GSPsharedbuff + i * 0x40 + 1) = inuse + 1;
         *(u8*)(GSPsharedbuff + i * 0x40 + 2) = 0x0; //no error
         next = next % 0x34;
         *(u8*)(GSPsharedbuff + i * 0x40 + 0xC + next) = ID;

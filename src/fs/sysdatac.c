@@ -249,6 +249,7 @@ archive* SaveDatacheck_OpenArchive(file_path path)
     }
 
     // Setup function pointers
+    arch->fndelfile = NULL;
     arch->fncreateDir = &SaveDatacheck_createdir;
     arch->fndelDir = &SaveDatacheck_deldir;
     arch->fnOpenDir      = NULL;

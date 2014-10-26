@@ -375,6 +375,22 @@ static void sharedextd_Deinitialize(archive* self)
     // Free yourself
     free(self);
 }
+static u32 sharedextd_delFile(archive* self, file_path path, u32 flags, u32 attr)
+{
+    char p[256], tmp[256];
+
+    // Generate path on host file system
+    snprintf(p, 256, "sys/shared/%s/%s",
+        self->type_specific.sharedextd.path,
+        fs_PathToString(path.type, path.ptr, path.size, tmp, 256));
+
+    if (!fs_IsSafePath(p)) {
+        ERROR("Got unsafe path.\n");
+        return 0;
+    }
+
+    return DeleteFile(p);
+}
 
 int sharedextd_deldir(archive* self, file_path path)
 {
@@ -407,6 +423,7 @@ archive* sharedextd_OpenArchive(file_path path)
     }
 
     // Setup function pointers
+    arch->fndelfile      = &sharedextd_delFile;
     arch->fncreateDir    = NULL;
     arch->fndelDir       = &sharedextd_deldir;
     arch->fnOpenDir      = &sharedextd_fnOpenDir;

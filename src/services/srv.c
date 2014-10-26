@@ -74,6 +74,7 @@ u32 frd_a_SyncRequest();
 u32 soc_u_SyncRequest();
 u32 am_app_SyncRequest();
 u32 nim_aoc_SyncRequest();
+u32 apt_a_SyncRequest();
 
 #ifndef _WIN32
 static size_t strnlen(const char* p, size_t n)
@@ -401,6 +402,12 @@ static struct {
         SERVICE_TYPE_nim_aoc,
         0,
         &nim_aoc_SyncRequest
+    },
+    {
+        "APT:A",
+        SERVICE_TYPE_apt_a,
+        0,
+        &apt_a_SyncRequest
     }
 };
 

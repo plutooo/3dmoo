@@ -29,6 +29,12 @@ u32 event_handles[2];
 u8* APTs_sharedfont = NULL;
 size_t APTs_sharedfontsize = 0;
 
+SERVICE_START(apt_a);
+
+SERVICE_END();
+
+
+
 SERVICE_START(apt_s);
 
 

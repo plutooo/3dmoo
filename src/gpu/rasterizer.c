@@ -87,17 +87,59 @@ static float GetInterpolatedAttribute(float attr0, float attr1, float attr2, con
     float interpolated_w_inverse = ((1.f) / v0->pos.v[3])*w0 + ((1.f) / v1->pos.v[3])*w1 + ((1.f) / v2->pos.v[3])*w2;
     return interpolated_attr_over_w / interpolated_w_inverse;
 }
-static void GetColorModifier(u32 factor, struct clov3 * values)
+static void GetColorModifier(u32 factor, struct clov4/*3*/ * values)
 {
     switch (factor)
     {
-    case 0: //SourceColor
+    case 0://SourceColor:
         return;
-    case 1: //SourceAlpha
-        // TODO: Ugh, I messed up here. Need to fix parameters and stuff..
+    case 1://OneMinusSourceColor
+        values->v[0] = 255 - values->v[0];
+        values->v[1] = 255 - values->v[1];
+        values->v[2] = 255 - values->v[2];
         return;
-
-
+    case 2://SourceAlpha:
+        values->v[0] = values->v[3];
+        values->v[1] = values->v[3];
+        values->v[2] = values->v[3];
+        return;
+    case 3://OneMinusSourceAlpha:
+        values->v[0] = 255 - values->v[3];
+        values->v[1] = 255 - values->v[3];
+        values->v[2] = 255 - values->v[3];
+        return;
+    case 4://SourceRed:
+        //values->v[0] = values->v[0];
+        values->v[1] = values->v[0];
+        values->v[2] = values->v[0];
+        return;
+    case 5://OneMinusSourceRed:
+        values->v[1] = 255 - values->v[0];
+        values->v[2] = 255 - values->v[0];
+        //Important!
+        values->v[0] = 255 - values->v[0];
+        return;
+    case 8://SourceGreen:
+        values->v[0] = values->v[1];
+        //values->v[1] = values->v[1];
+        values->v[2] = values->v[1];
+        return;
+    case 9://OneMinusSourceGreen:
+        values->v[0] = 255 - values->v[1];
+        values->v[2] = 255 - values->v[1];
+        //Important!
+        values->v[1] = 255 - values->v[1];
+        return;
+    case 0xC://SourceBlue:
+        values->v[0] = values->v[2];
+        values->v[1] = values->v[2];
+        //values->v[2] = values->v[2];
+        return;
+    case 0xD://OneMinusSourceBlue:
+        values->v[0] = 255 - values->v[2];
+        values->v[1] = 255 - values->v[2];
+        values->v[2] = 255 - values->v[2];
+        return;
     default:
         DEBUG("Unknown color factor %d\n", (int)factor);
         return;
@@ -112,8 +154,16 @@ static u8 AlphaCombine(u32 op, struct clov3* input)
         return input->v[0] * input->v[1] / 255;
     case 2://Add:
         return input->v[0] + input->v[1];
+    case 3://Add Signed:
+        return input->v[0] + input->v[1] - 128;
     case 4://Lerp:
         return (input->v[0] * input->v[2] + input->v[1] * (255 - input->v[2])) / 255;
+    case 5://Subtract:
+        return input->v[0] - input->v[1];
+    case 8://Multiply Addition:
+        return (input->v[0] * input->v[1] / 255) + input->v[2];
+    case 9://Addition Multiply:
+        return (input->v[0] + input->v[1]) * input->v[2] / 255;
     default:
         DEBUG("Unknown alpha combiner operation %d\n", (int)op);
         return 0;
@@ -132,15 +182,35 @@ static void ColorCombine(u32 op, struct clov3 input[3])
         (input)[0].v[2] = (input)[0].v[2] * (input)[1].v[2] / 255;
         return;  //((input[0] * input[1]) / 255);
     case 2://Add:
-        (input)[0].v[0] = (input)[0].v[0] + (input)[1].v[0] / 255;
-        (input)[0].v[1] = (input)[0].v[1] + (input)[1].v[1] / 255;
-        (input)[0].v[2] = (input)[0].v[2] + (input)[1].v[2] / 255;
+        (input)[0].v[0] = (input)[0].v[0] + (input)[1].v[0];
+        (input)[0].v[1] = (input)[0].v[1] + (input)[1].v[1];
+        (input)[0].v[2] = (input)[0].v[2] + (input)[1].v[2];
         return; //input->v[0] + input->v[1];
+    case 3://Add Signed:
+        (input)[0].v[0] = (input)[0].v[0] + (input)[1].v[0] - 128;
+        (input)[0].v[1] = (input)[0].v[1] + (input)[1].v[1] - 128;
+        (input)[0].v[2] = (input)[0].v[2] + (input)[1].v[2] - 128;
+        return;
     case 4://Lerp:
         (input)[0].v[0] = (input)[0].v[0] * (input)[2].v[0] + (input)[1].v[0] * (255 - (input)[2].v[0]) / 255;
         (input)[0].v[1] = (input)[0].v[1] * (input)[2].v[1] + (input)[1].v[1] * (255 - (input)[2].v[1]) / 255;
         (input)[0].v[2] = (input)[0].v[2] * (input)[2].v[2] + (input)[1].v[2] * (255 - (input)[2].v[2]) / 255;
         return; //(input->v[0] * input->v[2] + input->v[1] * (255 - input->v[2])) / 255;
+    case 5://Subtract:
+        (input)[0].v[0] = (input)[0].v[0] - (input)[1].v[0];
+        (input)[0].v[1] = (input)[0].v[1] - (input)[1].v[1];
+        (input)[0].v[2] = (input)[0].v[2] - (input)[1].v[2];
+        return;
+    case 8://Multiply Addition:
+        (input)[0].v[0] = ((input)[0].v[0] * (input)[1].v[0] / 255) + (input)[2].v[0];
+        (input)[0].v[1] = ((input)[0].v[1] * (input)[1].v[1] / 255) + (input)[2].v[1];
+        (input)[0].v[2] = ((input)[0].v[2] * (input)[1].v[2] / 255) + (input)[2].v[2];
+        return;
+    case 9://Addition Multiply:
+        (input)[0].v[0] = ((input)[0].v[0] + (input)[1].v[0]) * (input)[2].v[0] / 255;
+        (input)[0].v[1] = ((input)[0].v[1] + (input)[1].v[1]) * (input)[2].v[1] / 255;
+        (input)[0].v[2] = ((input)[0].v[2] + (input)[1].v[2]) * (input)[2].v[2] / 255;
+        return;
     default:
         DEBUG("Unknown color combiner operation %d\n", (int)op);
     }
@@ -149,8 +219,14 @@ static u8 GetAlphaModifier(u32 factor, u8 value){
     switch (factor) {
     case 0://SourceAlpha:
         return value;
-    case 3://OneMinusSourceAlpha:
+    case 1://OneMinusSourceAlpha:
         return 255 - value;
+    //case 2://Red:
+    //case 3://OneMinusRed:
+    //case 4://Green:
+    //case 5://OneMinusGreen:
+    //case 6://Blue:
+    //case 7://OneMinusBlue:
     default:
         DEBUG("Unknown alpha factor %d\n", (int)factor);
         return 0;
@@ -294,38 +370,84 @@ void rasterizer_ProcessTriangle(const struct OutputVertex *v0,
             }
             struct clov4 combiner_output;
             combiner_output.v[3] = 0xFF;
+            
+            struct clov4 comb_buf[5];
+            comb_buf[0].v[0] = GPUregs[0xFD] & 0xFF;
+            comb_buf[0].v[1] = (GPUregs[0xFD] >> 8) & 0xFF;
+            comb_buf[0].v[2] = (GPUregs[0xFD] >> 16) & 0xFF;
+            comb_buf[0].v[3] = (GPUregs[0xFD] >> 24) & 0xFF;
+
             for (int i = 0; i < 6; i++)
             {
                 u32 regnumaddr = GLTEXENV + i * 8;
-                if (i > 3)regnumaddr += 0x10;
+                if (i > 3) regnumaddr += 0x10;
 
-                struct clov3 color_result[3]; /*= {
-                    GetColorSource(tev_stage.color_source1)),
-                    GetColorSource(tev_stage.color_source2)),
-                    GetColorSource(tev_stage.color_source3))
-                    };*/
+                if (i > 0 && i < 5)
+                {
+                    if (((GPUregs[0xE0] >> (i + 7)) & 1) == 1)
+                    {
+                        comb_buf[i].v[0] = combiner_output.v[0];
+                        comb_buf[i].v[1] = combiner_output.v[1];
+                        comb_buf[i].v[2] = combiner_output.v[2];
+                    }
+                    else
+                    {
+                        comb_buf[i].v[0] = comb_buf[i - 1].v[0];
+                        comb_buf[i].v[1] = comb_buf[i - 1].v[1];
+                        comb_buf[i].v[2] = comb_buf[i - 1].v[2];
+                    }
+                    if (((GPUregs[0xE0] >> (i + 11)) & 1) == 1)
+                    {
+                        comb_buf[i].v[3] = combiner_output.v[3];
+                    }
+                    else
+                    {
+                        comb_buf[i].v[3] = comb_buf[i - 1].v[3];
+                    }
+                }
+
+               // struct clov3 color_result[3]; /*= {
+               //    GetColorSource(tev_stage.color_source1)),
+               //     GetColorSource(tev_stage.color_source2)),
+               //    GetColorSource(tev_stage.color_source3))
+               //     };*/
+                struct clov4 color_result[3];
+
                 for (int j = 0; j < 3; j++)
                 {
                     switch ((GPUregs[regnumaddr] >> (j * 4))&0xF) {
                     case 0://PrimaryColor
-                        memcpy(&color_result[j], &primary_color, sizeof(struct clov3));
+                        memcpy(&color_result[j], &primary_color, sizeof(struct clov4/*3*/));
                         break;
+                    //case 1://PrimaryFragmentColor:
+                    //case 2://SecondaryFragmentColor:
                     case 3: //Texture0
-                        memcpy(&color_result[j], &texture_color[0], sizeof(struct clov3));
+                        memcpy(&color_result[j], &texture_color[0], sizeof(struct clov4/*3*/));
                         break;
                     case 4: //Texture1
-                        memcpy(&color_result[j], &texture_color[1], sizeof(struct clov3));
+                        memcpy(&color_result[j], &texture_color[1], sizeof(struct clov4/*3*/));
                         break;
                     case 5: //Texture2
-                        memcpy(&color_result[j], &texture_color[2], sizeof(struct clov3));
+                        memcpy(&color_result[j], &texture_color[2], sizeof(struct clov4/*3*/));
                         break;
+                    //case 6://Texture 3 (proctex):
+                    case 0xD://PreviousBuffer:
+                        //prevent errors if the tevstages are bad
+                        if(i > 0)
+                        {
+                            color_result[j].v[0] = comb_buf[i - 1].v[0];
+                            color_result[j].v[1] = comb_buf[i - 1].v[1];
+                            color_result[j].v[2] = comb_buf[i - 1].v[2];
+                            color_result[j].v[3] = comb_buf[i - 1].v[3];
+                        }
                     case 0xE: //Constant
                         color_result[j].v[0] = GPUregs[regnumaddr + 3] & 0xFF;
                         color_result[j].v[1] = (GPUregs[regnumaddr + 3] >> 8) & 0xFF;
                         color_result[j].v[2] = (GPUregs[regnumaddr + 3] >> 0x10) & 0xFF;
+                        color_result[j].v[3] = (GPUregs[regnumaddr + 3] >> 24) & 0xFF;
                         break;
                     case 0xF://Previous
-                        memcpy(&color_result[j], &combiner_output, sizeof(struct clov3));
+                        memcpy(&color_result[j], &combiner_output, sizeof(struct clov4/*3*/));
                         break;
                     default:
                         DEBUG("Unknown color combiner source %d\n", (int)(GPUregs[regnumaddr] >> (j * 4)) & 0xF);
@@ -350,6 +472,8 @@ void rasterizer_ProcessTriangle(const struct OutputVertex *v0,
                     case 0://PrimaryColor:
                         alpha = primary_color.v[3];
                         break;
+                    //case 1://PrimaryFragmentColor:
+                    //case 2://SecondaryFragmentColor:
                     case 3://Texture0:
                         alpha = texture_color[0].v[3];
                         break;
@@ -359,6 +483,10 @@ void rasterizer_ProcessTriangle(const struct OutputVertex *v0,
                     case 5://Texture2:
                         alpha = texture_color[2].v[3];
                         break;
+                    //case 6://Texture 3 (proctex):
+                    case 0xD://PreviousBuffer:
+                        //prevent errors if the tevstages are bad
+                        if(i > 0) alpha = comb_buf[i - 1].v[3];
                     case 0xE://Constant:
                         alpha = (GPUregs[regnumaddr + 3] >> 0x18) & 0xFF;
                         break;

@@ -135,7 +135,15 @@ static void color_restore(int old)
 #define DEBUG(...)
 #endif
 
-#if 1
+#if 0
+#define GPUDEBUG(...) do {                                 \
+    DEBUG(__VA_ARGS__);                   \
+} while (0);
+#else
+#define GPUDEBUG(...)
+#endif
+
+#if 0
 #define LOG(...) do {                                 \
     int old = color_teal();                           \
     fprintf(stdout, __VA_ARGS__);                     \

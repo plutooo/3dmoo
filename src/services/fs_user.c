@@ -477,7 +477,8 @@ SERVICE_CMD(0x08630000)   // GetPriority
 {
     DEBUG("GetPriority\n");
 
-    RESP(1, priority);
+    RESP(1, 0);
+    RESP(2, priority);
     return 0;
 }
 
@@ -528,7 +529,7 @@ SERVICE_START(file);
 SERVICE_CMD(0x080200C2)   // Read
 {
     u32 rc, read;
-    u64 off = CMD(1) | ((u64) CMD(2)) << 32;
+    u64 off = CMD(1) | (((u64) CMD(2)) << 32);
     u32 sz  = CMD(3);
     u32 ptr = CMD(5);
 

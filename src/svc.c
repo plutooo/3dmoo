@@ -248,7 +248,7 @@ void svc_Execute(ARMul_State * state, u8 num)
         return;
     case 0x38:
         DEBUG("resourcelimit=%08x, handle=%08x\n", arm11_R(0), arm11_R(1));
-        DEBUG("STUBBED");
+        DEBUG("STUBBED\n");
         PAUSE();
         //arm11_SetR(0, 1);
         arm11_SetR(1, handle_New(0, 0)); // r1 = handle_out
@@ -259,7 +259,7 @@ void svc_Execute(ARMul_State * state, u8 num)
     case 0x3A:
         DEBUG("values_ptr=%08x, handleResourceLimit=%08x, names_ptr=%08x, nameCount=%d\n",
               arm11_R(0), arm11_R(1), arm11_R(2), arm11_R(3));
-        DEBUG("STUBBED");
+        DEBUG("STUBBED\n");
         PAUSE();
         //arm11_SetR(0, 1);
         mem_Write32(arm11_R(0), 0); //Set used memory to 0 for now

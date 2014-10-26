@@ -493,7 +493,7 @@ u32 srv_SyncRequest()
         return 0;
 
     case 0x20000:
-        DEBUG("srv_GetProcSemaphore");
+        DEBUG("srv_GetProcSemaphore\n");
 
         mem_Write32(arm11_ServiceBufferAddress() + 0x84, 0); //no error
         mem_Write32(arm11_ServiceBufferAddress() + 0x88, 0); //done in sm 4.4

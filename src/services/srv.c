@@ -72,6 +72,8 @@ u32 ssl_c_SyncRequest();
 u32 http_c_SyncRequest();
 u32 frd_a_SyncRequest();
 u32 soc_u_SyncRequest();
+u32 am_app_SyncRequest();
+u32 nim_aoc_SyncRequest();
 
 #ifndef _WIN32
 static size_t strnlen(const char* p, size_t n)
@@ -387,6 +389,18 @@ static struct {
         SERVICE_TYPE_soc_u,
         0,
         &soc_u_SyncRequest
+    },
+    {
+        "am:app",
+        SERVICE_TYPE_soc_u,
+        0,
+        &am_app_SyncRequest
+    },
+    {
+        "nim:aoc",
+        SERVICE_TYPE_nim_aoc,
+        0,
+        &nim_aoc_SyncRequest
     }
 };
 

@@ -324,6 +324,12 @@
     <ClCompile Include="..\src\fs\sysdatac.c">
       <Filter>Source Files\fs</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\services\am_app.c">
+      <Filter>Source Files\services</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\services\nim_aoc.c">
+      <Filter>Source Files\services</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\inc\handles.h">

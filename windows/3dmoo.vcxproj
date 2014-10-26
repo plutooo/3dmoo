@@ -189,6 +189,7 @@
     <ClCompile Include="..\src\polarssl\sha2.c" />
     <ClCompile Include="..\src\screen.c" />
     <ClCompile Include="..\src\services\aci.c" />
+    <ClCompile Include="..\src\services\am_app.c" />
     <ClCompile Include="..\src\services\am_sys.c" />
     <ClCompile Include="..\src\services\am_u.c" />
     <ClCompile Include="..\src\services\apt_s.c" />
@@ -220,6 +221,7 @@
     <ClCompile Include="..\src\services\mic_u.c" />
     <ClCompile Include="..\src\services\ndm_u.c" />
     <ClCompile Include="..\src\services\nims.c" />
+    <ClCompile Include="..\src\services\nim_aoc.c" />
     <ClCompile Include="..\src\services\ns_s.c" />
     <ClCompile Include="..\src\services\pdn_d.c" />
     <ClCompile Include="..\src\services\pdn_g.c" />

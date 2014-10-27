@@ -43,6 +43,8 @@ u32 GPUregs[0xFFFF];
 
 #define GSPsharebuffsize 0x1000 //dumped from GSP module in Firm 4.4
 
+#define TRIGGER_IRQ 0x10
+
 #define VIEWPORT_WIDTH 0x41
 #define VIEWPORT_HEIGHT 0x43
 #define VIEWPORT_HEIGHT 0x43

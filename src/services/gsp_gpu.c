@@ -64,7 +64,6 @@ void GPUTriggerCmdReqQueue()
                 sendGPUinterall(6);
                 break;
             case 1:
-                sendGPUinterall(5);//P3D
                 addr = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x4);
                 size = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x8);
                 flags = *(u32*)(baseaddr + (j + 1) * 0x20 + 0xC);
@@ -88,7 +87,6 @@ void GPUTriggerCmdReqQueue()
 
                 break;
             case 2: {
-                        sendGPUinterall(0);
                         u32 addr1, val1, addrend1, addr2, val2, addrend2, width;
                         addr1 = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x4);
                         val1 = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x8);
@@ -122,6 +120,7 @@ void GPUTriggerCmdReqQueue()
                                     VRAMbuff[m + k*size + addr2 - 0x1F000000] = (u8)(val2 >> (m * 8));
                             }
                         }
+                        sendGPUinterall(0);
                         break;
             }
             case 3: {
@@ -144,7 +143,6 @@ void GPUTriggerCmdReqQueue()
                         memcpy(get_pymembuffer(convertvirtualtopys(outputaddr)), get_pymembuffer(convertvirtualtopys(inpaddr)), sizeoutp);
                         updateFramebuffer();
 
-                        sendGPUinterall(1);
                         sendGPUinterall(4);
 
 
@@ -163,6 +161,7 @@ void GPUTriggerCmdReqQueue()
                         DEBUG("GX SetTextureCopy 0x%08X 0x%08X 0x%08X 0x%08X 0x%08X 0x%08X\r\n", inpaddr, outputaddr, size, inputdim, outputdim, flags);
 
                         updateFramebuffer();
+                        sendGPUinterall(1);
                         break;
             }
             case 5: {

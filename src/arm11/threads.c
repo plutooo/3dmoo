@@ -243,6 +243,8 @@ void threads_DoReschedule()
 #endif
 }
 
+unsigned long long last_one = 0;
+
 void threads_Execute()
 {
 
@@ -265,9 +267,10 @@ void threads_Execute()
     bool nothreadused = true;
     for (t = 0; t < threads_Count(); t++) {
 
-        s.NumInstrs += 11172; //should be less but we have to debug stuff and that makes if faster (normal ~1000)
+        signed long long diff = s.NumInstrs - last_one;
+        
 
-        for (; s.NumInstrs >(11172 * 16); s.NumInstrs -= (11172 * 16))
+        for (; diff >(11172 * 16); diff -= (11172 * 16))
         {
             sendGPUinterall(2);
             line++;
@@ -276,6 +279,8 @@ void threads_Execute()
                 line = 0;
             }
         }
+        last_one = s.NumInstrs - diff;//the cycels we have not used
+        last_one -= 11172; //should be less but we have to debug stuff and that makes if faster (normal ~1000)
         if (!threads_IsThreadActive(t)) {
             DEBUG("Skipping thread %d..\n", t);
             continue;

@@ -664,7 +664,7 @@ void writeGPUID(u16 ID, u8 mask, u32 size, u32* buffer)
                                bool is_indexed = (ID == TriggerDrawIndexed);
                                //const auto& index_info = registers.Get<Regs::IndexArrayConfig>();
                                u32 index_info_offset = GPUregs[IndexArrayConfig] & 0x7FFFFFFF;
-                               const u8* index_address_8 = (u8*)get_pymembuffer(base_address) + index_info_offset;
+                               const u8* index_address_8 = (u8*)get_pymembuffer(base_address + index_info_offset);
                                const u16* index_address_16 = (u16*)index_address_8;
                                bool index_u16 = (GPUregs[IndexArrayConfig] >> 31);
                                for (u32 index = 0; index < GPUregs[NumVertices]; index++)
@@ -789,6 +789,14 @@ void writeGPUID(u16 ID, u8 mask, u32 size, u32* buffer)
                 GPUregs[VSFloatUniformSetup]++;
             }
         }
+        break;
+    case TRIGGER_IRQ:
+        if (mask != 0xF && size != 0 && *buffer == 0x12345678)
+        {
+            DEBUG("abnormal TRIGGER_IRQ %0x1 %0x3 %08x\n", mask, size, *buffer);
+        }
+        sendGPUinterall(5);//P3D
+
         break;
     default:
         updateGPUintreg(*buffer, ID, mask);

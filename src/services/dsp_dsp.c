@@ -134,7 +134,7 @@ u32 dsp_dsp_SyncRequest()
 
         u32 initialSize = ReadPipeIfPossibleCount;
 
-        for (int i = 0; i < size; i += 2)
+        for (u32 i = 0; i < size; i += 2)
         {
             if (ReadPipeIfPossibleCount < 16)
             {

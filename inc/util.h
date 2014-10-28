@@ -144,6 +144,14 @@ static void color_restore(int old)
 #endif
 
 #if 0
+#define THREADDEBUG(...) do {                                 \
+    DEBUG(__VA_ARGS__);                   \
+} while (0);
+#else
+#define THREADDEBUG(...)
+#endif
+
+#if 0
 #define LOG(...) do {                                 \
     int old = color_teal();                           \
     fprintf(stdout, __VA_ARGS__);                     \

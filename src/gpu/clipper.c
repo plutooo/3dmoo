@@ -256,7 +256,7 @@ void Clipper_ProcessTriangle(struct OutputVertex *v0, struct OutputVertex *v1, s
             struct OutputVertex* vtx1 = &output_list[i + 1];
             struct OutputVertex* vtx2 = &output_list[i + 2];
             InitScreenCoordinates(vtx2);
-            DEBUG(
+            GPUDEBUG(
                 "Triangle %d/%d (%d buffer vertices) at position (%.3f, %.3f, %.3f, %.3f), "
                 "(%.3f, %.3f, %.3f, %.3f), (%.3f, %.3f, %.3f, %.3f) and "
                 "screen position (%.2f, %.2f, %.2f), (%.2f, %.2f, %.2f), (%.2f, %.2f, %.2f)\n",

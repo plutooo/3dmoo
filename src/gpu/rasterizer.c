@@ -187,7 +187,7 @@ static void GetColorModifier(u32 factor, struct clov4/*3*/ * values)
         values->v[2] = 255 - values->v[2];
         return;
     default:
-        DEBUG("Unknown color factor %d\n", (int)factor);
+        GPUDEBUG("Unknown color factor %d\n", (int)factor);
         return;
     }
 }
@@ -211,7 +211,7 @@ static u8 AlphaCombine(u32 op, struct clov3* input)
     case 9://Addition Multiply:
         return (input->v[0] + input->v[1]) * input->v[2] / 255;
     default:
-        DEBUG("Unknown alpha combiner operation %d\n", (int)op);
+        GPUDEBUG("Unknown alpha combiner operation %d\n", (int)op);
         return 0;
     }
 };
@@ -258,7 +258,7 @@ static void ColorCombine(u32 op, struct clov3 input[3])
         (input)[0].v[2] = ((input)[0].v[2] + (input)[1].v[2]) * (input)[2].v[2] / 255;
         return;
     default:
-        DEBUG("Unknown color combiner operation %d\n", (int)op);
+        GPUDEBUG("Unknown color combiner operation %d\n", (int)op);
     }
 }
 static u8 GetAlphaModifier(u32 factor, u8 value){
@@ -274,7 +274,7 @@ static u8 GetAlphaModifier(u32 factor, u8 value){
     //case 6://Blue:
     //case 7://OneMinusBlue:
     default:
-        DEBUG("Unknown alpha factor %d\n", (int)factor);
+        GPUDEBUG("Unknown alpha factor %d\n", (int)factor);
         return 0;
     }
 }
@@ -496,7 +496,7 @@ void rasterizer_ProcessTriangle(const struct OutputVertex *v0,
                         memcpy(&color_result[j], &combiner_output, sizeof(struct clov4/*3*/));
                         break;
                     default:
-                        DEBUG("Unknown color combiner source %d\n", (int)(GPUregs[regnumaddr] >> (j * 4)) & 0xF);
+                        GPUDEBUG("Unknown color combiner source %d\n", (int)(GPUregs[regnumaddr] >> (j * 4)) & 0xF);
                         break;
                     }
                 }
@@ -540,7 +540,7 @@ void rasterizer_ProcessTriangle(const struct OutputVertex *v0,
                         alpha = combiner_output.v[3];
                         break;
                     default:
-                        DEBUG("Unknown alpha combiner source %d\n", (int)((GPUregs[regnumaddr] >> (16 + j * 4))) & 0xF);
+                        GPUDEBUG("Unknown alpha combiner source %d\n", (int)((GPUregs[regnumaddr] >> (16 + j * 4))) & 0xF);
                         break;
                     }
                     alpha_result.v[j] = GetAlphaModifier((GPUregs[regnumaddr + 1] >> (12 + 3 * j)) & 0x7, alpha);

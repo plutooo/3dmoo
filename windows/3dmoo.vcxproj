@@ -235,6 +235,7 @@
     <ClCompile Include="..\src\services\soc_u.c" />
     <ClCompile Include="..\src\services\srv.c" />
     <ClCompile Include="..\src\services\ssl_c.c" />
+    <ClCompile Include="..\src\services\y2r_u.c" />
     <ClCompile Include="..\src\svc.c" />
     <ClCompile Include="..\src\syscalls\arb.c" />
     <ClCompile Include="..\src\syscalls\events.c" />

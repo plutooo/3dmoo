@@ -71,14 +71,14 @@ u32 convertvirtualtopys(u32 addr) //todo
 {
     if (addr >= 0x14000000 && addr < 0x1C000000)return addr + 0xC000000; //FCRAM
     if (addr >= 0x1F000000 && addr < 0x1F600000)return addr - 0x7000000; //VRAM
-    DEBUG("can't convert vitual to py %08x\n",addr);
+    GPUDEBUG("can't convert vitual to py %08x\n",addr);
     return 0;
 }
 void GPUwritereg32(u32 addr, u32 data) //1eb00000 + addr
 {
-    DEBUG("GPU write %08x to %08x\n",data,addr);
+    GPUDEBUG("GPU write %08x to %08x\n",data,addr);
     if (addr >= 0x420000) {
-        DEBUG("write out of range write\r\n");
+        GPUDEBUG("write out of range write\r\n");
         return;
     }
     *(uint32_t*)(&IObuffer[addr]) = data;
@@ -89,9 +89,9 @@ void GPUwritereg32(u32 addr, u32 data) //1eb00000 + addr
 }
 u32 GPUreadreg32(u32 addr)
 {
-    //DEBUG("GPU read %08x\n", addr);
+    //GPUDEBUG("GPU read %08x\n", addr);
     if (addr >= 0x420000) {
-        DEBUG("read out of range write\r\n");
+        GPUDEBUG("read out of range write\r\n");
         return 0;
     }
     return *(uint32_t*)(&IObuffer[addr]);
@@ -102,7 +102,7 @@ u32 getsizeofwight(u16 val) //this is the size of pixel
     case 0x0201:
         return 3;
     default:
-        DEBUG("unknown len %04x\n",val);
+        GPUDEBUG("unknown len %04x\n",val);
         return 3;
     }
 }
@@ -120,7 +120,7 @@ u32 getsizeofframebuffer(u32 val)
     case 0x0201:
         return 3;
     default:
-        DEBUG("unknown len %08x\n", val);
+        GPUDEBUG("unknown len %08x\n", val);
         return 3;
     }
 }
@@ -243,7 +243,7 @@ void PrimitiveAssembly_SubmitVertex(struct OutputVertex* vtx)
             }
             break;
     default:
-        DEBUG("Unknown triangle mode %x\n", (int)topology);
+        GPUDEBUG("Unknown triangle mode %x\n", (int)topology);
         break;
     }
 }
@@ -350,7 +350,7 @@ void ProcessShaderCode(struct VertexShaderState* state) {
         case SHDR_ADD:
         {
 #ifdef printfunc
-                         DEBUG("ADD %02X %02X %02X %08x\n", instr_common_destv, instr_common_src1v, instr_common_src2v, swizzle);
+                         GPUDEBUG("ADD %02X %02X %02X %08x\n", instr_common_destv, instr_common_src1v, instr_common_src2v, swizzle);
 #endif
                                          for (int i = 0; i < 4; ++i) {
                                              if (!swizzle_DestComponentEnabled(i, swizzle))
@@ -365,7 +365,7 @@ void ProcessShaderCode(struct VertexShaderState* state) {
         case SHDR_MUL:
         {
 #ifdef printfunc
-                         DEBUG("MUL %02X %02X %02X %08x\n", instr_common_destv, instr_common_src1v, instr_common_src2v, swizzle);
+                         GPUDEBUG("MUL %02X %02X %02X %08x\n", instr_common_destv, instr_common_src1v, instr_common_src2v, swizzle);
 #endif
                                          for (int i = 0; i < 4; ++i) {
                                              if (!swizzle_DestComponentEnabled(i, swizzle))
@@ -381,7 +381,7 @@ void ProcessShaderCode(struct VertexShaderState* state) {
         case SHDR_DP4:
         {
 #ifdef printfunc
-                         DEBUG("DP3/4 %02X %02X %02X %08x\n", instr_common_destv, instr_common_src1v, instr_common_src2v, swizzle);
+                         GPUDEBUG("DP3/4 %02X %02X %02X %08x\n", instr_common_destv, instr_common_src1v, instr_common_src2v, swizzle);
 #endif
                                          float dot = (0.f);
                                          int num_components = (instr_opcode(instr) == SHDR_DP3) ? 3 : 4;
@@ -401,7 +401,7 @@ void ProcessShaderCode(struct VertexShaderState* state) {
         case SHDR_RCP:
         {
 #ifdef printfunc
-                         DEBUG("RCP %02X %02X %08x\n", instr_common_destv, instr_common_src1v, swizzle);
+                         GPUDEBUG("RCP %02X %02X %08x\n", instr_common_destv, instr_common_src1v, swizzle);
 #endif
                                          for (int i = 0; i < 4; ++i) {
                                              if (!swizzle_DestComponentEnabled(i, swizzle))
@@ -419,7 +419,7 @@ void ProcessShaderCode(struct VertexShaderState* state) {
         case SHDR_RSQ:
         {
 #ifdef printfunc
-                         DEBUG("RSQ %02X %02X %08x\n", instr_common_destv, instr_common_src1v, swizzle);
+                         GPUDEBUG("RSQ %02X %02X %08x\n", instr_common_destv, instr_common_src1v, swizzle);
 #endif     
                                          for (int i = 0; i < 4; ++i) {
                                              if (!swizzle_DestComponentEnabled(i, swizzle))
@@ -436,7 +436,7 @@ void ProcessShaderCode(struct VertexShaderState* state) {
         case SHDR_MOV:
         {
 #ifdef printfunc
-                         DEBUG("MOV %02X %02X %08x\n", instr_common_destv, instr_common_src1v, swizzle);
+                         GPUDEBUG("MOV %02X %02X %08x\n", instr_common_destv, instr_common_src1v, swizzle);
 #endif   
                                          for (int i = 0; i < 4; ++i) {
                                              if (!swizzle_DestComponentEnabled(i, swizzle))
@@ -449,7 +449,7 @@ void ProcessShaderCode(struct VertexShaderState* state) {
 
         case SHDR_RET:
 #ifdef printfunc
-            DEBUG("RET\n");
+            GPUDEBUG("RET\n");
 #endif
             *state->call_stack_pointer = VertexShaderState_INVALID_ADDRESS;
             state->call_stack_pointer--;
@@ -464,7 +464,7 @@ void ProcessShaderCode(struct VertexShaderState* state) {
 
         case SHDR_CALL:
 #ifdef printfunc
-            DEBUG("CALL %08x\n",instr_flow_control_offset_words(instr));
+            GPUDEBUG("CALL %08x\n",instr_flow_control_offset_words(instr));
 #endif   
             increment_pc = false;
 
@@ -478,13 +478,13 @@ void ProcessShaderCode(struct VertexShaderState* state) {
 
         case SHDR_FLS:
 #ifdef printfunc
-            DEBUG("FLS\n");
+            GPUDEBUG("FLS\n");
 #endif   
             // TODO: Do whatever needs to be done here?
             break;
 
         default:
-            DEBUG("Unhandled instruction: 0x%08x\n",instr);
+            GPUDEBUG("Unhandled instruction: 0x%08x\n",instr);
             break;
         }
 
@@ -559,7 +559,7 @@ void RunShader(struct vec4 input[17], int num_attributes, struct OutputVertex *r
 
     ProcessShaderCode(&state);
 
-    DEBUG("Output vertex: pos (%.2f, %.2f, %.2f, %.2f), col(%.2f, %.2f, %.2f, %.2f), tc0(%.2f, %.2f)\n",
+    GPUDEBUG("Output vertex: pos (%.2f, %.2f, %.2f, %.2f), col(%.2f, %.2f, %.2f, %.2f), tc0(%.2f, %.2f)\n",
         ret->pos.v[0], ret->pos.v[1], ret->pos.v[2], ret->pos.v[3],
         ret->color.v[0], ret->color.v[1], ret->color.v[2], ret->color.v[3],
         ret->tc0.v[0], ret->tc0.v[1]);
@@ -686,7 +686,7 @@ void writeGPUID(u16 ID, u8 mask, u32 size, u32* buffer)
                                                (vertex_attribute_formats[i] == 2) ? *(s16*)srcdata :
                                                *(float*)srcdata;
                                            input[i].v[comp] = srcval;
-                                           DEBUG("Loaded component %x of attribute %x for vertex %x (index %x) from 0x%08x + 0x%08lx + 0x%04lx: %f\n",
+                                           GPUDEBUG("Loaded component %x of attribute %x for vertex %x (index %x) from 0x%08x + 0x%08lx + 0x%04lx: %f\n",
                                                comp, i, vertex, index,
                                                base_address,
                                                vertex_attribute_sources[i] - (u8*)get_pymembuffer(base_address),
@@ -721,7 +721,7 @@ void writeGPUID(u16 ID, u8 mask, u32 size, u32* buffer)
     case VSLoadProgramData + 7:
         if (mask != 0xF)
         {
-            DEBUG("abnormal VSLoadProgramData %0x1 %0x3\n", mask, size);
+            GPUDEBUG("abnormal VSLoadProgramData %0x1 %0x3\n", mask, size);
         }
         for (i = 0; i < size; i++)
             GPUshadercodebuffer[GPUregs[VSBeginLoadProgramData]++] = *(buffer + i);
@@ -737,7 +737,7 @@ void writeGPUID(u16 ID, u8 mask, u32 size, u32* buffer)
     case VSLoadSwizzleData + 7:
         if (mask != 0xF)
         {
-            DEBUG("abnormal VSLoadSwizzleData %0x1 %0x3\n", mask, size);
+            GPUDEBUG("abnormal VSLoadSwizzleData %0x1 %0x3\n", mask, size);
         }
         for (i = 0; i < size; i++)
             swizzle_data[GPUregs[VSBeginLoadSwizzleData]++] = *(buffer + i);
@@ -764,7 +764,7 @@ void writeGPUID(u16 ID, u8 mask, u32 size, u32* buffer)
                 VSFloatUniformSetuptembuffercurrent = 0;
                 u8 index = GPUregs[VSFloatUniformSetup] & 0x7F;
                 if (index > 95) {
-                    DEBUG("Invalid VS uniform index %02x\n", index);
+                    GPUDEBUG("Invalid VS uniform index %02x\n", index);
                     break;
                 }
                 // NOTE: The destination component order indeed is "backwards"
@@ -782,7 +782,7 @@ void writeGPUID(u16 ID, u8 mask, u32 size, u32* buffer)
 
                 }
 
-                DEBUG("Set uniform %02x to (%f %f %f %f)\n", index,
+                GPUDEBUG("Set uniform %02x to (%f %f %f %f)\n", index,
                     vectors[index].v[0], vectors[index].v[1], vectors[index].v[2],
                     vectors[index].v[3]);
                 // TODO: Verify that this actually modifies the register!
@@ -793,7 +793,7 @@ void writeGPUID(u16 ID, u8 mask, u32 size, u32* buffer)
     case TRIGGER_IRQ:
         if (mask != 0xF && size != 0 && *buffer == 0x12345678)
         {
-            DEBUG("abnormal TRIGGER_IRQ %0x1 %0x3 %08x\n", mask, size, *buffer);
+            GPUDEBUG("abnormal TRIGGER_IRQ %0x1 %0x3 %08x\n", mask, size, *buffer);
         }
         sendGPUinterall(5);//P3D
 
@@ -818,14 +818,14 @@ void runGPU_Commands(u8* buffer, u32 sizea)
         u32 datafild[0x800]; //maximal size
         datafild[0] = dataone;
 #ifdef logGSPparser
-        DEBUG("cmd %04x mask %01x size %03x (%08x) %s \n", ID, mask, size, dataone, grouping ? "grouping" : "")
+        GPUDEBUG("cmd %04x mask %01x size %03x (%08x) %s \n", ID, mask, size, dataone, grouping ? "grouping" : "")
 #endif
         int j;
         for (j = 0; j < size; j++)
         {
             datafild[1 + j] = *(u32*)(buffer + 8 + i);
 #ifdef logGSPparser
-            DEBUG("data %08x\n", datafild[1 + j]);
+            GPUDEBUG("data %08x\n", datafild[1 + j]);
 #endif
             i += 4;
         }
@@ -833,14 +833,14 @@ void runGPU_Commands(u8* buffer, u32 sizea)
         {
             u32 data = *(u32*)(buffer + 8 + i);
 #ifdef logGSPparser
-            DEBUG("padding data %08x\n", data);
+            GPUDEBUG("padding data %08x\n", data);
 #endif
             i += 4;
         }
         if (mask != 0)
         {
             if (size > 0 && mask != 0xF)
-                DEBUG("masked data? cmd %04x mask %01x size %03x (%08x) %s \n", ID, mask, size, dataone, grouping ? "grouping" : "");
+                GPUDEBUG("masked data? cmd %04x mask %01x size %03x (%08x) %s \n", ID, mask, size, dataone, grouping ? "grouping" : "");
             if (grouping)
             {
                 for (j = 0; j <= size; j++)writeGPUID(ID + j, mask, 1, &datafild[j]);
@@ -852,7 +852,7 @@ void runGPU_Commands(u8* buffer, u32 sizea)
         }
         else
         {
-            DEBUG("masked out data is ignored cmd %04x mask %01x size %03x (%08x) %s \n", ID, mask, size, dataone, grouping ? "grouping" : "");
+            GPUDEBUG("masked out data is ignored cmd %04x mask %01x size %03x (%08x) %s \n", ID, mask, size, dataone, grouping ? "grouping" : "");
         }
 
     }

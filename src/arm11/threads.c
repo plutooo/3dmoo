@@ -105,11 +105,11 @@ bool threads_IsThreadActive(u32 id)
         return false;
 
     case WAITING_ARB:
-        DEBUG("Thread is %d is stuck in arbitration.\n", id);
+        THREADDEBUG("Thread is %d is stuck in arbitration.\n", id);
         return false;
 
     case WAITING_SYNC:
-        DEBUG("Wait-list for thread %d:\n", id);
+        THREADDEBUG("Wait-list for thread %d:\n", id);
 
         if(threads[id].wait_all) {
             ret = true;
@@ -124,7 +124,7 @@ bool threads_IsThreadActive(u32 id)
                 bool is_waiting = false;
                 handle_types[hi->type].fnWaitSynchronization(hi, &is_waiting);
 
-                DEBUG("    %08x, type=%s, waiting=%s\n", handle, handle_types[hi->type].name,
+                THREADDEBUG("    %08x, type=%s, waiting=%s\n", handle, handle_types[hi->type].name,
                       is_waiting ? "true" : "false");
 
                 if(is_waiting)
@@ -149,7 +149,7 @@ bool threads_IsThreadActive(u32 id)
                 bool is_waiting = false;
                 handle_types[hi->type].fnWaitSynchronization(hi, &is_waiting);
 
-                DEBUG("    %08x, type=%s, waiting=%s\n", handle, handle_types[hi->type].name,
+                THREADDEBUG("    %08x, type=%s, waiting=%s\n", handle, handle_types[hi->type].name,
                       is_waiting ? "true" : "false");
 
                 if(!ret && !is_waiting) {
@@ -194,7 +194,7 @@ void threads_Switch(/*u32 from,*/ u32 to)
     u32 from = current_thread;
 
     if (from == to) {
-        DEBUG("Trying to switch to current thread..\n");
+        THREADDEBUG("Trying to switch to current thread..\n");
         return;
     }
 
@@ -205,7 +205,7 @@ void threads_Switch(/*u32 from,*/ u32 to)
     }
 
     if (current_thread != -1) {
-        DEBUG("Thread switch %d->%d (%08X->%08X)\n", from, to, threads[from].handle, threads[to].handle);
+        THREADDEBUG("Thread switch %d->%d (%08X->%08X)\n", from, to, threads[from].handle, threads[to].handle);
         arm11_SaveContext(&threads[from]);
     }
 
@@ -229,7 +229,7 @@ void threads_DoReschedule()
         if (t == current_thread) continue;
 
         if (!threads_IsThreadActive(t)) {
-            DEBUG("Skipping thread %d..\n", t);
+            THREADDEBUG("Skipping thread %d..\n", t);
             continue;
         }
 
@@ -282,7 +282,7 @@ void threads_Execute()
         last_one = s.NumInstrs - diff;//the cycels we have not used
         last_one -= 11172; //should be less but we have to debug stuff and that makes if faster (normal ~1000)
         if (!threads_IsThreadActive(t)) {
-            DEBUG("Skipping thread %d..\n", t);
+            THREADDEBUG("Skipping thread %d..\n", t);
             continue;
         }
         nothreadused = false;
@@ -440,7 +440,7 @@ u32 svcGetThreadPriority()
     u32 threadid = threads_FindIdByHandle(hand);
 
     if (threadid != -1) {
-        DEBUG("Thread Priority : %d\n", threads[threadid].priority);
+        THREADDEBUG("Thread Priority : %d\n", threads[threadid].priority);
         prio = threads[threadid].priority;
     }
 
@@ -457,7 +457,7 @@ u32 svcSetThreadPriority()
     u32 threadid = threads_FindIdByHandle(hand);
 
     if (threadid != -1) {
-        DEBUG("Thread Priority : %d -> %d\n", threads[threadid].priority, prio);
+        THREADDEBUG("Thread Priority : %d -> %d\n", threads[threadid].priority, prio);
         threads[threadid].priority = prio;
     }
 
@@ -471,7 +471,7 @@ u32 svcGetThreadId()
     if (handle == 0xffff8000)
         return THREAD_ID_OFFSET + current_thread;
     else {
-        DEBUG("svcGetThreadId not supported\n");
+        THREADDEBUG("svcGetThreadId not supported\n");
         return 0;
     }
 }
@@ -484,7 +484,7 @@ u32 svcCreateThread()
     u32 ent_sp = arm11_R(3);
     u32 cpu  = arm11_R(4);
 
-    DEBUG("entrypoint=%08x, r0=%08x, sp=%08x, prio=%x, cpu=%x\n",
+    THREADDEBUG("entrypoint=%08x, r0=%08x, sp=%08x, prio=%x, cpu=%x\n",
           ent_pc, ent_r0, ent_sp, prio, cpu);
 
     u32 hand = handle_New(HANDLE_TYPE_THREAD, 0);
@@ -541,7 +541,7 @@ u32 thread_SyncRequest(handleinfo* h, bool *locked)
 
 u32 thread_WaitSynchronization(handleinfo* h, bool *locked)
 {
-    DEBUG("waiting for thread to unlock..\n");
+    GPUDEBUG("waiting for thread to unlock..\n");
     PAUSE();
 
     *locked = h->locked;

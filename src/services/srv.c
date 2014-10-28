@@ -712,11 +712,11 @@ u32 svcReplyAndReceive()
     default:
         RESP(0, 0x000C0000);
         break;
-    }
+    }*/
 
     //feed end
 
-    times++;*/
+    times++;
 
     arm11_SetR(1, 0);
     return 1;

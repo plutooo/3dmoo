@@ -98,22 +98,22 @@ u32 GPUreadreg32(u32 addr)
 }
 u32 getsizeofwight(u16 val) //this is the size of pixel
 {
-    switch (val) {
-    case 0x0201:
+    switch (val&0x7000) { //check this
+    case 0x0000: //RGBA8
+        return 4;
+    case 0x1000: //RGB8
         return 3;
+    case 0x2000: //RGB565
+        return 2;
+    case 0x3000://RGB5A1
+        return 2;
+    case 0x4000://RGBA4
+        return 2;
     default:
         DEBUG("unknown len %04x\n",val);
-        return 3;
+        return 2;
     }
 }
-u32 getsizeofwight32(u32 val)
-{
-    switch (val) {
-    default:
-        return (val & 0xFFFF) * ((val>>16) & 0xFFFF) * 3/ 2;
-    }
-}
-
 u32 getsizeofframebuffer(u32 val)
 {
     switch (val) {

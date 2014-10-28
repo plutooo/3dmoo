@@ -103,8 +103,8 @@ void GPUTriggerCmdReqQueue()
                             u32 size = getsizeofwight(width & 0xFFFF);
                             u32 k;
                             for (k = 0; k*size + addr1 < addrend1; k++) {
-                                u32 m;
-                                for (m = 0; m<size; m++)
+                                s32 m;
+                                for (m = size - 1; m >= 0; m--)
                                     VRAMbuff[m + k*size + addr1 - 0x1F000000] = (u8)(val1 >> (m * 8));
                             }
                         }
@@ -115,15 +115,18 @@ void GPUTriggerCmdReqQueue()
                             u32 size = getsizeofwight((width >> 16) & 0xFFFF);
                             u32 k;
                             for (k = 0; k*size + addr2 < addrend2; k++) {
-                                u32 m;
-                                for (m = 0; m < size; m++)
+                                s32 m;
+                                for (m = size - 1; m >= 0; m--)
                                     VRAMbuff[m + k*size + addr2 - 0x1F000000] = (u8)(val2 >> (m * 8));
                             }
                         }
                         sendGPUinterall(0);
                         break;
             }
-            case 3: {
+            case 3: 
+            
+theother:
+            {
 
 
 
@@ -138,12 +141,139 @@ void GPUTriggerCmdReqQueue()
                         if (inputdim != outputdim) {
                             DEBUG("error converting from %08x to %08x", inputdim, outputdim);
                         }
-                        u32 sizeoutp = getsizeofwight32(inputdim);
+                        
+                        u8 * inaddr = get_pymembuffer(convertvirtualtopys(inpaddr));
+                        u8 * outaddr = get_pymembuffer(convertvirtualtopys(outputaddr));
 
-                        memcpy(get_pymembuffer(convertvirtualtopys(outputaddr)), get_pymembuffer(convertvirtualtopys(inpaddr)), sizeoutp);
+                        u32 rely = (inputdim & 0xFFFF);
+                        u32 relx = (inputdim >> 0x10) & 0xFFFF;
+
+                        for (u32 y = 0; y < rely; ++y) {
+                            for (u32 x = 0; x < relx; ++x) {
+                                u8 a = 0xFF;
+                                u8 r = 0xFF;
+                                u8 g = 0xFF;
+                                u8 b = 0xFF;
+                                switch (flags & 0x700)//input format
+                                {
+
+                                case 0: //RGBA8
+
+                                    r = *inaddr;
+                                    inaddr++;
+                                    g = *inaddr;
+                                    inaddr++;
+                                    b = *inaddr;
+                                    inaddr++;
+                                    a = *inaddr;
+                                    inaddr++;
+                                    break;
+                                case 0x100: //RGB8
+                                    r = *inaddr;
+                                    inaddr++;
+                                    g = *inaddr;
+                                    inaddr++;
+                                    b = *inaddr;
+                                    inaddr++;
+                                    a = 0xFF;
+                                    break;
+                                case 0x200: //RGB565
+                                {
+                                            u8 reg1 = *inaddr;
+                                            inaddr++;
+                                            u8 reg2 = *inaddr;
+                                            r = (reg1&0x1F)<<3;
+                                            g = (((reg1 & 0xE0) >> 5) + (reg2 & 0x7) << 3) << 2;
+                                            b = ((reg2 & 0xF8) >> 3) << 3;
+                                            a = 0xFF;
+                                }
+                                    break;
+                                case 0x300: //RGB5A1
+                                {
+                                                u8 reg1 = *inaddr;
+                                                inaddr++;
+                                                u8 reg2 = *inaddr;
+                                                r = (reg1 & 0x1F) << 3;
+                                                g = (((reg1 & 0xE0) >> 5) + (reg2 & 0x3) << 3) << 3;
+                                                b = ((reg2 & 0x7C) >> 3) << 3;
+                                                if (reg2)a = 0xFF;
+                                }
+                                    break;
+                                case 0x400: //RGBA4
+                                {
+                                                u8 reg1 = *inaddr;
+                                                inaddr++;
+                                                u8 reg2 = *inaddr;
+                                                inaddr++;
+                                                r = (reg1 & 0xF) << 4;
+                                                g = reg1 & 0xF0;
+                                                b = (reg2 & 0xF) << 4;
+                                                a = reg2 & 0xF0;
+                                                break;
+                                }
+                                default:
+                                    DEBUG("error unknow input format\n");
+                                    break;
+                                }
+                                //write it back
+
+                                switch (flags & 0x7000)//input format
+                                {
+
+                                case 0: //RGBA8
+
+                                    *outaddr = r;
+                                    outaddr++;
+                                    *outaddr = g;
+                                    outaddr++;
+                                    *outaddr = b;
+                                    outaddr++;
+                                    *outaddr = a;
+                                    outaddr++;
+                                    break;
+                                case 0x1000: //RGB8
+
+                                    *outaddr = r;
+                                    outaddr++;
+                                    *outaddr = g;
+                                    outaddr++;
+                                    *outaddr = b;
+                                    outaddr++;
+                                    break;
+                                case 0x2000: //RGB565
+                                {
+                                                 DEBUG("error unknow output format\n");
+                                }
+                                    break;
+                                case 0x3000: //RGB5A1
+                                    *outaddr = (r >> 3) | (((g >> 3) << 5) & 0xE0);
+                                    outaddr++;
+                                    *outaddr = (u8)((b >> 3) << 3) | ((g >> 3) & 0x7);
+                                    if (a) *outaddr |= 0x80;
+                                    break;
+                                case 0x4000: //RGBA4
+                                    *outaddr = (r >> 4) | (g & 0xF0);
+                                    outaddr++;
+                                    *outaddr = (b >> 4) | (a & 0xF0);
+                                    break;
+                                default:
+                                    DEBUG("error unknow output format\n");
+                                    break;
+                                }
+
+                           } 
+                       }
+
+
+
+
+
+
+                        //memcpy(get_pymembuffer(convertvirtualtopys(outputaddr)), get_pymembuffer(convertvirtualtopys(inpaddr)), sizeoutp);
                         updateFramebuffer();
 
-                        sendGPUinterall(4);
+                        sendGPUinterall(1);
+                        sendGPUinterall(4); //this is wrong
 
 
                         //mem_Dbugdump();
@@ -158,10 +288,10 @@ void GPUTriggerCmdReqQueue()
                         inputdim = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x10);
                         outputdim = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x14);
                         flags = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x18);
-                        DEBUG("GX SetTextureCopy 0x%08X 0x%08X 0x%08X 0x%08X 0x%08X 0x%08X\r\n", inpaddr, outputaddr, size, inputdim, outputdim, flags);
+                        DEBUG("GX SetTextureCopy 0x%08X 0x%08X 0x%08X 0x%08X 0x%08X 0x%08X --todo--\r\n", inpaddr, outputaddr, size, inputdim, outputdim, flags);
 
                         updateFramebuffer();
-                        sendGPUinterall(1);
+                        //goto theother; //untill I know what is the differnece
                         break;
             }
             case 5: {

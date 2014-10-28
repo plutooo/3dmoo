@@ -68,6 +68,8 @@ u32 GPUregs[0xFFFF];
 #define GLTEXENV 0xC0
 // untill 0x100 with a jump at 0xE0- 0xF0
 
+#define BUFFERFORMAT 0x117
+
 #define DEPTHBUFFER_ADDRESS 0x11C
 #define COLORBUFFER_ADDRESS 0x11D
 
@@ -132,7 +134,6 @@ u32 get_py_memrestsize(u32 addr);
 void sendGPUinterall(u32 ID);
 void runGPU_Commands(u8* buffer, u32 size);
 u32 getsizeofwight(u16 val);
-u32 getsizeofwight32(u32 val);
 u32 convertvirtualtopys(u32 addr);
 void updateFramebuffer();
 

@@ -76,10 +76,56 @@ static void SetDepth(int x, int y, u16 value) {
 static void DrawPixel(int x, int y, const struct clov4* color) {
     u8* color_buffer = (u8*)get_pymembuffer(GPUregs[COLORBUFFER_ADDRESS] << 3);
 
+    u8* outaddr;
     // Assuming RGB8 format until actual framebuffer format handling is implemented
-    *(color_buffer + x * 3 + y * (GPUregs[Framebuffer_FORMAT11E] & 0xFFF) /2 * 3) = color->v[0];
-    *(color_buffer + x * 3 + y * (GPUregs[Framebuffer_FORMAT11E] & 0xFFF) / 2 * 3 + 1) = color->v[1];
-    *(color_buffer + x * 3 + y * (GPUregs[Framebuffer_FORMAT11E] & 0xFFF) / 2 * 3 + 2) = color->v[2];
+    switch (GPUregs[BUFFERFORMAT] & 0x7000)//input format
+    {
+
+    case 0: //RGBA8
+        outaddr = color_buffer + x * 4 + y * (GPUregs[Framebuffer_FORMAT11E] & 0xFFF)/2* 4; //check if that is correct
+        *outaddr = color->v[0];
+        outaddr++;
+        *outaddr = color->v[1];
+        outaddr++;
+        *outaddr = color->v[2];
+        outaddr++;
+        *outaddr = color->v[3];
+        outaddr++;
+        break;
+    case 0x1000: //RGB8
+
+        outaddr = color_buffer + x * 3 + y * (GPUregs[Framebuffer_FORMAT11E] & 0xFFF) / 2 * 3; //check if that is correct
+
+        *outaddr = color->v[0];
+        outaddr++;
+        *outaddr = color->v[1];
+        outaddr++;
+        *outaddr = color->v[2];
+        outaddr++;
+        break;
+    case 0x2000: //RGB565
+    {
+                     DEBUG("error unknow output format\n");
+    }
+        break;
+    case 0x3000: //RGB5A1
+        outaddr = color_buffer + x * 2 + y * (GPUregs[Framebuffer_FORMAT11E] & 0xFFF) / 2 * 2; //check if that is correct
+        *outaddr = (color->v[0] >> 3) | (((color->v[1] >> 3) << 5) & 0xE0);
+        outaddr++;
+        *outaddr = (u8)((color->v[2] >> 3) << 3) | ((color->v[1] >> 3) & 0x7);
+        if (color->v[3]) *outaddr |= 0x80;
+        break;
+    case 0x4000: //RGBA4
+        outaddr = color_buffer + x * 2 + y * (GPUregs[Framebuffer_FORMAT11E] & 0xFFF) / 2 * 2; //check if that is correct
+        *outaddr = (color->v[0] >> 4) | (color->v[1] & 0xF0);
+        outaddr++;
+        *outaddr = (color->v[2] >> 4) | (color->v[3] & 0xF0);
+        break;
+    default:
+        DEBUG("error unknow output format\n");
+        break;
+    }
+
 }
 static float GetInterpolatedAttribute(float attr0, float attr1, float attr2, const struct OutputVertex *v0, const struct OutputVertex * v1, const struct OutputVertex * v2,float w0,float w1, float w2)
 {

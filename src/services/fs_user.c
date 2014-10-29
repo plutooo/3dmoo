@@ -507,6 +507,58 @@ SERVICE_CMD(0x080E0080)   // CloseArchive
     return 0;
 }
 
+SERVICE_CMD(0x08170000)   // IsSdmcDetected
+{
+    DEBUG("IsSdmcDetected\n");
+
+    RESP(1, 0);
+    if (config_has_sdmc)
+        RESP(2, 1); //true
+    else 
+        RESP(2, 0); //false
+    return 0;
+}
+
+SERVICE_CMD(0x08180000)   //IsSdmcWritable
+{
+    DEBUG("IsSdmcWritable\n");
+
+    RESP(1, 0);
+    if (config_sdmcwriteable)
+        RESP(2, 1); //true
+    else
+        RESP(2, 0); //false
+    return 0;
+}
+
+SERVICE_CMD(0x08210000)   // CardSlotIsInserted
+{
+    DEBUG("CardSlotIsInserted\n");
+
+    RESP(1, 0);
+    if (config_slotone)
+        RESP(2, 1); //true
+    else
+        RESP(2, 0); //false
+    return 0;
+}
+
+SERVICE_CMD(0x08330082)   // EnumerateExtSaveData
+{
+    DEBUG("EnumerateExtSaveData -- TODO --\n");
+
+    RESP(1, 0); // Result
+    return 0;
+}
+
+SERVICE_CMD(0x08490040)   // GetArchiveResource
+{
+    DEBUG("GetArchiveResource -- TODO --\n");
+
+    RESP(1, -1); // Result
+    return 0;
+}
+
 SERVICE_CMD(0x08610042)   // InitializeWithSdkVersion
 {
     DEBUG("InitializeWithSdkVersion -- TODO --\n");
@@ -530,41 +582,6 @@ SERVICE_CMD(0x08630000)   // GetPriority
 
     RESP(1, 0);
     RESP(2, priority);
-    return 0;
-}
-
-SERVICE_CMD(0x08170000)   // IsSdmcDetected
-{
-    DEBUG("IsSdmcDetected\n");
-
-    RESP(1, 0);
-    if (config_has_sdmc)
-        RESP(2, 1); //true
-    else 
-        RESP(2, 0); //false
-    return 0;
-}
-
-SERVICE_CMD(0x08210000)   // CardSlotIsInserted
-{
-    DEBUG("CardSlotIsInserted\n");
-
-    RESP(1, 0);
-    if (config_slotone)
-        RESP(2, 1); //true
-    else
-        RESP(2, 0); //false
-    return 0;
-}
-SERVICE_CMD(0x08180000)   //IsSdmcWritable
-{
-    DEBUG("IsSdmcWritable\n");
-
-    RESP(1, 0);
-    if (config_sdmcwriteable)
-        RESP(2, 1); //true
-    else
-        RESP(2, 0); //false
     return 0;
 }
 
@@ -717,4 +734,19 @@ SERVICE_CMD(0x08010042)   // Read
     RESP(2, count_read); // count
     return 0;
 }
+
+SERVICE_CMD(0x08020000)   // Close
+{
+    u32 rc = 0;
+    file_type* type = (file_type*)h->subtype;
+
+    DEBUG("Close\n");
+
+    //if (type->fnDirClose != NULL)
+    //    rc = type->fnDirClose(type);
+
+    RESP(1, rc);
+    return 0;
+}
+
 SERVICE_END();

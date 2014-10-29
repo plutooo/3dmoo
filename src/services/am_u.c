@@ -39,5 +39,11 @@ SERVICE_CMD(0x00090082)   // GetTitleIDList3
     RESP(1, 0);
     return 0;
 }
+SERVICE_CMD(0x00130040)   // ??
+{
+    DEBUG("??_00130040 - STUBBED -\n");
+    RESP(1, 0);
+    return 0;
+}
 
 SERVICE_END();

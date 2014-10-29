@@ -273,7 +273,7 @@ static void sdmc_Deinitialize(archive* self)
     // Free yourself
     free(self);
 }
-u32 fnReadDir(dir_type* self, u32 ptr, u32 entrycount, u32* read_out)
+u32 sdmc_fnReadDir(dir_type* self, u32 ptr, u32 entrycount, u32* read_out)
 {
     int current = 0;
     while (current < entrycount) //the first entry is ignored
@@ -384,7 +384,7 @@ u32 fnReadDir(dir_type* self, u32 ptr, u32 entrycount, u32* read_out)
     return 0;
 }
 
-static u32 fnOpenDir(archive* self, file_path path)
+static u32 sdmc_fnOpenDir(archive* self, file_path path)
 {
     // Create file object
     dir_type* dir = (dir_type*)malloc(sizeof(dir_type));
@@ -396,7 +396,7 @@ static u32 fnOpenDir(archive* self, file_path path)
     dir->hFind = INVALID_HANDLE_VALUE;
 
     // Setup function pointers.
-    dir->fnRead = fnReadDir;
+    dir->fnRead = &sdmc_fnReadDir;
 
     char p[256] ,tmp[256];
     if (config_has_sdmc)
@@ -443,7 +443,7 @@ archive* sdmc_OpenArchive(file_path path)
     arch->fndelfile = NULL;
     arch->fncreateDir = NULL;
     arch->fndelDir = NULL;
-    arch->fnOpenDir = fnOpenDir;
+    arch->fnOpenDir = &sdmc_fnOpenDir;
     arch->fnFileExists = &sdmc_FileExists;
     arch->fnOpenFile = &sdmc_OpenFile;
     arch->fnDeinitialize = &sdmc_Deinitialize;

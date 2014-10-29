@@ -63,9 +63,14 @@ static u32 rawromfs_Read(file_type* self, u32 ptr, u32 sz, u64 off, u32* read_ou
 
     if (loader_encrypted)
     {
+        int i;
+        u8* temp = calloc(sz + (off & 0xF) + (sz & 0xF), sizeof(u8));
+        memcpy(temp + (off & 0xF), b, sz);
         ncch_extract_prepare(&ctx, &loader_h, NCCHTYPE_ROMFS, loader_key);
         ctr_add_counter(&ctx, (0x1000 + off) / 0x10); //this is from loader
-        ctr_crypt_counter(&ctx, b, b, sz);
+        ctr_crypt_counter(&ctx, temp, temp, sz);
+        memcpy(b, temp + (off & 0xF), sz);
+        free(temp);
     }
 
     if(mem_Write(b, ptr, read) != 0) {

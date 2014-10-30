@@ -236,13 +236,24 @@ theother:
                                     outaddr++;
                                     break;
                                 case 0x1000: //RGB8
-
-                                    *outaddr = r;
-                                    outaddr++;
-                                    *outaddr = g;
-                                    outaddr++;
-                                    *outaddr = b;
-                                    outaddr++;
+                                    if (a)
+                                    {
+                                        *outaddr = r;
+                                        outaddr++;
+                                        *outaddr = g;
+                                        outaddr++;
+                                        *outaddr = b;
+                                        outaddr++;
+                                    }
+                                    else
+                                    {
+                                        *outaddr = 0;
+                                        outaddr++;
+                                        *outaddr = 0;
+                                        outaddr++;
+                                        *outaddr = 0;
+                                        outaddr++;
+                                    }
                                     break;
                                 case 0x2000: //RGB565
                                 {

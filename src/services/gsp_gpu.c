@@ -129,6 +129,9 @@ theother:
             {
 
 
+                        sendGPUinterall(1); //this should be at the start
+                        sendGPUinterall(4); //this is wrong
+
 
                         u32 inpaddr, outputaddr, inputdim, outputdim, flags;
                         inpaddr = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x4);
@@ -139,7 +142,8 @@ theother:
                         DEBUG("GX SetDisplayTransfer 0x%08X 0x%08X 0x%08X 0x%08X 0x%08X\r\n", inpaddr, outputaddr, inputdim, outputdim, flags);
 
                         if (inputdim != outputdim) {
-                            DEBUG("error converting from %08x to %08x", inputdim, outputdim);
+                            DEBUG("error converting from %08x to %08x\n", inputdim, outputdim);
+                            break;
                         }
                         
                         u8 * inaddr = get_pymembuffer(convertvirtualtopys(inpaddr));
@@ -271,9 +275,6 @@ theother:
 
                         //memcpy(get_pymembuffer(convertvirtualtopys(outputaddr)), get_pymembuffer(convertvirtualtopys(inpaddr)), sizeoutp);
                         updateFramebuffer();
-
-                        sendGPUinterall(1);
-                        sendGPUinterall(4); //this is wrong
 
 
                         //mem_Dbugdump();
@@ -449,7 +450,7 @@ void sendGPUinterall(u32 ID)
         u8 inuse = *(u8*)(GSPsharedbuff + i * 0x40 + 1);
         next += inuse;
         if (inuse > 0x20 && ((ID == 2) || (ID == 3)))
-            return; //todo
+            continue; //todo
 
         *(u8*)(GSPsharedbuff + i * 0x40 + 1) = inuse + 1;
         *(u8*)(GSPsharedbuff + i * 0x40 + 2) = 0x0; //no error

@@ -743,15 +743,16 @@ void writeGPUID(u16 ID, u8 mask, u32 size, u32* buffer)
         for (i = 0; i < size; i++)
             swizzle_data[GPUregs[VSBeginLoadSwizzleData]++] = *(buffer + i);
         break;
+
+    case VSresttriangel:
+        if (*buffer & 0x1) //todo more checks
+            buffer_index = 0;
+        updateGPUintreg(*buffer, ID, mask);
+        break;
     case VSFloatUniformSetup:
         updateGPUintreg(*buffer, ID, mask);
         buffer++;
         size--;
-    /*case VSresttriangel:
-        if (*buffer & 0x1) //todo more checks
-            buffer_index = 0;
-        updateGPUintreg(*buffer, ID, mask);
-        break;*/
     case VSFloatUniformSetup + 1:
     case VSFloatUniformSetup + 2:
     case VSFloatUniformSetup + 3:

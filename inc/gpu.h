@@ -47,7 +47,6 @@ u32 GPUregs[0xFFFF];
 
 #define VIEWPORT_WIDTH 0x41
 #define VIEWPORT_HEIGHT 0x43
-#define VIEWPORT_HEIGHT 0x43
 
 #define GLViewport 0x68
 #define Viewport_depth_range 0x4D
@@ -83,6 +82,8 @@ u32 GPUregs[0xFFFF];
 #define TriggerDrawIndexed 0x22F
 
 #define TriangleTopology 0x25e
+
+#define VSresttriangel 0x25f
 
 #define VSMainOffset 0x2BA
 #define VSInputRegisterMap 0x2BB

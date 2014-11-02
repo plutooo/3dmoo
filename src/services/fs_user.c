@@ -700,6 +700,14 @@ SERVICE_CMD(0x08080000)   // Close
     RESP(1, rc);
     return 0;
 }
+SERVICE_CMD(0x08090000)   //flush win dose that for us
+{
+
+    DEBUG("flush\n");
+
+    RESP(1, 0);
+    return 0;
+}
 
 SERVICE_END();
 

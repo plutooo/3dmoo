@@ -176,3 +176,4 @@ realNAND/*
 sys/shared/000000000b0000f000000000/ubll.lst
 sdmc/*
 savecheck/*
+savedata/*

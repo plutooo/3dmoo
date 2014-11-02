@@ -336,6 +336,9 @@
     <ClCompile Include="Resourcelimit.c">
       <Filter>Source Files\syscalls</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\services\pix_dev.c">
+      <Filter>Source Files\services</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\inc\handles.h">
@@ -384,9 +387,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\inc\screen.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\inc\filemon.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\inc\DSP.h">

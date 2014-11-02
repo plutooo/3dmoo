@@ -23,6 +23,9 @@
 
 #include "mem.h"
 
+extern ARMul_State s;
+
+
 static const char* names[256] = {
     NULL,
     "ControlMemory",
@@ -233,7 +236,7 @@ void svc_Execute(ARMul_State * state, u8 num)
         arm11_SetR(0, svcDuplicateHandle());
         return;
     case 0x28: //GetSystemTick
-        arm11_SetR(0, 1);
+        arm11_SetR(0, s.NumInstrs);
         return;
     case 0x2B:
         DEBUG("svcGetProcessInfo=%08x\n", arm11_R(2));

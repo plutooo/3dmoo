@@ -76,6 +76,7 @@ u32 am_app_SyncRequest();
 u32 nim_aoc_SyncRequest();
 u32 apt_a_SyncRequest();
 u32 y2r_u_SyncRequest();
+u32 pix_dev_SyncRequest();
 
 #ifndef _WIN32
 static size_t strnlen(const char* p, size_t n)
@@ -416,6 +417,12 @@ static struct {
         0,
         &y2r_u_SyncRequest
     },
+    {
+        "pxi:dev",
+        SERVICE_TYPE_pix_dev,
+        0,
+        &pix_dev_SyncRequest
+    }
 };
 
 
@@ -624,6 +631,29 @@ u32 srv_SyncRequest()
         ERROR("Unimplemented service: %s\n", req.name);
         arm11_Dump();
         exit(1);
+
+    case 0x00080100:
+        DEBUG("srv_GetHandle\n");
+
+        // Read rest of command header
+        mem_Read((u8*)&req, arm11_ServiceBufferAddress() + 0x84, sizeof(req));
+
+        memcpy(names, req.name, 8);
+        names[8] = '\0';
+
+        DEBUG("name=%s, namelen=%u, unk=0x%x\n", names, req.name_len,
+            req.unk2);
+        PAUSE();
+
+        // Write result.
+        mem_Write32(arm11_ServiceBufferAddress() + 0x84, 0);
+
+        mem_Write32(arm11_ServiceBufferAddress() + 0x8C, 0x1234);
+
+        ERROR("Unimplemented handle: %s\n", req.name);
+        arm11_Dump();
+        return 0;
+
 
     case 0x90040: // EnableNotificationType
         DEBUG("srv_EnableNotificationType\n");

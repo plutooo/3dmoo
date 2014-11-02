@@ -94,7 +94,7 @@ u32 getconfigfromNAND(u32 size, u32 id, u32 pointer,u32 filter)
         {
             DEBUG("error not found\n");
         }
-        
+        fclose(fd);
     }
     else
     {
@@ -138,7 +138,7 @@ SERVICE_CMD(0x00020000)   // SecureInfoGetRegion
     DEBUG("SecureInfoGetRegion\n");
 
     RESP(1, 0); // Result
-    RESP(2, 2); // 2=Europe
+    RESP(2, 2); // 2=EUROPE 1=usa
     return 0;
 }
 

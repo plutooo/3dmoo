@@ -69,6 +69,12 @@ u32 svcReleaseMutex()
     u32 handle = arm11_R(0);
     handleinfo* h = handle_Get(handle);
 
+    if (0x1234 == handle)
+    {
+        ERROR("stub handle\n");
+        return 0;
+    }
+
     if(h == NULL) {
         ERROR("svcReleaseMutex on an invalid handle\n");
         PAUSE();

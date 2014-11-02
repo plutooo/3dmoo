@@ -2268,17 +2268,60 @@ mainswitch:
                         Handle_Store_Double (state, instr);
                         break;
                     }
+                    if (BITS(4, 11) == 0xF9) //strexd
+                    {
+                        u32 l = LHSReg;
+
+                        bool enter = false;
+
+                        if (state->currentexval == (u32)ARMul_ReadWord(state, state->currentexaddr)&&
+                            state->currentexvald == (u32)ARMul_ReadWord(state, state->currentexaddr + 4))
+                            enter = true;
+
+
+                        //todo bug this and STREXD and LDREXD http://infocenter.arm.com/help/index.jsp?topic=/com.arm.doc.ddi0360e/CHDGJGGC.html
+
+
+                        if (enter) {
+                            ARMul_StoreWordN(state, LHS, state->Reg[RHSReg]);
+                            ARMul_StoreWordN(state,LHS + 4 , state->Reg[RHSReg + 1]);
+                            state->Reg[DESTReg] = 0;
+                        }
+                        else {
+                            state->Reg[DESTReg] = 1;
+                        }
+
+                        break;
+                    }
 #endif
                     dest = DPRegRHS;
                     WRITEDEST (dest);
                     break;
 
-                case 0x1b:	/* MOVS reg */
+                case 0x1B:	/* MOVS reg */
 #ifdef MODET
+                    /* ldrexd ichfly */
+                    if (BITS(0, 11) == 0xF9F) //strexd
+                    {
+                        lhs = LHS;
+
+                        state->currentexaddr = lhs;
+                        state->currentexval = (u32)ARMul_ReadWord(state, lhs);
+                        state->currentexvald = (u32)ARMul_ReadWord(state, lhs + 4);
+
+                        state->Reg[DESTReg] = ARMul_LoadWordN(state, lhs);
+                        state->Reg[DESTReg] = ARMul_LoadWordN(state, lhs + 4);
+                        break;
+                    }
+
                     if ((BITS (4, 11) & 0xF9) == 0x9)
                         /* LDR register offset, write-back, up, pre indexed.  */
                         LHPREUPWB ();
                     /* Continue with remaining instruction decoding.  */
+
+
+
+
 #endif
                     dest = DPSRegRHS;
                     WRITESDEST (dest);
@@ -2365,12 +2408,12 @@ mainswitch:
                         if (state->currentexval == (u32)ARMul_LoadHalfWord(state, state->currentexaddr))enter = true;
 
 
-                        ARMul_StoreHalfWord(state, lhs, RHS);
                         //StoreWord(state, lhs, RHS)
                         if (state->Aborted) {
                             TAKEABORT;
                         }
                         if (enter) {
+                            ARMul_StoreHalfWord(state, lhs, RHS);
                             state->Reg[DESTReg] = 0;
                         } else {
                             state->Reg[DESTReg] = 1;
@@ -5979,13 +6022,13 @@ L_stm_s_takeabort:
                 bool enter = false;
 
                 if (state->currentexval == (u32)ARMul_ReadWord(state, state->currentexaddr))enter = true;
-                ARMul_StoreWordS(state, lhs, RHS);
                 //StoreWord(state, lhs, RHS)
                 if (state->Aborted) {
                     TAKEABORT;
                 }
 
                 if (enter) {
+                    ARMul_StoreWordS(state, lhs, RHS);
                     state->Reg[DESTReg] = 0;
                 } else {
                     state->Reg[DESTReg] = 1;
@@ -6019,7 +6062,6 @@ L_stm_s_takeabort:
 
                 if (state->currentexval == (u32)ARMul_ReadByte(state, state->currentexaddr))enter = true;
 
-                ARMul_StoreByte (state, lhs, RHS);
                 BUSUSEDINCPCN;
                 if (state->Aborted) {
                     TAKEABORT;
@@ -6027,6 +6069,7 @@ L_stm_s_takeabort:
 
 
                 if (enter) {
+                    ARMul_StoreByte (state, lhs, RHS);
                     state->Reg[DESTReg] = 0;
                 } else {
                     state->Reg[DESTReg] = 1;

@@ -71,6 +71,10 @@ SERVICE_CMD(0x20080)
     RESP(1, 0); // Result
     RESP(3, event_handles[0]);
     RESP(4, event_handles[1]);
+
+    handleinfo* hi = handle_Get(LockHandle); //unlock
+    hi->locked = false;
+
     return 0;
 }
 

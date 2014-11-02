@@ -225,6 +225,7 @@
     <ClCompile Include="..\src\services\ns_s.c" />
     <ClCompile Include="..\src\services\pdn_d.c" />
     <ClCompile Include="..\src\services\pdn_g.c" />
+    <ClCompile Include="..\src\services\pix_dev.c" />
     <ClCompile Include="..\src\services\ps_ps.c" />
     <ClCompile Include="..\src\services\ptm_s.c" />
     <ClCompile Include="..\src\services\ptm_u.c" />
@@ -250,7 +251,6 @@
   <ItemGroup>
     <ClInclude Include="..\inc\arm11.h" />
     <ClInclude Include="..\inc\dsp.h" />
-    <ClInclude Include="..\inc\filemon.h" />
     <ClInclude Include="..\inc\fs.h" />
     <ClInclude Include="..\inc\gdbstub.h" />
     <ClInclude Include="..\inc\gdbstubchelper.h" />

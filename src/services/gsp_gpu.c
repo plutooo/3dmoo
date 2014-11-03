@@ -186,6 +186,7 @@ theother:
                                             u8 reg1 = *inaddr;
                                             inaddr++;
                                             u8 reg2 = *inaddr;
+                                            inaddr++;
                                             r = (reg1&0x1F)<<3;
                                             g = (((reg1 & 0xE0) >> 5) + (reg2 & 0x7) << 3) << 2;
                                             b = ((reg2 & 0xF8) >> 3) << 3;
@@ -194,26 +195,27 @@ theother:
                                     break;
                                 case 0x300: //RGB5A1
                                 {
-                                                u8 reg1 = *inaddr;
-                                                inaddr++;
-                                                u8 reg2 = *inaddr;
-                                                r = (reg1 & 0x1F) << 3;
-                                                g = (((reg1 & 0xE0) >> 5) + (reg2 & 0x3) << 3) << 3;
-                                                b = ((reg2 & 0x7C) >> 3) << 3;
-                                                if (reg2)a = 0xFF;
+                                    u8 reg1 = *inaddr;
+                                    inaddr++;
+                                    u8 reg2 = *inaddr;
+                                    inaddr++;
+                                    r = (reg1 & 0x1F) << 3;
+                                    g = (((reg1 & 0xE0) >> 5) + (reg2 & 0x3) << 3) << 3;
+                                    b = ((reg2 & 0x7C) >> 3) << 3;
+                                    if (reg2)a = 0xFF;
                                 }
                                     break;
                                 case 0x400: //RGBA4
                                 {
-                                                u8 reg1 = *inaddr;
-                                                inaddr++;
-                                                u8 reg2 = *inaddr;
-                                                inaddr++;
-                                                r = (reg1 & 0xF) << 4;
-                                                g = reg1 & 0xF0;
-                                                b = (reg2 & 0xF) << 4;
-                                                a = reg2 & 0xF0;
-                                                break;
+                                    u8 reg1 = *inaddr;
+                                    inaddr++;
+                                    u8 reg2 = *inaddr;
+                                    inaddr++;
+                                    r = (reg1 & 0xF) << 4;
+                                    g = reg1 & 0xF0;
+                                    b = (reg2 & 0xF) << 4;
+                                    a = reg2 & 0xF0;
+                                    break;
                                 }
                                 default:
                                     DEBUG("error unknow input format\n");
@@ -257,7 +259,11 @@ theother:
                                     break;
                                 case 0x2000: //RGB565
                                 {
-                                                 DEBUG("error unknow output format\n");
+                                    u16 result = (r >> 3) | ((g >> 2) << 5) | ((b >> 3) << 11);
+                                    *outaddr = result & 0xFF;
+                                    outaddr++;
+                                    *outaddr = (result >> 8) & 0xFF;
+                                    outaddr++;
                                 }
                                     break;
                                 case 0x3000: //RGB5A1
@@ -265,11 +271,13 @@ theother:
                                     outaddr++;
                                     *outaddr = (u8)((b >> 3) << 3) | ((g >> 3) & 0x7);
                                     if (a) *outaddr |= 0x80;
+                                    outaddr++;
                                     break;
                                 case 0x4000: //RGBA4
                                     *outaddr = (r >> 4) | (g & 0xF0);
                                     outaddr++;
                                     *outaddr = (b >> 4) | (a & 0xF0);
+                                    outaddr++;
                                     break;
                                 default:
                                     DEBUG("error unknow output format\n");

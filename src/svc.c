@@ -266,7 +266,8 @@ void svc_Execute(ARMul_State * state, u8 num)
         return;
     case 0x3C: //Break
         ERROR("Break %x (%d).\n", arm11_R(0), arm11_R(0));
-        exit(1);
+		//It seems to be in some games. (SM3DL)
+        //exit(1);
         return;
     case 0x3D: { //OutputDebugString
         char temp[256];

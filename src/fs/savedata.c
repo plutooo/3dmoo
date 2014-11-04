@@ -359,7 +359,7 @@ int savedata_createdir(archive* self, file_path path)
         ERROR("Got unsafe path.\n");
         return 0;
     }
-    return CreateDirectoryA(p, NULL);
+    return _mkdir(p);
 }
 
 static u32 savedata_fnOpenDir(archive* self, file_path path)

@@ -16,6 +16,7 @@
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <direct.h>
 #include <stdio.h>
 #include <string.h>
 #include <sys/types.h>
@@ -213,7 +214,7 @@ int SaveDatacheck_deldir(archive* self, file_path path)
         ERROR("Got unsafe path.\n");
         return 0;
     }
-    return RemoveDirectoryA(p);
+    return _rmdir(p);
 }
 
 int SaveDatacheck_createdir(archive* self, file_path path)
@@ -230,7 +231,7 @@ int SaveDatacheck_createdir(archive* self, file_path path)
         ERROR("Got unsafe path.\n");
         return 0;
     }
-    return CreateDirectoryA(p,NULL);
+    return _mkdir(p);
 }
 
 archive* SaveDatacheck_OpenArchive(file_path path)

@@ -16,6 +16,7 @@
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <direct.h>
 #include <stdio.h>
 #include <string.h>
 #include <sys/types.h>
@@ -167,13 +168,13 @@ static u32 sharedextd_OpenFile(archive* self, file_path path, u32 flags, u32 att
             fd = fopen(p, "wb");
             if (fd == NULL)
             {
-                ERROR("Failed to open/create sdmc, path=%s\n", p);
+                ERROR("Failed to open/create sharedexd, path=%s\n", p);
                 return 0;
             }
         }
         else
         {
-            ERROR("Failed to open sdmc, path=%s\n", p);
+            ERROR("Failed to open sharedexd, path=%s\n", p);
             return 0;
         }
     }
@@ -375,7 +376,7 @@ static void sharedextd_Deinitialize(archive* self)
     // Free yourself
     free(self);
 }
-static u32 sharedextd_delFile(archive* self, file_path path, u32 flags, u32 attr)
+static u32 sharedextd_delFile(archive* self, file_path path)
 {
     char p[256], tmp[256];
 
@@ -389,7 +390,7 @@ static u32 sharedextd_delFile(archive* self, file_path path, u32 flags, u32 attr
         return 0;
     }
 
-    return DeleteFile(p);
+    return remove(p);
 }
 
 int sharedextd_deldir(archive* self, file_path path)
@@ -405,7 +406,7 @@ int sharedextd_deldir(archive* self, file_path path)
         ERROR("Got unsafe path.\n");
         return 0;
     }
-    return RemoveDirectoryA(p);
+    return _rmdir(p);
 }
 archive* sharedextd_OpenArchive(file_path path)
 {

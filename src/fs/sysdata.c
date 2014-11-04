@@ -16,6 +16,7 @@
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <direct.h>
 #include <stdio.h>
 #include <string.h>
 #include <sys/types.h>
@@ -139,7 +140,7 @@ static u32 sysdata_delFile(archive* self, file_path path, u32 flags, u32 attr)
         return 1;
     }
 
-    return DeleteFile(p);
+    return remove(p);
 }
 
 
@@ -267,7 +268,7 @@ int sysdata_deldir(archive* self, file_path path)
         ERROR("Got unsafe path.\n");
         return 0;
     }
-    return RemoveDirectoryA(p);
+    return _rmdir(p);
 }
 
 int sysdata_createdir(archive* self, file_path path)
@@ -292,7 +293,7 @@ int sysdata_createdir(archive* self, file_path path)
         ERROR("Got unsafe path.\n");
         return 0;
     }
-    return CreateDirectoryA(p,NULL);
+    return _mkdir(p);
 }
 
 archive* sysdata_OpenArchive(file_path path)

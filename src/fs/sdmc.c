@@ -16,6 +16,7 @@
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <direct.h>
 #include <stdio.h>
 #include <string.h>
 #include <sys/types.h>
@@ -422,7 +423,75 @@ static u32 sdmc_fnOpenDir(archive* self, file_path path)
     return handle_New(HANDLE_TYPE_DIR, (uintptr_t)dir);
 }
 
+static u32 sdmc_delFile(archive* self, file_path path)
+{
+    char p[256], tmp[256];
 
+    // Generate path on host file system
+    if (config_has_sdmc)
+    {
+        snprintf(p, 256, "%s/%s/*", config_sdmc_path,
+            fs_PathToString(path.type, path.ptr, path.size, tmp, 256));
+    }
+    else
+    {
+        snprintf(p, 256, "sdmc/%s/*",
+            fs_PathToString(path.type, path.ptr, path.size, tmp, 256));
+    }
+
+    if (!fs_IsSafePath(p)) {
+        ERROR("Got unsafe path.\n");
+        return 0;
+    }
+
+    return remove(p);
+}
+
+int sdmc_createdir(archive* self, file_path path)
+{
+    char p[256], tmp[256];
+
+    // Generate path on host file system
+    if (config_has_sdmc)
+    {
+        snprintf(p, 256, "%s/%s/*", config_sdmc_path,
+            fs_PathToString(path.type, path.ptr, path.size, tmp, 256));
+    }
+    else
+    {
+        snprintf(p, 256, "sdmc/%s/*",
+            fs_PathToString(path.type, path.ptr, path.size, tmp, 256));
+    }
+
+    if (!fs_IsSafePath(p)) {
+        ERROR("Got unsafe path.\n");
+        return 0;
+    }
+    return _mkdir(p);
+}
+
+int sdmc_deldir(archive* self, file_path path)
+{
+    char p[256], tmp[256];
+
+    // Generate path on host file system
+    if (config_has_sdmc)
+    {
+        snprintf(p, 256, "%s/%s/*", config_sdmc_path,
+            fs_PathToString(path.type, path.ptr, path.size, tmp, 256));
+    }
+    else
+    {
+        snprintf(p, 256, "sdmc/%s/*",
+            fs_PathToString(path.type, path.ptr, path.size, tmp, 256));
+    }
+
+    if (!fs_IsSafePath(p)) {
+        ERROR("Got unsafe path.\n");
+        return 0;
+    }
+    return _rmdir(p);
+}
 
 archive* sdmc_OpenArchive(file_path path)
 {
@@ -440,9 +509,9 @@ archive* sdmc_OpenArchive(file_path path)
     }
 
     // Setup function pointers
-    arch->fndelfile = NULL;
-    arch->fncreateDir = NULL;
-    arch->fndelDir = NULL;
+    arch->fndelfile = &sdmc_delFile;
+    arch->fncreateDir = &sdmc_createdir;
+    arch->fndelDir = &sdmc_deldir;
     arch->fnOpenDir = &sdmc_fnOpenDir;
     arch->fnFileExists = &sdmc_FileExists;
     arch->fnOpenFile = &sdmc_OpenFile;

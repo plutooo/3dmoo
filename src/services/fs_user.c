@@ -56,7 +56,7 @@ SERVICE_CMD(0x08040142)   // DeleteFile
             file_lowpath_type, file_lowpath_sz, file_lowpath_ptr
         });
 
-        if (ret == 0) {
+        if (ret != 0) {
             ERROR("fndelfile has failed.\n");
             RESP(1, -1);
             return 0;
@@ -107,7 +107,7 @@ SERVICE_CMD(0x08070142)   // DeleteDirectoryRecursively
             dir_lowpath_type, dir_lowpath_sz, dir_lowpath_ptr
         });
 
-            if (ret == 0) {
+            if (ret != 0) {
                 ERROR("fndelDir has failed.\n");
                 RESP(1, -1);
                 return 0;
@@ -161,7 +161,7 @@ SERVICE_CMD(0x08090182)   // CreateDirectory
             dir_lowpath_type, dir_lowpath_sz, dir_lowpath_ptr
         });
 
-        if (ret == 0) {
+        if (ret != 0) {
             ERROR("fncreateDir has failed.\n");
             RESP(1, -1);
             return 0;
@@ -224,6 +224,7 @@ SERVICE_CMD(0x080201C2)   // OpenFile
 
         if(file_handle == 0) {
             ERROR("OpenFile has failed.\n");
+            arm11_Dump();
             RESP(1, -1);
             return 0;
         }

@@ -154,7 +154,7 @@ SERVICE_CMD(0x440000)
 
     RESP(0, 0x00440082); // code
     RESP(1, 0); // Result
-    RESP(2, 0xDEAD0000); // mem addr (observed 0x18000000)
+    RESP(2, 0x18000000); // mem addr (observed 0x18000000)
 
     // Handle for shared memory
     RESP(4, handle_New(HANDLE_TYPE_SHAREDMEM, MEM_TYPE_APT_SHARED_FONT)); //observed 0x0033001F stuff gets mapped here?

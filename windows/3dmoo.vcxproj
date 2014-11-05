@@ -124,6 +124,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;MODET;MODE32;NDEBUG;_CONSOLE;_LIB;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>..\inc;..\inc\arm11;..\src;..\src\arm11;$(SDL2)\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -215,6 +216,7 @@
     <ClCompile Include="..\src\services\hid_user.c" />
     <ClCompile Include="..\src\services\http_c.c" />
     <ClCompile Include="..\src\services\i2cLCD.c" />
+    <ClCompile Include="..\src\services\ir_rst.c" />
     <ClCompile Include="..\src\services\ir_u.c" />
     <ClCompile Include="..\src\services\mcuPLS.c" />
     <ClCompile Include="..\src\services\mcu_GPU.c" />

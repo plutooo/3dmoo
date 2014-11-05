@@ -136,7 +136,7 @@ SERVICE_CMD(0x440000)
     }
 
     RESP(1, 0); // Result
-    RESP(2, 0xDEAD0000); // mem addr
+    RESP(2, 0x18000000); // mem addr
 
     // Handle for shared memory
     RESP(4, handle_New(HANDLE_TYPE_SHAREDMEM, MEM_TYPE_APT_S_SHARED_FONT));

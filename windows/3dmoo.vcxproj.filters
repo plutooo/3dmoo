@@ -339,6 +339,9 @@
     <ClCompile Include="..\src\services\pix_dev.c">
       <Filter>Source Files\services</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\services\ir_rst.c">
+      <Filter>Source Files\services</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\inc\handles.h">

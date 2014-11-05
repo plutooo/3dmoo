@@ -1,5 +1,7 @@
 /*
  * Copyright (C) 2014 - plutoo
+ * Copyright (C) 2014 - ichfly
+ * Copyright (C) 2014 - Normmatt
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,19 +24,6 @@
 
 #include "service_macros.h"
 
-SERVICE_START(ac_i);
-
-SERVICE_END();
-
-SERVICE_START(ac_u);
-
-SERVICE_CMD(0xD0000) //GetWifiStatus
-{
-    DEBUG("GetWifiStatus\n");
-
-    RESP(1, 0); // Result
-    RESP(2, 0); // Output connection type: 0 = none, 1 = Internet
-    return 0;
-}
+SERVICE_START(ir_rst);
 
 SERVICE_END();

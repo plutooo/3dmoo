@@ -99,6 +99,7 @@
 #define SERVICE_TYPE_apt_a     52
 #define SERVICE_TYPE_y2r_u     53
 #define SERVICE_TYPE_pix_dev     54
+#define SERVICE_TYPE_IR_RST      55
 
 #define HANDLE_SUBEVENT_USER          0
 #define HANDLE_SUBEVENT_APTMENUEVENT  1

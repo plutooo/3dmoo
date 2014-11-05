@@ -26,6 +26,22 @@
 
 SERVICE_START(ptm_u);
 
+SERVICE_CMD(0x70000)   //GetBatteryLevel
+{
+    DEBUG("GetTotalStepCountGetBatteryLevel\n");
+    RESP(1, 0); // Result
+    RESP(2, 5); // battery level out of 5
+    return 0;
+}
+
+SERVICE_CMD(0x80000)   //GetBatteryChargeState
+{
+    DEBUG("GetBatteryChargeState\n");
+    RESP(1, 0); // Result
+    RESP(2, 0); // 0 = not charging, 1 = charging
+    return 0;
+}
+
 SERVICE_CMD(0xC0000)   //GetTotalStepCount
 {
     DEBUG("GetTotalStepCount\n");

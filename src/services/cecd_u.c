@@ -22,6 +22,33 @@
 
 #include "service_macros.h"
 
+u32 lock_handle = 0;
+
 SERVICE_START(cecd_u);
+
+SERVICE_CMD(0x000F0000) //unknown
+{
+    if (!lock_handle)
+    {
+        lock_handle = handle_New(HANDLE_TYPE_EVENT, HANDLE_SUBEVENT_CECDEVENT);
+        h = handle_Get(lock_handle);
+        h->locked = true;
+        h->locktype = LOCK_TYPE_ONESHOT;
+    }
+    DEBUG("unk F\n");
+    RESP(3, lock_handle); // Handle
+    RESP(1, 0); // Result
+    return 0;
+}
+
+SERVICE_CMD(0x000D0082) //unknown
+{
+    u32 unk1 = CMD(1);
+    u32 size = CMD(2);
+    u32 pointer = CMD(4);
+    DEBUG("unk D %08x %08x %08x\n", unk1,size,pointer);
+    RESP(1, 0); // Result
+    return 0;
+}
 
 SERVICE_END();

@@ -94,7 +94,7 @@ void InitScreenCoordinates(struct OutputVertex *vtx)
 
 
     // TODO: Not sure why the viewport width needs to be divided by 2 but the viewport height does not
-    vtx->screenpos.v[0] = (vtx->pos.v[0] / vtx->pos.v[3] + 1.0) * viewport.halfsize_x / 2.0 + viewport.offset_x;
+    vtx->screenpos.v[0] = (vtx->pos.v[0] / vtx->pos.v[3] + 1.0) * viewport.halfsize_x + viewport.offset_x;
     vtx->screenpos.v[1] = (vtx->pos.v[1] / vtx->pos.v[3] + 1.0) * viewport.halfsize_y + viewport.offset_y;
     vtx->screenpos.v[2] = viewport.offset_z - vtx->pos.v[2] / vtx->pos.v[3] * viewport.zscale;
 }

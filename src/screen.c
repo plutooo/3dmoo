@@ -58,7 +58,7 @@ void screen_RenderGPU()
     int updateSurface = 0;
 
     //Top Screen
-    u32 lcdColorFillMain = GPUreadreg32(LCDCOLORFILLMAIN);
+    u32 lcdColorFillMain = gpu_ReadReg32(LCDCOLORFILLMAIN);
     if (lcdColorFillMain & 1 << 24) { //Enabled
         u8 r = (lcdColorFillMain >> 0) & 0xFF;
         u8 g = (lcdColorFillMain >> 8) & 0xFF;
@@ -71,7 +71,7 @@ void screen_RenderGPU()
         rect.h = 240;
         SDL_FillRect(bitmapSurface, &rect, SDL_MapRGB(bitmapSurface->format, r, g, b));
     } else {
-        u32 addr = ((GPUreadreg32(frameselectoben) & 0x1) == 0) ? GPUreadreg32(RGBuponeleft) : GPUreadreg32(RGBuptwoleft);
+        u32 addr = ((gpu_ReadReg32(frameselectoben) & 0x1) == 0) ? gpu_ReadReg32(RGBuponeleft) : gpu_ReadReg32(RGBuptwoleft);
 
         u8* buffer = get_pymembuffer(addr);
 
@@ -95,8 +95,8 @@ void screen_RenderGPU()
     }
 
     //Bottom Screen
-    //addr = ((GPUreadreg32(frameselectunten) & 0x1) == 0) ? GPUreadreg32(RGBdownoneleft) : GPUreadreg32(RGBdowntwoleft);
-    u32 lcdColorFillSub = GPUreadreg32(LCDCOLORFILLSUB);
+    //addr = ((gpu_ReadReg32(frameselectunten) & 0x1) == 0) ? gpu_ReadReg32(RGBdownoneleft) : gpu_ReadReg32(RGBdowntwoleft);
+    u32 lcdColorFillSub = gpu_ReadReg32(LCDCOLORFILLSUB);
     if (lcdColorFillSub & 1 << 24) { //Enabled
         u8 r = (lcdColorFillSub >> 0) & 0xFF;
         u8 g = (lcdColorFillSub >> 8) & 0xFF;
@@ -109,7 +109,7 @@ void screen_RenderGPU()
         rect.h = 240;
         SDL_FillRect(bitmapSurface, &rect, SDL_MapRGB(bitmapSurface->format, r, g, b));
     } else {
-        u32 addr = ((GPUreadreg32(frameselectbot) & 0x1) == 0) ? GPUreadreg32(RGBdownoneleft) : GPUreadreg32(RGBdowntwoleft);
+        u32 addr = ((gpu_ReadReg32(frameselectbot) & 0x1) == 0) ? gpu_ReadReg32(RGBdownoneleft) : gpu_ReadReg32(RGBdowntwoleft);
         buffer = get_pymembuffer(addr);
         if (buffer != NULL) {
             if (!updateSurface) {

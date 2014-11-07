@@ -213,7 +213,7 @@ int main(int argc, char* argv[])
     hid_user_init();
     initDSP();
     mcu_GPU_init();
-    initGPU();
+    gpu_Init();
     srv_InitGlobal();
 
 

@@ -125,14 +125,14 @@ struct clov3 {
 };
 
 
-void initGPU();
-void GPUwritereg32(u32 addr, u32 data);
-u32 GPUreadreg32(u32 addr);
+void gpu_Init();
+void gpu_WriteReg32(u32 addr, u32 data);
+u32 gpu_ReadReg32(u32 addr);
 void GPUTriggerCmdReqQueue();
 u32 GPURegisterInterruptRelayQueue(u32 Flags, u32 Kevent, u32*threadID, u32*outMemHandle);
 u8* get_pymembuffer(u32 addr);
 u32 get_py_memrestsize(u32 addr);
-void sendGPUinterall(u32 ID);
+void gpu_SendInterruptToAll(u32 ID);
 void runGPU_Commands(u8* buffer, u32 size);
 u32 getsizeofwight(u16 val);
 u32 convertvirtualtopys(u32 addr);

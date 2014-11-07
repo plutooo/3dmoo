@@ -61,7 +61,7 @@ void GPUTriggerCmdReqQueue()
                 //    VRAMbuff[k + dest - 0x1F000000] = mem_Read8((src + k)); //todo speed up
 
                 mem_Read(&VRAMbuff[dest - 0x1F000000], src, size);
-                sendGPUinterall(6);
+                gpu_SendInterruptToAll(6);
                 break;
             case 1:
                 addr = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x4);
@@ -120,7 +120,7 @@ void GPUTriggerCmdReqQueue()
                                     VRAMbuff[m + k*size + addr2 - 0x1F000000] = (u8)(val2 >> (m * 8));
                             }
                         }
-                        sendGPUinterall(0);
+                        gpu_SendInterruptToAll(0);
                         break;
             }
             case 3: 
@@ -129,8 +129,8 @@ theother:
             {
 
 
-                        sendGPUinterall(1); //this should be at the start
-                        sendGPUinterall(4); //this is wrong
+                        gpu_SendInterruptToAll(1); //this should be at the start
+                        gpu_SendInterruptToAll(4); //this is wrong
 
 
                         u32 inpaddr, outputaddr, inputdim, outputdim, flags;
@@ -389,7 +389,7 @@ u32 gsp_gpu_SyncRequest()
             DEBUG("length misaligned\n");
             ret = 0xe0e02bf2;
         }
-        for (u32 i = 0; i < lange; i += 4) GPUwritereg32((u32)(addr + i), mem_Read32((u32)(outaddr + i)));
+        for (u32 i = 0; i < lange; i += 4) gpu_WriteReg32((u32)(addr + i), mem_Read32((u32)(outaddr + i)));
         mem_Write32(arm11_ServiceBufferAddress() + 0x84, ret); //no error
         return 0;
     }
@@ -399,7 +399,7 @@ u32 gsp_gpu_SyncRequest()
         addr = mem_Read32(arm11_ServiceBufferAddress() + 0x84);
         DEBUG("GSPGPU_ReadHWRegs %08x %08x %08x\n", addr, outaddr, lange);
         if ((lange & 0x3) != 0) DEBUG("Misaligned address\n");
-        for (u32 i = 0; i < lange; i += 4) mem_Write32((u32)(outaddr + i), GPUreadreg32((u32)(addr + i)));
+        for (u32 i = 0; i < lange; i += 4) mem_Write32((u32)(outaddr + i), gpu_ReadReg32((u32)(addr + i)));
         mem_Write32(arm11_ServiceBufferAddress() + 0x84, 0); //no error
         return 0;
     }
@@ -456,7 +456,7 @@ PDC0 called every line?
 PDC1 called every VBlank?
 
 */
-void sendGPUinterall(u32 ID)
+void gpu_SendInterruptToAll(u32 ID)
 {
     int i;
     handleinfo* h = handle_Get(trigevent);

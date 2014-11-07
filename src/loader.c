@@ -304,7 +304,7 @@ int loader_LoadFile(FILE* fd)
 #ifdef NYUU_DEC
         Nyuu_getkey(NINKEY_TYPE_SEC, &loader_h, loader_key);
 #else
-        ERROR("secure keys are not included in 3dmoo.\n");
+        ERROR("Secure keys are not included in 3dmoo.\n");
         return 1;
 #endif
     }
@@ -313,8 +313,6 @@ int loader_LoadFile(FILE* fd)
         ncch_extract_prepare(&ctx, &loader_h, NCCHTYPE_EXHEADER, loader_key);
         ctr_crypt_counter(&ctx,&ex, &ex, sizeof(ex));
     }
-
-
 
     bool is_compressed = ex.codesetinfo.flags.flag & 1;
     //ex.codesetinfo.name[7] = '\0';
@@ -341,9 +339,6 @@ int loader_LoadFile(FILE* fd)
         ncch_extract_prepare(&ctx, &loader_h, NCCHTYPE_EXEFS, loader_key);
         ctr_crypt_counter(&ctx, &eh, &eh, sizeof(eh));
     }
-
-
-
 
     u32 i;
     for (i = 0; i < 8; i++) {

@@ -254,10 +254,10 @@ void threads_Execute()
         reschedule = 0;
     }
 
-    sendGPUinterall(2);
+    gpu_SendInterruptToAll(2);
     line++;
     if (line == 400) {
-        sendGPUinterall(3);
+        gpu_SendInterruptToAll(3);
         line = 0;
     }
 
@@ -269,13 +269,12 @@ void threads_Execute()
 
         signed long long diff = s.NumInstrs - last_one;
         
-
         for (; diff >(11172 * 16); diff -= (11172 * 16))
         {
-            sendGPUinterall(2);
+            gpu_SendInterruptToAll(2);
             line++;
             if (line == 400) {
-                sendGPUinterall(3);
+                gpu_SendInterruptToAll(3);
                 line = 0;
             }
         }
@@ -305,10 +304,10 @@ void threads_Execute()
 
     if (nothreadused) //waiting
     {
-        sendGPUinterall(2);
+        gpu_SendInterruptToAll(2);
         line++;
         if (line == 400) {
-            sendGPUinterall(3);
+            gpu_SendInterruptToAll(3);
             line = 0;
         }
     }
@@ -495,15 +494,7 @@ u32 svcCreateThread()
     threads[numthread].sp = ent_sp;
     threads[numthread].r15 = ent_pc &~0x1;
 
-    if (ent_pc & 0x1)
-    {
-        threads[numthread].cpsr = 0x3F; //usermode
-    }
-    else
-    {
-        threads[numthread].cpsr = 0x1F; //usermode
-    }
-
+    threads[numthread].cpsr = (ent_pc & 0x1) ? 0x3F : 0x1F; //usermode
     threads[numthread].mode = RESUME;
 
     arm11_SetR(1, hand); // r1 = handle_out

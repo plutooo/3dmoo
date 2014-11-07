@@ -40,8 +40,8 @@ typedef struct {
     uint32_t size;
     uint8_t* phys;
     bool     ro;
-#ifdef logext
-    bool dolog;
+#ifdef MEM_TRACE_EXTERNAL
+    bool enable_log;
 #endif
 } memmap_t;
 
@@ -146,7 +146,7 @@ static int AddMapping(uint32_t base, uint32_t size)
         return 3;
     }
 
-#ifdef logext
+#ifdef MEM_TRACE_EXTERNAL
     if (
         (base & 0xFFFF0000) == 0x1FF80000
         || base == 0x10000000
@@ -154,11 +154,11 @@ static int AddMapping(uint32_t base, uint32_t size)
         //|| base == 0x10002000
         )
     {
-        mappings[i].dolog = true;
+        mappings[i].enable_log = true;
     }
     else
     {
-        mappings[i].dolog = false;
+        mappings[i].enable_log = false;
     }
 #endif
 
@@ -190,7 +190,7 @@ int mem_AddMappingShared(uint32_t base, uint32_t size, u8* data)
 
     mappings[i].phys = data;
 
-#ifdef logext
+#ifdef MEM_TRACE_EXTERNAL
     if (
         (base & 0xFFFF0000) == 0x1FF80000
         || base == 0x10000000
@@ -198,11 +198,11 @@ int mem_AddMappingShared(uint32_t base, uint32_t size, u8* data)
         //|| base == 0x10002000
         )
     {
-        mappings[i].dolog = true;
+        mappings[i].enable_log = true;
     }
     else
     {
-        mappings[i].dolog = false;
+        mappings[i].enable_log = false;
     }
 #endif
 
@@ -237,8 +237,8 @@ int mem_Write8(uint32_t addr, uint8_t w)
     size_t i;
     for(i=0; i<num_mappings; i++) {
         if(Contains(&mappings[i], addr, 1)) {
-#ifdef logext
-            if (mappings[i].dolog)fprintf(stderr, "w8 %08x <- w=%02x pc=%08x\n", addr, w & 0xff, s.Reg[15]);
+#ifdef MEM_TRACE_EXTERNAL
+            if (mappings[i].enable_log)fprintf(stderr, "w8 %08x <- w=%02x pc=%08x\n", addr, w & 0xff, s.Reg[15]);
 #endif
             mappings[i].phys[addr - mappings[i].base] = w;
             return 0;
@@ -265,8 +265,8 @@ uint8_t mem_Read8(uint32_t addr)
 
     for(i=0; i<num_mappings; i++) {
         if(Contains(&mappings[i], addr, 1)) {
-#ifdef logext
-            if (mappings[i].dolog)fprintf(stderr, "r8 %08x pc=%08x\n", addr, s.Reg[15]);
+#ifdef MEM_TRACE_EXTERNAL
+            if (mappings[i].enable_log)fprintf(stderr, "r8 %08x pc=%08x\n", addr, s.Reg[15]);
 #endif
 
             return mappings[i].phys[addr - mappings[i].base];
@@ -295,8 +295,8 @@ int mem_Write16(uint32_t addr, uint16_t w)
     size_t i;
     for(i=0; i<num_mappings; i++) {
         if(Contains(&mappings[i], addr, 2)) {
-#ifdef logext
-            if (mappings[i].dolog)fprintf(stderr, "w16 %08x <- w=%04x pc=%08x\n", addr, w & 0xffff, s.Reg[15]);
+#ifdef MEM_TRACE_EXTERNAL
+            if (mappings[i].enable_log)fprintf(stderr, "w16 %08x <- w=%04x pc=%08x\n", addr, w & 0xffff, s.Reg[15]);
 #endif
             // Unaligned.
             if (addr & 1) {
@@ -328,8 +328,8 @@ uint16_t mem_Read16(uint32_t addr)
     for(i=0; i<num_mappings; i++) {
         if(Contains(&mappings[i], addr, 2)) {
 
-#ifdef logext
-            if (mappings[i].dolog)fprintf(stderr, "r16 %08x pc=%08x\n", addr, s.Reg[15]);
+#ifdef MEM_TRACE_EXTERNAL
+            if (mappings[i].enable_log)fprintf(stderr, "r16 %08x pc=%08x\n", addr, s.Reg[15]);
 #endif
 
 
@@ -372,8 +372,8 @@ int mem_Write32(uint32_t addr, uint32_t w)
     for(i=0; i<num_mappings; i++) {
         if(Contains(&mappings[i], addr, 4)) {
 
-#ifdef logext
-            if (mappings[i].dolog)
+#ifdef MEM_TRACE_EXTERNAL
+            if (mappings[i].enable_log)
                 fprintf(stderr, "w32 %08x <- w=%08x pc=%08x\n", addr, w, s.Reg[15]);
 #endif
 
@@ -417,8 +417,8 @@ u32 mem_Read32(uint32_t addr)
     for(i=0; i<num_mappings; i++) {
         if(Contains(&mappings[i], addr, 4)) {
 
-#ifdef logext
-            if (mappings[i].dolog) {
+#ifdef MEM_TRACE_EXTERNAL
+            if (mappings[i].enable_log) {
                 fprintf(stderr, "r32 %08x pc=%08x\n", addr, s.Reg[15]);
                 //arm11_Dump();
             }

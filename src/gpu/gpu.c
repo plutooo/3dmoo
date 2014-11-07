@@ -26,25 +26,18 @@
 #include "gpu.h"
 #include <math.h>
 
-#define logGSPparser
+#define GSP_ENABLE_LOG
 
-u32 GPUregs[0xFFFF]; //do they all exist don't know but well
+u32 GPU_Regs[0xFFFF]; //do they all exist don't know but well
 
 u32 GPUshadercodebuffer[0xFFFF]; //how big is the buffer?
-
 u32 swizzle_data[0xFFFF]; //how big is the buffer?
 
 struct vec4 vectors[96];
-
-/*u8* IObuffer;
-u8* LINEmembuffer;
-u8* VRAMbuff;
-u8* GSPsharedbuff;*/
-
 extern int noscreen;
 
 
-void initGPU()
+void gpu_Init()
 {
     IObuffer = malloc(0x420000);
     LINEmembuffer = malloc(0x8000000);
@@ -57,14 +50,14 @@ void initGPU()
     memset(GSPsharedbuff, 0, GSPsharebuffsize);
     memset(GPUshadercodebuffer, 0, 0xFFFF*4);
 
-    GPUwritereg32(frameselectoben, 0);
-    GPUwritereg32(RGBuponeleft, 0x18000000);
-    GPUwritereg32(RGBuptwoleft, 0x18000000 + 0x46500 * 1);
-    GPUwritereg32(RGBuponeright, 0x18000000 + 0x46500 * 2);
-    GPUwritereg32(RGBuptworight, 0x18000000 + 0x46500 * 3);
-    GPUwritereg32(frameselectbot, 0);
-    GPUwritereg32(RGBdownoneleft, 0x18000000 + 0x46500 * 4);
-    GPUwritereg32(RGBdowntwoleft, 0x18000000 + 0x46500 * 5);
+    gpu_WriteReg32(frameselectoben, 0);
+    gpu_WriteReg32(RGBuponeleft, 0x18000000);
+    gpu_WriteReg32(RGBuptwoleft, 0x18000000 + 0x46500 * 1);
+    gpu_WriteReg32(RGBuponeright, 0x18000000 + 0x46500 * 2);
+    gpu_WriteReg32(RGBuptworight, 0x18000000 + 0x46500 * 3);
+    gpu_WriteReg32(frameselectbot, 0);
+    gpu_WriteReg32(RGBdownoneleft, 0x18000000 + 0x46500 * 4);
+    gpu_WriteReg32(RGBdowntwoleft, 0x18000000 + 0x46500 * 5);
 }
 
 u32 convertvirtualtopys(u32 addr) //todo
@@ -74,20 +67,20 @@ u32 convertvirtualtopys(u32 addr) //todo
     GPUDEBUG("can't convert vitual to py %08x\n",addr);
     return 0;
 }
-void GPUwritereg32(u32 addr, u32 data) //1eb00000 + addr
+void gpu_WriteReg32(u32 addr, u32 data) //1eb00000 + addr
 {
-    GPUDEBUG("GPU write %08x to %08x\n",data,addr);
+    GPUDEBUG("%08x to %08x\n",data, addr);
+
     if (addr >= 0x420000) {
-        GPUDEBUG("write out of range write\r\n");
+        GPUDEBUG("write out of range\n");
         return;
     }
+
     *(uint32_t*)(&IObuffer[addr]) = data;
-    switch (addr) {
-    default:
-        break;
-    }
 }
-u32 GPUreadreg32(u32 addr)
+
+
+u32 gpu_ReadReg32(u32 addr)
 {
     //GPUDEBUG("GPU read %08x\n", addr);
     if (addr >= 0x420000) {
@@ -139,7 +132,7 @@ void updateGPUintreg(u32 data,u32 ID,u8 mask)
     {
         if (mask&(1 << i))
         {
-            GPUregs[ID] = (GPUregs[ID] & ~(0xFF << (8 * i))) | (data & (0xFF << (8 * i)));
+            GPU_Regs[ID] = (GPU_Regs[ID] & ~(0xFF << (8 * i))) | (data & (0xFF << (8 * i)));
         }
     }
 }
@@ -195,7 +188,7 @@ static int buffer_index = 0; // TODO: reset this on emulation restart
 
 void PrimitiveAssembly_SubmitVertex(struct OutputVertex* vtx)
 {
-    u32 topology = (GPUregs[TriangleTopology] >> 8) & 0x3;
+    u32 topology = (GPU_Regs[TriangleTopology] >> 8) & 0x3;
     switch (topology) {
     case 0://List:
     case 3://ListIndexed:
@@ -506,35 +499,35 @@ void RunShader(struct vec4 input[17], int num_attributes, struct OutputVertex *r
     struct VertexShaderState state;
 
     //const u32* main = &shader_memory[registers.Get<Regs::VSMainOffset>().offset_words];
-    state.program_counter = (u32*)(uintptr_t)((u32)(uintptr_t)(&GPUshadercodebuffer[0]) + (u16)(uintptr_t)GPUregs[VSMainOffset]*4);
+    state.program_counter = (u32*)(uintptr_t)((u32)(uintptr_t)(&GPUshadercodebuffer[0]) + (u16)(uintptr_t)GPU_Regs[VSMainOffset]*4);
 
     // Setup input register table
 
     float dummy_register = (0.f);
     for (int i = 0; i < 16; i++)state.input_register_table[i] = &dummy_register;
     for (int i = 0; i<num_attributes; i++)
-        state.input_register_table[getattribute_register_map(i, GPUregs[VSInputRegisterMap], GPUregs[VSInputRegisterMap + 1])] = &input[i].v[0];
-    /*if (num_attributes > 0) state.input_register_table[getattribute_register_map(0, GPUregs[VSInputRegisterMap], GPUregs[VSInputRegisterMap + 1])] = &input[0].v[0];
-    if (num_attributes > 1) state.input_register_table[getattribute_register_map(1, GPUregs[VSInputRegisterMap], GPUregs[VSInputRegisterMap + 1])] = &input[1].v[0];
-    if (num_attributes > 2) state.input_register_table[getattribute_register_map(2, GPUregs[VSInputRegisterMap], GPUregs[VSInputRegisterMap + 1])] = &input[2].v[0];
-    if (num_attributes > 3) state.input_register_table[getattribute_register_map(3, GPUregs[VSInputRegisterMap], GPUregs[VSInputRegisterMap + 1])] = &input[3].v[0];
-    if (num_attributes > 4) state.input_register_table[getattribute_register_map(4, GPUregs[VSInputRegisterMap], GPUregs[VSInputRegisterMap + 1])] = &input[4].v[0];
-    if (num_attributes > 5) state.input_register_table[getattribute_register_map(5, GPUregs[VSInputRegisterMap], GPUregs[VSInputRegisterMap + 1])] = &input[5].v[0];
-    if (num_attributes > 6) state.input_register_table[getattribute_register_map(6, GPUregs[VSInputRegisterMap], GPUregs[VSInputRegisterMap + 1])] = &input[6].v[0];
-    if (num_attributes > 7) state.input_register_table[getattribute_register_map(7, GPUregs[VSInputRegisterMap], GPUregs[VSInputRegisterMap + 1])] = &input[7].v[0];
-    if (num_attributes > 8) state.input_register_table[getattribute_register_map(8, GPUregs[VSInputRegisterMap], GPUregs[VSInputRegisterMap + 1])] = &input[8].v[0];
-    if (num_attributes > 9) state.input_register_table[getattribute_register_map(9, GPUregs[VSInputRegisterMap], GPUregs[VSInputRegisterMap + 1])] = &input[9].v[0];
-    if (num_attributes > 10) state.input_register_table[getattribute_register_map(10, GPUregs[VSInputRegisterMap], GPUregs[VSInputRegisterMap + 1])] = &input[10].v[0];
-    if (num_attributes > 11) state.input_register_table[getattribute_register_map(11, GPUregs[VSInputRegisterMap], GPUregs[VSInputRegisterMap + 1])] = &input[11].v[0];
-    if (num_attributes > 12) state.input_register_table[getattribute_register_map(12, GPUregs[VSInputRegisterMap], GPUregs[VSInputRegisterMap + 1])] = &input[12].v[0];
-    if (num_attributes > 13) state.input_register_table[getattribute_register_map(13, GPUregs[VSInputRegisterMap], GPUregs[VSInputRegisterMap + 1])] = &input[13].v[0];
-    if (num_attributes > 14) state.input_register_table[getattribute_register_map(14, GPUregs[VSInputRegisterMap], GPUregs[VSInputRegisterMap + 1])] = &input[14].v[0];
-    if (num_attributes > 15) state.input_register_table[getattribute_register_map(15, GPUregs[VSInputRegisterMap], GPUregs[VSInputRegisterMap + 1])] = &input[15].v[0];*/
+        state.input_register_table[getattribute_register_map(i, GPU_Regs[VSInputRegisterMap], GPU_Regs[VSInputRegisterMap + 1])] = &input[i].v[0];
+    /*if (num_attributes > 0) state.input_register_table[getattribute_register_map(0, GPU_Regs[VSInputRegisterMap], GPU_Regs[VSInputRegisterMap + 1])] = &input[0].v[0];
+    if (num_attributes > 1) state.input_register_table[getattribute_register_map(1, GPU_Regs[VSInputRegisterMap], GPU_Regs[VSInputRegisterMap + 1])] = &input[1].v[0];
+    if (num_attributes > 2) state.input_register_table[getattribute_register_map(2, GPU_Regs[VSInputRegisterMap], GPU_Regs[VSInputRegisterMap + 1])] = &input[2].v[0];
+    if (num_attributes > 3) state.input_register_table[getattribute_register_map(3, GPU_Regs[VSInputRegisterMap], GPU_Regs[VSInputRegisterMap + 1])] = &input[3].v[0];
+    if (num_attributes > 4) state.input_register_table[getattribute_register_map(4, GPU_Regs[VSInputRegisterMap], GPU_Regs[VSInputRegisterMap + 1])] = &input[4].v[0];
+    if (num_attributes > 5) state.input_register_table[getattribute_register_map(5, GPU_Regs[VSInputRegisterMap], GPU_Regs[VSInputRegisterMap + 1])] = &input[5].v[0];
+    if (num_attributes > 6) state.input_register_table[getattribute_register_map(6, GPU_Regs[VSInputRegisterMap], GPU_Regs[VSInputRegisterMap + 1])] = &input[6].v[0];
+    if (num_attributes > 7) state.input_register_table[getattribute_register_map(7, GPU_Regs[VSInputRegisterMap], GPU_Regs[VSInputRegisterMap + 1])] = &input[7].v[0];
+    if (num_attributes > 8) state.input_register_table[getattribute_register_map(8, GPU_Regs[VSInputRegisterMap], GPU_Regs[VSInputRegisterMap + 1])] = &input[8].v[0];
+    if (num_attributes > 9) state.input_register_table[getattribute_register_map(9, GPU_Regs[VSInputRegisterMap], GPU_Regs[VSInputRegisterMap + 1])] = &input[9].v[0];
+    if (num_attributes > 10) state.input_register_table[getattribute_register_map(10, GPU_Regs[VSInputRegisterMap], GPU_Regs[VSInputRegisterMap + 1])] = &input[10].v[0];
+    if (num_attributes > 11) state.input_register_table[getattribute_register_map(11, GPU_Regs[VSInputRegisterMap], GPU_Regs[VSInputRegisterMap + 1])] = &input[11].v[0];
+    if (num_attributes > 12) state.input_register_table[getattribute_register_map(12, GPU_Regs[VSInputRegisterMap], GPU_Regs[VSInputRegisterMap + 1])] = &input[12].v[0];
+    if (num_attributes > 13) state.input_register_table[getattribute_register_map(13, GPU_Regs[VSInputRegisterMap], GPU_Regs[VSInputRegisterMap + 1])] = &input[13].v[0];
+    if (num_attributes > 14) state.input_register_table[getattribute_register_map(14, GPU_Regs[VSInputRegisterMap], GPU_Regs[VSInputRegisterMap + 1])] = &input[14].v[0];
+    if (num_attributes > 15) state.input_register_table[getattribute_register_map(15, GPU_Regs[VSInputRegisterMap], GPU_Regs[VSInputRegisterMap + 1])] = &input[15].v[0];*/
     
     // Setup output register table
     //struct OutputVertex ret;
     for (int i = 0; i < 7; ++i) {
-        u32 output_register_map = GPUregs[VSVertexAttributeOutputMap + i];
+        u32 output_register_map = GPU_Regs[VSVertexAttributeOutputMap + i];
 
         u32 semantics[4] = {
             (output_register_map >> 0) & 0x1F, (output_register_map >> 8) & 0x1F,
@@ -631,7 +624,7 @@ void writeGPUID(u16 ID, u8 mask, u32 size, u32* buffer)
     case TriggerDraw:
     case TriggerDrawIndexed:
     {
-                               u32* attribute_config = &GPUregs[VertexAttributeConfig];
+                               u32* attribute_config = &GPU_Regs[VertexAttributeConfig];
                                u32 base_address = (*attribute_config) << 3;
                                // Information about internal vertex attributes
                                u8* vertex_attribute_sources[16];
@@ -663,11 +656,11 @@ void writeGPUID(u16 ID, u8 mask, u32 size, u32* buffer)
                                // Load vertices
                                bool is_indexed = (ID == TriggerDrawIndexed);
                                //const auto& index_info = registers.Get<Regs::IndexArrayConfig>();
-                               u32 index_info_offset = GPUregs[IndexArrayConfig] & 0x7FFFFFFF;
+                               u32 index_info_offset = GPU_Regs[IndexArrayConfig] & 0x7FFFFFFF;
                                const u8* index_address_8 = (u8*)get_pymembuffer(base_address + index_info_offset);
                                const u16* index_address_16 = (u16*)index_address_8;
-                               bool index_u16 = (GPUregs[IndexArrayConfig] >> 31);
-                               for (u32 index = 0; index < GPUregs[NumVertices]; index++)
+                               bool index_u16 = (GPU_Regs[IndexArrayConfig] >> 31);
+                               for (u32 index = 0; index < GPU_Regs[NumVertices]; index++)
                                {
                                    int vertex = is_indexed ? (index_u16 ? index_address_16[index] : index_address_8[index]) : index;
 
@@ -724,7 +717,7 @@ void writeGPUID(u16 ID, u8 mask, u32 size, u32* buffer)
             GPUDEBUG("abnormal VSLoadProgramData %0x1 %0x3\n", mask, size);
         }
         for (i = 0; i < size; i++)
-            GPUshadercodebuffer[GPUregs[VSBeginLoadProgramData]++] = *(buffer + i);
+            GPUshadercodebuffer[GPU_Regs[VSBeginLoadProgramData]++] = *(buffer + i);
         break;
 
     case VSLoadSwizzleData:
@@ -741,7 +734,7 @@ void writeGPUID(u16 ID, u8 mask, u32 size, u32* buffer)
             GPUDEBUG("abnormal VSLoadSwizzleData %0x1 %0x3\n", mask, size);
         }
         for (i = 0; i < size; i++)
-            swizzle_data[GPUregs[VSBeginLoadSwizzleData]++] = *(buffer + i);
+            swizzle_data[GPU_Regs[VSBeginLoadSwizzleData]++] = *(buffer + i);
         break;
 
     case VSresttriangel:
@@ -764,12 +757,12 @@ void writeGPUID(u16 ID, u8 mask, u32 size, u32* buffer)
         for (i = 0; i < size; i++)
         {
             VSFloatUniformSetuptembuffer[VSFloatUniformSetuptembuffercurrent++] = *(buffer + i);
-            bool isfloat32 = (GPUregs[VSFloatUniformSetup] >> 31) == 1;
+            bool isfloat32 = (GPU_Regs[VSFloatUniformSetup] >> 31) == 1;
 
             if (VSFloatUniformSetuptembuffercurrent == (isfloat32 ? 4 : 3))
             {
                 VSFloatUniformSetuptembuffercurrent = 0;
-                u8 index = GPUregs[VSFloatUniformSetup] & 0x7F;
+                u8 index = GPU_Regs[VSFloatUniformSetup] & 0x7F;
                 if (index > 95) {
                     GPUDEBUG("Invalid VS uniform index %02x\n", index);
                     break;
@@ -793,7 +786,7 @@ void writeGPUID(u16 ID, u8 mask, u32 size, u32* buffer)
                     vectors[index].v[0], vectors[index].v[1], vectors[index].v[2],
                     vectors[index].v[3]);
                 // TODO: Verify that this actually modifies the register!
-                GPUregs[VSFloatUniformSetup]++;
+                GPU_Regs[VSFloatUniformSetup]++;
             }
         }
         break;
@@ -802,7 +795,7 @@ void writeGPUID(u16 ID, u8 mask, u32 size, u32* buffer)
         {
             GPUDEBUG("abnormal TRIGGER_IRQ %0x1 %0x3 %08x\n", mask, size, *buffer);
         }
-        sendGPUinterall(5);//P3D
+        gpu_SendInterruptToAll(5);//P3D
 
         break;
     default:
@@ -824,14 +817,14 @@ void runGPU_Commands(u8* buffer, u32 sizea)
         u8 grouping = (cmd >> 31);
         u32 datafild[0x800]; //maximal size
         datafild[0] = dataone;
-#ifdef logGSPparser
+#ifdef GSP_ENABLE_LOG
         GPUDEBUG("cmd %04x mask %01x size %03x (%08x) %s \n", ID, mask, size, dataone, grouping ? "grouping" : "")
 #endif
         int j;
         for (j = 0; j < size; j++)
         {
             datafild[1 + j] = *(u32*)(buffer + 8 + i);
-#ifdef logGSPparser
+#ifdef GSP_ENABLE_LOG
             GPUDEBUG("data %08x\n", datafild[1 + j]);
 #endif
             i += 4;
@@ -839,7 +832,7 @@ void runGPU_Commands(u8* buffer, u32 sizea)
         if (size & 0x1)
         {
             u32 data = *(u32*)(buffer + 8 + i);
-#ifdef logGSPparser
+#ifdef GSP_ENABLE_LOG
             GPUDEBUG("padding data %08x\n", data);
 #endif
             i += 4;
@@ -871,10 +864,10 @@ void updateFramebufferaddr(u32 addr,bool bot)
     //we use the last in buffer with flag set
     if (!bot) {
             if ((mem_Read32(addr + 4) & 0x1) == 0)
-                GPUwritereg32(RGBuponeleft, convertvirtualtopys(mem_Read32(addr + 8)));
+                gpu_WriteReg32(RGBuponeleft, convertvirtualtopys(mem_Read32(addr + 8)));
             else
-                GPUwritereg32(RGBuptwoleft, convertvirtualtopys(mem_Read32(addr + 8)));
-            GPUwritereg32(frameselectoben, mem_Read32(addr + 0x18));
+                gpu_WriteReg32(RGBuptwoleft, convertvirtualtopys(mem_Read32(addr + 8)));
+            gpu_WriteReg32(frameselectoben, mem_Read32(addr + 0x18));
             u32 u90 = mem_Read32(addr + 0x10);
             u32 format = mem_Read32(addr + 0x14);
             int i = 0;
@@ -883,10 +876,10 @@ void updateFramebufferaddr(u32 addr,bool bot)
         else
         {
             if ((mem_Read32(addr + 4)& 0x1) == 0)
-                GPUwritereg32(RGBdownoneleft, mem_Read32(addr + 8));
+                gpu_WriteReg32(RGBdownoneleft, mem_Read32(addr + 8));
             else
-                GPUwritereg32(RGBdowntwoleft, mem_Read32(addr + 8));
-            GPUwritereg32(frameselectbot, mem_Read32(addr + 0x18));
+                gpu_WriteReg32(RGBdowntwoleft, mem_Read32(addr + 8));
+            gpu_WriteReg32(frameselectbot, mem_Read32(addr + 0x18));
             //the rest is todo
     }
     return;
@@ -905,10 +898,10 @@ void updateFramebuffer()
             else
                 baseaddrtop += 0x4;
             if ((*(u32*)(baseaddrtop)& 0x1) == 0)
-                GPUwritereg32(RGBuponeleft, convertvirtualtopys(*(u32*)(baseaddrtop + 4)));
+                gpu_WriteReg32(RGBuponeleft, convertvirtualtopys(*(u32*)(baseaddrtop + 4)));
             else
-                GPUwritereg32(RGBuptwoleft, convertvirtualtopys(*(u32*)(baseaddrtop + 4)));
-            GPUwritereg32(frameselectoben, *(u32*)(baseaddrtop + 0x14));
+                gpu_WriteReg32(RGBuptwoleft, convertvirtualtopys(*(u32*)(baseaddrtop + 4)));
+            gpu_WriteReg32(frameselectoben, *(u32*)(baseaddrtop + 0x14));
             u32 u90 =*(u32*)(baseaddrtop + 0xC);
             u32 format = *(u32*)(baseaddrtop + 0x10);
             int i = 0;
@@ -922,10 +915,10 @@ void updateFramebuffer()
             else
                 baseaddrbot += 0x4;
             if ((*(u32*)(baseaddrbot) &0x1) == 0)
-                GPUwritereg32(RGBdownoneleft, convertvirtualtopys(*(u32*)(baseaddrbot + 4)));
+                gpu_WriteReg32(RGBdownoneleft, convertvirtualtopys(*(u32*)(baseaddrbot + 4)));
             else
-                GPUwritereg32(RGBdowntwoleft, convertvirtualtopys(*(u32*)(baseaddrbot + 4)));
-            GPUwritereg32(frameselectbot, *(u32*)(baseaddrbot + 0x14)); //todo
+                gpu_WriteReg32(RGBdowntwoleft, convertvirtualtopys(*(u32*)(baseaddrbot + 4)));
+            gpu_WriteReg32(frameselectbot, *(u32*)(baseaddrbot + 0x14)); //todo
             //the rest is todo
 
 

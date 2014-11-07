@@ -3,8 +3,12 @@ compiler:
    - gcc
 
 before_install:
+ - lsb_release -a
+ - sudo apt-add-repository --yes ppa:zoogie/sdl2-snapshots # libsdl2
  - sudo apt-get update -qq
- - sudo apt-get install libsdl-dev
+
+install:
+ - sudo apt-get install libsdl2-dev
 
 script:
   - make

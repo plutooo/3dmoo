@@ -1,8 +1,8 @@
 ### 3dmoo Makefile ###
 
 CC      = gcc
-CFLAGS  = -c -std=c99 -Wno-format-zero-length -Iinc -Isrc/arm11 -I/usr/include/SDL2/ -DMODET -DMODE32 -D_BSD_SOURCE
-LIBS    = -lSDL2 -lm
+CFLAGS  = -c -std=c99 -Wno-format-zero-length -Iinc -Isrc/arm11 `pkg-config sdl2 --cflags` -DMODET -DMODE32 -D_BSD_SOURCE
+LIBS    = `pkg-config sdl2 --libs` -lm
 LDFLAGS =
 
 SRC_FILES = src/mem.c src/screen.c src/handles.c src/loader.c src/utils.c src/svc.c src/config.c

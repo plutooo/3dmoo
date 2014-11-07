@@ -16,11 +16,11 @@
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <direct.h>
 #include <stdio.h>
 #include <string.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <unistd.h>
 
 #include "util.h"
 #include "mem.h"
@@ -228,118 +228,13 @@ static u32 sharedextd_OpenFile(archive* self, file_path path, u32 flags, u32 att
     return handle_New(HANDLE_TYPE_FILE, (uintptr_t) file);
 }
 
-u32 sharedextd_fnReadDir(dir_type* self, u32 ptr, u32 entrycount, u32* read_out)
+u32 sharedextd_ReadDir(dir_type* self, u32 ptr, u32 entrycount, u32* read_out)
 {
-    int current = 0;
-    while (current < entrycount) //the first entry is ignored
-    {
-        if (FindNextFileA(self->hFind, self->ffd) == 0) //no more files
-        {
-            break;
-        }
-        for (int i = 0; i < 0x106; i++) //todo non ASCII code
-        {
-            if (self->ffd->cFileName[i] == NULL) //this is the end
-            {
-                mem_Write8(ptr + i * 2, 0);
-                mem_Write8(ptr + i * 2 + 1, 0);
-                break;
-            }
-            mem_Write8(ptr + i * 2, self->ffd->cFileName[i]);
-            mem_Write8(ptr + i * 2 + 1, 0);
-        }
-
-        mem_Write8(ptr + 0x216, 0x0);
-        mem_Write8(ptr + 0x217, 0x0);
-        mem_Write8(ptr + 0x218, 0x0);
-        char * pch;
-        char * pcho;
-        if (self->ffd->cAlternateFileName[0] == 0)
-        {
-            pch = pcho = self->ffd->cFileName;
-        }
-        else
-        {
-            pch = pcho = self->ffd->cAlternateFileName;
-        }
-        char * pchtemp;
-        bool found = false;
-        while (true)
-        {
-            pchtemp = strchr(pch, '.');
-            if (!pchtemp)break;
-            pch = pchtemp + 1;
-            found = true;
-        }
-        if (found)
-        {
-            for (int i = 0; i < 3; i++)
-            {
-                mem_Write8(ptr + 0x216 + i, pch[i]);
-                if (pch[i] == 0)break;
-            }
-        }
-        for (int i = 0; i < 8; i++)
-        {
-            mem_Write8(ptr + 0x20C + i, pcho[i]);
-            if (pcho[i] == 0 || &pcho[i] == pch - 1)break;
-        }
-
-        //mem_Write(self->ffd->cFileName, ptr, 0x20C); //todo
-
-        mem_Write8(ptr + 0x215, 0xA); //unknown
-
-        //mem_Write(self->ffd->cFileName, ptr, 0x20C); //todo
-        mem_Write8(ptr + 0x21A, 0x1); //unknown
-        mem_Write8(ptr + 0x21B, 0x0); //unknown
-        if (self->ffd->dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
-        {
-            mem_Write8(ptr + 0x21C, 0x1);
-
-            mem_Write8(ptr + 0x216, ' '); //8.3 file extension
-            mem_Write8(ptr + 0x217, ' ');
-            mem_Write8(ptr + 0x218, ' ');
-        }
-        else
-        {
-            mem_Write8(ptr + 0x21C, 0x0);
-        }
-        if (self->ffd->dwFileAttributes & FILE_ATTRIBUTE_HIDDEN)
-        {
-            mem_Write8(ptr + 0x21D, 0x1);
-        }
-        else
-        {
-            mem_Write8(ptr + 0x21D, 0x0);
-        }
-        if (self->ffd->dwFileAttributes & FILE_ATTRIBUTE_ARCHIVE)
-        {
-            mem_Write8(ptr + 0x21E, 0x1);
-        }
-        else
-        {
-            mem_Write8(ptr + 0x21E, 0x0);
-        }
-        if (self->ffd->dwFileAttributes & FILE_ATTRIBUTE_READONLY)
-        {
-            mem_Write8(ptr + 0x21F, 0x1);
-        }
-        else
-        {
-            mem_Write8(ptr + 0x21F, 0x0);
-        }
-        if (!(self->ffd->dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY))
-        {
-            mem_Write32(ptr + 0x220, self->ffd->nFileSizeLow);
-            mem_Write32(ptr + 0x224, self->ffd->nFileSizeHigh);
-        }
-        current++;
-    }
-    *read_out = current;
+    *read_out = 0;
     return 0;
 }
 
-static u32 sharedextd_fnOpenDir(archive* self, file_path path)
+static u32 sharedextd_OpenDir(archive* self, file_path path)
 {
     // Create file object
     dir_type* dir = (dir_type*)malloc(sizeof(dir_type));
@@ -347,24 +242,12 @@ static u32 sharedextd_fnOpenDir(archive* self, file_path path)
     dir->f_path = path;
     dir->self = self;
 
-
-    dir->hFind = INVALID_HANDLE_VALUE;
-
     // Setup function pointers.
-    dir->fnRead = sharedextd_fnReadDir;
+    dir->fnRead = sharedextd_ReadDir;
 
     char p[256], tmp[256];
     snprintf(p, 256, "sys/shared/%s/*",
         fs_PathToString(path.type, path.ptr, path.size, tmp, 256));
-
-    dir->ffd = (WIN32_FIND_DATAA *)malloc(sizeof(WIN32_FIND_DATAA));
-
-    dir->hFind = FindFirstFileA(p, dir->ffd);
-
-    if (dir->hFind == INVALID_HANDLE_VALUE)
-        return 0;
-
-    printf("First file name is %s.\n", dir->ffd->cFileName);
 
     return handle_New(HANDLE_TYPE_DIR, (uintptr_t)dir);
 }
@@ -376,7 +259,8 @@ static void sharedextd_Deinitialize(archive* self)
     // Free yourself
     free(self);
 }
-static u32 sharedextd_delFile(archive* self, file_path path)
+
+static u32 sharedextd_DeleteFile(archive* self, file_path path)
 {
     char p[256], tmp[256];
 
@@ -393,7 +277,7 @@ static u32 sharedextd_delFile(archive* self, file_path path)
     return remove(p);
 }
 
-int sharedextd_deldir(archive* self, file_path path)
+int sharedextd_DeleteDir(archive* self, file_path path)
 {
     char p[256], tmp[256];
 
@@ -406,8 +290,9 @@ int sharedextd_deldir(archive* self, file_path path)
         ERROR("Got unsafe path.\n");
         return 0;
     }
-    return _rmdir(p);
+    return rmdir(p);
 }
+
 archive* sharedextd_OpenArchive(file_path path)
 {
     // Extdata needs a binary path with a 12-byte id.
@@ -424,10 +309,10 @@ archive* sharedextd_OpenArchive(file_path path)
     }
 
     // Setup function pointers
-    arch->fndelfile      = &sharedextd_delFile;
-    arch->fncreateDir    = NULL;
-    arch->fndelDir       = &sharedextd_deldir;
-    arch->fnOpenDir      = &sharedextd_fnOpenDir;
+    arch->fnDeleteFile   = &sharedextd_DeleteFile;
+    arch->fnCreateDir    = NULL;
+    arch->fnDeleteDir    = &sharedextd_DeleteDir;
+    arch->fnOpenDir      = &sharedextd_OpenDir;
     arch->fnFileExists   = &sharedextd_FileExists;
     arch->fnOpenFile     = &sharedextd_OpenFile;
     arch->fnDeinitialize = &sharedextd_Deinitialize;

@@ -16,6 +16,9 @@
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <sys/types.h>
+#include <dirent.h>
+
 enum {
     OPEN_READ  =1,
     OPEN_WRITE =2,
@@ -45,9 +48,9 @@ typedef struct {
 
 typedef struct _archive archive;
 struct _archive {
-    int(*fndelfile)(archive* self, file_path path);
-    int(*fncreateDir)(archive* self, file_path path);
-    int (*fndelDir)(archive* self, file_path path);
+    int(*fnDeleteFile)(archive* self, file_path path);
+    int(*fnCreateDir)(archive* self, file_path path);
+    int (*fnDeleteDir)(archive* self, file_path path);
     u32(*fnOpenDir)(archive* self, file_path path);
     bool (*fnFileExists)  (archive* self, file_path path);
     u32  (*fnOpenFile)    (archive* self, file_path path, u32 flags, u32 attr);
@@ -70,9 +73,8 @@ struct _dir_type {
     u32(*fnRead) (dir_type* self, u32 ptr, u32 entrycount, u32* read_out);
     file_path f_path;
     archive* self;
-    u8 path[255];
-    WIN32_FIND_DATAA * ffd;
-    HANDLE hFind;
+    u8 path[256];
+    DIR* dir;
 };
 
 typedef struct _file_type file_type;
@@ -125,6 +127,7 @@ typedef struct {
     const char* name;
     u32 id;
     archive* (*fnOpenArchive)(file_path path);
+
 } archive_type;
 
 static archive_type archive_types[] =  {

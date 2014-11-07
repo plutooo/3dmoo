@@ -16,7 +16,6 @@
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <direct.h>
 #include <stdio.h>
 #include <string.h>
 #include <sys/types.h>
@@ -201,7 +200,7 @@ static void SaveDatacheck_Deinitialize(archive* self)
     free(self);
 }
 
-int SaveDatacheck_deldir(archive* self, file_path path)
+int SaveDatacheck_DeleteDir(archive* self, file_path path)
 {
     char p[256], tmp[256];
 
@@ -214,24 +213,23 @@ int SaveDatacheck_deldir(archive* self, file_path path)
         ERROR("Got unsafe path.\n");
         return 0;
     }
-    return _rmdir(p);
+    return rmdir(p);
 }
 
-int SaveDatacheck_createdir(archive* self, file_path path)
+int SaveDatacheck_CreateDir(archive* self, file_path path)
 {
     char p[256], tmp[256];
 
     // Generate path on host file system
-        snprintf(p, 256, "savecheck/%s/%s",
-            self->type_specific.sysdata.path,
-            fs_PathToString(path.type, path.ptr, path.size, tmp, 256));
-
+    snprintf(p, 256, "savecheck/%s/%s",
+        self->type_specific.sysdata.path,
+        fs_PathToString(path.type, path.ptr, path.size, tmp, 256));
 
     if (!fs_IsSafePath(p)) {
         ERROR("Got unsafe path.\n");
         return 0;
     }
-    return _mkdir(p);
+    return mkdir(p, 0777);
 }
 
 archive* SaveDatacheck_OpenArchive(file_path path)
@@ -250,10 +248,10 @@ archive* SaveDatacheck_OpenArchive(file_path path)
     }
 
     // Setup function pointers
-    arch->fndelfile = NULL;
-    arch->fncreateDir = &SaveDatacheck_createdir;
-    arch->fndelDir = &SaveDatacheck_deldir;
-    arch->fnOpenDir      = NULL;
+    arch->fnDeleteFile = NULL;
+    arch->fnCreateDir = &SaveDatacheck_CreateDir;
+    arch->fnDeleteDir = &SaveDatacheck_DeleteDir;
+    arch->fnOpenDir = NULL;
     arch->fnFileExists = &SaveDatacheck_FileExists;
     arch->fnOpenFile = &SaveDatacheck_OpenFile;
     arch->fnDeinitialize = &SaveDatacheck_Deinitialize;

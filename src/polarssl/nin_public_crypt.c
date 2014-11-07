@@ -182,6 +182,7 @@ int ncch_extract_prepare(ctr_aes_context* ctx, ctr_ncchheader* h, u32 type, u8* 
 clean:
     return 0;
 }
+
 int programid_is_system(u8 programid[8])
 {
     u32 hiprogramid = getle32(programid + 4);

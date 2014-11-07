@@ -1,11 +1,11 @@
 ### 3dmoo Makefile ###
 
 CC      = gcc
-CFLAGS  = -c -std=c99 -Wno-format-zero-length -Iinc -Isrc/arm11 -I/usr/include/SDL2/ -DMODET -DMODE32
+CFLAGS  = -c -std=c99 -Wno-format-zero-length -Iinc -Isrc/arm11 -I/usr/include/SDL2/ -DMODET -DMODE32 -D_BSD_SOURCE
 LIBS    = -lSDL2 -lm
 LDFLAGS =
 
-SRC_FILES = src/mem.c src/screen.c src/handles.c src/loader.c src/utila.c src/svc.c
+SRC_FILES = src/mem.c src/screen.c src/handles.c src/loader.c src/utils.c src/svc.c src/config.c
 
 INC_FILES = inc/*
 
@@ -17,8 +17,9 @@ SERVICES_FILES = $(foreach dir, src/services, $(wildcard $(dir)/*.c))
 FS_FILES       = $(foreach dir, src/fs,       $(wildcard $(dir)/*.c))
 GPU_FILES      = $(foreach dir, src/gpu,      $(wildcard $(dir)/*.c))
 DSP_FILES      = $(foreach dir, src/dsp,      $(wildcard $(dir)/*.c))
+POLARSSL_FILES = $(foreach dir, src/polarssl, $(wildcard $(dir)/*.c))
 
-C_FILES = $(SRC_FILES) $(ARM11_FILES) $(SYSCALLS_FILES) $(SERVICES_FILES) $(FS_FILES) $(GPU_FILES) $(DSP_FILES)
+C_FILES = $(SRC_FILES) $(ARM11_FILES) $(SYSCALLS_FILES) $(SERVICES_FILES) $(FS_FILES) $(GPU_FILES) $(DSP_FILES) $(POLARSSL_FILES)
 OBJECTS=$(C_FILES:.c=.o)
 
 MAIN_FILES=src/main.c

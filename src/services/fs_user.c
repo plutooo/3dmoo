@@ -50,20 +50,20 @@ SERVICE_CMD(0x08040142)   // DeleteFile
     }
     archive* arch = (archive*)arch_hi->subtype;
     // Call delarchive
-    if (arch != NULL && arch->fndelfile != NULL) {
-        int ret = arch->fndelfile(arch,
+    if (arch != NULL && arch->fnDeleteFile != NULL) {
+        int ret = arch->fnDeleteFile(arch,
             (file_path) {
             file_lowpath_type, file_lowpath_sz, file_lowpath_ptr
         });
 
         if (ret != 0) {
-            ERROR("fndelfile has failed.\n");
+            ERROR("DeleteFile has failed.\n");
             RESP(1, -1);
             return 0;
         }
     }
     else {
-        ERROR("Archive has not implemented fndelfile.\n");
+        ERROR("Archive has not implemented DeleteFile.\n");
         RESP(1, -1);
         return 0;
     }
@@ -101,20 +101,20 @@ SERVICE_CMD(0x08070142)   // DeleteDirectoryRecursively
     }
     archive* arch = (archive*)arch_hi->subtype;
     // Call delarchive
-    if (arch != NULL && arch->fndelDir != NULL) {
-        int ret = arch->fndelDir(arch,
+    if (arch != NULL && arch->fnDeleteDir != NULL) {
+        int ret = arch->fnDeleteDir(arch,
             (file_path) {
             dir_lowpath_type, dir_lowpath_sz, dir_lowpath_ptr
         });
 
             if (ret != 0) {
-                ERROR("fndelDir has failed.\n");
+                ERROR("DeleteFile has failed.\n");
                 RESP(1, -1);
                 return 0;
             }
     }
     else {
-        ERROR("Archive has not implemented fndelDir.\n");
+        ERROR("Archive has not implemented DeleteFile.\n");
         RESP(1, -1);
         return 0;
     }
@@ -155,20 +155,20 @@ SERVICE_CMD(0x08090182)   // CreateDirectory
     }
     archive* arch = (archive*)arch_hi->subtype;
     // Call delarchive
-    if (arch != NULL && arch->fncreateDir != NULL) {
-        int ret = arch->fncreateDir(arch,
+    if (arch != NULL && arch->fnCreateDir != NULL) {
+        int ret = arch->fnCreateDir(arch,
             (file_path) {
             dir_lowpath_type, dir_lowpath_sz, dir_lowpath_ptr
         });
 
         if (ret != 0) {
-            ERROR("fncreateDir has failed.\n");
+            ERROR("CreateDir has failed.\n");
             RESP(1, -1);
             return 0;
         }
     }
     else {
-        ERROR("Archive has not implemented fncreateDir.\n");
+        ERROR("Archive has not implemented CreateDir.\n");
         RESP(1, -1);
         return 0;
     }
@@ -701,11 +701,10 @@ SERVICE_CMD(0x08080000)   // Close
     RESP(1, rc);
     return 0;
 }
-SERVICE_CMD(0x08090000)   //flush win dose that for us
+SERVICE_CMD(0x08090000)   // Flush
 {
 
-    DEBUG("flush\n");
-
+    DEBUG("Flush\n");
     RESP(1, 0);
     return 0;
 }
@@ -727,7 +726,7 @@ SERVICE_CMD(0x08010042)   // Read
 
     u32 count_read = 0;
 
-    DEBUG("DIRRead (%08x, %08x)\n", max_out_count, outptr);
+    DEBUG("ReadDir (%08x, %08x)\n", max_out_count, outptr);
 
     dir_type* type = (dir_type*)h->subtype; //(dir_type* self, u32 ptr, u32 entrycount, u32* read_out);
 
@@ -749,7 +748,7 @@ SERVICE_CMD(0x08020000)   // Close
     u32 rc = 0;
     file_type* type = (file_type*)h->subtype;
 
-    DEBUG("Close\n");
+    DEBUG("CloseDir\n");
 
     //if (type->fnDirClose != NULL)
     //    rc = type->fnDirClose(type);

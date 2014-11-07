@@ -16,7 +16,6 @@
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <direct.h>
 #include <stdio.h>
 #include <string.h>
 #include <sys/types.h>
@@ -117,7 +116,7 @@ static bool sysdata_FileExists(archive* self, file_path path)
     return stat(p, &st) == 0;
 }
 
-static u32 sysdata_delFile(archive* self, file_path path, u32 flags, u32 attr)
+static u32 sysdata_DeleteFile(archive* self, file_path path, u32 flags, u32 attr)
 {
     char p[256], tmp[256];
 
@@ -246,7 +245,7 @@ static void sysdata_Deinitialize(archive* self)
     free(self);
 }
 
-int sysdata_deldir(archive* self, file_path path)
+int sysdata_DeleteDir(archive* self, file_path path)
 {
     char p[256], tmp[256];
 
@@ -268,10 +267,10 @@ int sysdata_deldir(archive* self, file_path path)
         ERROR("Got unsafe path.\n");
         return 0;
     }
-    return _rmdir(p);
+    return rmdir(p);
 }
 
-int sysdata_createdir(archive* self, file_path path)
+int sysdata_CreateDir(archive* self, file_path path)
 {
     char p[256], tmp[256];
 
@@ -293,7 +292,7 @@ int sysdata_createdir(archive* self, file_path path)
         ERROR("Got unsafe path.\n");
         return 0;
     }
-    return _mkdir(p);
+    return mkdir(p, 0777);
 }
 
 archive* sysdata_OpenArchive(file_path path)
@@ -312,9 +311,9 @@ archive* sysdata_OpenArchive(file_path path)
     }
 
     // Setup function pointers
-    arch->fndelfile      = &sysdata_delFile;
-    arch->fncreateDir    = &sysdata_createdir;
-    arch->fndelDir       = &sysdata_deldir;
+    arch->fnDeleteFile   = &sysdata_DeleteFile;
+    arch->fnCreateDir    = &sysdata_CreateDir;
+    arch->fnDeleteDir    = &sysdata_DeleteDir;
     arch->fnOpenDir      = NULL;
     arch->fnFileExists   = &sysdata_FileExists;
     arch->fnOpenFile     = &sysdata_OpenFile;

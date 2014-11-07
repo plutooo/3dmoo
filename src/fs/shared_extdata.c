@@ -228,31 +228,6 @@ static u32 sharedextd_OpenFile(archive* self, file_path path, u32 flags, u32 att
     return handle_New(HANDLE_TYPE_FILE, (uintptr_t) file);
 }
 
-u32 sharedextd_ReadDir(dir_type* self, u32 ptr, u32 entrycount, u32* read_out)
-{
-    *read_out = 0;
-    return 0;
-}
-
-static u32 sharedextd_OpenDir(archive* self, file_path path)
-{
-    // Create file object
-    dir_type* dir = (dir_type*)malloc(sizeof(dir_type));
-
-    dir->f_path = path;
-    dir->self = self;
-
-    // Setup function pointers.
-    dir->fnRead = sharedextd_ReadDir;
-
-    char p[256], tmp[256];
-    snprintf(p, 256, "sys/shared/%s/*",
-        fs_PathToString(path.type, path.ptr, path.size, tmp, 256));
-
-    return handle_New(HANDLE_TYPE_DIR, (uintptr_t)dir);
-}
-
-
 
 static void sharedextd_Deinitialize(archive* self)
 {
@@ -312,7 +287,7 @@ archive* sharedextd_OpenArchive(file_path path)
     arch->fnDeleteFile   = &sharedextd_DeleteFile;
     arch->fnCreateDir    = NULL;
     arch->fnDeleteDir    = &sharedextd_DeleteDir;
-    arch->fnOpenDir      = &sharedextd_OpenDir;
+    arch->fnOpenDir      = NULL;
     arch->fnFileExists   = &sharedextd_FileExists;
     arch->fnOpenFile     = &sharedextd_OpenFile;
     arch->fnDeinitialize = &sharedextd_Deinitialize;

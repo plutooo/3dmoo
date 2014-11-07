@@ -234,12 +234,6 @@ static u32 savedata_OpenFile(archive* self, file_path path, u32 flags, u32 attr)
     return handle_New(HANDLE_TYPE_FILE, (uintptr_t) file);
 }
 
-u32 savedata_ReadDir(dir_type* self, u32 ptr, u32 entrycount, u32* read_out)
-{
-    *read_out = 0;
-    return 0;
-}
-
 
 int savedata_CreateDir(archive* self, file_path path)
 {
@@ -254,24 +248,6 @@ int savedata_CreateDir(archive* self, file_path path)
         return 0;
     }
     return mkdir(p, 0777);
-}
-
-static u32 savedata_OpenDir(archive* self, file_path path)
-{
-    // Create file object
-    dir_type* dir = (dir_type*)malloc(sizeof(dir_type));
-
-    dir->f_path = path;
-    dir->self = self;
-
-    // Setup function pointers.
-    dir->fnRead = &savedata_ReadDir;
-
-    char p[256], tmp[256];
-    snprintf(p, 256, "savedata/%s/*",
-        fs_PathToString(path.type, path.ptr, path.size, tmp, 256));
-
-    return handle_New(HANDLE_TYPE_DIR, (uintptr_t)dir);
 }
 
 
@@ -292,7 +268,7 @@ archive* savedata_OpenArchive(file_path path)
 
     // Setup function pointers
     arch->fnCreateDir = &savedata_CreateDir;
-    arch->fnOpenDir = &savedata_OpenDir;
+    arch->fnOpenDir = NULL;
     arch->fnFileExists = &savedata_FileExists;
     arch->fnOpenFile = &savedata_OpenFile;
     arch->fnDeinitialize = &savedata_Deinitialize;

@@ -1,0 +1,15 @@
+language: c
+compiler:
+   - gcc
+
+script:
+  - make
+
+notifications:
+  email: false
+
+  irc:
+    channels:
+      - "irc.blitzed.org#3dmoo"
+      on_success: always
+      on_failure: always

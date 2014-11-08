@@ -17,7 +17,7 @@
 */
 
 #include <sys/types.h>
-#include <dirent.h>
+#include "dirent.h"
 
 enum {
     OPEN_READ  =1,

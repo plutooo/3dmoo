@@ -245,13 +245,14 @@
     <ClCompile Include="..\src\syscalls\Interrupt.c" />
     <ClCompile Include="..\src\syscalls\memory.c" />
     <ClCompile Include="..\src\syscalls\ports.c" />
+    <ClCompile Include="..\src\syscalls\resource_limit.c" />
     <ClCompile Include="..\src\syscalls\syn.c" />
     <ClCompile Include="..\src\syscalls\timer.c" />
-    <ClCompile Include="..\src\utila.c" />
-    <ClCompile Include="Resourcelimit.c" />
+    <ClCompile Include="..\src\utils.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\inc\arm11.h" />
+    <ClInclude Include="..\inc\dirent.h" />
     <ClInclude Include="..\inc\dsp.h" />
     <ClInclude Include="..\inc\fs.h" />
     <ClInclude Include="..\inc\gdbstub.h" />

@@ -264,9 +264,6 @@
     <ClCompile Include="..\src\gpu\clipper.c">
       <Filter>Source Files\GPU</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\utila.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\gdbstub\gdbstub.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -333,14 +330,17 @@
     <ClCompile Include="..\src\services\y2r_u.c">
       <Filter>Source Files\services</Filter>
     </ClCompile>
-    <ClCompile Include="Resourcelimit.c">
-      <Filter>Source Files\syscalls</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\services\pix_dev.c">
       <Filter>Source Files\services</Filter>
     </ClCompile>
     <ClCompile Include="..\src\services\ir_rst.c">
       <Filter>Source Files\services</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\syscalls\resource_limit.c">
+      <Filter>Source Files\syscalls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\utils.c">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -420,6 +420,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\src\config.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\inc\dirent.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

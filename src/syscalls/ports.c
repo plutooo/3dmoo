@@ -42,7 +42,7 @@ u32 err_f_SyncRequest()
     switch (cid) {
 
         case 0x00010800: //ThrowFatalError
-            DEBUG("ThrowFatalError");
+            DEBUG("ThrowFatalError\n");
             break;
 
     default:

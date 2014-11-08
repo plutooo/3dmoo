@@ -357,8 +357,6 @@ static u32 sdmc_OpenDir(archive* self, file_path path)
     dir->f_path = path;
     dir->self = self;
     
-    dir->dir = NULL;
-
     // Setup function pointers.
     dir->fnRead = &sdmc_ReadDir;
 
@@ -372,6 +370,14 @@ static u32 sdmc_OpenDir(archive* self, file_path path)
     {
         snprintf(dir->path, 256, "sdmc/%s/",
             fs_PathToString(path.type, path.ptr, path.size, tmp, 256));
+    }
+
+    dir->dir = opendir(dir->path);
+
+    if(dir->dir == NULL) {
+        ERROR("Dir not found: %s.\n", dir->path);
+        free(dir);
+        return 0;
     }
 
     return handle_New(HANDLE_TYPE_DIR, (uintptr_t)dir);

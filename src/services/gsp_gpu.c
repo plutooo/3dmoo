@@ -35,8 +35,8 @@ void GPUTriggerCmdReqQueue()
     for (int i = 0; i < 0x4; i++) { //for all threads
         u8 *baseaddr = (u8*)(GSPsharedbuff + 0x800 + i * 0x200);
         u32 header = *(u32*)baseaddr;
-        //Console.WriteLine(Convert.ToString(header,0x10));
         u32 toprocess = (header >> 8) & 0xFF;
+
         for (u32 j = 0; j < toprocess; j++) {
             *(u32*)baseaddr = 0;
             u32 CMDID = *(u32*)(baseaddr + (j + 1) * 0x20);

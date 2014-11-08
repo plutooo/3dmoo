@@ -42,7 +42,7 @@ u32 handle_New(u32 type, u32 subtype)
         arm11_Dump();
         exit(1);
     }
-    DEBUG("newhand=%x\n", HANDLES_BASE + handles_num);
+    DEBUG("handle=%x\n", HANDLES_BASE + handles_num);
     handles[handles_num].taken    = true;
     handles[handles_num].type     = type;
     handles[handles_num].subtype  = subtype;

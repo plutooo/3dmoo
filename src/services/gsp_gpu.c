@@ -359,12 +359,12 @@ SERVICE_START(gsp_gpu);
 
 SERVICE_CMD(0x10082) // WriteHWRegs
 {
-    u32 inaddr  = CMD(3);
+    u32 inaddr  = CMD(4);
     u32 length  = CMD(2);
     u32 addr    = CMD(1);
     u32 ret     = 0;
 
-    DEBUG("GSPGPU_WriteHWRegs addr=%08x from=%08x length=%08x\n", addr, inaddr, length);
+    DEBUG("GSPGPU_WriteHWRegs\n");
 
     if ((addr & 0x3) != 0) {
         DEBUG("Misaligned address\n");
@@ -386,13 +386,105 @@ SERVICE_CMD(0x10082) // WriteHWRegs
     if(ret == 0) {
         u32 i;
 
-        for (i = 0; i < length; i += 4)
-            gpu_WriteReg32((u32)(addr + i), mem_Read32((u32)(inaddr + i)));
+        for (i = 0; i < length; i += 4) {
+            u32 val = mem_Read32(inaddr + i);
+            u32 addr_out = addr + i;
+
+            DEBUG("Writing %08x to register %08x..\n", val, addr_out);
+            gpu_WriteReg32(addr_out, val);
+        }
     }
 
     RESP(1, ret);
     return 0;
 }
+
+SERVICE_CMD(0x20084) // WriteHWRegsWithMask
+{
+    u32 inmask  = CMD(6);
+    u32 inaddr  = CMD(4);
+    u32 length  = CMD(2);
+    u32 addr    = CMD(1);
+    u32 ret     = 0;
+
+    DEBUG("GSPGPU_WriteHWRegsWithMask\n");
+
+    if ((addr & 0x3) != 0) {
+        DEBUG("Misaligned address\n");
+        ret = 0xe0e02a01;
+    }
+    if (addr > 0x420000) {
+        DEBUG("Address out of range\n");
+        ret = 0xe0e02a01;
+    }
+    if (length > 0x80) {
+        DEBUG("Too long\n");
+        ret = 0xe0e02bec;
+    }
+    if (length & 0x3) {
+        DEBUG("Length misaligned\n");
+        ret = 0xe0e02bf2;
+    }
+
+    if(ret == 0) {
+        u32 i;
+
+        for (i = 0; i < length; i += 4) {
+            u32 reg = gpu_ReadReg32(addr + i);
+            u32 mask = mem_Read32(inaddr + i);
+            u32 val = mem_Read32(inaddr + i);
+
+            DEBUG("Writing %08x mask %08x to register %08x..\n", val, mask, addr + i);
+            gpu_WriteReg32(addr + i, (reg & ~mask) | (val & mask));
+        }
+    }
+
+    RESP(1, ret);
+    return 0;
+}
+
+SERVICE_CMD(0x30082) // WriteHWRegsRepeat
+{
+    u32 inaddr  = CMD(4);
+    u32 length  = CMD(2);
+    u32 addr    = CMD(1);
+    u32 ret     = 0;
+
+    DEBUG("GSPGPU_WriteHWRegsRepeat\n");
+
+    if ((addr & 0x3) != 0) {
+        DEBUG("Misaligned address\n");
+        ret = 0xe0e02a01;
+    }
+    if (addr > 0x420000) {
+        DEBUG("Address out of range\n");
+        ret = 0xe0e02a01;
+    }
+    if (length > 0x80) {
+        DEBUG("Too long\n");
+        ret = 0xe0e02bec;
+    }
+    if (length & 0x3) {
+        DEBUG("Length misaligned\n");
+        ret = 0xe0e02bf2;
+    }
+
+    if(ret == 0) {
+        u32 i;
+
+        for (i = 0; i < length; i += 4) {
+            u32 reg = gpu_ReadReg32(addr + i);
+            u32 val = mem_Read32(inaddr + i);
+
+            DEBUG("Writing %08x to register %08x..\n", val, addr);
+            gpu_WriteReg32(addr, val);
+        }
+    }
+
+    RESP(1, ret);
+    return 0;
+}
+
 
 SERVICE_CMD(0x40080) // ReadHWRegs
 {

@@ -17,7 +17,12 @@
 */
 
 #include <sys/types.h>
+
+#ifdef _WIN32
 #include "dirent.h"
+#else
+#include <dirent.h>
+#endif
 
 enum {
     OPEN_READ  =1,

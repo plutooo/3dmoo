@@ -21,6 +21,25 @@
 
 #include "vec4.h"
 
+/* Commands for gsp shared-mem. */
+#define GSP_ID_REQUEST_DMA          0
+#define GSP_ID_SET_CMDLIST          1
+#define GSP_ID_SET_MEMFILL          2
+#define GSP_ID_SET_DISPLAY_TRANSFER 3
+#define GSP_ID_SET_TEXTURE_COPY     4
+#define GSP_ID_FLUSH_CMDLIST        5
+
+/* Interrupt ids. */
+#define GSP_INT_PSC0 0 // Memory fill A
+#define GSP_INT_PSC1 1 // Memory fill B
+#define GSP_INT_VBLANK_TOP 2
+#define GSP_INT_VBLANK_BOT 3
+#define GSP_INT_PPF 4
+#define GSP_INT_P3D 5 // Triggered when GPU-cmds have finished executing?
+#define GSP_INT_DMA 6 // Triggered when DMA has finished.
+
+
+
 #define LCDCOLORFILLMAIN 0x202204
 #define LCDCOLORFILLSUB 0x202A04
 

@@ -2,7 +2,8 @@
 * Copyright (C) 2014 - plutoo
 * Copyright (C) 2014 - ichfly
 *
-* This program is free software: you can redistribute it and/or modify
+y
+yy* This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
 * the Free Software Foundation, either version 3 of the License, or
 * (at your option) any later version.
@@ -26,69 +27,78 @@
 
 
 u32 numReqQueue = 1;
-
 u32 trigevent = 0;
 
+//#define DUMP_CMDLIST
 
-u32 GPUnum = 0;
 
 void gsp_ExecuteCommandFromSharedMem()
 {
-    for (int i = 0; i < 0x4; i++) { //for all threads
-        u8 *baseaddr = (u8*)(GSPsharedbuff + 0x800 + i * 0x200);
+    int i;
+
+    // For all threads
+    for (i = 0; i < 0x4; i++)
+    {
+        u8* baseaddr = (u8*)(GSPsharedbuff + 0x800 + i * 0x200);
         u32 header = *(u32*)baseaddr;
         u32 toprocess = (header >> 8) & 0xFF;
 
-        for (u32 j = 0; j < toprocess; j++) {
+        for (u32 j = 0; j < toprocess; j++)
+        {
             *(u32*)baseaddr = 0;
-            u32 CMDID = *(u32*)(baseaddr + (j + 1) * 0x20);
-            u32 src;
-            u32 dest;
-            u32 size;
+            u32 cmd_id = *(u32*)(baseaddr + (j + 1) * 0x20);
             u32 addr;
             u32 flags;
-            switch (CMDID & 0xFF) {
-            case 0:
-                src = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x4);
-                dest = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x8);
-                size = *(u32*)(baseaddr + (j + 1) * 0x20 + 0xC);
-                DEBUG("GX RequestDma 0x%08X 0x%08X 0x%08X\r\n", src, dest, size);
+
+            switch (cmd_id & 0xFF) {
+            case GSP_ID_REQUEST_DMA: /* GX::RequestDma */
+            {
+                u32 src = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x4);
+                u32 dest = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x8);
+                u32 size = *(u32*)(baseaddr + (j + 1) * 0x20 + 0xC);
+
+                DEBUG("GX RequestDma 0x%08x 0x%08x 0x%08x\n", src, dest, size);
+
                 if (dest - 0x1f000000 > 0x600000 || dest + size - 0x1f000000 > 0x600000) {
-                    DEBUG("dma copy into non VRAM not suported\r\n");
+                    DEBUG("dma copy into non VRAM not suported\n");
                     continue;
                 }
-
-
-                //for (u32 k = 0; k < size; k++)
-                //    VRAMbuff[k + dest - 0x1F000000] = mem_Read8((src + k)); //todo speed up
 
                 mem_Read(&VRAMbuff[dest - 0x1F000000], src, size);
                 gpu_SendInterruptToAll(6);
                 break;
-            case 1:
-                addr = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x4);
-                size = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x8);
-                flags = *(u32*)(baseaddr + (j + 1) * 0x20 + 0xC);
-                DEBUG("GX SetCommandList Last 0x%08X 0x%08X 0x%08X\r\n", addr, size, flags);
+            }
 
+            case GSP_ID_SET_CMDLIST: /* GX::SetCmdList Last */
+            {
+                u32 addr = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x4);
+                u32 size = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x8);
+                u32 flags = *(u32*)(baseaddr + (j + 1) * 0x20 + 0xC);
+
+                DEBUG("GX SetCommandList Last 0x%08x 0x%08x 0x%08x\n", addr, size, flags);
+
+#ifdef DUMP_CMDLIST
                 char name[0x100];
-                sprintf(name, "Cmdlist%08x.dat", GPUnum);
-                GPUnum++;
+                static u32 cmdlist_ctr;
+
+                sprintf(name, "Cmdlist%08x.dat", cmdlist_ctr++);
                 FILE* out = fopen(name, "wb");
+#endif
 
                 u8* buffer = malloc(size);
                 mem_Read(buffer, addr, size);
-
                 runGPU_Commands(buffer, size);
 
-                //u8* buffer = get_pymembuffer(addr);
-
+#ifdef DUMP_CMDLIST
                 fwrite(buffer, size, 1, out);
                 fclose(out);
-
-
+#endif
+                free(buffer);
                 break;
-            case 2: {
+            }
+
+            case GSP_ID_SET_MEMFILL:
+            {
                 u32 addr1, val1, addrend1, addr2, val2, addrend2, width;
                 addr1 = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x4);
                 val1 = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x8);
@@ -97,6 +107,7 @@ void gsp_ExecuteCommandFromSharedMem()
                 val2 = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x14);
                 addrend2 = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x18);
                 width = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x1C);
+
                 DEBUG("GX SetMemoryFill 0x%08X 0x%08X 0x%08X 0x%08X 0x%08X 0x%08X 0x%08X\r\n", addr1, val1, addrend1, addr2, val2, addrend2, width);
                 if (addr1 - 0x1f000000 > 0x600000 || addrend1 - 0x1f000000 > 0x600000) {
                     DEBUG("SetMemoryFill into non VRAM not suported\r\n");
@@ -125,12 +136,10 @@ void gsp_ExecuteCommandFromSharedMem()
                 gpu_SendInterruptToAll(0);
                 break;
             }
-            case 3: 
+            case 3:
             
             theother:
             {
-
-
                 gpu_SendInterruptToAll(1); //this should be at the start
                 gpu_SendInterruptToAll(4); //this is wrong
 
@@ -289,24 +298,14 @@ void gsp_ExecuteCommandFromSharedMem()
                     } 
                 }
 
-
-
-
-
-
-                //memcpy(get_pymembuffer(convertvirtualtopys(outputaddr)), get_pymembuffer(convertvirtualtopys(inpaddr)), sizeoutp);
                 updateFramebuffer();
-
-
-                //mem_Dbugdump();
-
                 break;
             }
             case 4: {
                 u32 inpaddr, outputaddr /*,size*/, inputdim, outputdim, flags;
                 inpaddr = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x4);
                 outputaddr = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x8);
-                size = *(u32*)(baseaddr + (j + 1) * 0x20 + 0xC);
+                u32 size = *(u32*)(baseaddr + (j + 1) * 0x20 + 0xC);
                 inputdim = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x10);
                 outputdim = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x14);
                 flags = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x18);

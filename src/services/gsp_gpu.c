@@ -32,7 +32,7 @@ u32 trigevent = 0;
 
 u32 GPUnum = 0;
 
-void GPUTriggerCmdReqQueue()
+void gsp_ExecuteCommandFromSharedMem()
 {
     for (int i = 0; i < 0x4; i++) { //for all threads
         u8 *baseaddr = (u8*)(GSPsharedbuff + 0x800 + i * 0x200);
@@ -354,50 +354,51 @@ u32 GPURegisterInterruptRelayQueue(u32 flags, u32 Kevent, u32*threadID, u32*outM
     return 0x2A07; //dump from save GSP v0 flags 0
 }
 
+
 SERVICE_START(gsp_gpu);
 
-SERVICE_CMD(0x10082)   // WriteHWRegs
+SERVICE_CMD(0x10082) // WriteHWRegs
 {
-        u32 inaddr  = mem_Read32(arm11_ServiceBufferAddress() + 0x90);
-        u32 length  = mem_Read32(arm11_ServiceBufferAddress() + 0x88);
-        u32 addr    = mem_Read32(arm11_ServiceBufferAddress() + 0x84);
-        u32 ret     = 0;
+    u32 inaddr  = CMD(3);
+    u32 length  = CMD(2);
+    u32 addr    = CMD(1);
+    u32 ret     = 0;
 
-        DEBUG("GSPGPU_WriteHWRegs addr=%08x from=%08x length=%08x\n", addr, inaddr, length);
+    DEBUG("GSPGPU_WriteHWRegs addr=%08x from=%08x length=%08x\n", addr, inaddr, length);
 
-        if ((addr & 0x3) != 0) {
-            DEBUG("Misaligned address\n");
-            ret = 0xe0e02a01;
-        }
-        if (addr > 0x420000) {
-            DEBUG("Address out of range\n");
-            ret = 0xe0e02a01;
-        }
-        if (length > 0x80) {
-            DEBUG("Too long\n");
-            ret = 0xe0e02bec;
-        }
-        if (length & 0x3) {
-            DEBUG("Length misaligned\n");
-            ret = 0xe0e02bf2;
-        }
+    if ((addr & 0x3) != 0) {
+        DEBUG("Misaligned address\n");
+        ret = 0xe0e02a01;
+    }
+    if (addr > 0x420000) {
+        DEBUG("Address out of range\n");
+        ret = 0xe0e02a01;
+    }
+    if (length > 0x80) {
+        DEBUG("Too long\n");
+        ret = 0xe0e02bec;
+    }
+    if (length & 0x3) {
+        DEBUG("Length misaligned\n");
+        ret = 0xe0e02bf2;
+    }
 
-        if(ret == 0) {
-            u32 i;
+    if(ret == 0) {
+        u32 i;
 
-            for (i = 0; i < length; i += 4)
-                gpu_WriteReg32((u32)(addr + i), mem_Read32((u32)(inaddr + i)));
-        }
+        for (i = 0; i < length; i += 4)
+            gpu_WriteReg32((u32)(addr + i), mem_Read32((u32)(inaddr + i)));
+    }
 
-        mem_Write32(arm11_ServiceBufferAddress() + 0x84, ret); //no error
-        return 0;
+    RESP(1, ret);
+    return 0;
 }
 
 SERVICE_CMD(0x40080) // ReadHWRegs
 {
-    u32 outaddr = mem_Read32(arm11_ServiceBufferAddress() + 0x184);
-    u32 length  = mem_Read32(arm11_ServiceBufferAddress() + 0x88);
-    u32 addr    = mem_Read32(arm11_ServiceBufferAddress() + 0x84);
+    u32 outaddr = EXTENDED_CMD(1);
+    u32 length  = CMD(2);
+    u32 addr    = CMD(1);
     u32 ret     = 0;
 
     DEBUG("GSPGPU_ReadHWRegs addr=%08x to=%08x length=%08x\n", addr, outaddr, length);
@@ -407,22 +408,24 @@ SERVICE_CMD(0x40080) // ReadHWRegs
         ret = 0xe0e02bf2;
     }
 
-    u32 i;
-    for (i = 0; i < length; i += 4)
-        mem_Write32((u32)(outaddr + i), gpu_ReadReg32((u32)(addr + i)));
+    if(ret == 0) {
+        u32 i;
+        for (i = 0; i < length; i += 4)
+            mem_Write32((u32)(outaddr + i), gpu_ReadReg32((u32)(addr + i)));
+    }
 
-    mem_Write32(arm11_ServiceBufferAddress() + 0x84, ret);
+    RESP(1, ret);
     return 0;
 }
 
 SERVICE_CMD(0x50200) // SetBufferSwap
 {
-    DEBUG("SetBufferSwap %08x\n", mem_Read32(arm11_ServiceBufferAddress() + 0x84));
+    DEBUG("SetBufferSwap %08x\n", CMD(1));
 
     updateFramebufferaddr(arm11_ServiceBufferAddress() + 0x84,
         mem_Read8(arm11_ServiceBufferAddress() + 0x84) & 0x1);
 
-    mem_Write32(arm11_ServiceBufferAddress() + 0x84, 0);
+    RESP(1, 0);
     return 0;
 }
 
@@ -432,16 +435,16 @@ SERVICE_CMD(0xB0040) // SetLcdForceBlack
     unsigned char* buffer = get_pymembuffer(0x18000000);
     //memset(buffer, 0, 0x46500 * 6); //no this is todo
 
-    mem_Write32(arm11_ServiceBufferAddress() + 0x84, 0); //no error
+    RESP(1, 0);
     return 0;
 }
 
 SERVICE_CMD(0xC0000) // TriggerCmdReqQueue
 {
     DEBUG("TriggerCmdReqQueue\n");
-    GPUTriggerCmdReqQueue();
+    gsp_ExecuteCommandFromSharedMem();
 
-    mem_Write32(arm11_ServiceBufferAddress() + 0x84, 0); //no error
+    RESP(1, 0);
     return 0;
 }
 

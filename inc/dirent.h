@@ -24,6 +24,7 @@
  *
  * $Id: dirent.h,v 1.20 2014/03/19 17:52:23 tronkko Exp $
  */
+
 #ifndef DIRENT_H
 #define DIRENT_H
 
@@ -835,4 +836,3 @@ dirent_set_errno(
 }
 #endif
 #endif /*DIRENT_H*/
-

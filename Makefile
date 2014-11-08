@@ -1,7 +1,7 @@
 ### 3dmoo Makefile ###
 
 CC      = gcc
-CFLAGS  = -c -std=c99 -Wno-format-zero-length -Iinc -Isrc/arm11 `pkg-config sdl2 --cflags` -DMODET -DMODE32 -D_BSD_SOURCE
+CFLAGS  = -c -std=c99 -Wno-format-zero-length -iquoteinc -iquotesrc/arm11 -iquotesrc/arm11/vfp `pkg-config sdl2 --cflags` -DMODET -DMODE32 -D_BSD_SOURCE
 LIBS    = `pkg-config sdl2 --libs` -lm
 LDFLAGS =
 

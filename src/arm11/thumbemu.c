@@ -27,7 +27,7 @@ existing ARM simulator.  */
 #endif
 #endif
 
-#include <util.h>
+#include "util.h"
 #include "armemu.h"
 
 /* Decode a 16bit Thumb instruction.  The instruction is in the low

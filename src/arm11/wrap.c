@@ -1,6 +1,6 @@
-#include <util.h>
-#include <arm11.h>
-#include <mem.h>
+#include "util.h"
+#include "arm11.h"
+#include "mem.h"
 
 #include "armdefs.h"
 #include "armemu.h"

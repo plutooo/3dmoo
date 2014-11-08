@@ -22,6 +22,8 @@
 #include "mem.h"
 #include "gpu.h"
 
+#include "service_macros.h"
+
 
 u32 numReqQueue = 1;
 
@@ -352,95 +354,123 @@ u32 GPURegisterInterruptRelayQueue(u32 flags, u32 Kevent, u32*threadID, u32*outM
     return 0x2A07; //dump from save GSP v0 flags 0
 }
 
-u32 gsp_gpu_SyncRequest()
+SERVICE_START(gsp_gpu);
+
+SERVICE_CMD(0x10082)   // WriteHWRegs
 {
-    u32 cid = mem_Read32(arm11_ServiceBufferAddress() + 0x80);
+        u32 inaddr  = mem_Read32(arm11_ServiceBufferAddress() + 0x90);
+        u32 length  = mem_Read32(arm11_ServiceBufferAddress() + 0x88);
+        u32 addr    = mem_Read32(arm11_ServiceBufferAddress() + 0x84);
+        u32 ret     = 0;
 
+        DEBUG("GSPGPU_WriteHWRegs addr=%08x from=%08x length=%08x\n", addr, inaddr, length);
 
-
-    u32 outaddr;
-    u32 lange;
-    u32 addr;
-    u32 ret;
-    switch (cid) {
-    case 0x10082: { //GSPGPU_WriteHWRegs(u32 regAddr, u32* data, u8 size)
-        outaddr = mem_Read32(arm11_ServiceBufferAddress() + 0x90);
-        lange = mem_Read32(arm11_ServiceBufferAddress() + 0x88);
-        addr = mem_Read32(arm11_ServiceBufferAddress() + 0x84);
-        ret = 0;
-        DEBUG("GSPGPU_WriteHWRegs %08x %08x %08x\n", addr, outaddr, lange);
-        if ((lange & 0x3) != 0)
-        {
-            DEBUG("misaligned address\n");
+        if ((addr & 0x3) != 0) {
+            DEBUG("Misaligned address\n");
             ret = 0xe0e02a01;
         }
-        if (addr > 0x420000)
-        {
-            DEBUG("address out of range\n");
+        if (addr > 0x420000) {
+            DEBUG("Address out of range\n");
             ret = 0xe0e02a01;
         }
-        if (lange > 0x80)
-        {
-            DEBUG("to long\n");
+        if (length > 0x80) {
+            DEBUG("Too long\n");
             ret = 0xe0e02bec;
         }
-        if (lange & 0x3)
-        {
-            DEBUG("length misaligned\n");
+        if (length & 0x3) {
+            DEBUG("Length misaligned\n");
             ret = 0xe0e02bf2;
         }
-        for (u32 i = 0; i < lange; i += 4) gpu_WriteReg32((u32)(addr + i), mem_Read32((u32)(outaddr + i)));
+
+        if(ret == 0) {
+            u32 i;
+
+            for (i = 0; i < length; i += 4)
+                gpu_WriteReg32((u32)(addr + i), mem_Read32((u32)(inaddr + i)));
+        }
+
         mem_Write32(arm11_ServiceBufferAddress() + 0x84, ret); //no error
         return 0;
-    }
-    case 0x40080: { //GSPGPU_ReadHWRegs(u32 regAddr, u32* data, u8 size)
-        outaddr = mem_Read32(arm11_ServiceBufferAddress() + 0x184);
-        lange = mem_Read32(arm11_ServiceBufferAddress() + 0x88);
-        addr = mem_Read32(arm11_ServiceBufferAddress() + 0x84);
-        DEBUG("GSPGPU_ReadHWRegs %08x %08x %08x\n", addr, outaddr, lange);
-        if ((lange & 0x3) != 0) DEBUG("Misaligned address\n");
-        for (u32 i = 0; i < lange; i += 4) mem_Write32((u32)(outaddr + i), gpu_ReadReg32((u32)(addr + i)));
-        mem_Write32(arm11_ServiceBufferAddress() + 0x84, 0); //no error
-        return 0;
-    }
-    case 0x50200:
-        updateFramebufferaddr(arm11_ServiceBufferAddress() + 0x84, mem_Read8(arm11_ServiceBufferAddress() + 0x84) & 0x1);
-        mem_Write32(arm11_ServiceBufferAddress() + 0x84, 0); //no error
-        return 0;
-    case 0xB0040: { //SetLcdForceBlack
-        DEBUG("SetLcdForceBlack %02x --todo--\n", mem_Read8(arm11_ServiceBufferAddress() + 0x84));
-        unsigned char* buffer = get_pymembuffer(0x18000000);
-        //memset(buffer, 0, 0x46500 * 6); //no this is todo
-        mem_Write32(arm11_ServiceBufferAddress() + 0x84, 0); //no error
-        return 0;
-    }
-    case 0xC0000: { //TriggerCmdReqQueue
-        DEBUG("TriggerCmdReqQueue\n");
-        GPUTriggerCmdReqQueue();
-        mem_Write32(arm11_ServiceBufferAddress() + 0x84, 0); //no error
-        return 0;
-    }
-    case 0x130042: { //RegisterInterruptRelayQueue
-        DEBUG("RegisterInterruptRelayQueue %08x %08x\n", mem_Read32(arm11_ServiceBufferAddress() + 0x84), mem_Read32(arm11_ServiceBufferAddress() + 0x8C));
-        u32 threadID = 0;
-        u32 outMemHandle = 0;
-        mem_Write32(arm11_ServiceBufferAddress() + 0x84, GPURegisterInterruptRelayQueue(mem_Read32(arm11_ServiceBufferAddress() + 0x84), mem_Read32(arm11_ServiceBufferAddress() + 0x8C), &threadID, &outMemHandle)); //no error
-        mem_Write32(arm11_ServiceBufferAddress() + 0x88, threadID);
-        mem_Write32(arm11_ServiceBufferAddress() + 0x90, outMemHandle);
-        return 0;
-    }
-    case 0x160042: { //AcquireRight
-        DEBUG("AcquireRight %08x %08x --todo--\n", mem_Read32(arm11_ServiceBufferAddress() + 0x84), mem_Read32(arm11_ServiceBufferAddress() + 0x8C));
-        mem_Write32(arm11_ServiceBufferAddress() + 0x84, 0); //no error
-        return 0;
-    }
-    default:
-        DEBUG("STUBBED GPUGSP %x %x %x %x\n", mem_Read32(arm11_ServiceBufferAddress() + 0x80), mem_Read32(arm11_ServiceBufferAddress() + 0x84), mem_Read32(arm11_ServiceBufferAddress() + 0x88), mem_Read32(arm11_ServiceBufferAddress() + 0x8C));
-    }
-    PAUSE();
+}
 
+SERVICE_CMD(0x40080) // ReadHWRegs
+{
+    u32 outaddr = mem_Read32(arm11_ServiceBufferAddress() + 0x184);
+    u32 length  = mem_Read32(arm11_ServiceBufferAddress() + 0x88);
+    u32 addr    = mem_Read32(arm11_ServiceBufferAddress() + 0x84);
+    u32 ret     = 0;
+
+    DEBUG("GSPGPU_ReadHWRegs addr=%08x to=%08x length=%08x\n", addr, outaddr, length);
+
+    if ((length & 0x3) != 0) {
+        DEBUG("Misaligned address\n");
+        ret = 0xe0e02bf2;
+    }
+
+    u32 i;
+    for (i = 0; i < length; i += 4)
+        mem_Write32((u32)(outaddr + i), gpu_ReadReg32((u32)(addr + i)));
+
+    mem_Write32(arm11_ServiceBufferAddress() + 0x84, ret);
     return 0;
 }
+
+SERVICE_CMD(0x50200) // SetBufferSwap
+{
+    DEBUG("SetBufferSwap %08x\n", mem_Read32(arm11_ServiceBufferAddress() + 0x84));
+
+    updateFramebufferaddr(arm11_ServiceBufferAddress() + 0x84,
+        mem_Read8(arm11_ServiceBufferAddress() + 0x84) & 0x1);
+
+    mem_Write32(arm11_ServiceBufferAddress() + 0x84, 0);
+    return 0;
+}
+
+SERVICE_CMD(0xB0040) // SetLcdForceBlack
+{
+    DEBUG("SetLcdForceBlack %02x --todo--\n", mem_Read8(arm11_ServiceBufferAddress() + 0x84));
+    unsigned char* buffer = get_pymembuffer(0x18000000);
+    //memset(buffer, 0, 0x46500 * 6); //no this is todo
+
+    mem_Write32(arm11_ServiceBufferAddress() + 0x84, 0); //no error
+    return 0;
+}
+
+SERVICE_CMD(0xC0000) // TriggerCmdReqQueue
+{
+    DEBUG("TriggerCmdReqQueue\n");
+    GPUTriggerCmdReqQueue();
+
+    mem_Write32(arm11_ServiceBufferAddress() + 0x84, 0); //no error
+    return 0;
+}
+
+SERVICE_CMD(0x130042) //RegisterInterruptRelayQueue
+{
+    DEBUG("RegisterInterruptRelayQueue %08x %08x\n", 
+        mem_Read32(arm11_ServiceBufferAddress() + 0x84),
+        mem_Read32(arm11_ServiceBufferAddress() + 0x8C));
+
+    u32 threadID = 0;
+    u32 outMemHandle = 0;
+
+    mem_Write32(arm11_ServiceBufferAddress() + 0x84,
+        GPURegisterInterruptRelayQueue(mem_Read32(arm11_ServiceBufferAddress() + 0x84),
+            mem_Read32(arm11_ServiceBufferAddress() + 0x8C), &threadID, &outMemHandle));
+
+    mem_Write32(arm11_ServiceBufferAddress() + 0x88, threadID);
+    mem_Write32(arm11_ServiceBufferAddress() + 0x90, outMemHandle);
+    return 0;
+}
+
+SERVICE_CMD(0x160042) // AcquireRight
+{ 
+    DEBUG("AcquireRight %08x %08x --todo--\n", mem_Read32(arm11_ServiceBufferAddress() + 0x84), mem_Read32(arm11_ServiceBufferAddress() + 0x8C));
+    mem_Write32(arm11_ServiceBufferAddress() + 0x84, 0); //no error
+    return 0;
+}
+
+SERVICE_END();
 
 
 /*

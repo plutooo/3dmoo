@@ -413,6 +413,12 @@ bool mem_test(uint32_t addr)
 
 u32 mem_Read32(uint32_t addr)
 {
+    if (addr > 0xFFFFFFF0) //wrong
+    {
+        ERROR("trying to read32 form unmapped addr %08x\n", addr);
+        arm11_Dump();
+        return 0;
+    }
     size_t i;
     for(i=0; i<num_mappings; i++) {
         if(Contains(&mappings[i], addr, 4)) {

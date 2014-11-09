@@ -229,6 +229,7 @@
     <ClCompile Include="..\src\services\pdn_g.c" />
     <ClCompile Include="..\src\services\pix_dev.c" />
     <ClCompile Include="..\src\services\ps_ps.c" />
+    <ClCompile Include="..\src\services\ptm_play.c" />
     <ClCompile Include="..\src\services\ptm_s.c" />
     <ClCompile Include="..\src\services\ptm_u.c" />
     <ClCompile Include="..\src\services\Pxiam9.c" />

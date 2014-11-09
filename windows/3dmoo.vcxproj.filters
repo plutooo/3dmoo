@@ -342,6 +342,9 @@
     <ClCompile Include="..\src\utils.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\services\ptm_play.c">
+      <Filter>Source Files\services</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\inc\handles.h">

@@ -70,6 +70,46 @@ static u32 sysdatafile_Read(file_type* self, u32 ptr, u32 sz, u64 off, u32* read
 
     return 0; // Result
 }
+static u32 sysdatafile_Write(file_type* self, u32 ptr, u32 sz, u64 off, u32 flush_flags, u32* written_out)
+{
+    FILE* fd = self->type_specific.sysdata.fd;
+    *written_out = 0;
+
+    if (off >> 32) {
+        ERROR("64-bit offset not supported.\n");
+        return -1;
+    }
+
+    if (fseek(fd, off, SEEK_SET) == -1) {
+        ERROR("fseek failed.\n");
+        return -1;
+    }
+
+    u8* b = malloc(sz);
+    if (b == NULL) {
+        ERROR("Not enough mem.\n");
+        return -1;
+    }
+
+    if (mem_Read(b, ptr, sz) != 0) {
+        ERROR("mem_Write failed.\n");
+        free(b);
+        return -1;
+    }
+
+    u32 write = fwrite(b, 1, sz, fd);
+    if (write == 0) {
+        ERROR("fwrite failed\n");
+        free(b);
+        return -1;
+    }
+
+    *written_out = write;
+    free(b);
+
+    return 0; // Result
+}
+
 
 static u64 sysdatafile_GetSize(file_type* self)
 {
@@ -232,6 +272,7 @@ static u32 sysdata_OpenFile(archive* self, file_path path, u32 flags, u32 attr)
     file->type_specific.sysdata.sz = (u64) sz;
 
     // Setup function pointers.
+    file->fnWrite = &sysdatafile_Write;
     file->fnRead = &sysdatafile_Read;
     file->fnGetSize = &sysdatafile_GetSize;
     file->fnClose = &sysdatafile_Close;

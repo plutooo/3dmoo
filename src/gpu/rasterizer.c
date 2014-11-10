@@ -68,21 +68,21 @@ static s32 orient2d(u16 vtx1x, u16  vtx1y, u16  vtx2x, u16  vtx2y, u16  vtx3x, u
 }
 
 static void SetDepth(int x, int y, u16 value) {
-    u16* depth_buffer = (u16*)get_pymembuffer(GPUregs[DEPTHBUFFER_ADDRESS] << 3);
+    u16* depth_buffer = (u16*)get_pymembuffer(GPU_Regs[DEPTHBUFFER_ADDRESS] << 3);
 
     // Assuming 16-bit depth buffer format until actual format handling is implemented
-    *(depth_buffer + x + y * (GPUregs[Framebuffer_FORMAT11E] & 0xFFF) / 2) = value;
+    *(depth_buffer + x + y * (GPU_Regs[Framebuffer_FORMAT11E] & 0xFFF) / 2) = value;
 }
 static void DrawPixel(int x, int y, const struct clov4* color) {
-    u8* color_buffer = (u8*)get_pymembuffer(GPUregs[COLORBUFFER_ADDRESS] << 3);
+    u8* color_buffer = (u8*)get_pymembuffer(GPU_Regs[COLORBUFFER_ADDRESS] << 3);
 
     u8* outaddr;
     // Assuming RGB8 format until actual framebuffer format handling is implemented
-    switch (GPUregs[BUFFERFORMAT] & 0x7000)//input format
+    switch (GPU_Regs[BUFFERFORMAT] & 0x7000)//input format
     {
 
     case 0: //RGBA8
-        outaddr = color_buffer + x * 4 + y * (GPUregs[Framebuffer_FORMAT11E] & 0xFFF)* 4; //check if that is correct
+        outaddr = color_buffer + x * 4 + y * (GPU_Regs[Framebuffer_FORMAT11E] & 0xFFF)* 4; //check if that is correct
         *outaddr = color->v[0];
         outaddr++;
         *outaddr = color->v[1];
@@ -94,7 +94,7 @@ static void DrawPixel(int x, int y, const struct clov4* color) {
         break;
     case 0x1000: //RGB8
 
-        outaddr = color_buffer + x * 3 + y * (GPUregs[Framebuffer_FORMAT11E] & 0xFFF) * 3; //check if that is correct
+        outaddr = color_buffer + x * 3 + y * (GPU_Regs[Framebuffer_FORMAT11E] & 0xFFF) * 3; //check if that is correct
 
         *outaddr = color->v[0];
         outaddr++;
@@ -109,14 +109,14 @@ static void DrawPixel(int x, int y, const struct clov4* color) {
     }
         break;
     case 0x3000: //RGB5A1
-        outaddr = color_buffer + x * 2 + y * (GPUregs[Framebuffer_FORMAT11E] & 0xFFF)* 2; //check if that is correct
+        outaddr = color_buffer + x * 2 + y * (GPU_Regs[Framebuffer_FORMAT11E] & 0xFFF)* 2; //check if that is correct
         *outaddr = (color->v[0] >> 3) | (((color->v[1] >> 3) << 5) & 0xE0);
         outaddr++;
         *outaddr = (u8)((color->v[2] >> 3) << 3) | ((color->v[1] >> 3) & 0x7);
         if (color->v[3]) *outaddr |= 0x80;
         break;
     case 0x4000: //RGBA4
-        outaddr = color_buffer + x * 2 + y * (GPUregs[Framebuffer_FORMAT11E] & 0xFFF)* 2; //check if that is correct
+        outaddr = color_buffer + x * 2 + y * (GPU_Regs[Framebuffer_FORMAT11E] & 0xFFF)* 2; //check if that is correct
         *outaddr = (color->v[0] >> 4) | (color->v[1] & 0xF0);
         outaddr++;
         *outaddr = (color->v[2] >> 4) | (color->v[3] & 0xF0);
@@ -356,19 +356,19 @@ void rasterizer_ProcessTriangle(const struct OutputVertex *v0,
             float u = GetInterpolatedAttribute(v0->tc0.v[0], v1->tc0.v[0], v2->tc0.v[0], v0, v1, v2, w0, w1, w2);
             float v = GetInterpolatedAttribute(v0->tc0.v[1], v1->tc0.v[1], v2->tc0.v[1], v0, v1, v2, w0, w1, w2);
             for (int i = 0; i < 3; ++i) {
-                if (GPUregs[TEXTURINGSETINGS80] & (0x1<<i)) {
+                if (GPU_Regs[TEXTURINGSETINGS80] & (0x1<<i)) {
                     // TODO: This is currently hardcoded for RGB8
                     u32* texture_data;
                     switch (i)
                     {
                     case 0:
-                        texture_data = (u32*)(get_pymembuffer(GPUregs[TEXTURCONFIG0ADDR] << 3));
+                        texture_data = (u32*)(get_pymembuffer(GPU_Regs[TEXTURCONFIG0ADDR] << 3));
                         break;
                     case 1:
-                        texture_data = (u32*)(get_pymembuffer(GPUregs[TEXTURCONFIG1ADDR] << 3));
+                        texture_data = (u32*)(get_pymembuffer(GPU_Regs[TEXTURCONFIG1ADDR] << 3));
                         break;
                     case 2:
-                        texture_data = (u32*)(get_pymembuffer(GPUregs[TEXTURCONFIG2ADDR] << 3));
+                        texture_data = (u32*)(get_pymembuffer(GPU_Regs[TEXTURCONFIG2ADDR] << 3));
                         break;
                     }
                     
@@ -378,19 +378,19 @@ void rasterizer_ProcessTriangle(const struct OutputVertex *v0,
                     switch (i)
                     {
                     case 0:
-                        s = (int)(u * (GPUregs[TEXTURCONFIG0SIZE] >> 16));
-                        t = (int)(v * (GPUregs[TEXTURCONFIG0SIZE] & 0xFFFF));
-                        row_stride = (GPUregs[TEXTURCONFIG0SIZE] >> 16) * 3;
+                        s = (int)(u * (GPU_Regs[TEXTURCONFIG0SIZE] >> 16));
+                        t = (int)(v * (GPU_Regs[TEXTURCONFIG0SIZE] & 0xFFFF));
+                        row_stride = (GPU_Regs[TEXTURCONFIG0SIZE] >> 16) * 3;
                         break;
                     case 1:
-                        s = (int)(u * (GPUregs[TEXTURCONFIG1SIZE] >> 16));
-                        t = (int)(v * (GPUregs[TEXTURCONFIG1SIZE] & 0xFFFF));
-                        row_stride = (GPUregs[TEXTURCONFIG1SIZE] >> 16) * 3;
+                        s = (int)(u * (GPU_Regs[TEXTURCONFIG1SIZE] >> 16));
+                        t = (int)(v * (GPU_Regs[TEXTURCONFIG1SIZE] & 0xFFFF));
+                        row_stride = (GPU_Regs[TEXTURCONFIG1SIZE] >> 16) * 3;
                         break;
                     case 2:
-                        s = (int)(u * (GPUregs[TEXTURCONFIG2SIZE] >> 16));
-                        t = (int)(v * (GPUregs[TEXTURCONFIG2SIZE] & 0xFFFF));
-                        row_stride = (GPUregs[TEXTURCONFIG2SIZE] >> 16) * 3;
+                        s = (int)(u * (GPU_Regs[TEXTURCONFIG2SIZE] >> 16));
+                        t = (int)(v * (GPU_Regs[TEXTURCONFIG2SIZE] & 0xFFFF));
+                        row_stride = (GPU_Regs[TEXTURCONFIG2SIZE] >> 16) * 3;
                         break;
                     }
                     
@@ -418,10 +418,10 @@ void rasterizer_ProcessTriangle(const struct OutputVertex *v0,
             combiner_output.v[3] = 0xFF;
             
             struct clov4 comb_buf[5];
-            comb_buf[0].v[0] = GPUregs[0xFD] & 0xFF;
-            comb_buf[0].v[1] = (GPUregs[0xFD] >> 8) & 0xFF;
-            comb_buf[0].v[2] = (GPUregs[0xFD] >> 16) & 0xFF;
-            comb_buf[0].v[3] = (GPUregs[0xFD] >> 24) & 0xFF;
+            comb_buf[0].v[0] = GPU_Regs[0xFD] & 0xFF;
+            comb_buf[0].v[1] = (GPU_Regs[0xFD] >> 8) & 0xFF;
+            comb_buf[0].v[2] = (GPU_Regs[0xFD] >> 16) & 0xFF;
+            comb_buf[0].v[3] = (GPU_Regs[0xFD] >> 24) & 0xFF;
 
             for (int i = 0; i < 6; i++)
             {
@@ -430,7 +430,7 @@ void rasterizer_ProcessTriangle(const struct OutputVertex *v0,
 
                 if (i > 0 && i < 5)
                 {
-                    if (((GPUregs[0xE0] >> (i + 7)) & 1) == 1)
+                    if (((GPU_Regs[0xE0] >> (i + 7)) & 1) == 1)
                     {
                         comb_buf[i].v[0] = combiner_output.v[0];
                         comb_buf[i].v[1] = combiner_output.v[1];
@@ -442,7 +442,7 @@ void rasterizer_ProcessTriangle(const struct OutputVertex *v0,
                         comb_buf[i].v[1] = comb_buf[i - 1].v[1];
                         comb_buf[i].v[2] = comb_buf[i - 1].v[2];
                     }
-                    if (((GPUregs[0xE0] >> (i + 11)) & 1) == 1)
+                    if (((GPU_Regs[0xE0] >> (i + 11)) & 1) == 1)
                     {
                         comb_buf[i].v[3] = combiner_output.v[3];
                     }
@@ -461,7 +461,7 @@ void rasterizer_ProcessTriangle(const struct OutputVertex *v0,
 
                 for (int j = 0; j < 3; j++)
                 {
-                    switch ((GPUregs[regnumaddr] >> (j * 4))&0xF) {
+                    switch ((GPU_Regs[regnumaddr] >> (j * 4))&0xF) {
                     case 0://PrimaryColor
                         memcpy(&color_result[j], &primary_color, sizeof(struct clov4/*3*/));
                         break;
@@ -487,33 +487,33 @@ void rasterizer_ProcessTriangle(const struct OutputVertex *v0,
                             color_result[j].v[3] = comb_buf[i - 1].v[3];
                         }
                     case 0xE: //Constant
-                        color_result[j].v[0] = GPUregs[regnumaddr + 3] & 0xFF;
-                        color_result[j].v[1] = (GPUregs[regnumaddr + 3] >> 8) & 0xFF;
-                        color_result[j].v[2] = (GPUregs[regnumaddr + 3] >> 0x10) & 0xFF;
-                        color_result[j].v[3] = (GPUregs[regnumaddr + 3] >> 24) & 0xFF;
+                        color_result[j].v[0] = GPU_Regs[regnumaddr + 3] & 0xFF;
+                        color_result[j].v[1] = (GPU_Regs[regnumaddr + 3] >> 8) & 0xFF;
+                        color_result[j].v[2] = (GPU_Regs[regnumaddr + 3] >> 0x10) & 0xFF;
+                        color_result[j].v[3] = (GPU_Regs[regnumaddr + 3] >> 24) & 0xFF;
                         break;
                     case 0xF://Previous
                         memcpy(&color_result[j], &combiner_output, sizeof(struct clov4/*3*/));
                         break;
                     default:
-                        GPUDEBUG("Unknown color combiner source %d\n", (int)(GPUregs[regnumaddr] >> (j * 4)) & 0xF);
+                        GPUDEBUG("Unknown color combiner source %d\n", (int)(GPU_Regs[regnumaddr] >> (j * 4)) & 0xF);
                         break;
                     }
                 }
-                GetColorModifier((GPUregs[regnumaddr + 1] >> 0) & 0xF, &color_result[0]);
-                GetColorModifier((GPUregs[regnumaddr + 1] >> 4) & 0xF, &color_result[1]);
-                GetColorModifier((GPUregs[regnumaddr + 1] >> 8) & 0xF, &color_result[2]);
+                GetColorModifier((GPU_Regs[regnumaddr + 1] >> 0) & 0xF, &color_result[0]);
+                GetColorModifier((GPU_Regs[regnumaddr + 1] >> 4) & 0xF, &color_result[1]);
+                GetColorModifier((GPU_Regs[regnumaddr + 1] >> 8) & 0xF, &color_result[2]);
                 // color combiner
                 // NOTE: Not sure if the alpha combiner might use the color output of the previous
                 // stage as input. Hence, we currently don't directly write the result to
                 // combiner_output.rgb(), but instead store it in a temporary variable until
                 // alpha combining has been done.
-                ColorCombine(GPUregs[regnumaddr + 2] & 0xF, color_result);
+                ColorCombine(GPU_Regs[regnumaddr + 2] & 0xF, color_result);
                 struct clov3 alpha_result;
                 for (int j = 0; j < 3; j++)
                 {
                     u8 alpha = 0;
-                    switch ((GPUregs[regnumaddr] >> (16 + j * 4)) & 0xF)
+                    switch ((GPU_Regs[regnumaddr] >> (16 + j * 4)) & 0xF)
                     {
                     case 0://PrimaryColor:
                         alpha = primary_color.v[3];
@@ -534,18 +534,18 @@ void rasterizer_ProcessTriangle(const struct OutputVertex *v0,
                         //prevent errors if the tevstages are bad
                         if(i > 0) alpha = comb_buf[i - 1].v[3];
                     case 0xE://Constant:
-                        alpha = (GPUregs[regnumaddr + 3] >> 0x18) & 0xFF;
+                        alpha = (GPU_Regs[regnumaddr + 3] >> 0x18) & 0xFF;
                         break;
                     case 0xF://Previous:
                         alpha = combiner_output.v[3];
                         break;
                     default:
-                        GPUDEBUG("Unknown alpha combiner source %d\n", (int)((GPUregs[regnumaddr] >> (16 + j * 4))) & 0xF);
+                        GPUDEBUG("Unknown alpha combiner source %d\n", (int)((GPU_Regs[regnumaddr] >> (16 + j * 4))) & 0xF);
                         break;
                     }
-                    alpha_result.v[j] = GetAlphaModifier((GPUregs[regnumaddr + 1] >> (12 + 3 * j)) & 0x7, alpha);
+                    alpha_result.v[j] = GetAlphaModifier((GPU_Regs[regnumaddr + 1] >> (12 + 3 * j)) & 0x7, alpha);
                 }
-                color_result[0].v[3] = AlphaCombine((GPUregs[regnumaddr + 2] >> 16) & 0xF, &alpha_result);
+                color_result[0].v[3] = AlphaCombine((GPU_Regs[regnumaddr + 2] >> 16) & 0xF, &alpha_result);
                 memcpy(&combiner_output, &color_result[0], sizeof(struct clov4));
             }
             u16 z = (u16)(((float)v0->screenpos.v[2] * w0 +

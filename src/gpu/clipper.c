@@ -85,12 +85,12 @@ void InitScreenCoordinates(struct OutputVertex *vtx)
         float zscale;
         float offset_z;
     } viewport;
-    f24to32(GPUregs[VIEWPORT_WIDTH], &viewport.halfsize_x);
-    f24to32(GPUregs[VIEWPORT_HEIGHT], &viewport.halfsize_y);
-    viewport.offset_x = GPUregs[GLViewport]&0xFFFF;
-    viewport.offset_y = (GPUregs[GLViewport]>>16) & 0xFFFF;
-    f24to32(GPUregs[Viewport_depth_range], &viewport.zscale);
-    f24to32(GPUregs[Viewport_depth_far_plane], &viewport.offset_z);
+    f24to32(GPU_Regs[VIEWPORT_WIDTH], &viewport.halfsize_x);
+    f24to32(GPU_Regs[VIEWPORT_HEIGHT], &viewport.halfsize_y);
+    viewport.offset_x = GPU_Regs[GLViewport]&0xFFFF;
+    viewport.offset_y = (GPU_Regs[GLViewport]>>16) & 0xFFFF;
+    f24to32(GPU_Regs[Viewport_depth_range], &viewport.zscale);
+    f24to32(GPU_Regs[Viewport_depth_far_plane], &viewport.offset_z);
 
 
     // TODO: Not sure why the viewport width needs to be divided by 2 but the viewport height does not

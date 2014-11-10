@@ -66,4 +66,13 @@ SERVICE_CMD(0x00130040)   // ??
     return 0;
 }
 
+SERVICE_CMD(0x00230080)   // TitleIDListGetTotal2
+{
+    DEBUG("TitleIDListGetTotal2 --todo-- %08x %08x %08x\n", CMD(1), CMD(2), CMD(3));
+
+    RESP(2, 0); // Total titles
+    RESP(1, 0); // Result
+    return 0;
+}
+
 SERVICE_END();

@@ -13,6 +13,7 @@
     }
     
 char *codepath = NULL; //???
+int noscreen = 1;
 
 int main() {
     return 0;

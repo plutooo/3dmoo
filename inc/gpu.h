@@ -58,7 +58,7 @@ u8* IObuffer;
 u8* LINEmembuffer;
 u8* VRAMbuff;
 u8* GSPsharedbuff;
-u32 GPUregs[0xFFFF];
+extern u32 GPU_Regs[0xFFFF];
 
 #define GSPsharebuffsize 0x1000 //dumped from GSP module in Firm 4.4
 

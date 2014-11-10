@@ -34,12 +34,12 @@ u32 CSND_offset3;
 SERVICE_START(csnd_SND);
 SERVICE_CMD(0x00010140)   // Initialize
 {
-    DEBUG("Initialize\n");
     CSND_sharedmemsize = CMD(1);
     CSND_offset0 = CMD(2);
     CSND_offset1 = CMD(3);
     CSND_offset2 = CMD(4);
     CSND_offset3 = CMD(5);
+    DEBUG("Initialize %08X %08X %08X %08X %08X\n", CSND_sharedmemsize, CSND_offset0, CSND_offset1, CSND_offset2, CSND_offset3);
     if (CSND_sharedmem)free(CSND_sharedmem);
     CSND_sharedmem = (u8*)malloc(CSND_sharedmemsize);
 
@@ -62,8 +62,8 @@ SERVICE_CMD(0x00010140)   // Initialize
 SERVICE_CMD(0x00050000)
 {
     DEBUG("unknown 0x00050000\n");
-    RESP(1, 0); // Result
-    RESP(2, 0); // wtf is this
+    RESP(1, 0x0); // Result
+    RESP(2, 0x0000000F); // bitmask of ?engines that are read to use we have 4?
     return 0;
 }
 SERVICE_END();

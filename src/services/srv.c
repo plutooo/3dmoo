@@ -79,6 +79,7 @@ u32 y2r_u_SyncRequest();
 u32 pix_dev_SyncRequest();
 u32 ir_rst_SyncRequest();
 u32 ptm_play_SyncRequest();
+u32 cam_u_SyncRequest();
 
 
 #ifndef _WIN32
@@ -437,6 +438,12 @@ static struct {
         SERVICE_TYPE_PTM_PLAY,
         0,
         &ptm_play_SyncRequest
+    },
+    {
+        "cam:u",
+        SERVICE_TYPE_CAM_U,
+        0,
+        &cam_u_SyncRequest
     }
 };
 

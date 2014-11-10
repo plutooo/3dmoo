@@ -101,6 +101,7 @@
 #define SERVICE_TYPE_pix_dev     54
 #define SERVICE_TYPE_IR_RST      55
 #define SERVICE_TYPE_PTM_PLAY      56
+#define SERVICE_TYPE_CAM_U      57
 
 #define HANDLE_SUBEVENT_USER          0
 #define HANDLE_SUBEVENT_APTMENUEVENT  1

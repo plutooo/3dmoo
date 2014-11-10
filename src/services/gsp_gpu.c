@@ -136,7 +136,7 @@ void gsp_ExecuteCommandFromSharedMem()
                 gpu_SendInterruptToAll(0);
                 break;
             }
-            case 3:
+            case GSP_ID_SET_DISPLAY_TRANSFER:
             
             theother:
             {
@@ -301,7 +301,7 @@ void gsp_ExecuteCommandFromSharedMem()
                 updateFramebuffer();
                 break;
             }
-            case 4: {
+            case GSP_ID_SET_TEXTURE_COPY: {
                 u32 inpaddr, outputaddr /*,size*/, inputdim, outputdim, flags;
                 inpaddr = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x4);
                 outputaddr = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x8);
@@ -315,7 +315,7 @@ void gsp_ExecuteCommandFromSharedMem()
                 //goto theother; //untill I know what is the differnece
                 break;
             }
-            case 5: {
+            case GSP_ID_FLUSH_CMDLIST: {
                 u32 addr1, size1, addr2, size2, addr3, size3;
                 addr1 = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x4);
                 size1 = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x8);
@@ -522,9 +522,16 @@ SERVICE_CMD(0x50200) // SetBufferSwap
     }
 
     // TODO: Get rid of this:
-    updateFramebufferaddr(arm11_ServiceBufferAddress() + 0x84,
-        mem_Read8(arm11_ServiceBufferAddress() + 0x84) & 0x1);
+    updateFramebufferaddr(screen,
+        mem_Read8(screen) & 0x1);
 
+    RESP(1, 0);
+    return 0;
+}
+
+SERVICE_CMD(0x80082) // FlushDataCache
+{
+    DEBUG("FlushDataCache addr=%08x, size=%08x, h=%08x\n", CMD(1), CMD(2), CMD(4));
     RESP(1, 0);
     return 0;
 }
@@ -608,6 +615,16 @@ void gpu_SendInterruptToAll(u32 ID)
         *(u8*)(GSPsharedbuff + i * 0x40 + 2) = 0x0; //no error
         next = next % 0x34;
         *(u8*)(GSPsharedbuff + i * 0x40 + 0xC + next) = ID;
+    }
+
+    //if (ID == 4)
+    {
+        extern int noscreen;
+        if (!noscreen)
+        {
+            screen_HandleEvent();
+            screen_RenderGPU();
+        }
     }
 
 }

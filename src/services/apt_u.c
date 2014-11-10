@@ -89,9 +89,18 @@ SERVICE_CMD(0x30040)
 
 SERVICE_CMD(0x3E0080)
 {
-    u32 unk  = CMD(1);
+    u32 unk = CMD(1);
     u32 unk1 = CMD(2);
     DEBUG("ReplySleepQuery, unk=%08x, unk1=%08x\n", unk, unk1);
+
+    RESP(1, 0); // Result
+    return 0;
+}
+
+SERVICE_CMD(0x00160040)
+{
+    u32 unk  = CMD(1);
+    DEBUG("PreloadLibraryApplet, unk=%08x\n", unk);
 
     RESP(1, 0); // Result
     return 0;

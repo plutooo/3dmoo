@@ -197,6 +197,7 @@
     <ClCompile Include="..\src\services\apt_u.c" />
     <ClCompile Include="..\src\services\boss_p.c" />
     <ClCompile Include="..\src\services\boss_u.c" />
+    <ClCompile Include="..\src\services\cam_u.c" />
     <ClCompile Include="..\src\services\cdc_csn.c" />
     <ClCompile Include="..\src\services\cdc_DSP.c" />
     <ClCompile Include="..\src\services\cecd_u.c" />

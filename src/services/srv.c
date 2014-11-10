@@ -78,6 +78,8 @@ u32 apt_a_SyncRequest();
 u32 y2r_u_SyncRequest();
 u32 pix_dev_SyncRequest();
 u32 ir_rst_SyncRequest();
+u32 ptm_play_SyncRequest();
+
 
 #ifndef _WIN32
 static size_t strnlen(const char* p, size_t n)
@@ -429,6 +431,12 @@ static struct {
         SERVICE_TYPE_IR_RST,
         0,
         &ir_rst_SyncRequest
+    },
+    {
+        "ptm:play",
+        SERVICE_TYPE_PTM_PLAY,
+        0,
+        &ptm_play_SyncRequest
     }
 };
 

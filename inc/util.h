@@ -135,7 +135,7 @@ static void color_restore(int old)
 #define DEBUG(...)
 #endif
 
-#if 0
+#if 1
 #define GPUDEBUG(...) do {                                 \
     DEBUG(__VA_ARGS__);                   \
 } while (0);

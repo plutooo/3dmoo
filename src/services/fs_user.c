@@ -57,8 +57,8 @@ SERVICE_CMD(0x08040142)   // DeleteFile
         });
 
         if (ret != 0) {
-            ERROR("DeleteFile has failed.\n");
-            RESP(1, -1);
+            ERROR("DeleteFile has failed. --emulate it worked but it did not so the code will generate the files.--\n");
+            RESP(1, 0);//RESP(1, -1);
             return 0;
         }
     }
@@ -583,6 +583,13 @@ SERVICE_CMD(0x08630000)   // GetPriority
 
     RESP(1, 0);
     RESP(2, priority);
+    return 0;
+}
+SERVICE_CMD(0x080D0144)   // ControlArchive
+{
+    DEBUG("ControlArchive %08x %08x %08x %08x %08x %08x %08x %08x --todo--\n",CMD(1),CMD(2),CMD(3),CMD(4),CMD(5),CMD(6),CMD(7),CMD(8));
+
+    RESP(1, 0);
     return 0;
 }
 

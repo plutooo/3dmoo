@@ -53,7 +53,7 @@ SERVICE_CMD(0x00010140)   // Initialize
     }
 
     RESP(1, 0); // Result
-    RESP(2, 0x4000000); // Result
+    RESP(2, 0x4000000); // fix
     RESP(3, CSND_mutex); // mutex
     RESP(4, handle_New(HANDLE_TYPE_SHAREDMEM, MEM_TYPE_CSND)); // Result
 

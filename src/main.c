@@ -297,9 +297,6 @@ int main(int argc, char* argv[])
         threads_Execute();
 #endif
 
-        if (!noscreen)
-            screen_RenderGPU();
-
         FPS_Lock();
         //mem_Dbugdump();
     }

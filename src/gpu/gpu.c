@@ -26,7 +26,7 @@
 #include "gpu.h"
 #include <math.h>
 
-#define GSP_ENABLE_LOG
+//#define GSP_ENABLE_LOG
 
 u32 GPU_Regs[0xFFFF]; //do they all exist don't know but well
 
@@ -162,7 +162,7 @@ struct VertexShaderState {
     struct vec4  temporary_registers[16];
     bool status_registers[2];
     
-    u32 call_stack[8]; // TODO: What is the maximal call stack depth?
+    u32 call_stack[16]; // TODO: What is the maximal call stack depth?
     u32* call_stack_pointer;
 };
 
@@ -339,11 +339,12 @@ void ProcessShaderCode(struct VertexShaderState* state) {
             src1[3] = src1[3] * (-1.f);
         }
 
+        DEBUG("opcode: %08x\n", instr);
         switch (instr_opcode(instr)) {
         case SHDR_ADD:
         {
 #ifdef printfunc
-                         GPUDEBUG("ADD %02X %02X %02X %08x\n", instr_common_destv, instr_common_src1v, instr_common_src2v, swizzle);
+                         DEBUG("ADD %02X %02X %02X %08x\n", instr_common_destv, instr_common_src1v, instr_common_src2v, swizzle);
 #endif
                                          for (int i = 0; i < 4; ++i) {
                                              if (!swizzle_DestComponentEnabled(i, swizzle))
@@ -358,7 +359,7 @@ void ProcessShaderCode(struct VertexShaderState* state) {
         case SHDR_MUL:
         {
 #ifdef printfunc
-                         GPUDEBUG("MUL %02X %02X %02X %08x\n", instr_common_destv, instr_common_src1v, instr_common_src2v, swizzle);
+                         DEBUG("MUL %02X %02X %02X %08x\n", instr_common_destv, instr_common_src1v, instr_common_src2v, swizzle);
 #endif
                                          for (int i = 0; i < 4; ++i) {
                                              if (!swizzle_DestComponentEnabled(i, swizzle))
@@ -374,7 +375,7 @@ void ProcessShaderCode(struct VertexShaderState* state) {
         case SHDR_DP4:
         {
 #ifdef printfunc
-                         GPUDEBUG("DP3/4 %02X %02X %02X %08x\n", instr_common_destv, instr_common_src1v, instr_common_src2v, swizzle);
+                         DEBUG("DP3/4 %02X %02X %02X %08x\n", instr_common_destv, instr_common_src1v, instr_common_src2v, swizzle);
 #endif
                                          float dot = (0.f);
                                          int num_components = (instr_opcode(instr) == SHDR_DP3) ? 3 : 4;
@@ -394,7 +395,7 @@ void ProcessShaderCode(struct VertexShaderState* state) {
         case SHDR_RCP:
         {
 #ifdef printfunc
-                         GPUDEBUG("RCP %02X %02X %08x\n", instr_common_destv, instr_common_src1v, swizzle);
+                         DEBUG("RCP %02X %02X %08x\n", instr_common_destv, instr_common_src1v, swizzle);
 #endif
                                          for (int i = 0; i < 4; ++i) {
                                              if (!swizzle_DestComponentEnabled(i, swizzle))
@@ -412,7 +413,7 @@ void ProcessShaderCode(struct VertexShaderState* state) {
         case SHDR_RSQ:
         {
 #ifdef printfunc
-                         GPUDEBUG("RSQ %02X %02X %08x\n", instr_common_destv, instr_common_src1v, swizzle);
+                         DEBUG("RSQ %02X %02X %08x\n", instr_common_destv, instr_common_src1v, swizzle);
 #endif     
                                          for (int i = 0; i < 4; ++i) {
                                              if (!swizzle_DestComponentEnabled(i, swizzle))
@@ -429,7 +430,7 @@ void ProcessShaderCode(struct VertexShaderState* state) {
         case SHDR_MOV:
         {
 #ifdef printfunc
-                         GPUDEBUG("MOV %02X %02X %08x\n", instr_common_destv, instr_common_src1v, swizzle);
+                         DEBUG("MOV %02X %02X %08x\n", instr_common_destv, instr_common_src1v, swizzle);
 #endif   
                                          for (int i = 0; i < 4; ++i) {
                                              if (!swizzle_DestComponentEnabled(i, swizzle))
@@ -442,7 +443,7 @@ void ProcessShaderCode(struct VertexShaderState* state) {
 
         case SHDR_RET:
 #ifdef printfunc
-            GPUDEBUG("RET\n");
+            DEBUG("RET\n");
 #endif
             *state->call_stack_pointer = VertexShaderState_INVALID_ADDRESS;
             state->call_stack_pointer--;
@@ -457,7 +458,7 @@ void ProcessShaderCode(struct VertexShaderState* state) {
 
         case SHDR_CALL:
 #ifdef printfunc
-            GPUDEBUG("CALL %08x\n",instr_flow_control_offset_words(instr));
+            DEBUG("CALL %08x\n",instr_flow_control_offset_words(instr));
 #endif   
             increment_pc = false;
 
@@ -471,13 +472,13 @@ void ProcessShaderCode(struct VertexShaderState* state) {
 
         case SHDR_FLS:
 #ifdef printfunc
-            GPUDEBUG("FLS\n");
+            DEBUG("FLS\n");
 #endif   
             // TODO: Do whatever needs to be done here?
             break;
 
         default:
-            GPUDEBUG("Unhandled instruction: 0x%08x\n",instr);
+            DEBUG("Unhandled instruction: 0x%08x\n",instr);
             break;
         }
 
@@ -542,7 +543,7 @@ void RunShader(struct vec4 input[17], int num_attributes, struct OutputVertex *r
     state.status_registers[0] = false;
     state.status_registers[1] = false;
     int k;
-    for (k = 0; k < 8; k++)state.call_stack[k] = VertexShaderState_INVALID_ADDRESS;
+    for (k = 0; k < 16; k++)state.call_stack[k] = VertexShaderState_INVALID_ADDRESS;
     state.call_stack_pointer = &state.call_stack[1];
 
     for (int i = 0; i < 16; i++)
@@ -635,6 +636,7 @@ void writeGPUID(u16 ID, u8 mask, u32 size, u32* buffer)
 
                                //mem_Dbugdump();
                                // Setup attribute data from loaders
+                               u8 NumTotalAttributes = 0;
                                for (int loader = 0; loader < 12; loader++) {
                                    u32* loader_config = (attribute_config + (loader + 1) * 3);
 
@@ -642,6 +644,7 @@ void writeGPUID(u16 ID, u8 mask, u32 size, u32* buffer)
 
                                    // TODO: What happens if a loader overwrites a previous one's data?
                                    u8 component_count = loader_config[2] >> 28;
+                                   NumTotalAttributes = component_count;
                                    for (int component = 0; component < component_count; component++) {
                                        u32 attribute_index = GetComponent(component, loader_config);//loader_config.GetComponent(component);
                                        vertex_attribute_sources[attribute_index] = (u8*)get_pymembuffer(load_address);
@@ -670,7 +673,7 @@ void writeGPUID(u16 ID, u8 mask, u32 size, u32* buffer)
 
                                    // Initialize data for the current vertex
                                    struct vec4 input[17];
-                                   u8 NumTotalAttributes = (attribute_config[2] >> 28) + 1;
+                                   //u8 NumTotalAttributes = (attribute_config[2] >> 28) + 1;
                                    for (int i = 0; i < NumTotalAttributes; i++) {
                                        for (u32 comp = 0; comp < vertex_attribute_elements[i]; comp++) {
                                            const u8* srcdata = vertex_attribute_sources[i] + vertex_attribute_strides[i] * vertex + comp * vertex_attribute_element_size[i];

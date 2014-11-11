@@ -155,6 +155,19 @@ u32 VSFloatUniformSetuptembuffer[4];
 
 struct VertexShaderState {
     u32* program_counter;
+
+	//Registers are like this:
+	//name			nr component	count	R/W		Nr Bits
+	//-----------------------------------------------------
+	//input			4				16		R		24
+	//temp			4				16		RW		24
+	//float const	4				96		R		24
+	//address		2				1		RW		8
+	//boolean		1				16		R		1
+	//integer		1				4		R		24
+	//loop counter	1				1		R		8
+	//output		4				16		W		24
+	//status		1				2		RW		1
     
     float* input_register_table[16];
     float* output_register_table[7 * 4];
@@ -311,6 +324,22 @@ bool swizzle_DestComponentEnabled(int i, u32 swizzle)
     return (swizzle & (0x8 >> i));
 }
 
+static bool ShaderCMP(float a, float b, u32 mode)
+{
+	//Not 100% sure:
+	switch (mode)
+	{
+	case 0: return a == b;
+	case 1: return a != b;
+	case 2: return a < b;
+	case 3: return a <= b;
+	case 4: return a > b;
+	case 5: return a >= b;
+	}
+	//This is not possible!
+	return false;
+}
+
 #define printfunc
 
 void ProcessShaderCode(struct VertexShaderState* state) {
@@ -407,6 +436,34 @@ void ProcessShaderCode(struct VertexShaderState* state) {
                                          }
                                          break;
         }
+		case SHDR_MAX:
+		{
+#ifdef printfunc
+			DEBUG("MAX %02X %02X %02X %08x\n", instr_common_destv, instr_common_src1v, instr_common_src2v, swizzle);
+#endif
+			for (int i = 0; i < 4; ++i) {
+				if (!swizzle_DestComponentEnabled(i, swizzle))
+					continue;
+
+				dest[i] = ((src1[i] > src2[i]) ? src1[i] : src2[i]);
+			}
+
+			break;
+		}
+		case SHDR_MIN:
+		{
+#ifdef printfunc
+			DEBUG("MIN %02X %02X %02X %08x\n", instr_common_destv, instr_common_src1v, instr_common_src2v, swizzle);
+#endif
+			for (int i = 0; i < 4; ++i) {
+				if (!swizzle_DestComponentEnabled(i, swizzle))
+					continue;
+
+				dest[i] = ((src1[i] < src2[i]) ? src1[i] : src2[i]);
+			}
+
+			break;
+		}
 
             // Reciprocal
         case SHDR_RCP:
@@ -493,6 +550,16 @@ void ProcessShaderCode(struct VertexShaderState* state) {
 #endif   
             // TODO: Do whatever needs to be done here?
             break;
+		case SHDR_CMP:
+		{
+			//Not 100% sure:
+			u32 mode1 = (instr >> 19) & 0x7;
+			u32 mode2 = (instr >> 22) & 0x7;
+			//This is correct
+			state->status_registers[0] = ShaderCMP(src1[0], src2[0], mode1);
+			state->status_registers[1] = ShaderCMP(src1[1], src2[1], mode2);
+			break;
+		}
 
         default:
             DEBUG("Unhandled instruction: 0x%08x\n",instr);
@@ -506,11 +573,6 @@ void ProcessShaderCode(struct VertexShaderState* state) {
             break;
     }
 }
-
-
-
-
-
 
 void RunShader(struct vec4 input[17], int num_attributes, struct OutputVertex *ret)
 {

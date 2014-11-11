@@ -251,19 +251,36 @@ void PrimitiveAssembly_SubmitVertex(struct OutputVertex* vtx)
 #define SHDR_ADD 0x0
 #define SHDR_DP3 0x1
 #define SHDR_DP4 0x2
-
+#define SHDR_DPH 0x3
+#define SHDR_DST 0x4
+#define SHDR_EXP 0x5
+#define SHDR_LOG 0x6
+#define SHDR_LITP 0x7
 #define SHDR_MUL 0x8
-
+#define SHDR_SGE 0x9
+#define SHDR_SLT 0xA
+#define SHDR_FLR 0xB
 #define SHDR_MAX  0xC
 #define SHDR_MIN  0xD
 #define SHDR_RCP  0xE
 #define SHDR_RSQ  0xF
 
+#define SHDR_MOVA 0x12
 #define SHDR_MOV  0x13
 
-#define SHDR_RET  0x21
-#define SHDR_FLS  0x22
+#define SHDR_RET  0x21	//This is actually NOP
+#define SHDR_FLS  0x22	//This is actually END
+#define SHDR_BREAKC  0x23
 #define SHDR_CALL  0x24
+#define SHDR_CALLC 0x25
+#define SHDR_CALLB 0x26
+#define SHDR_IFB 0x27
+#define SHDR_IFC 0x28
+#define SHDR_LOOP 0x29
+#define SHDR_JPC 0x2C
+#define SHDR_JPB 0x2D
+#define SHDR_CMP 0x2E
+#define SHDR_MAD 0x38
 
 u32 instr_common_src1(u32 hex)
 {

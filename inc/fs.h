@@ -90,6 +90,8 @@ struct _file_type {
     u64 (*fnSetSize)(file_type* self, u64 sz);
     u32 (*fnClose)(file_type* self);
 
+    u32 handle;
+
     union {
         struct {
             FILE* fd;

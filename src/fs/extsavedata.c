@@ -231,7 +231,8 @@ static u32 extsavedata_OpenFile(archive* self, file_path path, u32 flags, u32 at
     file->fnSetSize = &extsavedatafile_SetSize;
     file->fnClose = &extsavedatafile_Close;
 
-    return handle_New(HANDLE_TYPE_FILE, (uintptr_t) file);
+    file->handle = handle_New(HANDLE_TYPE_FILE, (uintptr_t)file);
+    return file->handle;
 }
 
 static void extsavedata_Deinitialize(archive* self)

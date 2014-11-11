@@ -710,9 +710,35 @@ SERVICE_CMD(0x08080000)   // Close
 }
 SERVICE_CMD(0x08090000)   // Flush
 {
-
     DEBUG("Flush\n");
     RESP(1, 0);
+    return 0;
+}
+
+SERVICE_CMD(0x080A0040)   // SetPriority
+{
+    priority = CMD(1);
+    DEBUG("SetPriority, prio=%x\n", priority);
+    RESP(1, 0);
+    return 0;
+}
+
+SERVICE_CMD(0x080B0000)   // GetPriority
+{
+    DEBUG("GetPriority\n");
+
+    RESP(1, 0);
+    RESP(2, priority);
+    return 0;
+}
+
+SERVICE_CMD(0x080C0000)   // OpenLinkFile
+{
+    file_type* type = (file_type*)h->subtype;
+
+    DEBUG("OpenLinkFile\n");
+    RESP(1, 0);
+    RESP(3, type->handle);
     return 0;
 }
 

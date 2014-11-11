@@ -224,7 +224,8 @@ static u32 sharedextd_OpenFile(archive* self, file_path path, u32 flags, u32 att
     file->fnGetSize = &sharedextdfile_GetSize;
     file->fnClose = &sharedextdfile_Close;
 
-    return handle_New(HANDLE_TYPE_FILE, (uintptr_t) file);
+    file->handle = handle_New(HANDLE_TYPE_FILE, (uintptr_t)file);
+    return file->handle;
 }
 
 

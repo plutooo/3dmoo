@@ -277,7 +277,8 @@ static u32 sysdata_OpenFile(archive* self, file_path path, u32 flags, u32 attr)
     file->fnGetSize = &sysdatafile_GetSize;
     file->fnClose = &sysdatafile_Close;
 
-    return handle_New(HANDLE_TYPE_FILE, (uintptr_t) file);
+    file->handle = handle_New(HANDLE_TYPE_FILE, (uintptr_t)file);
+    return file->handle;
 }
 
 static void sysdata_Deinitialize(archive* self)

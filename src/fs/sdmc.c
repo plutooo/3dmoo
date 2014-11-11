@@ -266,7 +266,8 @@ static u32 sdmc_OpenFile(archive* self, file_path path, u32 flags, u32 attr)
     file->fnSetSize = &sdmcfile_SetSize;
     file->fnClose = &sdmcfile_Close;
 
-    return handle_New(HANDLE_TYPE_FILE, (uintptr_t) file);
+    file->handle = handle_New(HANDLE_TYPE_FILE, (uintptr_t)file);
+    return file->handle;
 }
 
 static void sdmc_Deinitialize(archive* self)

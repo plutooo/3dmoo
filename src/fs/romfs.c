@@ -90,7 +90,7 @@ static u64 rawromfs_GetSize(file_type* self)
     return romfs_sz;
 }
 
-static const file_type rawromfs_file = {
+static file_type rawromfs_file = {
     .fnRead    = &rawromfs_Read,
     .fnWrite   = NULL,
     .fnGetSize = &rawromfs_GetSize,
@@ -111,8 +111,11 @@ u32 romfs_OpenFile(archive* self, file_path path, u32 flags, u32 attr)
     DEBUG("romfs_OpenFile\n");
 
     // RomFS has support for raw reads.
-    if(path.type == PATH_BINARY)
-        return handle_New(HANDLE_TYPE_FILE, (uintptr_t) &rawromfs_file);
+    if (path.type == PATH_BINARY)
+    {
+        rawromfs_file.handle = handle_New(HANDLE_TYPE_FILE, (uintptr_t)&rawromfs_file);
+        return rawromfs_file.handle;
+    }
 
     // XXX: Return actual file handle here
     return 0;

@@ -191,7 +191,8 @@ static u32 SaveDatacheck_OpenFile(archive* self, file_path path, u32 flags, u32 
     file->fnGetSize = &SaveDatacheck_GetSize;
     file->fnClose = &SaveDatacheck_Close;
 
-    return handle_New(HANDLE_TYPE_FILE, (uintptr_t) file);
+    file->handle = handle_New(HANDLE_TYPE_FILE, (uintptr_t)file);
+    return file->handle;
 }
 
 static void SaveDatacheck_Deinitialize(archive* self)

@@ -231,7 +231,8 @@ static u32 savedata_OpenFile(archive* self, file_path path, u32 flags, u32 attr)
     file->fnSetSize = &savedatafile_SetSize;
     file->fnClose = &savedatafile_Close;
 
-    return handle_New(HANDLE_TYPE_FILE, (uintptr_t) file);
+    file->handle = handle_New(HANDLE_TYPE_FILE, (uintptr_t)file);
+    return file->handle;
 }
 
 

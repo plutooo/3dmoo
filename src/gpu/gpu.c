@@ -401,22 +401,6 @@ void ProcessShaderCode(struct VertexShaderState* state) {
 
                                          break;
         }
-
-        case SHDR_MUL:
-        {
-#ifdef printfunc
-                         DEBUG("MUL %02X %02X %02X %08x\n", instr_common_destv, instr_common_src1v, instr_common_src2v, swizzle);
-#endif
-                                         for (int i = 0; i < 4; ++i) {
-                                             if (!swizzle_DestComponentEnabled(i, swizzle))
-                                                 continue;
-
-                                             dest[i] = src1[i] * src2[i];
-                                         }
-
-                                         break;
-        }
-
         case SHDR_DP3:
         case SHDR_DP4:
         {
@@ -436,6 +420,57 @@ void ProcessShaderCode(struct VertexShaderState* state) {
                                          }
                                          break;
         }
+		case SHDR_DST:
+		{
+#ifdef printfunc
+			DEBUG("DST %02X %02X %02X %08x\n", instr_common_destv, instr_common_src1v, instr_common_src2v, swizzle);
+#endif
+			if (swizzle_DestComponentEnabled(0, swizzle)) dest[0] = 1;
+			if (swizzle_DestComponentEnabled(1, swizzle)) dest[1] = src1[1] * src2[1];
+			if (swizzle_DestComponentEnabled(2, swizzle)) dest[2] = src1[2];
+			if (swizzle_DestComponentEnabled(3, swizzle)) dest[3] = src2[3];
+			break;
+		}
+		case SHDR_EXP:
+		{
+#ifdef printfunc
+			DEBUG("EXP %02X %02X %02X %08x\n", instr_common_destv, instr_common_src1v, instr_common_src2v, swizzle);
+#endif
+			for (int i = 0; i < 4; ++i) {
+				if (!swizzle_DestComponentEnabled(i, swizzle))
+					continue;
+
+				dest[i] = pow(2.f, src1[0]);
+			}
+			break;
+		}
+		case SHDR_LOG:
+		{
+#ifdef printfunc
+			DEBUG("LOG %02X %02X %02X %08x\n", instr_common_destv, instr_common_src1v, instr_common_src2v, swizzle);
+#endif
+			for (int i = 0; i < 4; ++i) {
+				if (!swizzle_DestComponentEnabled(i, swizzle))
+					continue;
+
+				dest[i] = log2(src1[0]);
+			}
+			break;
+		}
+		case SHDR_MUL:
+		{
+#ifdef printfunc
+			DEBUG("MUL %02X %02X %02X %08x\n", instr_common_destv, instr_common_src1v, instr_common_src2v, swizzle);
+#endif
+			for (int i = 0; i < 4; ++i) {
+				if (!swizzle_DestComponentEnabled(i, swizzle))
+					continue;
+
+				dest[i] = src1[i] * src2[i];
+			}
+
+			break;
+		}
 		case SHDR_MAX:
 		{
 #ifdef printfunc
@@ -552,6 +587,9 @@ void ProcessShaderCode(struct VertexShaderState* state) {
             break;
 		case SHDR_CMP:
 		{
+#ifdef printfunc
+			DEBUG("CMP\n");
+#endif  
 			//Not 100% sure:
 			u32 mode1 = (instr >> 19) & 0x7;
 			u32 mode2 = (instr >> 22) & 0x7;
@@ -560,6 +598,11 @@ void ProcessShaderCode(struct VertexShaderState* state) {
 			state->status_registers[1] = ShaderCMP(src1[1], src2[1], mode2);
 			break;
 		}
+		/*case SHDR_IFC:
+		{
+			DEBUG("IFC\n");
+			break;
+		}*/
 
         default:
             DEBUG("Unhandled instruction: 0x%08x\n",instr);

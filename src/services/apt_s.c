@@ -34,9 +34,28 @@ SERVICE_START(apt_a);
 SERVICE_END();
 
 
+u32 LockHandles = 0;
 
 SERVICE_START(apt_s);
 
+SERVICE_CMD(0x10040)   //GetLockHandle
+{
+    u32 unk1 = CMD(1);
+    u32 unk2 = CMD(2);
+    DEBUG("GetLockHandle (todo), unk1=%08x, unk2=%08x\n", unk1, unk2);
+
+    if (LockHandles == 0) {
+        LockHandles = handle_New(HANDLE_TYPE_MUTEX, 0);
+        handleinfo* hi = handle_Get(LockHandles);
+        hi->locked = false;
+    }
+    RESP(5, LockHandles); // return
+    RESP(4, 0); // unk used?
+    RESP(3, 0); // unk used?
+    RESP(2, 0); // unk used?
+    RESP(1, 0); // Result
+    return 0;
+}
 
 SERVICE_CMD(0x20080)
 {
@@ -57,6 +76,10 @@ SERVICE_CMD(0x20080)
     RESP(1, 0); // Result
     RESP(3, event_handles[0]);
     RESP(4, event_handles[1]);
+
+    handleinfo* hi = handle_Get(LockHandles); //unlock
+    hi->locked = false;
+
     return 0;
 }
 
@@ -118,7 +141,7 @@ SERVICE_CMD(0x440000)
         }
 
         // Read it
-        if (fread(APTs_sharedfont + 4, APTs_sharedfontsize, 1, fd) != 1) {
+        if (fread(APTs_sharedfont, APTs_sharedfontsize, 1, fd) != 1) {
             ERROR("fread() failed trying to read shared font.\n");
             fclose(fd);
             free(APTs_sharedfont);
@@ -127,10 +150,10 @@ SERVICE_CMD(0x440000)
             return 0;
         }
 
-        APTs_sharedfont[3] = 0x2;
+        /*APTs_sharedfont[3] = 0x2;
         APTs_sharedfont[2] = 0x0;
         APTs_sharedfont[1] = 0x0;
-        APTs_sharedfont[0] = 0x0;
+        APTs_sharedfont[0] = 0x0; */
 
         fclose(fd);
     }

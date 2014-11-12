@@ -173,6 +173,7 @@ struct VertexShaderState {
     float* output_register_table[7 * 4];
     
     struct vec4  temporary_registers[16];
+    bool boolean_registers[16];
     bool status_registers[2];
     
     u32 call_stack[16]; // TODO: What is the maximal call stack depth?
@@ -385,7 +386,9 @@ void ProcessShaderCode(struct VertexShaderState* state) {
             src1[3] = src1[3] * (-1.f);
         }
 
+#ifdef printfunc
         DEBUG("opcode: %08x\n", instr);
+#endif
         switch (instr_opcode(instr)) {
         case SHDR_ADD:
         {
@@ -598,11 +601,46 @@ void ProcessShaderCode(struct VertexShaderState* state) {
 			state->status_registers[1] = ShaderCMP(src1[1], src2[1], mode2);
 			break;
 		}
-		/*case SHDR_IFC:
+        case SHDR_IFB:
+        {
+            u32 addrv = (instr >> 8) & 0x3FFC;
+            u32 boolv = (instr >> 22) & 0xF;
+            //u32 retv = instr & 0x3FF;
+
+            bool condition = state->boolean_registers[boolv];
+
+#ifdef printfunc
+            DEBUG("IFB %02X (%s)\n", boolv, condition?"true":"false");
+#endif 
+
+            //If condition is false skip to else case
+            if (!condition)
+            {
+                increment_pc = false;
+                state->program_counter = &GPUshadercodebuffer[addrv/4];
+            }
+
+            break;
+        }
+		case SHDR_IFC:
 		{
+            u32 addrv = (instr >> 8) & 0x3FFC;
+            u32 boolv = (instr >> 22) & 0xF;
+            u32 retv = instr & 0x3FF;
+
+#ifdef printfunc
 			DEBUG("IFC\n");
+#endif 
+            bool condition = false;
+
+            //If condition is false skip to else case
+            if (!condition)
+            {
+                increment_pc = false;
+                state->program_counter = &GPUshadercodebuffer[addrv / 4];
+            }
 			break;
-		}*/
+		}
 
         default:
             DEBUG("Unhandled instruction: 0x%08x\n",instr);
@@ -630,6 +668,9 @@ void RunShader(struct vec4 input[17], int num_attributes, struct OutputVertex *r
     for (int i = 0; i < 16; i++)state.input_register_table[i] = &dummy_register;
     for (int i = 0; i<num_attributes; i++)
         state.input_register_table[getattribute_register_map(i, GPU_Regs[VSInputRegisterMap], GPU_Regs[VSInputRegisterMap + 1])] = &input[i].v[0];
+
+    for (int i = 0; i < 16; i++)
+        state.boolean_registers[i] = GPU_Regs[0x2B0]&(1<<i);
     /*if (num_attributes > 0) state.input_register_table[getattribute_register_map(0, GPU_Regs[VSInputRegisterMap], GPU_Regs[VSInputRegisterMap + 1])] = &input[0].v[0];
     if (num_attributes > 1) state.input_register_table[getattribute_register_map(1, GPU_Regs[VSInputRegisterMap], GPU_Regs[VSInputRegisterMap + 1])] = &input[1].v[0];
     if (num_attributes > 2) state.input_register_table[getattribute_register_map(2, GPU_Regs[VSInputRegisterMap], GPU_Regs[VSInputRegisterMap + 1])] = &input[2].v[0];
@@ -756,9 +797,15 @@ void writeGPUID(u16 ID, u8 mask, u32 size, u32* buffer)
                                u32 vertex_attribute_elements[16];
                                u32 vertex_attribute_element_size[16];
 
+                               memset(&vertex_attribute_sources[0], 0, 16);
+                               memset(&vertex_attribute_strides[0], 0, 16 * 4);
+                               memset(&vertex_attribute_formats[0], 0, 16 * 4);
+                               memset(&vertex_attribute_elements[0], 0, 16 * 4);
+                               memset(&vertex_attribute_element_size[0], 0, 16 * 4);
+
                                //mem_Dbugdump();
                                // Setup attribute data from loaders
-                               u8 NumTotalAttributes = 0;
+                               //u8 NumTotalAttributes = 0;
                                for (int loader = 0; loader < 12; loader++) {
                                    u32* loader_config = (attribute_config + (loader + 1) * 3);
 
@@ -766,7 +813,7 @@ void writeGPUID(u16 ID, u8 mask, u32 size, u32* buffer)
 
                                    // TODO: What happens if a loader overwrites a previous one's data?
                                    u8 component_count = loader_config[2] >> 28;
-                                   NumTotalAttributes = component_count;
+                                   //NumTotalAttributes = component_count;
                                    for (int component = 0; component < component_count; component++) {
                                        u32 attribute_index = GetComponent(component, loader_config);//loader_config.GetComponent(component);
                                        vertex_attribute_sources[attribute_index] = (u8*)get_pymembuffer(load_address);
@@ -795,7 +842,7 @@ void writeGPUID(u16 ID, u8 mask, u32 size, u32* buffer)
 
                                    // Initialize data for the current vertex
                                    struct vec4 input[17];
-                                   //u8 NumTotalAttributes = (attribute_config[2] >> 28) + 1;
+                                   u8 NumTotalAttributes = (attribute_config[2] >> 28) + 1;
                                    for (int i = 0; i < NumTotalAttributes; i++) {
                                        for (u32 comp = 0; comp < vertex_attribute_elements[i]; comp++) {
                                            const u8* srcdata = vertex_attribute_sources[i] + vertex_attribute_strides[i] * vertex + comp * vertex_attribute_element_size[i];
@@ -1039,10 +1086,12 @@ void updateFramebuffer()
                 baseaddrbot += 0x20; //get the other
             else
                 baseaddrbot += 0x4;
+
+            u32 newAdr = convertvirtualtopys(*(u32*)(baseaddrbot + 4));
             if ((*(u32*)(baseaddrbot) &0x1) == 0)
-                gpu_WriteReg32(RGBdownoneleft, convertvirtualtopys(*(u32*)(baseaddrbot + 4)));
+                gpu_WriteReg32(RGBdownoneleft, newAdr);
             else
-                gpu_WriteReg32(RGBdowntwoleft, convertvirtualtopys(*(u32*)(baseaddrbot + 4)));
+                gpu_WriteReg32(RGBdowntwoleft, newAdr);
             gpu_WriteReg32(frameselectbot, *(u32*)(baseaddrbot + 0x14)); //todo
             //the rest is todo
 

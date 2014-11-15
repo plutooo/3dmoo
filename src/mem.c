@@ -23,6 +23,7 @@
 #include "armdefs.h"
 #include "armemu.h"
 #include "threads.h"
+#include "gpu.h"
 
 
 
@@ -102,6 +103,9 @@ void mem_Dbugdump()
         fwrite(mappings[i].phys, 1, schei, data);
         fclose(data);
     }
+    FILE* data = fopen("VRAMdump.bin", "wb");
+    fwrite(VRAMbuff, 1, 0x600000, data);
+    fclose(data);
 }
 
 static int Overlaps(memmap_t* a, memmap_t* b)

@@ -359,7 +359,7 @@ u32 svcCreateMemoryBlock() // TODO
     u32 addr = arm11_R(1);
     u32 size = arm11_R(2);
 
-    ERROR("CreateMemoryBlock addr=%08x size=%08x\n",addr,size);
+    DEBUG("CreateMemoryBlock addr=%08x size=%08x --parts todo--\n",addr,size);
 
     u32 handle = handle_New(HANDLE_TYPE_SHAREDMEM, MEM_TYPE_ALLOC);
 

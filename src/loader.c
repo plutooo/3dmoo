@@ -46,6 +46,11 @@ static u32 Read32(uint8_t p[4])
     u32 temp = p[0] | p[1] << 8 | p[2] << 16 | p[3] << 24;
     return temp;
 }
+static u16 Read16(uint8_t p[2])
+{
+    u16 temp = p[0] | p[1] << 8;
+    return temp;
+}
 
 static u32 AlignPage(u32 in)
 {
@@ -140,6 +145,107 @@ clean:
     return 0;
 }
 
+static u32 Load3DSXFile(u8 *addr) //force to 0x00100000 todo error checking
+{
+    u32 *header = (u32*)addr;
+
+    u32 relocHdrSize = Read16(addr + 0x6);
+
+    u32 *reallocheader = (u32*)(addr + Read16(addr + 0x4)); //skip header
+    u8 *rawdata = (u32*)((u8*)(reallocheader)+relocHdrSize*3);
+
+
+    u32 cAbsolute[6]; //3 cAbsolute and 3 cRelative
+    for (int i = 0; i < 3; i++)
+    {
+        cAbsolute[i*2] = *(u32*)((u8*)(reallocheader)+relocHdrSize * i);
+        cAbsolute[i*2 + 1] = *(u32*)((u8*)(reallocheader +  1)+relocHdrSize * i);
+    }
+
+    u32 i;
+
+    u32 codeSegSize = Read32(addr + 0x10);
+    u32 rodataSegSize = Read32(addr + 0x14);
+    u32 dataSegSize = Read32(addr + 0x18);
+    u32 bssSize = Read32(addr + 0x1C);
+
+    u32 codeSegSizeraw = (codeSegSize+0xFFF)&~0xFFF;
+    u32 rodataSegSizeraw = (rodataSegSize + 0xFFF)&~0xFFF;
+    u32 dataSegSizeraw = (dataSegSize + 0xFFF)&~0xFFF;
+    u32 bssSizeraw = (bssSize + 0xFFF)&~0xFFF;
+
+
+    u32 offsets[2] = { codeSegSize, codeSegSize + rodataSegSize };
+
+    u32 tragets[3] = { 0x00100000, 0x00100000 + codeSegSize, 0x00100000 + codeSegSize + rodataSegSize };
+
+    u16 *relocp = rawdata + codeSegSize + rodataSegSize + dataSegSize - bssSize;
+
+    if (Read32(addr + 0x8) != 0)
+        DEBUG("unknown 3DSX Version\n");
+
+
+
+    u8* data = malloc(codeSegSize + rodataSegSize + dataSegSize + bssSize + 0x40000);
+    memset(data, 0, codeSegSize + rodataSegSize + dataSegSize + bssSize);
+
+
+    memcpy(data, rawdata, codeSegSize);
+    memcpy(data + codeSegSizeraw, rawdata + codeSegSize, rodataSegSize);
+    memcpy(data + codeSegSizeraw + rodataSegSizeraw, rawdata + codeSegSize + rodataSegSize, dataSegSize - bssSize);
+
+    // Relocate the segments
+    for (i = 0; i < 3; i++)
+    {
+        for (int j = 0; j < 2; j++)
+        {
+            u32 nRelocs = cAbsolute[i*2 + j];
+            u32* datap;
+
+            switch (i)
+            {
+                case 0: datap = data;  break;
+                case 1: datap = data + codeSegSizeraw;  break;
+                case 2: datap = data + codeSegSizeraw + rodataSegSizeraw;  break;
+            }
+            while (nRelocs)
+            {
+                    datap += *relocp;
+                    u32 num_patches = *(++relocp);
+                    relocp++;
+                    for (int m = 0; m < num_patches; m++)
+                    {
+                        u32 addr;
+
+                        if (*datap < offsets[0])
+                            addr = tragets[0] + *datap;
+                        if (*datap < offsets[1])
+                            addr = tragets[1] + *datap - offsets[0];
+                        addr = tragets[2] + *datap - offsets[1];
+
+                        switch (j)
+                        {
+                            case 0: *datap = addr;
+                                DEBUG("fixed %08x to %08x\n", (int)((u8*)datap - data), addr);
+                                break;
+                            case 1: *datap = addr - (int)((u8*)datap - data); 
+                                DEBUG("fixed %08x to %08x\n", (int)((u8*)datap - data), addr - (int)((u8*)datap - data));
+                                break;
+                        }
+                        datap++;
+                    }
+                    nRelocs--;
+            }
+        }
+    }
+
+
+    mem_AddSegment(0x00100000, codeSegSize + rodataSegSize + dataSegSize + bssSize, data);
+    free(data);
+
+
+    return 0x00100000;
+}
 
 static u32 LoadElfFile(u8 *addr)
 {
@@ -164,6 +270,8 @@ static u32 LoadElfFile(u8 *addr)
         memset(data, 0, memsz);
         memcpy(data, addr + off, filesz);
         mem_AddSegment(dest, memsz, data);
+
+        free(data);
 
         if ((phdr[6] & 0x5) == 0x5)loader_txt = dest; //read execute
         if ((phdr[6] & 0x6) == 0x6)loader_data = loader_bss = dest;//read write
@@ -216,7 +324,7 @@ int loader_LoadFile(FILE* fd)
         }
     }
 
-    if (Read32(loader_h.signature) == 0x464c457f) { // Load ELF
+    if (Read32(loader_h.signature) == 0x58534433) { // Load 3DSX
         // Add stack segment.
         mem_AddSegment(0x10000000 - 0x100000, 0x100000, NULL);
 
@@ -228,6 +336,27 @@ int loader_LoadFile(FILE* fd)
         fread(data, elfsize, 1, fd);
 
         // Set entrypoint and stack ptr.
+        Load3DSXFile(data);
+        arm11_SetPCSP(0x00100000, 0x10000000);
+        //arm11_SetPCSP(LoadElfFile(data), 0x10000000);
+        CommonMemSetup();
+
+        free(data);
+        return 0;
+    }
+
+    if (Read32(loader_h.signature) == 0x464c457f) { // Load ELF
+        // Add stack segment.
+        mem_AddSegment(0x10000000 - 0x100000, 0x100000, NULL);
+
+        // Load elf.
+        fseek(fd, 0, SEEK_END);
+        u32 elfsize = ftell(fd);
+        u8* data = malloc(elfsize);
+        fseek(fd, 0, SEEK_SET);
+        fread(data, elfsize, 1, fd);
+
+        // Set entrypoint and stack ptr. ichfly some entrypoint are wrong so we force them to 0x00100000
         LoadElfFile(data);
         arm11_SetPCSP(0x00100000, 0x10000000);
         //arm11_SetPCSP(LoadElfFile(data), 0x10000000);

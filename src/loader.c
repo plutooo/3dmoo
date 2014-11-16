@@ -27,6 +27,8 @@
 #include "polarssl/aes.h"
 #include "loader.h"
 
+#include "3dsx.h"
+
 u8 loader_key[0x10];
 u32 loader_txt = 0;
 u32 loader_data = 0;
@@ -145,106 +147,167 @@ clean:
     return 0;
 }
 
-static u32 Load3DSXFile(u8 *addr) //force to 0x00100000 todo error checking
+struct _3DSX_LoadInfo
 {
-    u32 *header = (u32*)addr;
+    void* segPtrs[3]; // code, rodata & data
+    u32 segAddrs[3];
+    u32 segSizes[3];
+};
 
-    u32 relocHdrSize = Read16(addr + 0x6);
+static u32 TranslateAddr(u32 addr, struct _3DSX_LoadInfo *d, u32* offsets)
+{
+    if (addr < offsets[0])
+        return d->segAddrs[0] + addr;
+    if (addr < offsets[1])
+        return d->segAddrs[1] + addr - offsets[0];
+    return d->segAddrs[2] + addr - offsets[1];
+}
 
-    u32 *reallocheader = (u32*)(addr + Read16(addr + 0x4)); //skip header
-    u8 *rawdata = (u32*)((u8*)(reallocheader)+relocHdrSize*3);
+int Load3DSXFile(FILE* f, u32 baseAddr)
+{
+    u32 i, j, k, m;
 
-
-    u32 cAbsolute[6]; //3 cAbsolute and 3 cRelative
-    for (int i = 0; i < 3; i++)
+    _3DSX_Header hdr;
+    if (fread(&hdr, sizeof(hdr), 1, f) != 1)
     {
-        cAbsolute[i*2] = *(u32*)((u8*)(reallocheader)+relocHdrSize * i);
-        cAbsolute[i*2 + 1] = *(u32*)((u8*)(reallocheader +  1)+relocHdrSize * i);
+        ERROR("error reading 3DSX header");
+        return 2;
     }
 
-    u32 i;
+    // Endian swap!
+#define ESWAP(_field, _type) \
+    hdr._field = le_##_type(hdr._field)
+    ESWAP(magic, word);
+    ESWAP(headerSize, hword);
+    ESWAP(relocHdrSize, hword);
+    ESWAP(formatVer, word);
+    ESWAP(flags, word);
+    ESWAP(codeSegSize, word);
+    ESWAP(rodataSegSize, word);
+    ESWAP(dataSegSize, word);
+    ESWAP(bssSize, word);
+#undef ESWAP
 
-    u32 codeSegSize = Read32(addr + 0x10);
-    u32 rodataSegSize = Read32(addr + 0x14);
-    u32 dataSegSize = Read32(addr + 0x18);
-    u32 bssSize = Read32(addr + 0x1C);
+    if (hdr.magic != _3DSX_MAGIC)
+    {
+        ERROR("error not a 3DSX file");
+        return 3;
+    }
 
-    u32 codeSegSizeraw = (codeSegSize+0xFFF)&~0xFFF;
-    u32 rodataSegSizeraw = (rodataSegSize + 0xFFF)&~0xFFF;
-    u32 dataSegSizeraw = (dataSegSize + 0xFFF)&~0xFFF;
-    u32 bssSizeraw = (bssSize + 0xFFF)&~0xFFF;
+    struct _3DSX_LoadInfo d;
+    d.segSizes[0] = (hdr.codeSegSize + 0xFFF) &~0xFFF;
+    d.segSizes[1] = (hdr.rodataSegSize + 0xFFF) &~0xFFF;
+    d.segSizes[2] = (hdr.dataSegSize + 0xFFF) &~0xFFF;
+    u32 offsets[2] = { d.segSizes[0], d.segSizes[0] + d.segSizes[1] };
+    u32 dataLoadSize = (hdr.dataSegSize - hdr.bssSize + 0xFFF) &~0xFFF;
+    u32 bssLoadSize = d.segSizes[2] - dataLoadSize;
+    u32 nRelocTables = hdr.relocHdrSize / 4;
+    void* allMem = malloc(d.segSizes[0] + d.segSizes[1] + d.segSizes[2] + 3 * nRelocTables);
+    if (!allMem)
+        return 3;
+    d.segAddrs[0] = baseAddr;
+    d.segAddrs[1] = d.segAddrs[0] + d.segSizes[0];
+    d.segAddrs[2] = d.segAddrs[1] + d.segSizes[1];
+    d.segPtrs[0] = (char*)allMem;
+    d.segPtrs[1] = (char*)d.segPtrs[0] + d.segSizes[0];
+    d.segPtrs[2] = (char*)d.segPtrs[1] + d.segSizes[1];
 
+    // Skip header for future compatibility.
+    fseek(f, hdr.headerSize, SEEK_SET);
 
-    u32 offsets[2] = { codeSegSize, codeSegSize + rodataSegSize };
+    // Read the relocation headers
+    u32* relocs = (u32*)((char*)d.segPtrs[2] + hdr.dataSegSize);
 
-    u32 tragets[3] = { 0x00100000, 0x00100000 + codeSegSize, 0x00100000 + codeSegSize + rodataSegSize };
+    for (i = 0; i < 3; i++)
+    if (fread(&relocs[i*nRelocTables], nRelocTables * 4, 1, f) != 1)
+    {
+        ERROR("error reading reloc header");
+        return 4;
+    }
 
-    u16 *relocp = rawdata + codeSegSize + rodataSegSize + dataSegSize - bssSize;
+    // Read the segments
+    if (fread(d.segPtrs[0], hdr.codeSegSize, 1, f) != 1)
+    {
+        ERROR("error reading code");
+        return 5;
+    }
+    if (fread(d.segPtrs[1], hdr.rodataSegSize, 1, f) != 1)
+    {
+        ERROR("error reading rodata");
+        return 5;
+    }
+    if (fread(d.segPtrs[2], hdr.dataSegSize - hdr.bssSize, 1, f) != 1)
+    {
+        ERROR("error reading data");
+        return 5;
+    }
 
-    if (Read32(addr + 0x8) != 0)
-        DEBUG("unknown 3DSX Version\n");
-
-
-
-    u8* data = malloc(codeSegSize + rodataSegSize + dataSegSize + bssSize + 0x40000);
-    memset(data, 0, codeSegSize + rodataSegSize + dataSegSize + bssSize);
-
-
-    memcpy(data, rawdata, codeSegSize);
-    memcpy(data + codeSegSizeraw, rawdata + codeSegSize, rodataSegSize);
-    memcpy(data + codeSegSizeraw + rodataSegSizeraw, rawdata + codeSegSize + rodataSegSize, dataSegSize - bssSize);
+    // BSS clear
+    memset((char*)d.segPtrs[2] + hdr.dataSegSize - hdr.bssSize, 0, hdr.bssSize);
 
     // Relocate the segments
     for (i = 0; i < 3; i++)
     {
-        for (int j = 0; j < 2; j++)
+        for (j = 0; j < nRelocTables; j++)
         {
-            u32 nRelocs = cAbsolute[i*2 + j];
-            u32* datap;
-
-            switch (i)
+            u32 nRelocs = le_word(relocs[i*nRelocTables + j]);
+            if (j >= 2)
             {
-                case 0: datap = data;  break;
-                case 1: datap = data + codeSegSizeraw;  break;
-                case 2: datap = data + codeSegSizeraw + rodataSegSizeraw;  break;
+                // We are not using this table - ignore it
+                fseek(f, nRelocs*sizeof(_3DSX_Reloc), SEEK_CUR);
+                continue;
             }
+
+#define RELOCBUFSIZE 512
+            static _3DSX_Reloc relocTbl[RELOCBUFSIZE];
+
+            u32* pos = (u32*)d.segPtrs[i];
+            u32* endPos = pos + (d.segSizes[i] / 4);
+
             while (nRelocs)
             {
-                    datap += *relocp;
-                    u32 num_patches = *(++relocp);
-                    relocp++;
-                    for (int m = 0; m < num_patches; m++)
+                u32 toDo = nRelocs > RELOCBUFSIZE ? RELOCBUFSIZE : nRelocs;
+                nRelocs -= toDo;
+
+                if (fread(relocTbl, toDo*sizeof(_3DSX_Reloc), 1, f) != 1)
+                    return 6;
+
+                for (k = 0; k < toDo && pos < endPos; k++)
+                {
+                    DEBUG("(t=%d,skip=%u,patch=%u)\n", j, (u32)relocTbl[k].skip, (u32)relocTbl[k].patch);
+                    pos += le_hword(relocTbl[k].skip);
+                    u32 num_patches = le_hword(relocTbl[k].patch);
+                    for (m = 0; m < num_patches && pos < endPos; m++)
                     {
-                        u32 addr;
-
-                        if (*datap < offsets[0])
-                            addr = tragets[0] + *datap;
-                        if (*datap < offsets[1])
-                            addr = tragets[1] + *datap - offsets[0];
-                        addr = tragets[2] + *datap - offsets[1];
-
+                        u32 inAddr = (char*)pos - (char*)allMem;
+                        u32 addr = TranslateAddr(le_word(*pos), &d, offsets);
+                        DEBUG("Patching %08X <-- rel(%08X,%d) (%08X)\n", baseAddr + inAddr, addr, j, le_word(*pos));
                         switch (j)
                         {
-                            case 0: *datap = addr;
-                                DEBUG("fixed %08x to %08x\n", (int)((u8*)datap - data), addr);
-                                break;
-                            case 1: *datap = addr - (int)((u8*)datap - data); 
-                                DEBUG("fixed %08x to %08x\n", (int)((u8*)datap - data), addr - (int)((u8*)datap - data));
-                                break;
+                        case 0: *pos = le_word(addr); break;
+                        case 1: *pos = le_word(addr - inAddr); break;
                         }
-                        datap++;
+                        pos++;
                     }
-                    nRelocs--;
+                }
             }
         }
     }
 
+    // Write the data
+    if (mem_AddSegment(baseAddr, d.segSizes[0] + d.segSizes[1] + d.segSizes[2], allMem))
+    {
+        ERROR("error in AddSegment");
+        return 7;
+    }
+    free(allMem);
 
-    mem_AddSegment(0x00100000, codeSegSize + rodataSegSize + dataSegSize + bssSize, data);
-    free(data);
+    DEBUG("CODE:   %u pages\n", d.segSizes[0] / 0x1000);
+    DEBUG("RODATA: %u pages\n", d.segSizes[1] / 0x1000);
+    DEBUG("DATA:   %u pages\n", dataLoadSize / 0x1000);
+    DEBUG("BSS:    %u pages\n", bssLoadSize / 0x1000);
 
-
-    return 0x00100000;
+    return 0; // Success.
 }
 
 static u32 LoadElfFile(u8 *addr)
@@ -328,20 +391,14 @@ int loader_LoadFile(FILE* fd)
         // Add stack segment.
         mem_AddSegment(0x10000000 - 0x100000, 0x100000, NULL);
 
-        // Load elf.
-        fseek(fd, 0, SEEK_END);
-        u32 elfsize = ftell(fd);
-        u8* data = malloc(elfsize);
-        fseek(fd, 0, SEEK_SET);
-        fread(data, elfsize, 1, fd);
 
+        fseek(fd, 0, SEEK_SET);
         // Set entrypoint and stack ptr.
-        Load3DSXFile(data);
+        Load3DSXFile(fd, 0x00100000);
         arm11_SetPCSP(0x00100000, 0x10000000);
         //arm11_SetPCSP(LoadElfFile(data), 0x10000000);
         CommonMemSetup();
 
-        free(data);
         return 0;
     }
 

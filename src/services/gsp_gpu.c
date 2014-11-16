@@ -42,9 +42,12 @@ void gsp_ExecuteCommandFromSharedMem()
         u32 header = *(u32*)baseaddr;
         u32 toprocess = (header >> 8) & 0xFF;
 
+        //mem_Dbugdump();
+
+        *(u32*)baseaddr = 0;
         for (u32 j = 0; j < toprocess; j++)
         {
-            *(u32*)baseaddr = 0;
+            
             u32 cmd_id = *(u32*)(baseaddr + (j + 1) * 0x20);
             u32 addr;
             u32 flags;

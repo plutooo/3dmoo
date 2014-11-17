@@ -191,5 +191,61 @@ SERVICE_CMD(0x00040082) //accept
     RESP(1, 0); // Result
     return 0;
 }
+SERVICE_CMD(0x000a0106) //sendto
+{
+    struct sockaddr saServer;
+
+    u8* a = malloc(CMD(4));
+    if (a == NULL) {
+        ERROR("Not enough mem.\n");
+        return -1;
+    }
+
+    if (mem_Read(a, CMD(10), CMD(4)) != 0) {
+        ERROR("mem_Read failed.\n");
+        free(a);
+        return -1;
+    }
+
+    u8* b = malloc(CMD(2));
+    if (b == NULL) {
+        ERROR("Not enough mem.\n");
+        return -1;
+    }
+
+    if (mem_Read(b, CMD(8), CMD(2)) != 0) {
+        ERROR("mem_Read failed.\n");
+        free(b);
+        return -1;
+    }
+    DEBUG("sendto %08X %08X %08X %08X %08X %08X\n", CMD(1), CMD(2), CMD(3), CMD(4), CMD(8), CMD(10));
+    handleinfo* h = handle_Get(CMD(1) + HANDLES_BASE); //bit(31) must not be set
+    if (h == NULL) {
+        DEBUG("failed to get Handle\n");
+        PAUSE();
+        return -1;
+    }
+    struct sockaddr serv_addr;
+    memset((char *)&serv_addr, 0, sizeof(serv_addr));
+    if (CMD(4) == 0x8)
+    {
+        serv_addr.sa_family = a[1];
+        memcpy(serv_addr.sa_data, &a[2], 0x6);
+    }
+    else if (CMD(4) == 0x1c)
+    {
+        serv_addr.sa_family = a[1];
+        memcpy(serv_addr.sa_data, &a[2], 14);
+    }
+    else
+    {
+        DEBUG("unknown len\n");
+    }
+
+    RESP(2, (u32)sendto(*(SOCKET*)(h->misc_ptr[0]), b, CMD(2), CMD(3), &serv_addr, sizeof(serv_addr)));
+    RESP(1, 0); // Result
+    free(b);
+    return 0;
+}
 #endif
 SERVICE_END();

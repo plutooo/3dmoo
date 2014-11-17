@@ -524,8 +524,10 @@ SERVICE_CMD(0x50200) // SetBufferSwap
     }
 
     // TODO: Get rid of this:
-    updateFramebufferaddr(screen,
-        mem_Read8(screen) & 0x1);
+    updateFramebufferaddr(arm11_ServiceBufferAddress() + 0x88,
+        screen & 0x1);
+
+    screen_RenderGPU(); //display new stuff
 
     RESP(1, 0);
     return 0;

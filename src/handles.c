@@ -24,7 +24,6 @@
 #include "mem.h"
 
 #define MAX_NUM_HANDLES 0x1000
-#define HANDLES_BASE    0xDEADBABE
 
 //#define EXIT_ON_ERROR 1
 

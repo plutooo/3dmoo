@@ -255,6 +255,7 @@
     <ClCompile Include="..\src\utils.c" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\inc\3dsx.h" />
     <ClInclude Include="..\inc\arm11.h" />
     <ClInclude Include="..\inc\dirent.h" />
     <ClInclude Include="..\inc\dsp.h" />

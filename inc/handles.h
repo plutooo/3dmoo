@@ -18,7 +18,7 @@
 
 #include "armdefs.h"
 
-
+#define HANDLES_BASE    0xDEADBABE
 
 #define HANDLE_SERV_STAT_TAKEN       0x1
 #define HANDLE_SERV_STAT_WAITING     0x2
@@ -39,7 +39,8 @@
 #define HANDLE_TYPE_SEMAPHORE 11
 #define HANDLE_TYPE_ARCHIVE   12
 #define HANDLE_TYPE_SESSION   13
-#define HANDLE_TYPE_DIR   14
+#define HANDLE_TYPE_DIR       14
+#define HANDLE_TYPE_SOCKET    15
 
 
 #define PORT_TYPE_SRV         0

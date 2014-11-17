@@ -19,12 +19,10 @@
 #include "handles.h"
 #include "mem.h"
 #include "arm11.h"
+#include "service_macros.h"
 
 #ifdef _WIN32
 #include <winsock.h>
-
-
-#include "service_macros.h"
 
 WSADATA wsaData;
 #endif

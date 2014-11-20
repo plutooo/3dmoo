@@ -251,7 +251,7 @@ void gsp_ExecuteCommandFromSharedMem()
                             outaddr++;
                             break;
                         case 0x1000: //RGB8
-                            if (a)
+                            //if (a)
                             {
                                 *outaddr = r;
                                 outaddr++;
@@ -260,7 +260,7 @@ void gsp_ExecuteCommandFromSharedMem()
                                 *outaddr = b;
                                 outaddr++;
                             }
-                            else
+                            /*else //this is somethimes used but sometimes not
                             {
                                 *outaddr = 0;
                                 outaddr++;
@@ -268,7 +268,7 @@ void gsp_ExecuteCommandFromSharedMem()
                                 outaddr++;
                                 *outaddr = 0;
                                 outaddr++;
-                            }
+                            }*/
                             break;
                         case 0x2000: //RGB565
                         {

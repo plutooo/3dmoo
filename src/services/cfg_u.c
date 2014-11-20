@@ -138,7 +138,7 @@ SERVICE_CMD(0x00020000)   // SecureInfoGetRegion
     DEBUG("SecureInfoGetRegion\n");
 
     RESP(1, 0); // Result
-    RESP(2, 2); // 2=EUROPE 1=usa
+    RESP(2, 1); // 2=EUROPE 1=USA
     return 0;
 }
 
@@ -157,7 +157,7 @@ SERVICE_CMD(0x00040000)   // GetRegionCanadaUSA
     DEBUG("GetRegionCanadaUSA\n");
 
     RESP(1, 0); // Result
-    RESP(2, 0); // not USA
+    RESP(2, 1); // USA
     return 0;
 }
 

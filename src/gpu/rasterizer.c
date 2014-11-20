@@ -71,7 +71,8 @@ static void SetDepth(int x, int y, u16 value) {
     u16* depth_buffer = (u16*)get_pymembuffer(GPU_Regs[DEPTHBUFFER_ADDRESS] << 3);
 
     // Assuming 16-bit depth buffer format until actual format handling is implemented
-    *(depth_buffer + x + y * (GPU_Regs[Framebuffer_FORMAT11E] & 0xFFF) / 2) = value;
+    if (depth_buffer) //there is no depth_buffer
+        *(depth_buffer + x + y * (GPU_Regs[Framebuffer_FORMAT11E] & 0xFFF) / 2) = value;
 }
 static void DrawPixel(int x, int y, const struct clov4* color) {
     u8* color_buffer = (u8*)get_pymembuffer(GPU_Regs[COLORBUFFER_ADDRESS] << 3);

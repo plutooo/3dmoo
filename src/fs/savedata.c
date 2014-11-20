@@ -144,6 +144,103 @@ static u32 savedatafile_Close(file_type* self)
     return 0;
 }
 
+u32 savedata_ReadDir(dir_type* self, u32 ptr, u32 entrycount, u32* read_out)
+{
+    u32 current = 0;
+    struct dirent* ent;
+
+    rewinddir(self->dir);
+
+    while (current < entrycount) {
+        errno = 0;
+        if ((ent = readdir(self->dir)) == NULL)
+        {
+            if (errno == 0) {
+                // Dir empty. Memset region?
+                return 0;
+            }
+            else {
+                ERROR("readdir() failed.\n");
+                return -1;
+            }
+        }
+    }
+
+    // Convert file-name to UTF16 and copy.
+    u16 utf16[256];
+    for (u32 i = 0; i<256; i++)
+        utf16[i] = ent->d_name[i];
+
+    mem_Write((uint8_t*)utf16, ptr, sizeof(utf16));
+
+    // XXX: 8.3 name @ 0x20C
+    mem_Write8(ptr + 0x215, 0xA); //unknown
+    // XXX: 8.3 ext @ 0x216
+
+    mem_Write8(ptr + 0x21A, 0x1); // Unknown
+    mem_Write8(ptr + 0x21B, 0x0); // Unknown
+
+    // Is directory flag
+    if (ent->d_type == DT_DIR) {
+        mem_Write8(ptr + 0x21C, 0x1);
+
+        mem_Write8(ptr + 0x216, ' '); // 8.3 file extension
+        mem_Write8(ptr + 0x217, ' ');
+        mem_Write8(ptr + 0x218, ' ');
+    }
+    else { // Is directory flag
+        mem_Write8(ptr + 0x21C, 0x0);
+    }
+
+    // XXX: hidden flag @ 0x21D
+    // XXX: archive flag @ 0x21E
+    // XXX: readonly flag @ 0x21F
+
+    if (ent->d_type != DT_DIR)
+    {
+        struct stat st;
+
+        char path[256];
+        snprintf(path, sizeof(path), "%s/%s", self->path, ent->d_name);
+
+        if (stat(path, &st) == 0) {
+            mem_Write32(ptr + 0x220, st.st_size);
+            mem_Write32(ptr + 0x224, (st.st_size >> 32));
+        }
+        else {
+            ERROR("Failed to stat: %s\n", path);
+            return -1;
+        }
+    }
+
+    *read_out = current;
+    return 0;
+}
+static u32 savedata_OpenDir(archive* self, file_path path)
+{
+    // Create file object
+    dir_type* dir = (dir_type*)malloc(sizeof(dir_type));
+
+    dir->f_path = path;
+    dir->self = self;
+
+    // Setup function pointers.
+    dir->fnRead = &savedata_ReadDir;
+
+    char tmp[256];
+    snprintf(dir->path, 256, "savedata/%s",
+        fs_PathToString(path.type, path.ptr, path.size, tmp, 256));
+
+    dir->dir = opendir(dir->path);
+
+    if (dir->dir == NULL) {
+        ERROR("Dir not found: %s.\n", dir->path);
+        free(dir);
+        return 0;
+    }
+
+    return handle_New(HANDLE_TYPE_DIR, (uintptr_t)dir);
+}
 
 
 /* ____ FS implementation ____ */
@@ -269,7 +366,7 @@ archive* savedata_OpenArchive(file_path path)
 
     // Setup function pointers
     arch->fnCreateDir = &savedata_CreateDir;
-    arch->fnOpenDir = NULL;
+    arch->fnOpenDir = &savedata_OpenDir;
     arch->fnFileExists = &savedata_FileExists;
     arch->fnOpenFile = &savedata_OpenFile;
     arch->fnDeinitialize = &savedata_Deinitialize;

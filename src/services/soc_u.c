@@ -350,7 +350,9 @@ SERVICE_CMD(0x00070104) //recvfrom_other
         DEBUG("unknown len\n");
     }
 
-    RESP(3, (u32)recvfrom(*(SOCKET*)(h->misc_ptr[0]), b, CMD(2), CMD(3), &serv_addr, sizeof(serv_addr)));
+    int size = CMD(2);
+    while (size>0)
+        size -= recv(*(SOCKET*)(h->misc_ptr[0]), b + CMD(2) - size, size, CMD(3), &serv_addr, sizeof(serv_addr));
 
     if (mem_Write(b, CMD(8), CMD(2)) != 0) { //cmd 2 is not yet overwritten
         ERROR("mem_Write failed.\n");

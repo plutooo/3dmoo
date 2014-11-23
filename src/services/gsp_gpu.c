@@ -139,7 +139,6 @@ void gsp_ExecuteCommandFromSharedMem()
                 break;
             }
             case GSP_ID_SET_DISPLAY_TRANSFER:
-            
             theother:
             {
                 gpu_SendInterruptToAll(1); //this should be at the start
@@ -598,7 +597,6 @@ SERVICE_END();
 
 PDC0 called every line?
 PDC1 called every VBlank?
-
 */
 void gpu_SendInterruptToAll(u32 ID)
 {

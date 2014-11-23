@@ -39,12 +39,10 @@ extern int noscreen;
 
 void gpu_Init()
 {
-    IObuffer = malloc(0x420000);
     LINEmembuffer = malloc(0x8000000);
     VRAMbuff = malloc(0x800000);//malloc(0x600000);
     GSPsharedbuff = malloc(GSPsharebuffsize);
 
-    memset(IObuffer, 0, 0x420000);
     memset(LINEmembuffer, 0, 0x8000000);
     memset(VRAMbuff, 0, 0x600000);
     memset(GSPsharedbuff, 0, GSPsharebuffsize);
@@ -67,28 +65,7 @@ u32 convertvirtualtopys(u32 addr) //todo
     GPUDEBUG("can't convert vitual to py %08x\n",addr);
     return 0;
 }
-void gpu_WriteReg32(u32 addr, u32 data) //1eb00000 + addr
-{
-    GPUDEBUG("%08x to %08x\n",data, addr);
 
-    if (addr >= 0x420000) {
-        GPUDEBUG("write out of range\n");
-        return;
-    }
-
-    *(uint32_t*)(&IObuffer[addr]) = data;
-}
-
-
-u32 gpu_ReadReg32(u32 addr)
-{
-    //GPUDEBUG("GPU read %08x\n", addr);
-    if (addr >= 0x420000) {
-        GPUDEBUG("read out of range write\r\n");
-        return 0;
-    }
-    return *(uint32_t*)(&IObuffer[addr]);
-}
 u32 getsizeofwight(u16 val) //this is the size of pixel
 {
     switch (val&0x7000) { //check this
@@ -120,10 +97,6 @@ u32 getsizeofframebuffer(u32 val)
 
 u32 renderaddr = 0;
 u32 unknownaddr = 0;
-
-
-
-
 
 void updateGPUintreg(u32 data,u32 ID,u8 mask)
 {

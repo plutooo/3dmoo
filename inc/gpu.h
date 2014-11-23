@@ -54,7 +54,6 @@
 #define RGBdowntwoleft 0x40056C
 
 
-u8* IObuffer;
 u8* LINEmembuffer;
 u8* VRAMbuff;
 u8* GSPsharedbuff;

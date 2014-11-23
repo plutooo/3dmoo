@@ -54,10 +54,10 @@ u32 svcArbitrateAddress()//(uint arbiter, uint addr, uint type, uint value)
 
     thread* p;
     s32 i;
+    u32 val_addr;
 
     switch(type) {
     case 0: // Free
-
         // Negative value means resume all threads
         if(value < 0) {
             while(p = threads_ArbitrateHighestPrioThread(arbiter, addr))
@@ -75,29 +75,39 @@ u32 svcArbitrateAddress()//(uint arbiter, uint addr, uint type, uint value)
         return 0;
 
     case 1: // Acquire
-
         // If (signed cmp) value >= *addr, the thread is locked and added to wait-list.
         // Otherwise, thread keeps running and returns 0.
         if(value >= (s32)mem_Read32(addr))
             threads_SetCurrentThreadArbitrationSuspend(arbiter, addr);
 
         // XXX: Return error if read failed.
-
         return 0;
 
     case 3: // Acquire Timeout
-
         if(value >= (s32)mem_Read32(addr))
             threads_SetCurrentThreadArbitrationSuspend(arbiter, addr);
 
         // XXX: Add timeout based on val2,3
+        return 0;
+
+    case 2: // Acquire Decrement
+        val_addr = mem_Read32(addr) - 1;
+        mem_Write32(addr, val_addr);
+
+        if(value >= (s32)val_addr)
+            threads_SetCurrentThreadArbitrationSuspend(arbiter, addr);
 
         return 0;
 
-    case 2:
-    case 4:
-        ERROR("Kernel arbitration types are not supported.\n");
-        return -1;
+    case 4: // Acquire Decrement Timeout
+        val_addr = mem_Read32(addr) - 1;
+        mem_Write32(addr, val_addr);
+
+        if(value >= (s32)val_addr)
+            threads_SetCurrentThreadArbitrationSuspend(arbiter, addr);
+
+        // XXX: Add timeout based on val2,3
+        return 0;
 
     default:
         ERROR("Invalid arbiter type %d\n", type);

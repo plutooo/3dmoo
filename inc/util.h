@@ -124,7 +124,7 @@ static void color_restore(int old)
 #endif
 }
 
-#if 1
+#ifndef  DISABLE_DEBUG
 #define DEBUG(...) do {                                 \
         int old = color_green();                        \
         fprintf(stdout, "%s: ", __func__);              \
@@ -135,7 +135,7 @@ static void color_restore(int old)
 #define DEBUG(...)
 #endif
 
-#if 1
+#ifndef DISABLE_DEBUG
 #define GPUDEBUG(...) do {                                 \
     DEBUG(__VA_ARGS__);                   \
 } while (0);
@@ -151,7 +151,7 @@ static void color_restore(int old)
 #define THREADDEBUG(...)
 #endif
 
-#if 0
+#ifndef DISABLE_DEBUG
 #define LOG(...) do {                                 \
     int old = color_teal();                           \
     fprintf(stdout, __VA_ARGS__);                     \

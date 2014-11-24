@@ -207,7 +207,7 @@ u32 vfp_double_normaliseroundintern(ARMul_State* state, struct vfp_double *vd, u
         vd->significand = significand >> 1;
     }
  pack:
-    return;
+    return 0;
 }
 
 u32 vfp_double_normaliseround(ARMul_State* state, int dd, struct vfp_double *vd, u32 fpscr, u32 exceptions, const char *func)

@@ -156,7 +156,7 @@ static bool sysdata_FileExists(archive* self, file_path path)
     return stat(p, &st) == 0;
 }
 
-static u32 sysdata_DeleteFile(archive* self, file_path path, u32 flags, u32 attr)
+static u32 sysdata_DeleteFile(archive* self, file_path path)
 {
     char p[256], tmp[256];
 
@@ -353,9 +353,11 @@ archive* sysdata_OpenArchive(file_path path)
     }
 
     // Setup function pointers
+    arch->fnRenameFile   = NULL;
     arch->fnDeleteFile   = &sysdata_DeleteFile;
     arch->fnCreateDir    = &sysdata_CreateDir;
     arch->fnDeleteDir    = &sysdata_DeleteDir;
+    arch->fnRenameDir    = NULL;
     arch->fnOpenDir      = NULL;
     arch->fnFileExists   = &sysdata_FileExists;
     arch->fnOpenFile     = &sysdata_OpenFile;

@@ -274,3 +274,7 @@ u32 svcWaitSynchronizationN() // TODO: timeouts
     wrapWaitSynchronizationN(nanoseconds1, handles_ptr, handles_count, wait_all, nanoseconds2, out);
     return 0;
 }
+
+u32 nop_SyncRequest(handleinfo* h, bool *locked) {
+    return 0;
+};

@@ -53,9 +53,11 @@ typedef struct {
 
 typedef struct _archive archive;
 struct _archive {
+    int(*fnRenameFile)(archive* self, file_path srcpath, file_path dstpath);
     int(*fnDeleteFile)(archive* self, file_path path);
+    int(*fnRenameDir)(archive* self, file_path srcpath, file_path dstpath);
+    int(*fnDeleteDir)(archive* self, file_path path);
     int(*fnCreateDir)(archive* self, file_path path);
-    int (*fnDeleteDir)(archive* self, file_path path);
     u32(*fnOpenDir)(archive* self, file_path path);
     bool (*fnFileExists)  (archive* self, file_path path);
     u32  (*fnOpenFile)    (archive* self, file_path path, u32 flags, u32 attr);

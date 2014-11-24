@@ -249,9 +249,11 @@ archive* SaveDatacheck_OpenArchive(file_path path)
     }
 
     // Setup function pointers
+    arch->fnRenameFile = NULL;
     arch->fnDeleteFile = NULL;
     arch->fnCreateDir = &SaveDatacheck_CreateDir;
     arch->fnDeleteDir = &SaveDatacheck_DeleteDir;
+    arch->fnRenameDir = NULL;
     arch->fnOpenDir = NULL;
     arch->fnFileExists = &SaveDatacheck_FileExists;
     arch->fnOpenFile = &SaveDatacheck_OpenFile;

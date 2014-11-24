@@ -72,6 +72,139 @@ SERVICE_CMD(0x08040142)   // DeleteFile
     return 0;
 }
 
+SERVICE_CMD(0x08050244)   // RenameFile
+{
+    u32 transaction = CMD(1);
+    u32 src_handle_arch_lo = CMD(2);
+    u32 src_handle_arch = CMD(3);
+    u32 src_file_lowpath_type = CMD(4);
+    u32 src_file_lowpath_sz = CMD(5);
+    u32 dst_handle_arch_lo = CMD(6);
+    u32 dst_handle_arch = CMD(7);
+    u32 dst_file_lowpath_type = CMD(8);
+    u32 dst_file_lowpath_sz = CMD(9);
+    u32 transaction2 = CMD(10);
+    u32 src_file_lowpath_ptr = CMD(11);
+    u32 transaction3 = CMD(12);
+    u32 dst_file_lowpath_ptr = CMD(13);
+
+    char tmp[256];
+
+    DEBUG("RenameFile\n");
+    DEBUG("   src_archive_handle=%08x\n",
+        src_handle_arch);
+    DEBUG("   src_dir_lowpath_type=%s\n",
+        fs_PathTypeToString(src_file_lowpath_type));
+    DEBUG("   src_dir_lowpath=%s\n",
+        fs_PathToString(src_file_lowpath_type, src_file_lowpath_ptr, src_file_lowpath_sz, tmp, sizeof(tmp)));
+    DEBUG("   dst_archive_handle=%08x\n",
+        dst_handle_arch);
+    DEBUG("   dst_dir_lowpath_type=%s\n",
+        fs_PathTypeToString(dst_file_lowpath_type));
+    DEBUG("   dst_dir_lowpath=%s\n",
+        fs_PathToString(dst_file_lowpath_type, dst_file_lowpath_ptr, dst_file_lowpath_sz, tmp, sizeof(tmp)));
+
+    if (src_handle_arch != dst_handle_arch)
+    {
+        ERROR("RenameFile between archives is not supported.\n");
+        RESP(1, -1);
+        return 0;
+    }
+
+    handleinfo* arch_hi = handle_Get(src_handle_arch);
+
+    if (arch_hi == NULL) {
+        ERROR("Invalid handle.\n");
+        RESP(1, -1);
+        return 0;
+    }
+    archive* arch = (archive*)arch_hi->subtype;
+    // Call delarchive
+    if (arch != NULL && arch->fnRenameFile != NULL) {
+        int ret = arch->fnRenameFile(arch,
+            (file_path) { src_file_lowpath_type, src_file_lowpath_sz, src_file_lowpath_ptr },
+            (file_path) { dst_file_lowpath_type, dst_file_lowpath_sz, dst_file_lowpath_ptr }
+        );
+
+        if (ret == EACCES)
+        {
+            ERROR("RenameFile has failed. Destination file already exists.\n");
+            RESP(1, 0xC82044BE);
+            return 0;
+        }
+        else if (ret == ENOENT)
+        {
+            ERROR("RenameFile has failed. Source file doesn't exist or is a directory.\n");
+            RESP(1, 0xC8804478);
+            return 0;
+        }
+        else if (ret != 0) {
+            ERROR("RenameFile has failed.--\n");
+            RESP(1, -1);
+            return 0;
+        }
+    }
+    else {
+        ERROR("Archive has not implemented RenameFile.\n");
+        RESP(1, -1);
+        return 0;
+    }
+
+    RESP(1, 0); // Result
+    return 0;
+}
+
+SERVICE_CMD(0x08060142)   // DeleteDirectory
+{
+    u32 transaction = CMD(1);
+    u32 handle_arch_lo = CMD(2);
+    u32 handle_arch = CMD(3);
+    u32 dir_lowpath_type = CMD(4);
+    u32 dir_lowpath_sz = CMD(5);
+    u32 transaction2 = CMD(6);
+    u32 dir_lowpath_ptr = CMD(7);
+
+    char tmp[256];
+
+    DEBUG("DeleteDirectory\n");
+    DEBUG("   archive_handle=%08x\n",
+        handle_arch);
+    DEBUG("   dir_lowpath_type=%s\n",
+        fs_PathTypeToString(dir_lowpath_type));
+    DEBUG("   dir_lowpath=%s\n",
+        fs_PathToString(dir_lowpath_type, dir_lowpath_ptr, dir_lowpath_sz, tmp, sizeof(tmp)));
+
+    handleinfo* arch_hi = handle_Get(handle_arch);
+
+    if (arch_hi == NULL) {
+        ERROR("Invalid handle.\n");
+        RESP(1, -1);
+        return 0;
+    }
+    archive* arch = (archive*)arch_hi->subtype;
+    // Call delarchive
+    if (arch != NULL && arch->fnDeleteDir != NULL) {
+        int ret = arch->fnDeleteDir(arch,
+            (file_path) {
+            dir_lowpath_type, dir_lowpath_sz, dir_lowpath_ptr
+        });
+
+        if (ret != 0) {
+            ERROR("DeleteDirectory has failed.\n");
+            RESP(1, -1);
+            return 0;
+        }
+    }
+    else {
+        ERROR("Archive has not implemented DeleteDirectory.\n");
+        RESP(1, -1);
+        return 0;
+    }
+
+    RESP(1, 0); // Result
+    return 0;
+}
+
 SERVICE_CMD(0x08070142)   // DeleteDirectoryRecursively
 {
     u32 transaction = CMD(1);
@@ -108,13 +241,13 @@ SERVICE_CMD(0x08070142)   // DeleteDirectoryRecursively
         });
 
             if (ret != 0) {
-                ERROR("DeleteFile has failed.\n");
+                ERROR("DeleteDirectoryRecursively has failed.\n");
                 RESP(1, -1);
                 return 0;
             }
     }
     else {
-        ERROR("Archive has not implemented DeleteFile.\n");
+        ERROR("Archive has not implemented DeleteDirectoryRecursively.\n");
         RESP(1, -1);
         return 0;
     }
@@ -176,6 +309,93 @@ SERVICE_CMD(0x08090182)   // CreateDirectory
     RESP(1, 0); // Result
     return 0;
 }
+
+SERVICE_CMD(0x080A0244)   // RenameDirectory
+{
+    u32 transaction = CMD(1);
+    u32 src_handle_arch_lo = CMD(2);
+    u32 src_handle_arch = CMD(3);
+    u32 src_file_lowpath_type = CMD(4);
+    u32 src_file_lowpath_sz = CMD(5);
+    u32 dst_handle_arch_lo = CMD(6);
+    u32 dst_handle_arch = CMD(7);
+    u32 dst_file_lowpath_type = CMD(8);
+    u32 dst_file_lowpath_sz = CMD(9);
+    u32 transaction2 = CMD(10);
+    u32 src_file_lowpath_ptr = CMD(11);
+    u32 transaction3 = CMD(12);
+    u32 dst_file_lowpath_ptr = CMD(13);
+
+    char tmp[256];
+
+    DEBUG("RenameDirectory\n");
+    DEBUG("   src_archive_handle=%08x\n",
+        src_handle_arch);
+    DEBUG("   src_dir_lowpath_type=%s\n",
+        fs_PathTypeToString(src_file_lowpath_type));
+    DEBUG("   src_dir_lowpath=%s\n",
+        fs_PathToString(src_file_lowpath_type, src_file_lowpath_ptr, src_file_lowpath_sz, tmp, sizeof(tmp)));
+    DEBUG("   dst_archive_handle=%08x\n",
+        dst_handle_arch);
+    DEBUG("   dst_dir_lowpath_type=%s\n",
+        fs_PathTypeToString(dst_file_lowpath_type));
+    DEBUG("   dst_dir_lowpath=%s\n",
+        fs_PathToString(dst_file_lowpath_type, dst_file_lowpath_ptr, dst_file_lowpath_sz, tmp, sizeof(tmp)));
+
+    if (src_handle_arch != dst_handle_arch)
+    {
+        ERROR("RenameDirectory between archives is not supported.\n");
+        RESP(1, -1);
+        return 0;
+    }
+
+    handleinfo* arch_hi = handle_Get(src_handle_arch);
+
+    if (arch_hi == NULL) {
+        ERROR("Invalid handle.\n");
+        RESP(1, -1);
+        return 0;
+    }
+    archive* arch = (archive*)arch_hi->subtype;
+    // Call delarchive
+    if (arch != NULL && arch->fnRenameDir != NULL) {
+        int ret = arch->fnRenameDir(arch,
+            (file_path) {
+            src_file_lowpath_type, src_file_lowpath_sz, src_file_lowpath_ptr
+        },
+        (file_path) {
+            dst_file_lowpath_type, dst_file_lowpath_sz, dst_file_lowpath_ptr
+        }
+            );
+
+            if (ret == EACCES)
+            {
+                ERROR("RenameDirectory has failed. Destination folder already exists.\n");
+                RESP(1, 0xC82044BE);
+                return 0;
+            }
+            else if (ret == ENOENT)
+            {
+                ERROR("RenameDirectory has failed. Source file doesn't exist or is a file.\n");
+                RESP(1, 0xC8804478);
+                return 0;
+            }
+            else if (ret != 0) {
+                ERROR("RenameDirectory has failed.--\n");
+                RESP(1, -1);
+                return 0;
+            }
+    }
+    else {
+        ERROR("Archive has not implemented RenameDirectory.\n");
+        RESP(1, -1);
+        return 0;
+    }
+
+    RESP(1, 0); // Result
+    return 0;
+}
+
 
 SERVICE_CMD(0x080201C2)   // OpenFile
 {
@@ -487,8 +707,8 @@ SERVICE_CMD(0x080E0080)   // CloseArchive
     u32 handle_hi = CMD(2);
     u32 rc = -1;
 
-    if(handle_hi == 0xDEADC0DE) {
-        handleinfo* hi = handle_Get(handle_lo);
+    if(handle_lo == 0xDEADC0DE) {
+        handleinfo* hi = handle_Get(handle_hi);
 
         if(hi != NULL && hi->type == HANDLE_TYPE_ARCHIVE) {
             archive* arch = (archive*) hi->subtype;

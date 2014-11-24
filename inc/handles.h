@@ -193,6 +193,8 @@ u32 file_SyncRequest(handleinfo* h, bool *locked);
 u32 file_CloseHandle(ARMul_State *state, handleinfo* h);
 u32 file_WaitSynchronization(handleinfo* h, bool *locked);
 
+u32 nop_SyncRequest(handleinfo* h, bool *locked);
+
 static struct {
     char* name;
     u32(*fnSyncRequest)(handleinfo* h, bool *locked);
@@ -274,7 +276,7 @@ static struct {
     },
     {
         "archive",
-        NULL,
+        &nop_SyncRequest,
         NULL,
         NULL
     },

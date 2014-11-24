@@ -284,9 +284,11 @@ archive* sharedextd_OpenArchive(file_path path)
     }
 
     // Setup function pointers
+    arch->fnRenameFile   = NULL;
     arch->fnDeleteFile   = &sharedextd_DeleteFile;
     arch->fnCreateDir    = NULL;
     arch->fnDeleteDir    = &sharedextd_DeleteDir;
+    arch->fnRenameDir    = NULL;
     arch->fnOpenDir      = NULL;
     arch->fnFileExists   = &sharedextd_FileExists;
     arch->fnOpenFile     = &sharedextd_OpenFile;

@@ -126,6 +126,7 @@
       <PreprocessorDefinitions>1GDB_STUB;WIN32;MODET;MODE32;_DEBUG;_CONSOLE;_LIB;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>..\inc;..\inc\arm11;..\src;..\src\arm11;$(SDL2)\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <MinimalRebuild>false</MinimalRebuild>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -251,6 +252,7 @@
     <ClCompile Include="..\src\gdbstub\gdbstub.cpp" />
     <ClCompile Include="..\src\gdbstub\gdbstubchelper.c" />
     <ClCompile Include="..\src\gpu\clipper.c" />
+    <ClCompile Include="..\src\gpu\io.c" />
     <ClCompile Include="..\src\gpu\rasterizer.c" />
     <ClCompile Include="..\src\gpu\vec4.c" />
     <ClCompile Include="..\src\handles.c" />

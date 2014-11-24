@@ -129,7 +129,9 @@ static archive romfs = {
     .fnOpenFile     = &romfs_OpenFile,
     .fnDeinitialize = NULL,
     .fnDeleteDir    = NULL,
-    .fnDeleteFile   = NULL
+    .fnDeleteFile   = NULL,
+    .fnRenameDir    = NULL,
+    .fnRenameFile   = NULL
 };
 
 

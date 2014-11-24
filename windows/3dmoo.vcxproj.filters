@@ -348,6 +348,9 @@
     <ClCompile Include="..\src\services\cam_u.c">
       <Filter>Source Files\services</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\gpu\io.c">
+      <Filter>Source Files\GPU</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\inc\handles.h">

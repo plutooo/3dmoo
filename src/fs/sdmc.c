@@ -65,8 +65,16 @@ static u32 sdmcfile_Write(file_type* self, u32 ptr, u32 sz, u64 off, u32 flush_f
         return -1;
     }
 
+    //Update size
+    if (fseek(fd, 0, SEEK_END) == -1) {
+        ERROR("fseek failed.\n");
+        return -1;
+    }
+    self->type_specific.sysdata.sz = ftell(fd);
+
     *written_out = write;
     free(b);
+    fflush(fd);
 
     return 0; // Result
 }
@@ -363,12 +371,12 @@ static u32 sdmc_OpenDir(archive* self, file_path path)
     char tmp[256];
     if (config_has_sdmc)
     {
-        snprintf(dir->path, 256, "%s/%s/", config_sdmc_path,
+        snprintf(dir->path, 256, "%s/%s", config_sdmc_path,
             fs_PathToString(path.type, path.ptr, path.size, tmp, 256));
     }
     else
     {
-        snprintf(dir->path, 256, "sdmc/%s/",
+        snprintf(dir->path, 256, "sdmc/%s",
             fs_PathToString(path.type, path.ptr, path.size, tmp, 256));
     }
 
@@ -390,12 +398,12 @@ static u32 sdmc_DeleteFile(archive* self, file_path path)
     // Generate path on host file system
     if (config_has_sdmc)
     {
-        snprintf(p, 256, "%s/%s/", config_sdmc_path,
+        snprintf(p, 256, "%s/%s", config_sdmc_path,
             fs_PathToString(path.type, path.ptr, path.size, tmp, 256));
     }
     else
     {
-        snprintf(p, 256, "sdmc/%s/",
+        snprintf(p, 256, "sdmc/%s",
             fs_PathToString(path.type, path.ptr, path.size, tmp, 256));
     }
 
@@ -407,6 +415,34 @@ static u32 sdmc_DeleteFile(archive* self, file_path path)
     return remove(p);
 }
 
+static int sdmc_Rename(archive* self, file_path srcpath, file_path dstpath)
+{
+    char p[256], p2[256], tmp[256];
+
+    // Generate path on host file system
+    if (config_has_sdmc)
+    {
+        snprintf(p, 256, "%s/%s", config_sdmc_path,
+            fs_PathToString(srcpath.type, srcpath.ptr, srcpath.size, tmp, 256));
+        snprintf(p2, 256, "%s/%s", config_sdmc_path,
+            fs_PathToString(dstpath.type, dstpath.ptr, dstpath.size, tmp, 256));
+    }
+    else
+    {
+        snprintf(p, 256, "sdmc/%s",
+            fs_PathToString(srcpath.type, srcpath.ptr, srcpath.size, tmp, 256));
+        snprintf(p2, 256, "sdmc/%s",
+            fs_PathToString(dstpath.type, dstpath.ptr, dstpath.size, tmp, 256));
+    }
+
+    if (!fs_IsSafePath(p) || !fs_IsSafePath(p2)) {
+        ERROR("Got unsafe path.\n");
+        return 0;
+    }
+
+    return rename(p,p2);
+}
+
 int sdmc_CreateDir(archive* self, file_path path)
 {
     char p[256], tmp[256];
@@ -414,12 +450,12 @@ int sdmc_CreateDir(archive* self, file_path path)
     // Generate path on host file system
     if (config_has_sdmc)
     {
-        snprintf(p, 256, "%s/%s/", config_sdmc_path,
+        snprintf(p, 256, "%s/%s", config_sdmc_path,
             fs_PathToString(path.type, path.ptr, path.size, tmp, 256));
     }
     else
     {
-        snprintf(p, 256, "sdmc/%s/",
+        snprintf(p, 256, "sdmc/%s",
             fs_PathToString(path.type, path.ptr, path.size, tmp, 256));
     }
 
@@ -437,12 +473,12 @@ int sdmc_DeleteDir(archive* self, file_path path)
     // Generate path on host file system
     if (config_has_sdmc)
     {
-        snprintf(p, 256, "%s/%s/", config_sdmc_path,
+        snprintf(p, 256, "%s/%s", config_sdmc_path,
             fs_PathToString(path.type, path.ptr, path.size, tmp, 256));
     }
     else
     {
-        snprintf(p, 256, "sdmc/%s/",
+        snprintf(p, 256, "sdmc/%s",
             fs_PathToString(path.type, path.ptr, path.size, tmp, 256));
     }
 
@@ -469,8 +505,10 @@ archive* sdmc_OpenArchive(file_path path)
     }
 
     // Setup function pointers
+    arch->fnRenameFile = &sdmc_Rename;
     arch->fnDeleteFile = &sdmc_DeleteFile;
     arch->fnCreateDir = &sdmc_CreateDir;
+    arch->fnRenameDir = &sdmc_Rename;
     arch->fnDeleteDir = &sdmc_DeleteDir;
     arch->fnOpenDir = &sdmc_OpenDir;
     arch->fnFileExists = &sdmc_FileExists;

@@ -1008,23 +1008,23 @@ void updateFramebufferaddr(u32 addr,bool bot)
 {
     //we use the last in buffer with flag set
     if (!bot) {
-            if ((mem_Read32(addr + 4) & 0x1) == 0)
-                gpu_WriteReg32(RGBuponeleft, convertvirtualtopys(mem_Read32(addr + 8)));
+            if ((mem_Read32(addr) & 0x1) == 0)
+                gpu_WriteReg32(RGBuponeleft, convertvirtualtopys(mem_Read32(addr + 4)));
             else
-                gpu_WriteReg32(RGBuptwoleft, convertvirtualtopys(mem_Read32(addr + 8)));
-            gpu_WriteReg32(frameselectoben, mem_Read32(addr + 0x18));
-            u32 u90 = mem_Read32(addr + 0x10);
-            u32 format = mem_Read32(addr + 0x14);
+                gpu_WriteReg32(RGBuptwoleft, convertvirtualtopys(mem_Read32(addr + 4)));
+            gpu_WriteReg32(frameselectoben, mem_Read32(addr + 0x14));
+            u32 u90 = mem_Read32(addr + 0xC);
+            u32 format = mem_Read32(addr + 0x10);
             int i = 0;
             //the rest is todo
         }
         else
         {
-            if ((mem_Read32(addr + 4)& 0x1) == 0)
-                gpu_WriteReg32(RGBdownoneleft, mem_Read32(addr + 8));
+            if ((mem_Read32(addr)& 0x1) == 0)
+                gpu_WriteReg32(RGBdownoneleft, convertvirtualtopys(mem_Read32(addr + 4)));
             else
-                gpu_WriteReg32(RGBdowntwoleft, mem_Read32(addr + 8));
-            gpu_WriteReg32(frameselectbot, mem_Read32(addr + 0x18));
+                gpu_WriteReg32(RGBdowntwoleft, convertvirtualtopys(mem_Read32(addr + 4)));
+            gpu_WriteReg32(frameselectbot, mem_Read32(addr + 0x14));
             //the rest is todo
     }
     return;

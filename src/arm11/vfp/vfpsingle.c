@@ -704,7 +704,7 @@ static u32 vfp_single_ftosi(ARMul_State* state, int sd, int unused, s32 m, u32 f
         if (vsm.sign)
             d = ~d;
         exceptions |= FPSCR_IOC;
-    } else if (vsm.exponent >= 127 - 1) {
+    } else if (vsm.exponent >= 127) {
         int shift = 127 + 31 - vsm.exponent;
         u32 rem, incr = 0;
 
@@ -964,7 +964,9 @@ vfp_single_multiply_accumulate(ARMul_State* state, int sd, int sn, s32 m, u32 fp
         if (vsm.exponent == 0 && vsm.significand)
             vfp_single_normalise_denormal(&vsm);
 
+
         exceptions = vfp_single_multiply(&vsp, &vsn, &vsm, fpscr);
+
 
         if (negate & NEG_MULTIPLY)
             vsp.sign = vfp_sign_negate(vsp.sign);

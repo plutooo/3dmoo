@@ -41,6 +41,7 @@
 #define HANDLE_TYPE_SESSION   13
 #define HANDLE_TYPE_DIR       14
 #define HANDLE_TYPE_SOCKET    15
+#define HANDLE_TYPE_HTTPCont  16
 
 
 #define PORT_TYPE_SRV         0

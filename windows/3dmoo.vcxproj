@@ -257,6 +257,10 @@
     <ClCompile Include="..\src\gpu\vec4.c" />
     <ClCompile Include="..\src\handles.c" />
     <ClCompile Include="..\src\gpu\gpu.c" />
+    <ClCompile Include="..\src\http\HTTPClient.c" />
+    <ClCompile Include="..\src\http\HTTPClientAuth.c" />
+    <ClCompile Include="..\src\http\HTTPClientString.c" />
+    <ClCompile Include="..\src\http\HTTPClientWrapper.c" />
     <ClCompile Include="..\src\loader.c" />
     <ClCompile Include="..\src\main.c" />
     <ClCompile Include="..\src\mem.c" />

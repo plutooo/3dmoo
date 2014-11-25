@@ -380,7 +380,6 @@ static u32 sdmc_OpenDir(archive* self, file_path path)
     }
 
     dir->dir = opendir(dir->path);
-    rewinddir(dir->dir);
 
     if(dir->dir == NULL) {
         ERROR("Dir not found: %s.\n", dir->path);
@@ -388,6 +387,7 @@ static u32 sdmc_OpenDir(archive* self, file_path path)
         return 0;
     }
 
+    rewinddir(dir->dir);
     return handle_New(HANDLE_TYPE_DIR, (uintptr_t)dir);
 }
 

@@ -49,6 +49,9 @@
     <Filter Include="Source Files\crypto">
       <UniqueIdentifier>{c584b4be-f5ab-4695-8fb7-7ce0f70f4270}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\httpap">
+      <UniqueIdentifier>{1a943786-0c3c-4ed9-8fd7-804734b0e7ea}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\handles.c">
@@ -350,6 +353,18 @@
     </ClCompile>
     <ClCompile Include="..\src\gpu\io.c">
       <Filter>Source Files\GPU</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\http\HTTPClientString.c">
+      <Filter>Source Files\httpap</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\http\HTTPClientWrapper.c">
+      <Filter>Source Files\httpap</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\http\HTTPClient.c">
+      <Filter>Source Files\httpap</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\http\HTTPClientAuth.c">
+      <Filter>Source Files\httpap</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

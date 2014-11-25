@@ -274,14 +274,14 @@ int Load3DSXFile(FILE* f, u32 baseAddr)
 
                 for (k = 0; k < toDo && pos < endPos; k++)
                 {
-                    DEBUG("(t=%d,skip=%u,patch=%u)\n", j, (u32)relocTbl[k].skip, (u32)relocTbl[k].patch);
+                    //DEBUG("(t=%d,skip=%u,patch=%u)\n", j, (u32)relocTbl[k].skip, (u32)relocTbl[k].patch);
                     pos += le_hword(relocTbl[k].skip);
                     u32 num_patches = le_hword(relocTbl[k].patch);
                     for (m = 0; m < num_patches && pos < endPos; m++)
                     {
                         u32 inAddr = (char*)pos - (char*)allMem;
                         u32 addr = TranslateAddr(le_word(*pos), &d, offsets);
-                        DEBUG("Patching %08X <-- rel(%08X,%d) (%08X)\n", baseAddr + inAddr, addr, j, le_word(*pos));
+                        //DEBUG("Patching %08X <-- rel(%08X,%d) (%08X)\n", baseAddr + inAddr, addr, j, le_word(*pos));
                         switch (j)
                         {
                         case 0: *pos = le_word(addr); break;

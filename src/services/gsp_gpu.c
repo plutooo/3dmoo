@@ -49,8 +49,6 @@ void gsp_ExecuteCommandFromSharedMem()
         {
             
             u32 cmd_id = *(u32*)(baseaddr + (j + 1) * 0x20);
-            u32 addr;
-            u32 flags;
 
             switch (cmd_id & 0xFF) {
             case GSP_ID_REQUEST_DMA: /* GX::RequestDma */
@@ -200,7 +198,7 @@ void gsp_ExecuteCommandFromSharedMem()
                             u8 reg2 = *inaddr;
                             inaddr++;
                             r = (reg1&0x1F)<<3;
-                            g = (((reg1 & 0xE0) >> 5) + (reg2 & 0x7) << 3) << 2;
+                            g = (((reg1 & 0xE0) >> 5) + ((reg2 & 0x7) << 3)) << 2;
                             b = ((reg2 & 0xF8) >> 3) << 3;
                             a = 0xFF;
                         }
@@ -212,7 +210,7 @@ void gsp_ExecuteCommandFromSharedMem()
                             u8 reg2 = *inaddr;
                             inaddr++;
                             r = (reg1 & 0x1F) << 3;
-                            g = (((reg1 & 0xE0) >> 5) + (reg2 & 0x3) << 3) << 3;
+                            g = (((reg1 & 0xE0) >> 5) + ((reg2 & 0x3) << 3)) << 3;
                             b = ((reg2 & 0x7C) >> 3) << 3;
                             if (reg2)a = 0xFF;
                         }

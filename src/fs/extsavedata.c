@@ -40,7 +40,7 @@ static u32 extsavedatafile_Read(file_type* self, u32 ptr, u32 sz, u64 off, u32* 
         return -1;
     }
 
-    if(fseek(fd, off, SEEK_SET) == -1) {
+    if(fseek64(fd, off, SEEK_SET) == -1) {
         ERROR("fseek failed.\n");
         return -1;
     }
@@ -80,7 +80,7 @@ static u32 extsavedatafile_Write(file_type* self, u32 ptr, u32 sz, u64 off, u32 
         return -1;
     }
 
-    if (fseek(fd, off, SEEK_SET) == -1) {
+    if (fseek64(fd, off, SEEK_SET) == -1) {
         ERROR("fseek failed.\n");
         return -1;
     }
@@ -115,14 +115,14 @@ static u64 extsavedatafile_GetSize(file_type* self)
     return self->type_specific.sysdata.sz;
 }
 
-static u64 extsavedatafile_SetSize(file_type* self, u64 sz)
+static u32 extsavedatafile_SetSize(file_type* self, u64 sz)
 {
     FILE* fd = self->type_specific.sysdata.fd;
     u64 current_size = self->type_specific.sysdata.sz;
 
     if (sz >= current_size)
     {
-        if (fseek(fd, sz, SEEK_SET) == -1) {
+        if (fseek64(fd, sz, SEEK_SET) == -1) {
             ERROR("fseek failed.\n");
             return -1;
         }

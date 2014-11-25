@@ -41,7 +41,7 @@ static u32 sdmcfile_Write(file_type* self, u32 ptr, u32 sz, u64 off, u32 flush_f
         return -1;
     }
 
-    if (fseek(fd, off, SEEK_SET) == -1) {
+    if (fseek64(fd, off, SEEK_SET) == -1) {
         ERROR("fseek failed.\n");
         return -1;
     }
@@ -66,11 +66,11 @@ static u32 sdmcfile_Write(file_type* self, u32 ptr, u32 sz, u64 off, u32 flush_f
     }
 
     //Update size
-    if (fseek(fd, 0, SEEK_END) == -1) {
+    if (fseek64(fd, 0, SEEK_END) == -1) {
         ERROR("fseek failed.\n");
         return -1;
     }
-    self->type_specific.sysdata.sz = ftell(fd);
+    self->type_specific.sysdata.sz = ftell64(fd);
 
     *written_out = write;
     free(b);
@@ -89,7 +89,7 @@ static u32 sdmcfile_Read(file_type* self, u32 ptr, u32 sz, u64 off, u32* read_ou
         return -1;
     }
 
-    if(fseek(fd, off, SEEK_SET) == -1) {
+    if(fseek64(fd, off, SEEK_SET) == -1) {
         ERROR("fseek failed.\n");
         return -1;
     }
@@ -124,14 +124,14 @@ static u64 sdmcfile_GetSize(file_type* self)
     return self->type_specific.sysdata.sz;
 }
 
-static u64 sdmcfile_SetSize(file_type* self, u64 sz)
+static u32 sdmcfile_SetSize(file_type* self, u64 sz)
 {
     FILE* fd = self->type_specific.sysdata.fd;
     u64 current_size = self->type_specific.sysdata.sz;
 
     if (sz >= current_size)
     {
-        if (fseek(fd, sz-1, SEEK_SET) == -1) {
+        if (fseek64(fd, sz-1, SEEK_SET) == -1) {
             ERROR("fseek failed.\n");
             return -1;
         }

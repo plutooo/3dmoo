@@ -584,8 +584,8 @@ u32 srv_SyncRequest()
             req.unk2);
 
 
-        ownservice[ownservice_num].name = malloc(9);
-        memcpy(ownservice[ownservice_num].name, req.name, 9);
+        ownservice[ownservice_num].name = calloc(9,sizeof(u8));
+        memcpy(ownservice[ownservice_num].name, req.name, sizeof(req.name));
 
         ownservice[ownservice_num].handle = handle_New(HANDLE_TYPE_SERVICE, SERVICE_DIRECT);
 
@@ -652,7 +652,9 @@ u32 srv_SyncRequest()
 
         ERROR("Unimplemented service: %s\n", req.name);
         arm11_Dump();
-        exit(1);
+        //exit(1);
+        mem_Write32(arm11_ServiceBufferAddress() + 0x8C, 0xDEADBABE);
+        return 0;
 
     case 0x00080100:
         DEBUG("srv_GetHandle\n");

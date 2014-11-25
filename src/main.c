@@ -119,7 +119,7 @@ int main(int argc, char* argv[])
         else if ((strcmp(argv[i], "-noscreen") == 0))noscreen = true;
         else if ((strcmp(argv[i], "-codepatch") == 0)) {
             i++;
-            codepath = malloc(strlen(argv[i]));
+            codepath = malloc(strlen(argv[i])+1);
             strcpy(codepath, argv[i]);
         }
         else if ((strcmp(argv[i], "-sdmc") == 0))

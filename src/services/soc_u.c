@@ -81,8 +81,6 @@ SERVICE_CMD(0x000200c2) //socket
 }
 SERVICE_CMD(0x00050084) //bind
 {
-    struct sockaddr saServer;
-
     u8* b = malloc(CMD(2));
     if (b == NULL) {
         ERROR("Not enough mem.\n");
@@ -102,7 +100,7 @@ SERVICE_CMD(0x00050084) //bind
         return -1;
     }
     struct sockaddr serv_addr;
-    memset((char *)&serv_addr, 0, sizeof(serv_addr));
+    memset((char *)&serv_addr, 0, sizeof(struct sockaddr));
     if (CMD(2) == 0x8)
     {
         memcpy(serv_addr.sa_data, &b[2], 0x6);
@@ -194,8 +192,6 @@ SERVICE_CMD(0x00040082) //accept
 
 SERVICE_CMD(0x00090106) //sendto_other
 {
-    struct sockaddr saServer;
-
     u8* a = malloc(CMD(4));
     if (a == NULL) {
         ERROR("Not enough mem.\n");
@@ -227,7 +223,7 @@ SERVICE_CMD(0x00090106) //sendto_other
         return -1;
     }
     struct sockaddr serv_addr;
-    memset((char *)&serv_addr, 0, sizeof(serv_addr));
+    memset((char *)&serv_addr, 0, sizeof(struct sockaddr));
     if (CMD(4) == 0x8)
     {
         serv_addr.sa_family = a[1];
@@ -251,8 +247,6 @@ SERVICE_CMD(0x00090106) //sendto_other
 
 SERVICE_CMD(0x000a0106) //sendto
 {
-    struct sockaddr saServer;
-
     u8* a = malloc(CMD(4));
     if (a == NULL) {
         ERROR("Not enough mem.\n");
@@ -284,7 +278,7 @@ SERVICE_CMD(0x000a0106) //sendto
         return -1;
     }
     struct sockaddr serv_addr;
-    memset((char *)&serv_addr, 0, sizeof(serv_addr));
+    memset((char *)&serv_addr, 0, sizeof(struct sockaddr));
     if (CMD(4) == 0x8)
     {
         serv_addr.sa_family = a[1];
@@ -307,8 +301,6 @@ SERVICE_CMD(0x000a0106) //sendto
 }
 SERVICE_CMD(0x00070104) //recvfrom_other
 {
-    struct sockaddr saServer;
-
     u8* a = malloc(CMD(4));
     if (a == NULL) {
         ERROR("Not enough mem.\n");
@@ -369,8 +361,6 @@ SERVICE_CMD(0x00070104) //recvfrom_other
 }
 SERVICE_CMD(0x00080102) //recvfrom
 {
-    struct sockaddr saServer;
-
     u8* a = malloc(CMD(4));
     if (a == NULL) {
         ERROR("Not enough mem.\n");
@@ -396,7 +386,7 @@ SERVICE_CMD(0x00080102) //recvfrom
         return -1;
     }
     struct sockaddr serv_addr;
-    memset((char *)&serv_addr, 0, sizeof(serv_addr));
+    memset((char *)&serv_addr, 0, sizeof(struct sockaddr));
     if (CMD(4) == 0x8)
     {
         serv_addr.sa_family = a[1];

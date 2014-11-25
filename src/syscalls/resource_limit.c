@@ -23,7 +23,7 @@
 
 s32 svcGetResourceLimitCurrentValues(u32 values_ptr,u32 handleResourceLimit,u32 names_ptr,u32 nameCount)
 {
-    for (int i = 0; i < nameCount; i++)
+    for (u32 i = 0; i < nameCount; i++)
     {
         u32 temp = mem_Read32(names_ptr + i*4);
         switch (temp)

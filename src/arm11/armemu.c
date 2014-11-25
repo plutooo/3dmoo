@@ -1234,7 +1234,7 @@ mainswitch:
                 else if ((((int)BITS(21, 27)) == 0x3e) && ((int)BITS(4, 6) == 0x1)) {
                     //(ARMword)(instr<<(31-(n))) >> ((31-(n))+(m))
                     unsigned msb ,tmp_rn, tmp_rd, dst;
-                    msb = tmp_rd = tmp_rn = dst = 0;
+                    tmp_rd = tmp_rn = dst = 0;
                     Rd = BITS(12, 15);
                     Rn = BITS(0, 3);
                     lsb = BITS(7, 11);
@@ -1805,7 +1805,7 @@ mainswitch:
                         //chy 2006-02-15 if in user mode, can not set cpsr 0:23
                         //from p165 of ARMARM book
                         state->Cpsr = GETSPSR (state->Bank);
-                        //ARMul_CPSRAltered (state);
+                        ARMul_CPSRAltered (state);
 #else
                         rhs = DPRegRHS;
                         temp = LHS & rhs;
@@ -1945,7 +1945,7 @@ mainswitch:
                         /* TEQP reg */
 #ifdef MODE32
                         state->Cpsr = GETSPSR (state->Bank);
-                        //ARMul_CPSRAltered (state);
+                        ARMul_CPSRAltered (state);
 #else
                         rhs = DPRegRHS;
                         temp = LHS ^ rhs;
@@ -2061,7 +2061,7 @@ mainswitch:
                         /* CMPP reg.  */
 #ifdef MODE32
                         state->Cpsr = GETSPSR (state->Bank);
-                        //ARMul_CPSRAltered (state);
+                        ARMul_CPSRAltered (state);
 #else
                         rhs = DPRegRHS;
                         temp = LHS - rhs;
@@ -2180,7 +2180,7 @@ mainswitch:
                     if (DESTReg == 15) {
 #ifdef MODE32
                         state->Cpsr = GETSPSR (state->Bank);
-                        //ARMul_CPSRAltered (state);
+                        ARMul_CPSRAltered (state);
 #else
                         rhs = DPRegRHS;
                         temp = LHS + rhs;
@@ -2631,7 +2631,7 @@ mainswitch:
                         /* TSTP immed.  */
 #ifdef MODE32
                         state->Cpsr = GETSPSR (state->Bank);
-                        //ARMul_CPSRAltered (state);
+                        ARMul_CPSRAltered (state);
 #else
                         temp = LHS & DPImmRHS;
                         SETR15PSR (temp);
@@ -2658,7 +2658,7 @@ mainswitch:
                         /* TEQP immed.  */
 #ifdef MODE32
                         state->Cpsr = GETSPSR (state->Bank);
-                        //ARMul_CPSRAltered (state);
+                        ARMul_CPSRAltered (state);
 #else
                         temp = LHS ^ DPImmRHS;
                         SETR15PSR (temp);
@@ -2679,7 +2679,7 @@ mainswitch:
                         /* CMPP immed.  */
 #ifdef MODE32
                         state->Cpsr = GETSPSR (state->Bank);
-                        //ARMul_CPSRAltered (state);
+                        ARMul_CPSRAltered (state);
 #else
                         temp = LHS - DPImmRHS;
                         SETR15PSR (temp);
@@ -2715,7 +2715,7 @@ mainswitch:
                         /* CMNP immed.  */
 #ifdef MODE32
                         state->Cpsr = GETSPSR (state->Bank);
-                        //ARMul_CPSRAltered (state);
+                        ARMul_CPSRAltered (state);
 #else
                         temp = LHS + DPImmRHS;
                         SETR15PSR (temp);
@@ -4674,7 +4674,7 @@ out:
 #ifdef MODE32
         if (state->Bank > 0) {
             state->Cpsr = state->Spsr[state->Bank];
-            //ARMul_CPSRAltered (state);
+            ARMul_CPSRAltered (state);
         }
 #ifdef MODET
         if (TFLAG)
@@ -5365,7 +5365,7 @@ L_ldm_s_makeabort:
             //chy 2006-02-16 , should not consider system mode, don't conside 26bit mode
             if (state->Mode != USER26MODE && state->Mode != USER32MODE ) {
                 state->Cpsr = GETSPSR (state->Bank);
-                //ARMul_CPSRAltered (state);
+                ARMul_CPSRAltered (state);
             }
 
             WriteR15 (state, PC);
@@ -6132,7 +6132,7 @@ L_stm_s_takeabort:
                          u8 val = BITS(16, 19) + 1;
                          s16 a1 = (state->Reg[src]);
                          s16 a2 = (state->Reg[src] >> 0x10);
-                         s16 min = (s16)(0x8000) >> (16 - val);
+                         s16 min = (s16)(0x8000 >> (16 - val));
                          s16 max = 0x7FFF >> (16 - val);
                          if (min > a1) a1 = min;
                          if (max < a1) a1 = max;

@@ -245,7 +245,7 @@ ARMul_Reset (ARMul_State * state)
         state->Mode = SVC26MODE;
     }
     //fprintf(stderr,"armul_reset 1: state->  Cpsr 0x%x, Mode %d\n",state->Cpsr,state->Mode);
-    //ARMul_CPSRAltered (state);
+    ARMul_CPSRAltered (state);
     state->Bank = SVCBANK;
     FLUSHPIPE;
 

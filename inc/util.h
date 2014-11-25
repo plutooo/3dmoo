@@ -135,7 +135,7 @@ static void color_restore(int old)
 #define DEBUG(...)
 #endif
 
-#ifndef DISABLE_DEBUG
+#if 0
 #define GPUDEBUG(...) do {                                 \
     DEBUG(__VA_ARGS__);                   \
 } while (0);
@@ -151,7 +151,7 @@ static void color_restore(int old)
 #define THREADDEBUG(...)
 #endif
 
-#ifndef DISABLE_DEBUG
+#if 0
 #define LOG(...) do {                                 \
     int old = color_teal();                           \
     fprintf(stdout, __VA_ARGS__);                     \
@@ -179,6 +179,15 @@ static void color_restore(int old)
 #ifdef _WIN32
 #define snprintf sprintf_s
 #endif
+
+#ifdef _WIN32
+#define fseek64 _fseeki64
+#define ftell64 _ftelli64
+#else
+#define fseek64 fseeko
+#define ftell64 ftello
+#endif
+
 
 float f24to32(u32 data, void *dataa);
 

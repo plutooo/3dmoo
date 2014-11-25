@@ -116,6 +116,8 @@ u32 getconfigfromNAND(u32 size, u32 id, u32 pointer,u32 filter)
             break;
         }
     }
+
+    return 0;
 }
 
 

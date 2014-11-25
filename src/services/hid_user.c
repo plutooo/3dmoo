@@ -131,7 +131,7 @@ void hid_keyup(const SDL_KeyboardEvent* key)
     *(u32*)&HIDsharedbuff[0x1C] &= ~translate_to_bit(key);
     *(u32*)&HIDsharedbuffSPVR[0x1C] = *(u32*)&HIDsharedbuff[0x1C];
     u32 offset = *(u32*)&HIDsharedbuff[0x10];
-    if (offset = 7)offset = 0;
+    if (offset == 7)offset = 0;
     else offset++;
 
     *(u32*)&HIDsharedbuffSPVR[0x28 + offset * 0x10] = *(u32*)&HIDsharedbuff[0x28 + offset * 0x10] = *(u32*)&HIDsharedbuffSPVR[0x1C]; //	Current PAD state
@@ -148,7 +148,7 @@ void hid_keypress(const SDL_KeyboardEvent* key)
     *(u32*)&HIDsharedbuffSPVR[0x1C] = *(u32*)&HIDsharedbuff[0x1C];
 
     u32 offset = *(u32*)&HIDsharedbuff[0x10];
-    if (offset = 7)offset = 0;
+    if (offset == 7)offset = 0;
     else offset++;
 
     *(u32*)&HIDsharedbuffSPVR[0x28 + offset * 0x10] = *(u32*)&HIDsharedbuff[0x28 + offset * 0x10] = *(u32*)&HIDsharedbuffSPVR[0x1C]; //	Current PAD state

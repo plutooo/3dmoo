@@ -87,15 +87,15 @@ void InitScreenCoordinates(struct OutputVertex *vtx)
     } viewport;
     f24to32(GPU_Regs[VIEWPORT_WIDTH], &viewport.halfsize_x);
     f24to32(GPU_Regs[VIEWPORT_HEIGHT], &viewport.halfsize_y);
-    viewport.offset_x = GPU_Regs[GLViewport]&0xFFFF;
-    viewport.offset_y = (GPU_Regs[GLViewport]>>16) & 0xFFFF;
+    viewport.offset_x = 1.0f * (GPU_Regs[GLViewport]&0xFFFF);
+    viewport.offset_y = 1.0f * ((GPU_Regs[GLViewport] >> 16) & 0xFFFF);
     f24to32(GPU_Regs[Viewport_depth_range], &viewport.zscale);
     f24to32(GPU_Regs[Viewport_depth_far_plane], &viewport.offset_z);
 
 
     // TODO: Not sure why the viewport width needs to be divided by 2 but the viewport height does not
-    vtx->screenpos.v[0] = (vtx->pos.v[0] / vtx->pos.v[3] + 1.0) * viewport.halfsize_x + viewport.offset_x;
-    vtx->screenpos.v[1] = (vtx->pos.v[1] / vtx->pos.v[3] + 1.0) * viewport.halfsize_y + viewport.offset_y;
+    vtx->screenpos.v[0] = (vtx->pos.v[0] / vtx->pos.v[3] + 1.0f) * viewport.halfsize_x + viewport.offset_x;
+    vtx->screenpos.v[1] = (vtx->pos.v[1] / vtx->pos.v[3] + 1.0f) * viewport.halfsize_y + viewport.offset_y;
     vtx->screenpos.v[2] = viewport.offset_z - vtx->pos.v[2] / vtx->pos.v[3] * viewport.zscale;
 }
 
@@ -112,23 +112,23 @@ u32 input_list_num;
 struct OutputVertex input_list[max_vertices];
 
 void Lerp(float factor, const struct OutputVertex *vtx, struct OutputVertex *change) {
-    change->pos.v[0] = change->pos.v[0] * factor + vtx->pos.v[0] * ((1.0) - factor);
-    change->pos.v[1] = change->pos.v[1] * factor + vtx->pos.v[1] * ((1.0) - factor);
-    change->pos.v[2] = change->pos.v[2] * factor + vtx->pos.v[2] * ((1.0) - factor);
-    change->pos.v[3] = change->pos.v[3] * factor + vtx->pos.v[3] * ((1.0) - factor);
+    change->pos.v[0] = change->pos.v[0] * factor + vtx->pos.v[0] * ((1.0f) - factor);
+    change->pos.v[1] = change->pos.v[1] * factor + vtx->pos.v[1] * ((1.0f) - factor);
+    change->pos.v[2] = change->pos.v[2] * factor + vtx->pos.v[2] * ((1.0f) - factor);
+    change->pos.v[3] = change->pos.v[3] * factor + vtx->pos.v[3] * ((1.0f) - factor);
 
     // TODO: Should perform perspective correct interpolation here...
-    change->tc0.v[0] = change->tc0.v[0] * factor + vtx->tc0.v[0] * ((1.0) - factor);
-    change->tc0.v[1] = change->tc0.v[1] * factor + vtx->tc0.v[1] * ((1.0) - factor);
+    change->tc0.v[0] = change->tc0.v[0] * factor + vtx->tc0.v[0] * ((1.0f) - factor);
+    change->tc0.v[1] = change->tc0.v[1] * factor + vtx->tc0.v[1] * ((1.0f) - factor);
 
-    change->screenpos.v[0] = change->screenpos.v[0] * factor + vtx->screenpos.v[0] * ((1.0) - factor);
-    change->screenpos.v[1] = change->screenpos.v[1] * factor + vtx->screenpos.v[1] * ((1.0) - factor);
-    change->screenpos.v[2] = change->screenpos.v[2] * factor + vtx->screenpos.v[2] * ((1.0) - factor);
+    change->screenpos.v[0] = change->screenpos.v[0] * factor + vtx->screenpos.v[0] * ((1.0f) - factor);
+    change->screenpos.v[1] = change->screenpos.v[1] * factor + vtx->screenpos.v[1] * ((1.0f) - factor);
+    change->screenpos.v[2] = change->screenpos.v[2] * factor + vtx->screenpos.v[2] * ((1.0f) - factor);
 
-    change->color.v[0] = change->color.v[0] * factor + vtx->color.v[0] * ((1.0) - factor);
-    change->color.v[1] = change->color.v[1] * factor + vtx->color.v[1] * ((1.0) - factor);
-    change->color.v[2] = change->color.v[2] * factor + vtx->color.v[2] * ((1.0) - factor);
-    change->color.v[3] = change->color.v[3] * factor + vtx->color.v[3] * ((1.0) - factor);
+    change->color.v[0] = change->color.v[0] * factor + vtx->color.v[0] * ((1.0f) - factor);
+    change->color.v[1] = change->color.v[1] * factor + vtx->color.v[1] * ((1.0f) - factor);
+    change->color.v[2] = change->color.v[2] * factor + vtx->color.v[2] * ((1.0f) - factor);
+    change->color.v[3] = change->color.v[3] * factor + vtx->color.v[3] * ((1.0f) - factor);
 }
 
 void Clipper_ProcessTriangle(struct OutputVertex *v0, struct OutputVertex *v1, struct OutputVertex *v2) {

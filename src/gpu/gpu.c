@@ -314,7 +314,7 @@ static bool ShaderCMP(float a, float b, u32 mode)
 	return false;
 }
 
-#define printfunc
+//#define printfunc
 
 void ProcessShaderCode(struct VertexShaderState* state) {
     while (true) {
@@ -416,7 +416,7 @@ void ProcessShaderCode(struct VertexShaderState* state) {
 				if (!swizzle_DestComponentEnabled(i, swizzle))
 					continue;
 
-				dest[i] = pow(2.f, src1[0]);
+				dest[i] = powf(2.f, src1[0]);
 			}
 			break;
 		}
@@ -429,7 +429,7 @@ void ProcessShaderCode(struct VertexShaderState* state) {
 				if (!swizzle_DestComponentEnabled(i, swizzle))
 					continue;
 
-				dest[i] = log2(src1[0]);
+				dest[i] = log2f(src1[0]);
 			}
 			break;
 		}
@@ -488,7 +488,7 @@ void ProcessShaderCode(struct VertexShaderState* state) {
 
                                              // TODO: Be stable against division by zero!
                                              // TODO: I think this might be wrong... we should only use one component here
-                                             dest[i] = (1.0 / src1[i]);
+                                             dest[i] = (1.0f / src1[i]);
                                          }
 
                                          break;
@@ -506,7 +506,7 @@ void ProcessShaderCode(struct VertexShaderState* state) {
 
                                              // TODO: Be stable against division by zero!
                                              // TODO: I think this might be wrong... we should only use one component here
-                                             dest[i] = (1.0 / sqrt(src1[i]));
+                                             dest[i] = (1.0f / sqrtf(src1[i]));
                                          }
 
                                          break;
@@ -957,7 +957,7 @@ void runGPU_Commands(u8* buffer, u32 sizea)
         u32 cmd = *(u32*)(buffer + 4 + i);
         u32 dataone = *(u32*)(buffer + i);
         u16 ID = cmd & 0xFFFF;
-        u16 mask = (cmd >> 16) & 0xF;
+        u8 mask = (cmd >> 16) & 0xF;
         u16 size = (cmd >> 20) & 0x7FF;
         u8 grouping = (cmd >> 31);
         u32 datafild[0x800]; //maximal size
@@ -1049,7 +1049,7 @@ void updateFramebuffer()
             gpu_WriteReg32(frameselectoben, *(u32*)(baseaddrtop + 0x14));
             u32 u90 =*(u32*)(baseaddrtop + 0xC);
             u32 format = *(u32*)(baseaddrtop + 0x10);
-            int i = 0;
+            int j = 0;
             //the rest is todo
         }
         u8 *baseaddrbot = (u8*)(GSPsharedbuff + 0x240 + i * 0x80); //bot

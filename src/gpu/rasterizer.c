@@ -217,7 +217,7 @@ static u8 AlphaCombine(u32 op, struct clov3* input)
     }
 };
 
-static void ColorCombine(u32 op, struct clov3 input[3])
+static void ColorCombine(u32 op, struct clov4 input[3])
 {
     switch (op) {
     case 0://Replace:
@@ -286,9 +286,9 @@ void rasterizer_ProcessTriangle(const struct OutputVertex *v0,
     // NOTE: Assuming that rasterizer coordinates are 12.4 fixed-point values
 
     struct vec3_12P4 vtxpos[3];
-    for (int i = 0; i < 3; i++)vtxpos[0].v[i] = v0->screenpos.v[i] * 16.0f;
-    for (int i = 0; i < 3; i++)vtxpos[1].v[i] = v1->screenpos.v[i] * 16.0f;
-    for (int i = 0; i < 3; i++)vtxpos[2].v[i] = v2->screenpos.v[i] * 16.0f;
+    for (int i = 0; i < 3; i++)vtxpos[0].v[i] = (s16)(v0->screenpos.v[i] * 16.0f);
+    for (int i = 0; i < 3; i++)vtxpos[1].v[i] = (s16)(v1->screenpos.v[i] * 16.0f);
+    for (int i = 0; i < 3; i++)vtxpos[2].v[i] = (s16)(v2->screenpos.v[i] * 16.0f);
     // TODO: Proper scissor rect test!
     u16 min_x = min3(vtxpos[0].v[0], vtxpos[1].v[0], vtxpos[2].v[0]);
     u16 min_y = min3(vtxpos[0].v[1], vtxpos[1].v[1], vtxpos[2].v[1]);
@@ -342,10 +342,10 @@ void rasterizer_ProcessTriangle(const struct OutputVertex *v0,
             // The generalization to three vertices is straightforward in baricentric coordinates.
 
             struct clov4 primary_color;
-            primary_color.v[0] = GetInterpolatedAttribute(v0->color.v[0], v1->color.v[0], v2->color.v[0], v0, v1, v2, w0, w1, w2) * 255;
-            primary_color.v[1] = GetInterpolatedAttribute(v0->color.v[1], v1->color.v[1], v2->color.v[1], v0, v1, v2, w0, w1, w2) * 255;
-            primary_color.v[2] = GetInterpolatedAttribute(v0->color.v[2], v1->color.v[2], v2->color.v[2], v0, v1, v2, w0, w1, w2) * 255;
-            primary_color.v[3] = GetInterpolatedAttribute(v0->color.v[3], v1->color.v[3], v2->color.v[3], v0, v1, v2, w0, w1, w2) * 255;
+            primary_color.v[0] = (u8)(GetInterpolatedAttribute(v0->color.v[0], v1->color.v[0], v2->color.v[0], v0, v1, v2, (float)w0, (float)w1, (float)w2) * 255.f);
+            primary_color.v[1] = (u8)(GetInterpolatedAttribute(v0->color.v[1], v1->color.v[1], v2->color.v[1], v0, v1, v2, (float)w0, (float)w1, (float)w2) * 255.f);
+            primary_color.v[2] = (u8)(GetInterpolatedAttribute(v0->color.v[2], v1->color.v[2], v2->color.v[2], v0, v1, v2, (float)w0, (float)w1, (float)w2) * 255.f);
+            primary_color.v[3] = (u8)(GetInterpolatedAttribute(v0->color.v[3], v1->color.v[3], v2->color.v[3], v0, v1, v2, (float)w0, (float)w1, (float)w2) * 255.f);
             /*Math::Vec4<u8> primary_color{
                 (u8)(GetInterpolatedAttribute(v0.color.r(), v1.color.r(), v2.color.r()).ToFloat32() * 255),
                 (u8)(GetInterpolatedAttribute(v0.color.g(), v1.color.g(), v2.color.g()).ToFloat32() * 255),
@@ -354,8 +354,8 @@ void rasterizer_ProcessTriangle(const struct OutputVertex *v0,
             };*/
             struct clov4 texture_color[4];
             
-            float u = GetInterpolatedAttribute(v0->tc0.v[0], v1->tc0.v[0], v2->tc0.v[0], v0, v1, v2, w0, w1, w2);
-            float v = GetInterpolatedAttribute(v0->tc0.v[1], v1->tc0.v[1], v2->tc0.v[1], v0, v1, v2, w0, w1, w2);
+            float u = GetInterpolatedAttribute(v0->tc0.v[0], v1->tc0.v[0], v2->tc0.v[0], v0, v1, v2, (float)w0, (float)w1, (float)w2);
+            float v = GetInterpolatedAttribute(v0->tc0.v[1], v1->tc0.v[1], v2->tc0.v[1], v0, v1, v2, (float)w0, (float)w1, (float)w2);
             for (int i = 0; i < 3; ++i) {
                 if (GPU_Regs[TEXTURINGSETINGS80] & (0x1<<i)) {
                     // TODO: This is currently hardcoded for RGB8
@@ -509,7 +509,7 @@ void rasterizer_ProcessTriangle(const struct OutputVertex *v0,
                 // stage as input. Hence, we currently don't directly write the result to
                 // combiner_output.rgb(), but instead store it in a temporary variable until
                 // alpha combining has been done.
-                ColorCombine(GPU_Regs[regnumaddr + 2] & 0xF, color_result);
+                ColorCombine(GPU_Regs[regnumaddr + 2] & 0xF, &color_result[0]);
                 struct clov3 alpha_result;
                 for (int j = 0; j < 3; j++)
                 {

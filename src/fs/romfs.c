@@ -41,7 +41,7 @@ static u32 rawromfs_Read(file_type* self, u32 ptr, u32 sz, u64 off, u32* read_ou
         return -1;
     }
 
-    if(fseek(in_fd, romfs_off + off, SEEK_SET) == -1) {
+    if(fseek64(in_fd, romfs_off + off, SEEK_SET) == -1) {
         ERROR("fseek failed.\n");
         return -1;
     }
@@ -63,7 +63,6 @@ static u32 rawromfs_Read(file_type* self, u32 ptr, u32 sz, u64 off, u32* read_ou
 
     if (loader_encrypted)
     {
-        int i;
         u8* temp = calloc(sz + (off & 0xF) + (sz & 0xF), sizeof(u8));
         memcpy(temp + (off & 0xF), b, sz);
         ncch_extract_prepare(&ctx, &loader_h, NCCHTYPE_ROMFS, loader_key);

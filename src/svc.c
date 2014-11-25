@@ -236,7 +236,7 @@ void svc_Execute(ARMul_State * state, u8 num)
         arm11_SetR(0, svcDuplicateHandle());
         return;
     case 0x28: //GetSystemTick
-        arm11_SetR(0, s.NumInstrs);
+        arm11_SetR(0, (u32)s.NumInstrs);
         return;
     case 0x2B:
         DEBUG("svcGetProcessInfo=%08x\n", arm11_R(2));

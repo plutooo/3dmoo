@@ -39,7 +39,7 @@ static u32 sharedextdfile_Write(file_type* self, u32 ptr, u32 sz, u64 off, u32 f
         return -1;
     }
 
-    if (fseek(fd, off, SEEK_SET) == -1) {
+    if (fseek64(fd, off, SEEK_SET) == -1) {
         ERROR("fseek failed.\n");
         return -1;
     }
@@ -79,7 +79,7 @@ static u32 sharedextdfile_Read(file_type* self, u32 ptr, u32 sz, u64 off, u32* r
         return -1;
     }
 
-    if(fseek(fd, off, SEEK_SET) == -1) {
+    if(fseek64(fd, off, SEEK_SET) == -1) {
         ERROR("fseek failed.\n");
         return -1;
     }

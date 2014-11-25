@@ -289,13 +289,11 @@ u32 sdmc_ReadDir(dir_type* self, u32 ptr, u32 entrycount, u32* read_out)
     u32 current = 0;
     struct dirent* ent;
 
-    rewinddir(self->dir);
-
     while (current < entrycount) {
         errno = 0;
         if((ent = readdir(self->dir)) == NULL)
         {
-            if(errno == 0) {
+            if (errno == 0) {
                 // Dir empty. Memset region?
                 return 0;
             }
@@ -303,7 +301,8 @@ u32 sdmc_ReadDir(dir_type* self, u32 ptr, u32 entrycount, u32* read_out)
                 ERROR("readdir() failed.\n");
                 return -1;
             }
-        }        
+        }  
+        current++;
     }
 
     // Convert file-name to UTF16 and copy.
@@ -381,6 +380,7 @@ static u32 sdmc_OpenDir(archive* self, file_path path)
     }
 
     dir->dir = opendir(dir->path);
+    rewinddir(dir->dir);
 
     if(dir->dir == NULL) {
         ERROR("Dir not found: %s.\n", dir->path);

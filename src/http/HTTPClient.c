@@ -18,9 +18,9 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-#include "HTTPClient.h"
-#include "HTTPClientAuth.h"     // Crypto support (Digest, MD5)
-#include "HTTPClientString.h"   // String utilities
+#include "http/HTTPClient.h"
+#include "http/HTTPClientAuth.h"     // Crypto support (Digest, MD5)
+#include "http/HTTPClientString.h"   // String utilities
 
 #ifndef _WIN32
 

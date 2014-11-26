@@ -297,7 +297,7 @@ int main(int argc, char* argv[])
         threads_Execute();
 #endif
 
-        FPS_Lock();
+        //FPS_Lock();
         //mem_Dbugdump();
     }
 

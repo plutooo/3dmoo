@@ -47,7 +47,8 @@ SERVICE_CMD(0x00010044)
 }
 SERVICE_CMD(0x00020082)
 {
-    DEBUG("CreateContext %08x %02x %08x\n", CMD(1), CMD(2), CMD(4));
+    u32 size = CMD(1);
+    DEBUG("CreateContext %08x %02x %08x\n", size, CMD(2), CMD(4));
     u32 handle = handle_New(HANDLE_TYPE_HTTPCont, 0);
 
     handleinfo* h = handle_Get(handle);
@@ -59,21 +60,20 @@ SERVICE_CMD(0x00020082)
     h->misc_ptr[0] = NULL;
     h->misc_ptr[1] = NULL;
 
-    u8* b = malloc(CMD(1) + 1);
+    u8* b = malloc(size + 1);
     if (b == NULL) {
         ERROR("Not enough mem.\n");
         return -1;
     }
-    memset(b, 0, CMD(1) + 1);
-    if (mem_Read(b, CMD(4), CMD(1)) != 0) {
+    memset(b, 0, size + 1);
+    if (mem_Read(b, CMD(4), size) != 0) {
         ERROR("mem_Read failed.\n");
         free(b);
         return -1;
     }
 
-
-    h->misc_ptr[0] = malloc(CMD(1) + 1);
-    strcpy(h->misc_ptr[0], b, CMD(1) + 1);
+    h->misc_ptr[0] = malloc(size + 1);
+    strncpy(h->misc_ptr[0], b, size + 1);
 
     RESP(2, handle);
     RESP(1, 0); // Result

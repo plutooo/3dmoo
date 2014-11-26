@@ -241,6 +241,7 @@ SERVICE_CMD(0x00090106) //sendto_other
 
     RESP(2, (u32)sendto(*(SOCKET*)(h->misc_ptr[0]), b, CMD(2), CMD(3), &serv_addr, sizeof(serv_addr)));
     RESP(1, 0); // Result
+    free(a);
     free(b);
     return 0;
 }
@@ -297,6 +298,7 @@ SERVICE_CMD(0x000a0106) //sendto
     RESP(2, (u32)sendto(*(SOCKET*)(h->misc_ptr[0]), b, CMD(2), CMD(3), &serv_addr, sizeof(serv_addr)));
     RESP(1, 0); // Result
     free(b);
+    free(a);
     return 0;
 }
 SERVICE_CMD(0x00070104) //recvfrom_other
@@ -357,6 +359,7 @@ SERVICE_CMD(0x00070104) //recvfrom_other
     RESP(2, 0); // POSIX return value
     RESP(1, 0); // Result
     free(b);
+    free(a);
     return 0;
 }
 SERVICE_CMD(0x00080102) //recvfrom
@@ -411,6 +414,7 @@ SERVICE_CMD(0x00080102) //recvfrom
     }
     RESP(2, 0); // POSIX return value
     RESP(1, 0); // Result
+    free(a);
     free(b);
     return 0;
 }

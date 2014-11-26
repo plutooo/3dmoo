@@ -50,6 +50,15 @@ SERVICE_CMD(0x00020082)
     DEBUG("CreateContext %08x %02x %08x\n", CMD(1), CMD(2), CMD(4));
     u32 handle = handle_New(HANDLE_TYPE_HTTPCont, 0);
 
+    handleinfo* h = handle_Get(handle);
+    if (h == NULL) {
+        DEBUG("failed to get newly created Handle\n");
+        PAUSE();
+        return -1;
+    }
+    h->misc_ptr[0] = NULL;
+    h->misc_ptr[1] = NULL;
+
     u8* b = malloc(CMD(1) + 1);
     if (b == NULL) {
         ERROR("Not enough mem.\n");
@@ -62,12 +71,7 @@ SERVICE_CMD(0x00020082)
         return -1;
     }
 
-    handleinfo* h = handle_Get(handle);
-    if (h == NULL) {
-        DEBUG("failed to get newly created Handle\n");
-        PAUSE();
-        return -1;
-    }
+
     h->misc_ptr[0] = malloc(CMD(1) + 1);
     strcpy(h->misc_ptr[0], b, CMD(1) + 1);
 
@@ -199,6 +203,18 @@ SERVICE_CMD(0x000B0082)
 SERVICE_CMD(0x00030040)
 {
     DEBUG("CloseContext --stub-- %08x\n", CMD(1));
+
+    handleinfo* h = handle_Get(CMD(1));
+    if (h == NULL) {
+        DEBUG("failed to get newly created Handle\n");
+        PAUSE();
+        return -1;
+    }
+
+    if(h->misc_ptr[0]);
+        free(h->misc_ptr[0]);
+    if (h->misc_ptr[1]);
+        free(h->misc_ptr[1]);
 
     RESP(1, 0); // Result
     return 0;

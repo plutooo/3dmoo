@@ -20,6 +20,7 @@
 #include	<ctype.h>
 #include	<time.h>
 #include	<winsock.h>
+#include    <time.h>
 
 // Sockets (Winsock wrapper)
 #define		HTTP_ECONNRESET     (WSAECONNRESET)

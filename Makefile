@@ -18,8 +18,9 @@ FS_FILES       = $(foreach dir, src/fs,       $(wildcard $(dir)/*.c))
 GPU_FILES      = $(foreach dir, src/gpu,      $(wildcard $(dir)/*.c))
 DSP_FILES      = $(foreach dir, src/dsp,      $(wildcard $(dir)/*.c))
 POLARSSL_FILES = $(foreach dir, src/polarssl, $(wildcard $(dir)/*.c))
+HTTP_FILES     = $(foreach dir, src/http,     $(wildcard $(dir)/*.c))
 
-C_FILES = $(SRC_FILES) $(ARM11_FILES) $(SYSCALLS_FILES) $(SERVICES_FILES) $(FS_FILES) $(GPU_FILES) $(DSP_FILES) $(POLARSSL_FILES)
+C_FILES = $(SRC_FILES) $(ARM11_FILES) $(SYSCALLS_FILES) $(SERVICES_FILES) $(FS_FILES) $(GPU_FILES) $(DSP_FILES) $(POLARSSL_FILES) $(HTTP_FILES)
 OBJECTS=$(C_FILES:.c=.o)
 
 MAIN_FILES=src/main.c

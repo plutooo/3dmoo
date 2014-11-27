@@ -149,6 +149,7 @@ struct VertexShaderState {
     struct vec4  temporary_registers[16];
     bool boolean_registers[16];
     bool status_registers[2];
+    s8  address_registers[4];
     
     u32 call_stack[16]; // TODO: What is the maximal call stack depth?
     u32* call_stack_pointer;
@@ -275,6 +276,10 @@ u32 instr_common_src1(u32 hex)
 {
     return (hex >> 0xC) & 0x7F;
 }
+u32 instr_common_idx(u32 hex)
+{
+    return (hex >> 0x13) & 0x3;
+}
 u32 instr_common_dest(u32 hex)
 {
     return (hex >> 0x15) & 0x1F;
@@ -324,7 +329,8 @@ void ProcessShaderCode(struct VertexShaderState* state) {
         bool exit_loop = false;
         u32 instr = *(u32*)state->program_counter;
 
-        u32 instr_common_src1v = instr_common_src1(instr);
+        s8 idx = state->address_registers[instr_common_idx(instr)];
+        u32 instr_common_src1v = instr_common_src1(instr) + idx;
         const float* src1_ = (instr_common_src1v < 0x10) ? state->input_register_table[instr_common_src1v]
             : (instr_common_src1v < 0x20) ? &state->temporary_registers[instr_common_src1v - 0x10].v[0]
             : (instr_common_src1v < 0x80) ? &vectors[instr_common_src1v - 0x20].v[0]
@@ -342,7 +348,7 @@ void ProcessShaderCode(struct VertexShaderState* state) {
         u32 swizzle = swizzle_data[instr_common_operand_desc_id(instr)];
 
         float src1[4] = {
-            src1_[(int)((swizzle>>11)&0x3)],
+            src1_[(int)((swizzle >> 11)& 0x3)],
             src1_[(int)((swizzle >> 9) & 0x3)],
             src1_[(int)((swizzle >> 7) & 0x3)],
             src1_[(int)((swizzle >> 5) & 0x3)],
@@ -734,6 +740,20 @@ void ProcessShaderCode(struct VertexShaderState* state) {
             break;
         }
 
+        case SHDR_MOVA: //TODO: FIX
+        {
+#ifdef printfunc
+            DEBUG("MOVA %02X %02X %08x\n", instr_common_destv, instr_common_src1v, swizzle);
+#endif   
+            
+            for (int i = 0; i < 2; ++i) {
+                //Is it just high 8bits or low 8bits? can't be more than 8 bits at the value looks wrong otherwise
+                state->address_registers[i+1] = ((u32)src1[i] >> 24);
+            }
+
+            break; 
+        }
+
         default:
             DEBUG("Unhandled instruction: 0x%08x\n",instr);
             break;
@@ -763,12 +783,17 @@ void RunShader(struct vec4 input[17], int num_attributes, struct OutputVertex *r
     // Setup input register table
 
     float dummy_register = (0.f);
-    for (int i = 0; i < 16; i++)state.input_register_table[i] = &dummy_register;
+    for (int i = 0; i < 16; i++)
+        state.input_register_table[i] = &dummy_register;
+
     for (int i = 0; i<num_attributes; i++)
         state.input_register_table[getattribute_register_map(i, GPU_Regs[VSInputRegisterMap], GPU_Regs[VSInputRegisterMap + 1])] = &input[i].v[0];
 
     for (int i = 0; i < 16; i++)
         state.boolean_registers[i] = GPU_Regs[0x2B0]&(1<<i);
+
+    for (int i = 0; i < 4; i++)
+        state.address_registers[i] = 0;
     /*if (num_attributes > 0) state.input_register_table[getattribute_register_map(0, GPU_Regs[VSInputRegisterMap], GPU_Regs[VSInputRegisterMap + 1])] = &input[0].v[0];
     if (num_attributes > 1) state.input_register_table[getattribute_register_map(1, GPU_Regs[VSInputRegisterMap], GPU_Regs[VSInputRegisterMap + 1])] = &input[1].v[0];
     if (num_attributes > 2) state.input_register_table[getattribute_register_map(2, GPU_Regs[VSInputRegisterMap], GPU_Regs[VSInputRegisterMap + 1])] = &input[2].v[0];

@@ -1,4 +1,4 @@
-
+#ifdef _WIN32
 ///////////////////////////////////////////////////////////////////////////////
 // Module Name:                                                               
 // HTTPClientAuth.c                                                          
@@ -669,3 +669,4 @@ void HTTPMD5Transform(uint32 buf[4], uint32 const in[16])
 
 #endif
 
+#endif

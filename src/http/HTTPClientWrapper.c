@@ -1,4 +1,4 @@
- 
+#ifdef _WIN32
 #include "http/HTTPClientWrapper.h"
 
 
@@ -345,3 +345,4 @@ int HTTPWrapperSSLClose(int s)
     return -1;
 
 }
+#endif

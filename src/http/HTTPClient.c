@@ -1,4 +1,4 @@
-
+#ifdef _WIN32
 ///////////////////////////////////////////////////////////////////////////////
 //
 // Module Name:                                                                
@@ -3700,3 +3700,4 @@ BOOL HTTPIntrnSessionEvalTimeout(P_HTTP_SESSION pHTTPSession)
     return FALSE;
 #endif
 }
+#endif

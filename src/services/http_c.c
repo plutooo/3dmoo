@@ -28,6 +28,7 @@
 
 SERVICE_START(http_c);
 
+#ifdef _WIN32
 SERVICE_CMD(0x00010044)
 {
 
@@ -220,5 +221,5 @@ SERVICE_CMD(0x00030040)
     return 0;
 }
 
-
+#endif
 SERVICE_END();

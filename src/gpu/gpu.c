@@ -268,6 +268,7 @@ void PrimitiveAssembly_SubmitVertex(struct OutputVertex* vtx)
 #define SHDR_JPC 0x2C
 #define SHDR_JPB 0x2D
 #define SHDR_CMP 0x2E
+#define SHDR_CMP2 0x2F
 #define SHDR_MAD 0x38
 
 u32 instr_common_src1(u32 hex)
@@ -563,6 +564,7 @@ void ProcessShaderCode(struct VertexShaderState* state) {
             // TODO: Do whatever needs to be done here?
             break;
 		case SHDR_CMP:
+        case SHDR_CMP2:
 		{
 #ifdef printfunc
 			DEBUG("CMP\n");
@@ -618,9 +620,6 @@ void ProcessShaderCode(struct VertexShaderState* state) {
             bool status0 = flagsv & 0x4;
             bool status1 = flagsv & 0x8;
 
-#ifdef printfunc
-			DEBUG("IFC\n");
-#endif 
             bool condition = false;
             switch (mode)
             {
@@ -641,6 +640,10 @@ void ProcessShaderCode(struct VertexShaderState* state) {
                         condition = true;
                         break;
             }
+
+#ifdef printfunc
+            DEBUG("IFC %s\n", condition ? "true" : "false");
+#endif 
 
             //If condition is false skip to else case
             if (!condition)
@@ -663,6 +666,73 @@ void ProcessShaderCode(struct VertexShaderState* state) {
             //state->program_counter = next_pc;
 			break;
 		}
+
+        case SHDR_JPB:
+        {
+            u32 addrv = (instr >> 8) & 0x3FFC;
+            u32 boolv = (instr >> 22) & 0xF;
+            u32 retv = instr & 0x3FF;
+
+            bool invert = retv == 1;
+            bool condition = state->boolean_registers[boolv];
+
+            if (invert)
+                condition = !condition;
+
+#ifdef printfunc
+            DEBUG("JPB %08X, %s\n", addrv, condition?"true":"false");
+#endif
+            if (condition)
+            {
+                state->program_counter = &GPUshadercodebuffer[addrv / 4];
+                increment_pc = false;
+            }
+
+            break;
+        }
+
+        case SHDR_JPC:
+        {
+            u32 addrv = (instr >> 8) & 0x3FFC;
+            u32 flagsv = (instr >> 22) & 0xF;
+            u32 retv = instr & 0x3FF;
+
+            u32 mode = flagsv & 0x3;
+            bool status0 = flagsv & 0x4;
+            bool status1 = flagsv & 0x8;
+ 
+            bool condition = false;
+            switch (mode)
+            {
+                case 0: //OR
+                    if ((status0 == state->status_registers[0]) || (status1 == state->status_registers[1]))
+                        condition = true;
+                    break;
+                case 1: //AND
+                    if ((status0 == state->status_registers[0]) && (status1 == state->status_registers[1]))
+                        condition = true;
+                    break;
+                case 2: //Y
+                    if (status0 == state->status_registers[0])
+                        condition = true;
+                    break;
+                case 3: //X
+                    if (status1 == state->status_registers[1])
+                        condition = true;
+                    break;
+            }
+
+#ifdef printfunc
+            DEBUG("JPC %08X, %s\n", addrv, condition ? "true" : "false");
+#endif
+            if (condition)
+            {
+                state->program_counter = &GPUshadercodebuffer[addrv / 4];
+                increment_pc = false;
+            }
+
+            break;
+        }
 
         default:
             DEBUG("Unhandled instruction: 0x%08x\n",instr);

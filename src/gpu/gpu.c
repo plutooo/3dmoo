@@ -128,6 +128,7 @@ u32 VSFloatUniformSetuptembuffer[4];
 
 struct VertexShaderState {
     u32* program_counter;
+    u32* program_counter_end;
 
 	//Registers are like this:
 	//name			nr component	count	R/W		Nr Bits
@@ -314,7 +315,7 @@ static bool ShaderCMP(float a, float b, u32 mode)
 	return false;
 }
 
-//#define printfunc
+#define printfunc
 
 void ProcessShaderCode(struct VertexShaderState* state) {
     while (true) {
@@ -578,7 +579,7 @@ void ProcessShaderCode(struct VertexShaderState* state) {
         {
             u32 addrv = (instr >> 8) & 0x3FFC;
             u32 boolv = (instr >> 22) & 0xF;
-            //u32 retv = instr & 0x3FF;
+            u32 retv = instr & 0x3FF;
 
             bool condition = state->boolean_registers[boolv];
 
@@ -591,27 +592,75 @@ void ProcessShaderCode(struct VertexShaderState* state) {
             {
                 increment_pc = false;
                 state->program_counter = &GPUshadercodebuffer[addrv/4];
+                break;
             }
 
+            //Store return address on stack... This is generally used
+            *state->call_stack_pointer = (addrv / 4) + retv;
+            state->call_stack_pointer++;
+
+            //u32 *next_pc = &GPUshadercodebuffer[(addrv / 4) + retv];
+            state->program_counter_end = &GPUshadercodebuffer[addrv / 4];
+            state->program_counter++;
+            ProcessShaderCode(state);
+
+            increment_pc = false;
+            //state->program_counter = next_pc;
             break;
         }
 		case SHDR_IFC:
 		{
             u32 addrv = (instr >> 8) & 0x3FFC;
-            u32 boolv = (instr >> 22) & 0xF;
+            u32 flagsv = (instr >> 22) & 0xF;
             u32 retv = instr & 0x3FF;
+
+            u32 mode = flagsv & 0x3;
+            bool status0 = flagsv & 0x4;
+            bool status1 = flagsv & 0x8;
 
 #ifdef printfunc
 			DEBUG("IFC\n");
 #endif 
             bool condition = false;
+            switch (mode)
+            {
+                case 0: //OR
+                    if ((status0 == state->status_registers[0]) || (status1 == state->status_registers[1]))
+                        condition = true;
+                        break;
+                case 1: //AND
+                    if ((status0 == state->status_registers[0]) && (status1 == state->status_registers[1]))
+                        condition = true;
+                        break;
+                case 2: //Y
+                    if (status0 == state->status_registers[0])
+                        condition = true;
+                        break;
+                case 3: //X
+                    if (status1 == state->status_registers[1])
+                        condition = true;
+                        break;
+            }
 
             //If condition is false skip to else case
             if (!condition)
             {
                 increment_pc = false;
                 state->program_counter = &GPUshadercodebuffer[addrv / 4];
+                break;
             }
+
+            //Store return address on stack... This is generally used
+            *state->call_stack_pointer = (addrv / 4) + retv;
+            state->call_stack_pointer++;
+
+            //u32 *next_pc = &GPUshadercodebuffer[(addrv / 4) + retv];
+            state->program_counter_end = &GPUshadercodebuffer[addrv / 4];
+            state->program_counter++;
+            ProcessShaderCode(state);
+
+            increment_pc = false;
+            //state->program_counter = next_pc;
 			break;
 		}
 
@@ -622,6 +671,12 @@ void ProcessShaderCode(struct VertexShaderState* state) {
 
         if (increment_pc)
             state->program_counter++;
+
+        if (state->program_counter == state->program_counter_end)
+        {
+            state->program_counter_end = 0;
+            break;
+        }
 
         if (exit_loop)
             break;

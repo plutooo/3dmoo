@@ -281,6 +281,18 @@ int main(int argc, char* argv[])
         }
         activateStub_gdb(gdb_stub, &gdb_ctrl_iface);
     }
+    else
+    {
+        gdb_memio = malloc(sizeof(struct armcpu_memory_iface));
+        gdb_memio->prefetch16 = gdb_prefetch16;
+        gdb_memio->prefetch32 = gdb_prefetch32;
+        gdb_memio->read32 = gdb_read32;
+        gdb_memio->write32 = gdb_write32;
+        gdb_memio->read16 = gdb_read16;
+        gdb_memio->write16 = gdb_write16;
+        gdb_memio->read8 = gdb_read8;
+        gdb_memio->write8 = gdb_write8;
+    }
 #endif
     // Execute.
     while (running) {

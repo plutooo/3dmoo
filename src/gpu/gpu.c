@@ -836,6 +836,9 @@ void RunShader(struct vec4 input[17], int num_attributes, struct OutputVertex *r
     {
         for (int j = 0; j < 4; j++)state.temporary_registers[i].v[j] = (0.f);
     }
+    ret->tc0.v[0] = 0.f;
+    ret->tc0.v[1] = 0.f;
+
 
     ProcessShaderCode(&state);
 

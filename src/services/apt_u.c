@@ -86,6 +86,15 @@ SERVICE_CMD(0x30040)
     RESP(1, 0); // Result
     return 0;
 }
+SERVICE_CMD(0x00090040)
+{
+    u32 unk = CMD(1);
+    DEBUG("IsRegistered, APPID=%08x\n", unk);
+
+    RESP(2, 1); // registered
+    RESP(1, 0); // Result
+    return 0;
+}
 
 SERVICE_CMD(0x3E0080)
 {

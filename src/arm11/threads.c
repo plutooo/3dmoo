@@ -462,13 +462,15 @@ u32 svcSetThreadPriority()
 
     return 0;
 }
-
 u32 svcGetThreadId()
 {
     u32 handle = arm11_R(1);
 
     if (handle == 0xffff8000)
-        return THREAD_ID_OFFSET + current_thread;
+    {
+        arm11_SetR(1, THREAD_ID_OFFSET + current_thread);
+        return 0;
+    }
     else {
         THREADDEBUG("svcGetThreadId not supported\n");
         return 0;

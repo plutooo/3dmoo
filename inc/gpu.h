@@ -123,10 +123,13 @@ struct OutputVertex {
     struct vec4 dummy; // quaternions (not implemented, yet)
     struct vec4 color;
     struct vec2 tc0;
-    float tc0_v;
+    struct vec2 tc1;
+    float tc0_w;
+    struct vec3 View;
+    struct vec2 tc2;
 
     // Padding for optimal alignment
-    float pad[14];
+    float pad[10];
 
     // Attributes used to store intermediate results
 

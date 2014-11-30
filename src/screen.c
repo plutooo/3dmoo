@@ -51,6 +51,34 @@ void screen_Free()
     SDL_Quit();
 }
 
+void screen_RenderGPUaddr(u32 addr)
+{
+    int updateSurface = 0;
+
+    //Top Screen
+    u8* buffer = get_pymembuffer(addr);
+
+    if (buffer != NULL) {
+        SDL_LockSurface(bitmapSurface);
+
+        u8 *bitmapPixels = (u8 *)bitmapSurface->pixels;
+
+        for (int y = 0; y < 240; y++) {
+            for (int x = 0; x < 400; x++) {
+                u8* row = (u8*)(bitmapPixels + ((239 - y) * 400 * 4) + (x * 4));
+                *(row + 0) = buffer[((x * 240 + y) * 4) + 0];
+                *(row + 1) = buffer[((x * 240 + y) * 4) + 1];
+                *(row + 2) = buffer[((x * 240 + y) * 4) + 2];
+                *(row + 3) = 0xFF;
+            }
+        }
+
+        updateSurface = 1;
+    }
+    SDL_UnlockSurface(bitmapSurface);
+    SDL_UpdateWindowSurface(win);
+}
+
 void screen_RenderGPU()
 {
     u32 addr = 0;

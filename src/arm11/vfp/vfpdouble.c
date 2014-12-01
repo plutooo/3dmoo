@@ -147,11 +147,9 @@ u32 vfp_double_normaliseroundintern(ARMul_State* state, struct vfp_double *vd, u
         incr = 1ULL << VFP_DOUBLE_LOW_BITS;
         if ((significand & (1ULL << (VFP_DOUBLE_LOW_BITS + 1))) == 0)
             incr -= 1;
-    }
-    else if (rmode == FPSCR_ROUND_TOZERO) {
+    } else if (rmode == FPSCR_ROUND_TOZERO) {
         incr = 0;
-    }
-    else if ((rmode == FPSCR_ROUND_PLUSINF) ^ (vd->sign != 0))
+    } else if ((rmode == FPSCR_ROUND_PLUSINF) ^ (vd->sign != 0))
         incr = (1ULL << (VFP_DOUBLE_LOW_BITS + 1)) - 1;
 
     pr_debug("VFP: rounding increment = 0x%08llx\n", incr);
@@ -190,13 +188,11 @@ u32 vfp_double_normaliseroundintern(ARMul_State* state, struct vfp_double *vd, u
         if (incr == 0) {
             vd->exponent = 2045;
             vd->significand = 0x7fffffffffffffffULL;
-        }
-        else {
+        } else {
             vd->exponent = 2047;		/* infinity */
             vd->significand = 0;
         }
-    }
-    else {
+    } else {
         if (significand >> (VFP_DOUBLE_LOW_BITS + 1) == 0)
             exponent = 0;
         if (exponent || significand > 0x8000000000000000ULL)
@@ -206,7 +202,7 @@ u32 vfp_double_normaliseroundintern(ARMul_State* state, struct vfp_double *vd, u
         vd->exponent = exponent;
         vd->significand = significand >> 1;
     }
- pack:
+pack:
     return 0;
 }
 
@@ -621,8 +617,7 @@ u32 vfp_double_fcvtsinterncutting(ARMul_State* state, int sd, struct vfp_double*
         if (tm == VFP_QNAN)
             vsd.significand |= VFP_SINGLE_SIGNIFICAND_QNAN;
         goto pack_nan;
-    }
-    else if (tm & VFP_ZERO)
+    } else if (tm & VFP_ZERO)
         vsd.exponent = 0;
     else
         vsd.exponent = dm->exponent - (1023 - 127);

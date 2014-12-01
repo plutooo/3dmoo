@@ -37,8 +37,7 @@ u32 mutex_WaitSynchronization(handleinfo* h, bool *locked)
 
     if(h->locked) { // If it's locked, then we say it's locked
         *locked = 1;
-    }
-    else { // Otherwise we lock it
+    } else { // Otherwise we lock it
         h->locked = 1;
         *locked = 0;
     }
@@ -69,8 +68,7 @@ u32 svcReleaseMutex()
     u32 handle = arm11_R(0);
     handleinfo* h = handle_Get(handle);
 
-    if (0x1234 == handle)
-    {
+    if (0x1234 == handle) {
         ERROR("stub handle\n");
         return 0;
     }
@@ -162,8 +160,7 @@ u32 svcReleaseSemaphore()
     if(releaseCount > h->misc[0]) {
         ERROR("Releasing too much on a semaphore!\n!");
         h->misc[0] = 0;
-    }
-    else
+    } else
         h->misc[0] -= releaseCount;
 
     arm11_SetR(1, h->misc[0]); // count_out
@@ -181,8 +178,7 @@ u32 semaphore_WaitSynchronization(handleinfo* h, bool *locked)
     if(h->misc[0] < h->misc[1]) {
         h->misc[0]++;
         *locked = 0;
-    }
-    else {
+    } else {
         *locked = 1;
     }
 

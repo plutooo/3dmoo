@@ -156,12 +156,9 @@ static int AddMapping(uint32_t base, uint32_t size)
         || base == 0x10000000
         || base == 0x14000000
         //|| base == 0x10002000
-        )
-    {
+    ) {
         mappings[i].enable_log = true;
-    }
-    else
-    {
+    } else {
         mappings[i].enable_log = false;
     }
 #endif
@@ -200,12 +197,9 @@ int mem_AddMappingShared(uint32_t base, uint32_t size, u8* data)
         || base == 0x10000000
         || base == 0x14000000
         //|| base == 0x10002000
-        )
-    {
+    ) {
         mappings[i].enable_log = true;
-    }
-    else
-    {
+    } else {
         mappings[i].enable_log = false;
     }
 #endif
@@ -230,8 +224,7 @@ int mem_AddSegment(uint32_t base, uint32_t size, uint8_t* data)
 
 int mem_Write8(uint32_t addr, uint8_t w)
 {
-    if (addr == 0x14189F28)
-    {
+    if (addr == 0x14189F28) {
         //break_execution(gdb_memio->data, addr, 0);
     }
 #ifdef MEM_TRACE
@@ -288,8 +281,7 @@ uint8_t mem_Read8(uint32_t addr)
 
 int mem_Write16(uint32_t addr, uint16_t w)
 {
-    if (addr == 0x14189F28)
-    {
+    if (addr == 0x14189F28) {
         //break_execution(gdb_memio->data, addr, 0);
     }
 #ifdef MEM_TRACE
@@ -359,8 +351,7 @@ uint16_t mem_Read16(uint32_t addr)
 
 int mem_Write32(uint32_t addr, uint32_t w)
 {
-    if (addr > 0xFFFFFFF0) //wrong
-    {
+    if (addr > 0xFFFFFFF0) { //wrong
         ERROR("trying to write32 unmapped addr %08x, w=%08x\n", addr, w);
         arm11_Dump();
         return 0;
@@ -413,8 +404,7 @@ bool mem_test(uint32_t addr)
 
 u32 mem_Read32(uint32_t addr)
 {
-    if (addr > 0xFFFFFFF0) //wrong
-    {
+    if (addr > 0xFFFFFFF0) { //wrong
         ERROR("trying to read32 form unmapped addr %08x\n", addr);
         arm11_Dump();
         return 0;
@@ -435,7 +425,7 @@ u32 mem_Read32(uint32_t addr)
             u32 temp = *(uint32_t*)(&mappings[i].phys[addr - mappings[i].base]);
 #ifdef MEM_TRACE
             fprintf(stderr, "r32 %08x --> %08x (%08X)\n", addr, temp, s.Reg[15]);
-#endif 
+#endif
             switch (addr & 3) {
             case 0:
                 return temp;
@@ -473,16 +463,13 @@ int mem_Write(uint8_t* in_buff, uint32_t addr, uint32_t size)
         if (Contains(&mappings[i], addr, size)) {
             memcpy(&mappings[i].phys[addr - mappings[i].base],in_buff, size);
             return 0;
-        }
-        else if (Contains(&mappings[i], addr, 1))
-        {
+        } else if (Contains(&mappings[i], addr, 1)) {
             map = i;
         }
     }
 
     //If spread across multiple mappings
-    if (map != 0xdeadc0de)
-    {
+    if (map != 0xdeadc0de) {
         uint32_t base = mappings[map].base;
         uint32_t base_size = mappings[map].size;
         uint32_t part2_size = (addr + size) - (base + base_size);
@@ -514,16 +501,13 @@ int mem_Read(uint8_t* buf_out, uint32_t addr, uint32_t size)
         if(Contains(&mappings[i], addr, size)) {
             memcpy(buf_out, &mappings[i].phys[addr - mappings[i].base], size);
             return 0;
-        }
-        else if (Contains(&mappings[i], addr, 1))
-        {
+        } else if (Contains(&mappings[i], addr, 1)) {
             map = i;
         }
     }
 
     //If spread across multiple mappings
-    if (map != 0xdeadc0de)
-    {
+    if (map != 0xdeadc0de) {
         uint32_t base = mappings[map].base;
         uint32_t base_size = mappings[map].size;
         uint32_t part2_size = (addr + size) - (base + base_size);

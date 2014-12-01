@@ -581,7 +581,7 @@ u32 srv_SyncRequest()
         names[8] = '\0';
 
         DEBUG("name=%s, namelen=%u, unk=0x%x\n", names, req.name_len,
-            req.unk2);
+              req.unk2);
 
 
         ownservice[ownservice_num].name = calloc(9,sizeof(u8));
@@ -666,7 +666,7 @@ u32 srv_SyncRequest()
         names[8] = '\0';
 
         DEBUG("name=%s, namelen=%u, unk=0x%x\n", names, req.name_len,
-            req.unk2);
+              req.unk2);
         PAUSE();
 
         // Write result.

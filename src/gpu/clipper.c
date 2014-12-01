@@ -111,7 +111,8 @@ struct OutputVertex output_list[max_vertices];
 u32 input_list_num;
 struct OutputVertex input_list[max_vertices];
 
-void Lerp(float factor, const struct OutputVertex *vtx, struct OutputVertex *change) {
+void Lerp(float factor, const struct OutputVertex *vtx, struct OutputVertex *change)
+{
     change->pos.v[0] = change->pos.v[0] * factor + vtx->pos.v[0] * ((1.0f) - factor);
     change->pos.v[1] = change->pos.v[1] * factor + vtx->pos.v[1] * ((1.0f) - factor);
     change->pos.v[2] = change->pos.v[2] * factor + vtx->pos.v[2] * ((1.0f) - factor);
@@ -131,7 +132,8 @@ void Lerp(float factor, const struct OutputVertex *vtx, struct OutputVertex *cha
     change->color.v[3] = change->color.v[3] * factor + vtx->color.v[3] * ((1.0f) - factor);
 }
 
-void Clipper_ProcessTriangle(struct OutputVertex *v0, struct OutputVertex *v1, struct OutputVertex *v2) {
+void Clipper_ProcessTriangle(struct OutputVertex *v0, struct OutputVertex *v1, struct OutputVertex *v2)
+{
     // todo make this save and remove buffer_vertices
     memcpy(&output_list[0], v0, sizeof(struct OutputVertex));
     memcpy(&output_list[1], v1, sizeof(struct OutputVertex));
@@ -141,8 +143,7 @@ void Clipper_ProcessTriangle(struct OutputVertex *v0, struct OutputVertex *v1, s
 
     output_list_num = 3;
 
-    for (int i = 0; i < 3; i++)
-    {
+    for (int i = 0; i < 3; i++) {
 
         memcpy(input_list, output_list, sizeof(struct OutputVertex)*output_list_num);
         input_list_num = output_list_num;
@@ -151,14 +152,11 @@ void Clipper_ProcessTriangle(struct OutputVertex *v0, struct OutputVertex *v1, s
 
         struct OutputVertex* reference_vertex = &input_list[input_list_num - 1];
 
-        for (u32 j = 0; j < input_list_num; j++)
-        {
-            if (input_list[j].pos.v[i] <= +1.0 * input_list[j].pos.v[3]) //is inside
-            {
-                if (!(reference_vertex->pos.v[i] <= +1.0 * reference_vertex->pos.v[3]))
-                {
+        for (u32 j = 0; j < input_list_num; j++) {
+            if (input_list[j].pos.v[i] <= +1.0 * input_list[j].pos.v[3]) { //is inside
+                if (!(reference_vertex->pos.v[i] <= +1.0 * reference_vertex->pos.v[3])) {
                     memcpy(&buffer_vertices[buffer_vertices_num], &input_list[j], sizeof(struct OutputVertex));
-                    
+
                     //GetIntersection
 
                     float dp = input_list[j].pos.v[i] - input_list[j].pos.v[3];
@@ -173,9 +171,7 @@ void Clipper_ProcessTriangle(struct OutputVertex *v0, struct OutputVertex *v1, s
                 memcpy(&output_list[output_list_num++], &input_list[j], sizeof(struct OutputVertex));
 
 
-            }
-            else if (reference_vertex->pos.v[i] <= +1.0 * reference_vertex->pos.v[3]) //is inside
-            {
+            } else if (reference_vertex->pos.v[i] <= +1.0 * reference_vertex->pos.v[3]) { //is inside
                 memcpy(&buffer_vertices[buffer_vertices_num], &input_list[j], sizeof(struct OutputVertex));
 
                 //GetIntersection
@@ -203,12 +199,9 @@ void Clipper_ProcessTriangle(struct OutputVertex *v0, struct OutputVertex *v1, s
 
         reference_vertex = &input_list[input_list_num - 1];
 
-        for (u32 j = 0; j < input_list_num; j++)
-        {
-            if (input_list[j].pos.v[i] >= -1.0 * input_list[j].pos.v[3]) //is inside
-            {
-                if (!(reference_vertex->pos.v[i] >= -1.0 * reference_vertex->pos.v[3]))
-                {
+        for (u32 j = 0; j < input_list_num; j++) {
+            if (input_list[j].pos.v[i] >= -1.0 * input_list[j].pos.v[3]) { //is inside
+                if (!(reference_vertex->pos.v[i] >= -1.0 * reference_vertex->pos.v[3])) {
                     memcpy(&buffer_vertices[buffer_vertices_num], &input_list[j], sizeof(struct OutputVertex));
 
                     //GetIntersection
@@ -225,9 +218,7 @@ void Clipper_ProcessTriangle(struct OutputVertex *v0, struct OutputVertex *v1, s
                 memcpy(&output_list[output_list_num++], &input_list[j], sizeof(struct OutputVertex));
 
 
-            }
-            else if (reference_vertex->pos.v[i] >= -1.0 * reference_vertex->pos.v[3]) //is inside
-            {
+            } else if (reference_vertex->pos.v[i] >= -1.0 * reference_vertex->pos.v[3]) { //is inside
                 memcpy(&buffer_vertices[buffer_vertices_num], &input_list[j], sizeof(struct OutputVertex));
 
                 //GetIntersection
@@ -249,8 +240,7 @@ void Clipper_ProcessTriangle(struct OutputVertex *v0, struct OutputVertex *v1, s
     InitScreenCoordinates(&output_list[0]);
     InitScreenCoordinates(&output_list[1]);
 
-    if (output_list_num > 2)
-    {
+    if (output_list_num > 2) {
         for (u32 i = 0; i < output_list_num - 2; i++) {
             struct OutputVertex* vtx0 = &output_list[0];
             struct OutputVertex* vtx1 = &output_list[i + 1];

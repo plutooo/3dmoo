@@ -28,8 +28,7 @@ SERVICE_START(cecd_u);
 
 SERVICE_CMD(0x000F0000) //unknown
 {
-    if (!lock_handle)
-    {
+    if (!lock_handle) {
         lock_handle = handle_New(HANDLE_TYPE_EVENT, HANDLE_SUBEVENT_CECDEVENT);
         h = handle_Get(lock_handle);
         h->locked = true;

@@ -165,15 +165,13 @@ typedef struct {
 
 #define CIA_MAGIC sizeof(cia_header)
 
-typedef enum
-{
+typedef enum {
     NCCHTYPE_EXHEADER = 1,
     NCCHTYPE_EXEFS = 2,
     NCCHTYPE_ROMFS = 3,
 } ctr_ncchtypes;
 
-typedef struct
-{
+typedef struct {
     u8 ctr[16];
     u8 iv[16];
     aes_context aes;

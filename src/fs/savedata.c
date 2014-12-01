@@ -120,15 +120,12 @@ static u32 savedatafile_SetSize(file_type* self, u64 sz)
     FILE* fd = self->type_specific.sysdata.fd;
     u64 current_size = self->type_specific.sysdata.sz;
 
-    if (sz >= current_size)
-    {
+    if (sz >= current_size) {
         if (fseek64(fd, sz, SEEK_SET) == -1) {
             ERROR("fseek failed.\n");
             return -1;
         }
-    }
-    else
-    {
+    } else {
         DEBUG("Truncating a file is unsupported.\n");
     }
 
@@ -153,13 +150,11 @@ u32 savedata_ReadDir(dir_type* self, u32 ptr, u32 entrycount, u32* read_out)
 
     while (current < entrycount) {
         errno = 0;
-        if ((ent = readdir(self->dir)) == NULL)
-        {
+        if ((ent = readdir(self->dir)) == NULL) {
             if (errno == 0) {
                 // Dir empty. Memset region?
                 return 0;
-            }
-            else {
+            } else {
                 ERROR("readdir() failed.\n");
                 return -1;
             }
@@ -187,8 +182,7 @@ u32 savedata_ReadDir(dir_type* self, u32 ptr, u32 entrycount, u32* read_out)
         mem_Write8(ptr + 0x216, ' '); // 8.3 file extension
         mem_Write8(ptr + 0x217, ' ');
         mem_Write8(ptr + 0x218, ' ');
-    }
-    else { // Is directory flag
+    } else { // Is directory flag
         mem_Write8(ptr + 0x21C, 0x0);
     }
 
@@ -196,8 +190,7 @@ u32 savedata_ReadDir(dir_type* self, u32 ptr, u32 entrycount, u32* read_out)
     // XXX: archive flag @ 0x21E
     // XXX: readonly flag @ 0x21F
 
-    if (ent->d_type != DT_DIR)
-    {
+    if (ent->d_type != DT_DIR) {
         struct stat st;
 
         char path[256];
@@ -206,8 +199,7 @@ u32 savedata_ReadDir(dir_type* self, u32 ptr, u32 entrycount, u32* read_out)
         if (stat(path, &st) == 0) {
             mem_Write32(ptr + 0x220, st.st_size);
             mem_Write32(ptr + 0x224, (st.st_size >> 32));
-        }
-        else {
+        } else {
             ERROR("Failed to stat: %s\n", path);
             return -1;
         }
@@ -229,7 +221,7 @@ static u32 savedata_OpenDir(archive* self, file_path path)
 
     char tmp[256];
     snprintf(dir->path, 256, "savedata/%s",
-        fs_PathToString(path.type, path.ptr, path.size, tmp, 256));
+             fs_PathToString(path.type, path.ptr, path.size, tmp, 256));
 
     dir->dir = opendir(dir->path);
 
@@ -278,19 +270,18 @@ static u32 savedata_OpenFile(archive* self, file_path path, u32 flags, u32 attr)
     char mode[10];
     memset(mode, 0, 10);
 
-    switch (flags)
-    {
-        case 1: //R
-            strcpy(mode, "rb");
-            break;
-        case 2: //W
-        case 3: //RW
-            strcpy(mode, "rb+");
-            break;
-        case 4: //C
-        case 6: //W+C
-            strcpy(mode, "wb");
-            break;
+    switch (flags) {
+    case 1: //R
+        strcpy(mode, "rb");
+        break;
+    case 2: //W
+    case 3: //RW
+        strcpy(mode, "rb+");
+        break;
+    case 4: //C
+    case 6: //W+C
+        strcpy(mode, "wb");
+        break;
     }
 
     FILE* fd = fopen(p, mode);
@@ -339,7 +330,7 @@ int savedata_CreateDir(archive* self, file_path path)
 
     // Generate path on host file system
     snprintf(p, 256, "savedata/%s",
-        fs_PathToString(path.type, path.ptr, path.size, tmp, 256));
+             fs_PathToString(path.type, path.ptr, path.size, tmp, 256));
 
     if (!fs_IsSafePath(p)) {
         ERROR("Got unsafe path.\n");
@@ -372,7 +363,7 @@ archive* savedata_OpenArchive(file_path path)
     arch->fnDeinitialize = &savedata_Deinitialize;
 
     snprintf(arch->type_specific.sysdata.path,
-        sizeof(arch->type_specific.sysdata.path),
-        "");
+             sizeof(arch->type_specific.sysdata.path),
+             "");
     return arch;
 }

@@ -46,22 +46,23 @@ extern struct armcpu_ctrl_iface gdb_ctrl_iface;
 
 void *
 createThread_gdb(void(*thread_function)(void *data),
-void *thread_data)
+                 void *thread_data)
 {
     u32 ThreadId;
     HANDLE *new_thread = CreateThread(
-        NULL,                   // default security attributes
-        0,                      // use default stack size  
-        (LPTHREAD_START_ROUTINE)thread_function,       // thread function name
-        thread_data,          // argument to thread function 
-        0,                      // use default creation flags 
-        &ThreadId);   // returns the thread identifier 
+                             NULL,                   // default security attributes
+                             0,                      // use default stack size
+                             (LPTHREAD_START_ROUTINE)thread_function,       // thread function name
+                             thread_data,          // argument to thread function
+                             0,                      // use default creation flags
+                             &ThreadId);   // returns the thread identifier
 
     return new_thread;
 }
 
 void
-joinThread_gdb(void *thread_handle) {
+joinThread_gdb(void *thread_handle)
+{
     return;//todo
 }
 void stall_cpu(void *instance)
@@ -77,14 +78,12 @@ u32 read_cpu_reg(void *instance, u32 reg_num)
 {
     if (reg_num == 0x10)return s.Cpsr;
 #ifdef impropergdb
-    if (reg_num == 0xF)
-    {
+    if (reg_num == 0xF) {
         if (s.NextInstr == PRIMEPIPE)return arm11_R(reg_num);
         else return arm11_R(reg_num) - 4;
     }
 #else
-    if (reg_num == 0xF)
-    {
+    if (reg_num == 0xF) {
         if (s.NextInstr >= PRIMEPIPE)
             return arm11_R(reg_num);
         return arm11_R(reg_num) - 4;
@@ -107,35 +106,43 @@ void remove_post_exec_fn(void *instance)
 {
     s.post_ex_fn = NULL;
 }
-u16 gdb_prefetch16(void *data, u32 adr) {
+u16 gdb_prefetch16(void *data, u32 adr)
+{
     return mem_Read16(adr);
 }
 
-u32 gdb_prefetch32(void *data, u32 adr) {
+u32 gdb_prefetch32(void *data, u32 adr)
+{
     return mem_Read32(adr);
 }
 
-u8 gdb_read8(void *data, u32 adr) {
+u8 gdb_read8(void *data, u32 adr)
+{
     return mem_Read8(adr);
 }
 
-u16 gdb_read16(void *data, u32 adr) {
+u16 gdb_read16(void *data, u32 adr)
+{
     return mem_Read16(adr);
 }
 
-u32 gdb_read32(void *data, u32 adr) {
+u32 gdb_read32(void *data, u32 adr)
+{
     return mem_Read32(adr);
 }
 
-void gdb_write8(void *data, u32 adr, u8 val) {
+void gdb_write8(void *data, u32 adr, u8 val)
+{
     mem_Write8(adr, val);
 }
 
-void gdb_write16(void *data, u32 adr, u16 val) {
+void gdb_write16(void *data, u32 adr, u16 val)
+{
     mem_Write16(adr, val);
 }
 
-void gdb_write32(void *data, u32 adr, u32 val) {
+void gdb_write32(void *data, u32 adr, u32 val)
+{
     mem_Write32(adr, val);
 }
 #endif

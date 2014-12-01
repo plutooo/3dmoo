@@ -49,7 +49,7 @@ SERVICE_CMD(0xC0000)   //GetTotalStepCount
     RESP(2, 0); //this is a pc it is not taking steps
     return 0;
 }
-SERVICE_CMD(0xB00C2)   //GetStepHistory 
+SERVICE_CMD(0xB00C2)   //GetStepHistory
 {
     u32 unk1 = CMD(1);
     u32 unk2 = CMD(2);

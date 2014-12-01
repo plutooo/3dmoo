@@ -35,11 +35,11 @@ SERVICE_CMD(0x08040142)   // DeleteFile
 
     DEBUG("DeleteFile\n");
     DEBUG("   archive_handle=%08x\n",
-        handle_arch);
+          handle_arch);
     DEBUG("   dir_lowpath_type=%s\n",
-        fs_PathTypeToString(file_lowpath_type));
+          fs_PathTypeToString(file_lowpath_type));
     DEBUG("   dir_lowpath=%s\n",
-        fs_PathToString(file_lowpath_type, file_lowpath_ptr, file_lowpath_sz, tmp, sizeof(tmp)));
+          fs_PathToString(file_lowpath_type, file_lowpath_ptr, file_lowpath_sz, tmp, sizeof(tmp)));
 
     handleinfo* arch_hi = handle_Get(handle_arch);
 
@@ -52,7 +52,7 @@ SERVICE_CMD(0x08040142)   // DeleteFile
     // Call delarchive
     if (arch != NULL && arch->fnDeleteFile != NULL) {
         int ret = arch->fnDeleteFile(arch,
-            (file_path) {
+        (file_path) {
             file_lowpath_type, file_lowpath_sz, file_lowpath_ptr
         });
 
@@ -61,8 +61,7 @@ SERVICE_CMD(0x08040142)   // DeleteFile
             RESP(1, 0);//RESP(1, -1);
             return 0;
         }
-    }
-    else {
+    } else {
         ERROR("Archive has not implemented DeleteFile.\n");
         RESP(1, -1);
         return 0;
@@ -92,20 +91,19 @@ SERVICE_CMD(0x08050244)   // RenameFile
 
     DEBUG("RenameFile\n");
     DEBUG("   src_archive_handle=%08x\n",
-        src_handle_arch);
+          src_handle_arch);
     DEBUG("   src_dir_lowpath_type=%s\n",
-        fs_PathTypeToString(src_file_lowpath_type));
+          fs_PathTypeToString(src_file_lowpath_type));
     DEBUG("   src_dir_lowpath=%s\n",
-        fs_PathToString(src_file_lowpath_type, src_file_lowpath_ptr, src_file_lowpath_sz, tmp, sizeof(tmp)));
+          fs_PathToString(src_file_lowpath_type, src_file_lowpath_ptr, src_file_lowpath_sz, tmp, sizeof(tmp)));
     DEBUG("   dst_archive_handle=%08x\n",
-        dst_handle_arch);
+          dst_handle_arch);
     DEBUG("   dst_dir_lowpath_type=%s\n",
-        fs_PathTypeToString(dst_file_lowpath_type));
+          fs_PathTypeToString(dst_file_lowpath_type));
     DEBUG("   dst_dir_lowpath=%s\n",
-        fs_PathToString(dst_file_lowpath_type, dst_file_lowpath_ptr, dst_file_lowpath_sz, tmp, sizeof(tmp)));
+          fs_PathToString(dst_file_lowpath_type, dst_file_lowpath_ptr, dst_file_lowpath_sz, tmp, sizeof(tmp)));
 
-    if (src_handle_arch != dst_handle_arch)
-    {
+    if (src_handle_arch != dst_handle_arch) {
         ERROR("RenameFile between archives is not supported.\n");
         RESP(1, -1);
         return 0;
@@ -122,29 +120,28 @@ SERVICE_CMD(0x08050244)   // RenameFile
     // Call delarchive
     if (arch != NULL && arch->fnRenameFile != NULL) {
         int ret = arch->fnRenameFile(arch,
-            (file_path) { src_file_lowpath_type, src_file_lowpath_sz, src_file_lowpath_ptr },
-            (file_path) { dst_file_lowpath_type, dst_file_lowpath_sz, dst_file_lowpath_ptr }
-        );
+        (file_path) {
+            src_file_lowpath_type, src_file_lowpath_sz, src_file_lowpath_ptr
+        },
+        (file_path) {
+            dst_file_lowpath_type, dst_file_lowpath_sz, dst_file_lowpath_ptr
+        }
+                                    );
 
-        if (ret == EACCES)
-        {
+        if (ret == EACCES) {
             ERROR("RenameFile has failed. Destination file already exists.\n");
             RESP(1, 0xC82044BE);
             return 0;
-        }
-        else if (ret == ENOENT)
-        {
+        } else if (ret == ENOENT) {
             ERROR("RenameFile has failed. Source file doesn't exist or is a directory.\n");
             RESP(1, 0xC8804478);
             return 0;
-        }
-        else if (ret != 0) {
+        } else if (ret != 0) {
             ERROR("RenameFile has failed.--\n");
             RESP(1, -1);
             return 0;
         }
-    }
-    else {
+    } else {
         ERROR("Archive has not implemented RenameFile.\n");
         RESP(1, -1);
         return 0;
@@ -168,11 +165,11 @@ SERVICE_CMD(0x08060142)   // DeleteDirectory
 
     DEBUG("DeleteDirectory\n");
     DEBUG("   archive_handle=%08x\n",
-        handle_arch);
+          handle_arch);
     DEBUG("   dir_lowpath_type=%s\n",
-        fs_PathTypeToString(dir_lowpath_type));
+          fs_PathTypeToString(dir_lowpath_type));
     DEBUG("   dir_lowpath=%s\n",
-        fs_PathToString(dir_lowpath_type, dir_lowpath_ptr, dir_lowpath_sz, tmp, sizeof(tmp)));
+          fs_PathToString(dir_lowpath_type, dir_lowpath_ptr, dir_lowpath_sz, tmp, sizeof(tmp)));
 
     handleinfo* arch_hi = handle_Get(handle_arch);
 
@@ -185,7 +182,7 @@ SERVICE_CMD(0x08060142)   // DeleteDirectory
     // Call delarchive
     if (arch != NULL && arch->fnDeleteDir != NULL) {
         int ret = arch->fnDeleteDir(arch,
-            (file_path) {
+        (file_path) {
             dir_lowpath_type, dir_lowpath_sz, dir_lowpath_ptr
         });
 
@@ -194,8 +191,7 @@ SERVICE_CMD(0x08060142)   // DeleteDirectory
             RESP(1, -1);
             return 0;
         }
-    }
-    else {
+    } else {
         ERROR("Archive has not implemented DeleteDirectory.\n");
         RESP(1, -1);
         return 0;
@@ -219,11 +215,11 @@ SERVICE_CMD(0x08070142)   // DeleteDirectoryRecursively
 
     DEBUG("DeleteDirectoryRecursively\n");
     DEBUG("   archive_handle=%08x\n",
-        handle_arch);
+          handle_arch);
     DEBUG("   dir_lowpath_type=%s\n",
-        fs_PathTypeToString(dir_lowpath_type));
+          fs_PathTypeToString(dir_lowpath_type));
     DEBUG("   dir_lowpath=%s\n",
-        fs_PathToString(dir_lowpath_type, dir_lowpath_ptr, dir_lowpath_sz, tmp, sizeof(tmp)));
+          fs_PathToString(dir_lowpath_type, dir_lowpath_ptr, dir_lowpath_sz, tmp, sizeof(tmp)));
 
     handleinfo* arch_hi = handle_Get(handle_arch);
 
@@ -236,17 +232,16 @@ SERVICE_CMD(0x08070142)   // DeleteDirectoryRecursively
     // Call delarchive
     if (arch != NULL && arch->fnDeleteDir != NULL) {
         int ret = arch->fnDeleteDir(arch,
-            (file_path) {
+        (file_path) {
             dir_lowpath_type, dir_lowpath_sz, dir_lowpath_ptr
         });
 
-            if (ret != 0) {
-                ERROR("DeleteDirectoryRecursively has failed.\n");
-                RESP(1, -1);
-                return 0;
-            }
-    }
-    else {
+        if (ret != 0) {
+            ERROR("DeleteDirectoryRecursively has failed.\n");
+            RESP(1, -1);
+            return 0;
+        }
+    } else {
         ERROR("Archive has not implemented DeleteDirectoryRecursively.\n");
         RESP(1, -1);
         return 0;
@@ -271,11 +266,11 @@ SERVICE_CMD(0x08090182)   // CreateDirectory
 
     DEBUG("CreateDirectory\n");
     DEBUG("   archive_handle=%08x\n",
-        handle_arch);
+          handle_arch);
     DEBUG("   dir_lowpath_type=%s\n",
-        fs_PathTypeToString(dir_lowpath_type));
+          fs_PathTypeToString(dir_lowpath_type));
     DEBUG("   dir_lowpath=%s\n",
-        fs_PathToString(dir_lowpath_type, dir_lowpath_ptr, dir_lowpath_sz, tmp, sizeof(tmp)));
+          fs_PathToString(dir_lowpath_type, dir_lowpath_ptr, dir_lowpath_sz, tmp, sizeof(tmp)));
 
     DEBUG("   dir_flags=%08x\n", flags);
 
@@ -290,7 +285,7 @@ SERVICE_CMD(0x08090182)   // CreateDirectory
     // Call delarchive
     if (arch != NULL && arch->fnCreateDir != NULL) {
         int ret = arch->fnCreateDir(arch,
-            (file_path) {
+        (file_path) {
             dir_lowpath_type, dir_lowpath_sz, dir_lowpath_ptr
         });
 
@@ -299,8 +294,7 @@ SERVICE_CMD(0x08090182)   // CreateDirectory
             RESP(1, -1);
             return 0;
         }
-    }
-    else {
+    } else {
         ERROR("Archive has not implemented CreateDir.\n");
         RESP(1, -1);
         return 0;
@@ -330,20 +324,19 @@ SERVICE_CMD(0x080A0244)   // RenameDirectory
 
     DEBUG("RenameDirectory\n");
     DEBUG("   src_archive_handle=%08x\n",
-        src_handle_arch);
+          src_handle_arch);
     DEBUG("   src_dir_lowpath_type=%s\n",
-        fs_PathTypeToString(src_file_lowpath_type));
+          fs_PathTypeToString(src_file_lowpath_type));
     DEBUG("   src_dir_lowpath=%s\n",
-        fs_PathToString(src_file_lowpath_type, src_file_lowpath_ptr, src_file_lowpath_sz, tmp, sizeof(tmp)));
+          fs_PathToString(src_file_lowpath_type, src_file_lowpath_ptr, src_file_lowpath_sz, tmp, sizeof(tmp)));
     DEBUG("   dst_archive_handle=%08x\n",
-        dst_handle_arch);
+          dst_handle_arch);
     DEBUG("   dst_dir_lowpath_type=%s\n",
-        fs_PathTypeToString(dst_file_lowpath_type));
+          fs_PathTypeToString(dst_file_lowpath_type));
     DEBUG("   dst_dir_lowpath=%s\n",
-        fs_PathToString(dst_file_lowpath_type, dst_file_lowpath_ptr, dst_file_lowpath_sz, tmp, sizeof(tmp)));
+          fs_PathToString(dst_file_lowpath_type, dst_file_lowpath_ptr, dst_file_lowpath_sz, tmp, sizeof(tmp)));
 
-    if (src_handle_arch != dst_handle_arch)
-    {
+    if (src_handle_arch != dst_handle_arch) {
         ERROR("RenameDirectory between archives is not supported.\n");
         RESP(1, -1);
         return 0;
@@ -360,33 +353,28 @@ SERVICE_CMD(0x080A0244)   // RenameDirectory
     // Call delarchive
     if (arch != NULL && arch->fnRenameDir != NULL) {
         int ret = arch->fnRenameDir(arch,
-            (file_path) {
+        (file_path) {
             src_file_lowpath_type, src_file_lowpath_sz, src_file_lowpath_ptr
         },
         (file_path) {
             dst_file_lowpath_type, dst_file_lowpath_sz, dst_file_lowpath_ptr
         }
-            );
+                                   );
 
-            if (ret == EACCES)
-            {
-                ERROR("RenameDirectory has failed. Destination folder already exists.\n");
-                RESP(1, 0xC82044BE);
-                return 0;
-            }
-            else if (ret == ENOENT)
-            {
-                ERROR("RenameDirectory has failed. Source file doesn't exist or is a file.\n");
-                RESP(1, 0xC8804478);
-                return 0;
-            }
-            else if (ret != 0) {
-                ERROR("RenameDirectory has failed.--\n");
-                RESP(1, -1);
-                return 0;
-            }
-    }
-    else {
+        if (ret == EACCES) {
+            ERROR("RenameDirectory has failed. Destination folder already exists.\n");
+            RESP(1, 0xC82044BE);
+            return 0;
+        } else if (ret == ENOENT) {
+            ERROR("RenameDirectory has failed. Source file doesn't exist or is a file.\n");
+            RESP(1, 0xC8804478);
+            return 0;
+        } else if (ret != 0) {
+            ERROR("RenameDirectory has failed.--\n");
+            RESP(1, -1);
+            return 0;
+        }
+    } else {
         ERROR("Archive has not implemented RenameDirectory.\n");
         RESP(1, -1);
         return 0;
@@ -469,11 +457,11 @@ SERVICE_CMD(0x080b0102) //OpenDirectory
 
     DEBUG("OpenDirectory\n");
     DEBUG("   archive_handle=%08x\n",
-        handle_arch);
+          handle_arch);
     DEBUG("   file_lowpath_type=%s\n",
-        fs_PathTypeToString(dirtype));
+          fs_PathTypeToString(dirtype));
     DEBUG("   file_lowpath=%s\n",
-        fs_PathToString(dirtype, dirpointer, size, tmp, sizeof(tmp)));
+          fs_PathToString(dirtype, dirpointer, size, tmp, sizeof(tmp)));
 
     handleinfo* arch_hi = handle_Get(handle_arch);
 
@@ -488,18 +476,17 @@ SERVICE_CMD(0x080b0102) //OpenDirectory
 
     // Call OpenFile
     if (arch != NULL && arch->fnOpenDir != NULL) {
-        file_handle = arch->fnOpenDir(arch, 
-            (file_path) {
-            dirtype, size,dirpointer 
+        file_handle = arch->fnOpenDir(arch,
+        (file_path) {
+            dirtype, size,dirpointer
         });
 
-            if (file_handle == 0) {
-                ERROR("Dir has failed.\n");
-                RESP(1, -1);
-                return 0;
-            }
-    }
-    else {
+        if (file_handle == 0) {
+            ERROR("Dir has failed.\n");
+            RESP(1, -1);
+            return 0;
+        }
+    } else {
         ERROR("Archive has not implemented Dir.\n");
         RESP(1, -1);
         return 0;
@@ -541,7 +528,7 @@ SERVICE_CMD(0x08030204)   // OpenFileDirectly
     DEBUG("   file_lowpath=%s\n",
           fs_PathToString(file_lowpath_type, file_lowpath_ptr, file_lowpath_sz, tmp, sizeof(tmp)));
     DEBUG("   attr=%s\n",
-        fs_AttrToString(attr, tmp));
+          fs_AttrToString(attr, tmp));
 
     // Call OpenArchive
     if(arch_type != NULL && arch_type->fnOpenArchive != NULL) {
@@ -603,15 +590,15 @@ SERVICE_CMD(0x08080202)   // CreateFile
 
     DEBUG("CreateFile\n");
     DEBUG("   archive_handle=%08x\n",
-        handle_arch);
+          handle_arch);
     DEBUG("   flags=%s\n",
-        fs_FlagsToString(flags, tmp));
+          fs_FlagsToString(flags, tmp));
     DEBUG("   file_lowpath_type=%s\n",
-        fs_PathTypeToString(file_lowpath_type));
+          fs_PathTypeToString(file_lowpath_type));
     DEBUG("   file_lowpath=%s\n",
-        fs_PathToString(file_lowpath_type, file_lowpath_ptr, file_lowpath_sz, tmp, sizeof(tmp)));
+          fs_PathToString(file_lowpath_type, file_lowpath_ptr, file_lowpath_sz, tmp, sizeof(tmp)));
     DEBUG("   attr=%s\n",
-        fs_AttrToString(attr, tmp));
+          fs_AttrToString(attr, tmp));
 
     handleinfo* arch_hi = handle_Get(handle_arch);
 
@@ -627,18 +614,17 @@ SERVICE_CMD(0x08080202)   // CreateFile
     // Call OpenFile
     if (arch != NULL && arch->fnOpenFile != NULL) {
         file_handle = arch->fnOpenFile(arch,
-            (file_path) {
+        (file_path) {
             file_lowpath_type, file_lowpath_sz, file_lowpath_ptr
         },
         flags, attr);
 
-            if (file_handle == 0) {
-                ERROR("CreateFile has failed.\n");
-                RESP(1, -1);
-                return 0;
-            }
-    }
-    else {
+        if (file_handle == 0) {
+            ERROR("CreateFile has failed.\n");
+            RESP(1, -1);
+            return 0;
+        }
+    } else {
         ERROR("Archive has not implemented CreateFile/OpenFile.\n");
         RESP(1, -1);
         return 0;
@@ -735,7 +721,7 @@ SERVICE_CMD(0x08170000)   // IsSdmcDetected
     RESP(1, 0);
     if (config_has_sdmc)
         RESP(2, 1); //true
-    else 
+    else
         RESP(2, 0); //false
     return 0;
 }
@@ -882,8 +868,7 @@ SERVICE_CMD(0x08040000)   // GetSize
 
     if (type->fnGetSize != NULL) {
         sz = type->fnGetSize(type);
-    }
-    else {
+    } else {
         ERROR("GetSize() not implemented for this type.\n");
         rc = -1;
     }
@@ -905,8 +890,7 @@ SERVICE_CMD(0x08050080)   // SetSize
 
     if (type->fnSetSize != NULL) {
         rc = type->fnSetSize(type, sz);
-    }
-    else {
+    } else {
         ERROR("SetSize() not implemented for this type.\n");
         rc = -1;
     }
@@ -985,8 +969,7 @@ SERVICE_CMD(0x08010042)   // Read
 
     if (type->fnRead != NULL) {
         rc = type->fnRead(type, outptr, max_out_count, &count_read);
-    }
-    else {
+    } else {
         ERROR("Dirread not implemented for this type.\n");
         rc = -1;
     }

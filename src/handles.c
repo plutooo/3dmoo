@@ -275,6 +275,7 @@ u32 svcWaitSynchronizationN() // TODO: timeouts
     return 0;
 }
 
-u32 nop_SyncRequest(handleinfo* h, bool *locked) {
+u32 nop_SyncRequest(handleinfo* h, bool *locked)
+{
     return 0;
 };

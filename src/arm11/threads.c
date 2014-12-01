@@ -125,7 +125,7 @@ bool threads_IsThreadActive(u32 id)
                 handle_types[hi->type].fnWaitSynchronization(hi, &is_waiting);
 
                 THREADDEBUG("    %08x, type=%s, waiting=%s\n", handle, handle_types[hi->type].name,
-                      is_waiting ? "true" : "false");
+                            is_waiting ? "true" : "false");
 
                 if(is_waiting)
                     ret = false;
@@ -150,7 +150,7 @@ bool threads_IsThreadActive(u32 id)
                 handle_types[hi->type].fnWaitSynchronization(hi, &is_waiting);
 
                 THREADDEBUG("    %08x, type=%s, waiting=%s\n", handle, handle_types[hi->type].name,
-                      is_waiting ? "true" : "false");
+                            is_waiting ? "true" : "false");
 
                 if(!ret && !is_waiting) {
                     threads[id].r[1] = i;
@@ -268,9 +268,8 @@ void threads_Execute()
     for (t = 0; t < threads_Count(); t++) {
 
         signed long long diff = s.NumInstrs - last_one;
-        
-        for (; diff >(11172 * 16); diff -= (11172 * 16))
-        {
+
+        for (; diff >(11172 * 16); diff -= (11172 * 16)) {
             gpu_SendInterruptToAll(2);
             line++;
             if (line == 400) {
@@ -302,8 +301,7 @@ void threads_Execute()
 
     }
 
-    if (nothreadused) //waiting
-    {
+    if (nothreadused) { //waiting
         gpu_SendInterruptToAll(2);
         line++;
         if (line == 400) {
@@ -466,12 +464,10 @@ u32 svcGetThreadId()
 {
     u32 handle = arm11_R(1);
 
-    if (handle == 0xffff8000)
-    {
+    if (handle == 0xffff8000) {
         arm11_SetR(1, THREAD_ID_OFFSET + current_thread);
         return 0;
-    }
-    else {
+    } else {
         THREADDEBUG("svcGetThreadId not supported\n");
         return 0;
     }
@@ -486,7 +482,7 @@ u32 svcCreateThread()
     u32 cpu  = arm11_R(4);
 
     THREADDEBUG("entrypoint=%08x, r0=%08x, sp=%08x, prio=%x, cpu=%x\n",
-          ent_pc, ent_r0, ent_sp, prio, cpu);
+                ent_pc, ent_r0, ent_sp, prio, cpu);
 
     u32 hand = handle_New(HANDLE_TYPE_THREAD, 0);
     u32 numthread = threads_New(hand);

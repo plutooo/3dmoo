@@ -135,17 +135,14 @@ static bool sysdata_FileExists(archive* self, file_path path)
     struct stat st;
 
     // Generate path on host file system
-    if (config_usesys)
-    {
-        snprintf(p, 256, "%s/%s/%s", config_sysdataoutpath, 
-            self->type_specific.sysdata.path,
-            fs_PathToString(path.type, path.ptr, path.size, tmp, 256));
-    }
-    else
-    {
+    if (config_usesys) {
+        snprintf(p, 256, "%s/%s/%s", config_sysdataoutpath,
+                 self->type_specific.sysdata.path,
+                 fs_PathToString(path.type, path.ptr, path.size, tmp, 256));
+    } else {
         snprintf(p, 256, "sys/system/%s/%s",
-        self->type_specific.sysdata.path,
-        fs_PathToString(path.type, path.ptr, path.size, tmp, 256));
+                 self->type_specific.sysdata.path,
+                 fs_PathToString(path.type, path.ptr, path.size, tmp, 256));
     }
 
     if(!fs_IsSafePath(p)) {
@@ -161,17 +158,14 @@ static u32 sysdata_DeleteFile(archive* self, file_path path)
     char p[256], tmp[256];
 
     // Generate path on host file system
-    if (config_usesys)
-    {
+    if (config_usesys) {
         snprintf(p, 256, "%s/%s/%s", config_sysdataoutpath,
-            self->type_specific.sysdata.path,
-            fs_PathToString(path.type, path.ptr, path.size, tmp, 256));
-    }
-    else
-    {
+                 self->type_specific.sysdata.path,
+                 fs_PathToString(path.type, path.ptr, path.size, tmp, 256));
+    } else {
         snprintf(p, 256, "sys/system/%s/%s",
-            self->type_specific.sysdata.path,
-            fs_PathToString(path.type, path.ptr, path.size, tmp, 256));
+                 self->type_specific.sysdata.path,
+                 fs_PathToString(path.type, path.ptr, path.size, tmp, 256));
     }
 
     if (!fs_IsSafePath(p)) {
@@ -188,17 +182,14 @@ static u32 sysdata_OpenFile(archive* self, file_path path, u32 flags, u32 attr)
     char p[256], tmp[256];
 
     // Generate path on host file system
-    if (config_usesys)
-    {
+    if (config_usesys) {
         snprintf(p, 256, "%s/%s/%s", config_sysdataoutpath,
-            self->type_specific.sysdata.path,
-            fs_PathToString(path.type, path.ptr, path.size, tmp, 256));
-    }
-    else
-    {
+                 self->type_specific.sysdata.path,
+                 fs_PathToString(path.type, path.ptr, path.size, tmp, 256));
+    } else {
         snprintf(p, 256, "sys/system/%s/%s",
-            self->type_specific.sysdata.path,
-            fs_PathToString(path.type, path.ptr, path.size, tmp, 256));
+                 self->type_specific.sysdata.path,
+                 fs_PathToString(path.type, path.ptr, path.size, tmp, 256));
     }
 
     if(!fs_IsSafePath(p)) {
@@ -207,27 +198,21 @@ static u32 sysdata_OpenFile(archive* self, file_path path, u32 flags, u32 attr)
     }
 
     FILE* fd = fopen(p, "rb");
-    if (fd == NULL)
-    {
-        if (flags & OPEN_CREATE)
-        {
+    if (fd == NULL) {
+        if (flags & OPEN_CREATE) {
             fd = fopen(p, "wb");
-            if (fd == NULL)
-            {
+            if (fd == NULL) {
                 ERROR("Failed to open/create sdmc, path=%s\n", p);
                 return 0;
             }
-        }
-        else
-        {
+        } else {
             ERROR("Failed to open sdmc, path=%s\n", p);
             return 0;
         }
     }
     fclose(fd);
 
-    switch (flags& (OPEN_READ | OPEN_WRITE))
-    {
+    switch (flags& (OPEN_READ | OPEN_WRITE)) {
     case 0:
         ERROR("Error open without write and read fallback to read only, path=%s\n", p);
         fd = fopen(p, "rb");
@@ -292,17 +277,14 @@ int sysdata_DeleteDir(archive* self, file_path path)
     char p[256], tmp[256];
 
     // Generate path on host file system
-    if (config_usesys)
-    {
+    if (config_usesys) {
         snprintf(p, 256, "%s/%s/%s", config_sysdataoutpath,
-            self->type_specific.sysdata.path,
-            fs_PathToString(path.type, path.ptr, path.size, tmp, 256));
-    }
-    else
-    {
+                 self->type_specific.sysdata.path,
+                 fs_PathToString(path.type, path.ptr, path.size, tmp, 256));
+    } else {
         snprintf(p, 256, "sys/system/%s/%s",
-            self->type_specific.sysdata.path,
-            fs_PathToString(path.type, path.ptr, path.size, tmp, 256));
+                 self->type_specific.sysdata.path,
+                 fs_PathToString(path.type, path.ptr, path.size, tmp, 256));
     }
 
     if (!fs_IsSafePath(p)) {
@@ -317,17 +299,14 @@ int sysdata_CreateDir(archive* self, file_path path)
     char p[256], tmp[256];
 
     // Generate path on host file system
-    if (config_usesys)
-    {
+    if (config_usesys) {
         snprintf(p, 256, "%s/%s/%s", config_sysdataoutpath,
-            self->type_specific.sysdata.path,
-            fs_PathToString(path.type, path.ptr, path.size, tmp, 256));
-    }
-    else
-    {
+                 self->type_specific.sysdata.path,
+                 fs_PathToString(path.type, path.ptr, path.size, tmp, 256));
+    } else {
         snprintf(p, 256, "sys/system/%s/%s",
-            self->type_specific.sysdata.path,
-            fs_PathToString(path.type, path.ptr, path.size, tmp, 256));
+                 self->type_specific.sysdata.path,
+                 fs_PathToString(path.type, path.ptr, path.size, tmp, 256));
     }
 
     if (!fs_IsSafePath(p)) {

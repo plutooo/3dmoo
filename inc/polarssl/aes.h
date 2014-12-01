@@ -34,8 +34,7 @@
 /**
  * \brief          AES context structure
  */
-typedef struct
-{
+typedef struct {
     int nr;                     /*!<  number of rounds  */
     unsigned long *rk;          /*!<  AES round keys    */
     unsigned long buf[68];      /*!<  unaligned data    */
@@ -79,9 +78,9 @@ int aes_setkey_dec( aes_context *ctx, const unsigned char *key, int keysize );
  * \return         0 if successful
  */
 int aes_crypt_ecb( aes_context *ctx,
-                    int mode,
-                    const unsigned char input[16],
-                    unsigned char output[16] );
+                   int mode,
+                   const unsigned char input[16],
+                   unsigned char output[16] );
 
 /**
  * \brief          AES-CBC buffer encryption/decryption
@@ -98,11 +97,11 @@ int aes_crypt_ecb( aes_context *ctx,
  * \return         0 if successful, or POLARSSL_ERR_AES_INVALID_INPUT_LENGTH
  */
 int aes_crypt_cbc( aes_context *ctx,
-                    int mode,
-                    int length,
-                    unsigned char iv[16],
-                    const unsigned char *input,
-                    unsigned char *output );
+                   int mode,
+                   int length,
+                   unsigned char iv[16],
+                   const unsigned char *input,
+                   unsigned char *output );
 
 /**
  * \brief          AES-CFB128 buffer encryption/decryption.
@@ -118,12 +117,12 @@ int aes_crypt_cbc( aes_context *ctx,
  * \return         0 if successful
  */
 int aes_crypt_cfb128( aes_context *ctx,
-                       int mode,
-                       int length,
-                       int *iv_off,
-                       unsigned char iv[16],
-                       const unsigned char *input,
-                       unsigned char *output );
+                      int mode,
+                      int length,
+                      int *iv_off,
+                      unsigned char iv[16],
+                      const unsigned char *input,
+                      unsigned char *output );
 
 /**
  * \brief          Checkup routine

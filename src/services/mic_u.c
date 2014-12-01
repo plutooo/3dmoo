@@ -33,8 +33,8 @@ SERVICE_CMD(0x10042)
 
 SERVICE_CMD(0x30140)
 {
-	RESP(1, 0);
-	return 0;
+    RESP(1, 0);
+    return 0;
 }
 
 SERVICE_CMD(0x4f0080)
@@ -51,14 +51,14 @@ SERVICE_CMD(0x80040)
 
 SERVICE_CMD(0x90000) //GetControl
 {
-	RESP(1, 0);
-	return 0;
+    RESP(1, 0);
+    return 0;
 }
 
 SERVICE_CMD(0xA0040) //SetBias(u8 input)
 {
-	RESP(1, 0);
-	return 0;
+    RESP(1, 0);
+    return 0;
 }
 
 SERVICE_CMD(0xd0040)

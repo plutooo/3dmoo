@@ -33,13 +33,13 @@ SERVICE_CMD(0x00010044)
 {
 
 #ifdef _WIN32
-        // Windows Specific - Sockets initialization 
-        unsigned short      wVersionRequested;
-        WSADATA             wsaData;
-        UINT32              nErr = 0;
-        // We want to use Winsock v 1.2 (can be higher)
-        wVersionRequested = MAKEWORD(1, 2);
-        nErr = WSAStartup(wVersionRequested, &wsaData);
+    // Windows Specific - Sockets initialization
+    unsigned short      wVersionRequested;
+    WSADATA             wsaData;
+    UINT32              nErr = 0;
+    // We want to use Winsock v 1.2 (can be higher)
+    wVersionRequested = MAKEWORD(1, 2);
+    nErr = WSAStartup(wVersionRequested, &wsaData);
 #endif
 
     DEBUG("Initialize %08x\n", CMD(1));
@@ -101,23 +101,20 @@ SERVICE_CMD(0x00090040)
     HTTP_SESSION_HANDLE     pHTTP;
     pHTTP = HTTPClientOpenRequest(0);
 
-    if ((nRetCode = HTTPClientSetVerb(pHTTP, VerbGet)) != HTTP_CLIENT_SUCCESS)
-    {
-            RESP(1, 0xFFFFFFFF); // Result
-            return 0;
+    if ((nRetCode = HTTPClientSetVerb(pHTTP, VerbGet)) != HTTP_CLIENT_SUCCESS) {
+        RESP(1, 0xFFFFFFFF); // Result
+        return 0;
     }
 
     // Set authentication
 
-    if ((nRetCode = HTTPClientSetAuth(pHTTP, AuthSchemaNone, NULL)) != HTTP_CLIENT_SUCCESS)
-        {
-            RESP(1, 0xFFFFFFFF); // Result
-            return 0;
-        }
+    if ((nRetCode = HTTPClientSetAuth(pHTTP, AuthSchemaNone, NULL)) != HTTP_CLIENT_SUCCESS) {
+        RESP(1, 0xFFFFFFFF); // Result
+        return 0;
+    }
 
-    // Send a request for the home page 
-    if(HTTPClientSendRequest(pHTTP, h->misc_ptr[0], NULL, 0, FALSE, 0, 0) != HTTP_CLIENT_SUCCESS)
-    {
+    // Send a request for the home page
+    if(HTTPClientSendRequest(pHTTP, h->misc_ptr[0], NULL, 0, FALSE, 0, 0) != HTTP_CLIENT_SUCCESS) {
         RESP(1, 0xFFFFFFFF); // Result
         return 0;
     }
@@ -132,8 +129,7 @@ SERVICE_CMD(0x00090040)
 
     int nSize = HTTP_CLIENT_BUFFER_SIZE;
 
-    while (nRetCode == HTTP_CLIENT_SUCCESS || nRetCode == HTTP_CLIENT_ERROR_BAD_STATE)
-    {
+    while (nRetCode == HTTP_CLIENT_SUCCESS || nRetCode == HTTP_CLIENT_ERROR_BAD_STATE) {
         h->misc_ptr[1] = realloc(h->misc_ptr[1], h->misc[1] + HTTP_CLIENT_BUFFER_SIZE);
         // Set the size of our buffer
         int nSize = HTTP_CLIENT_BUFFER_SIZE;
@@ -213,9 +209,9 @@ SERVICE_CMD(0x00030040)
     }
 
     if(h->misc_ptr[0]);
-        free(h->misc_ptr[0]);
+    free(h->misc_ptr[0]);
     if (h->misc_ptr[1]);
-        free(h->misc_ptr[1]);
+    free(h->misc_ptr[1]);
 
     RESP(1, 0); // Result
     return 0;

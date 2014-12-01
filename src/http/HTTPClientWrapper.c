@@ -26,10 +26,8 @@ int HTTPWrapperIsAscii(int c)
 int HTTPWrapperToUpper(int c)
 {
     // -32
-    if(HTTPWrapperIsAscii(c) > 0)
-    {
-        if(c >= 97 && c <= 122)
-        {
+    if(HTTPWrapperIsAscii(c) > 0) {
+        if(c >= 97 && c <= 122) {
             return (c - 32);
         }
     }
@@ -48,10 +46,8 @@ int HTTPWrapperToUpper(int c)
 int HTTPWrapperToLower(int c)
 {
     // +32
-    if(HTTPWrapperIsAscii(c) > 0)
-    {
-        if(c >= 65 && c <= 90)
-        {
+    if(HTTPWrapperIsAscii(c) > 0) {
+        if(c >= 65 && c <= 90) {
             return (c + 32);
         }
     }
@@ -71,10 +67,8 @@ int HTTPWrapperToLower(int c)
 int HTTPWrapperIsAlpha(int c)
 {
 
-    if(HTTPWrapperIsAscii(c) > 0)
-    {
-        if( (c >= 97 && c <= 122) || (c >= 65 && c <= 90)) 
-        {
+    if(HTTPWrapperIsAscii(c) > 0) {
+        if( (c >= 97 && c <= 122) || (c >= 65 && c <= 90)) {
             return c;
         }
     }
@@ -91,18 +85,15 @@ int HTTPWrapperIsAlpha(int c)
 
 int HTTPWrapperIsAlNum(int c)
 {
-    if(HTTPWrapperIsAscii(c) > 0)
-    {
+    if(HTTPWrapperIsAscii(c) > 0) {
 
-        if(HTTPWrapperIsAlpha(c) > 0)
-        {
+        if(HTTPWrapperIsAlpha(c) > 0) {
             return c;
         }
 
-        if( c >= 48 && c <= 57)  
-        {
+        if( c >= 48 && c <= 57) {
             return c;
-        } 
+        }
 
     }
     return 0;
@@ -121,15 +112,14 @@ char* HTTPWrapperItoa(char *s,int a)
 {
     unsigned int b;
 
-    if(a > 2147483647)
-    {
+    if(a > 2147483647) {
         return 0; // overflow
     }
 
     if (a < 0) b = -a, *s++ = '-';
     else b = a;
-    for(;a;a=a/10) s++;
-    for(*s='\0';b;b=b/10) *--s=b%10+'0';
+    for(; a; a=a/10) s++;
+    for(*s='\0'; b; b=b/10) *--s=b%10+'0';
     return s;
 }
 
@@ -141,7 +131,7 @@ char* HTTPWrapperItoa(char *s,int a)
 //
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-int HTTPWrapperShutDown (int s,int how) 
+int HTTPWrapperShutDown (int s,int how)
 {
     return shutdown(s,how);
 }
@@ -180,75 +170,57 @@ unsigned long HTTPWrapperGetHostByName(char *name,unsigned long *address)
     char    Num[4];
     int     iHostType = 0; // 0 : numeric IP
 
-    // Check if the name is an IP or host 
+    // Check if the name is an IP or host
     iLen = strlen(name);
-    for(iPos = 0; iPos <= iLen;iPos++)
-    {
+    for(iPos = 0; iPos <= iLen; iPos++) {
         c = name[iPos];
-        if((c >= 48 && c <= 57)  || (c == '.') )
-        {   
+        if((c >= 48 && c <= 57)  || (c == '.') ) {
             // c is numeric or dot
-            if(c != '.')
-            {
+            if(c != '.') {
                 // c is numeric
-                if(iNumPos > 3)
-                {
+                if(iNumPos > 3) {
                     iHostType++;
                     break;
                 }
                 Num[iNumPos] = c;
                 Num[iNumPos + 1] = 0;
                 iNumPos ++;
-            }
-            else
-            {
+            } else {
                 iNumPos = 0;
                 iDots++;
                 iIPElement = atol(Num);
-                if(iIPElement > 256 || iDots > 3)
-                {
+                if(iIPElement > 256 || iDots > 3) {
                     return 0; // error invalid IP
                 }
             }
-        }
-        else
-        {
+        } else {
             break; // this is an alpha numeric address type
         }
     }
 
-    if(c == 0 && iHostType == 0 && iDots == 3)
-    {
+    if(c == 0 && iHostType == 0 && iDots == 3) {
         iIPElement = atol(Num);
-        if(iIPElement > 256)
-        {
+        if(iIPElement > 256) {
             return 0; // error invalid IP
         }
-    }
-    else
-    {
+    } else {
         iHostType++;
-    }   
+    }
 
-    if(iHostType > 0)
-    {
+    if(iHostType > 0) {
 
-        HostEntry = gethostbyname(name); 
-        if(HostEntry)
-        {
+        HostEntry = gethostbyname(name);
+        if(HostEntry) {
             *(address) = *((u_long*)HostEntry->h_addr_list[0]);
 
             //*(address) = (unsigned long)HostEntry->h_addr_list[0];
-            return 1; // Error 
-        }
-        else
-        {
+            return 1; // Error
+        } else {
             return 0; // OK
         }
     }
 
-    else // numeric address - no need for DNS resolve
-    {
+    else { // numeric address - no need for DNS resolve
         *(address) = inet_addr(name);
         return 1;
 
@@ -297,10 +269,10 @@ long HTTPWrapperGetUpTime()
 
 #else
 
-	struct timespec tp;
+    struct timespec tp;
 
-	clock_gettime(CLOCK_MONOTONIC , &tp);
-	return tp.tv_sec;
+    clock_gettime(CLOCK_MONOTONIC , &tp);
+    return tp.tv_sec;
 
 #endif
 }

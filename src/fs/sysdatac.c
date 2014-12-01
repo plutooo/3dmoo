@@ -95,9 +95,9 @@ static bool SaveDatacheck_FileExists(archive* self, file_path path)
     struct stat st;
 
     // Generate path on host file system
-        snprintf(p, 256, "savecheck/%s/%s",
-        self->type_specific.sysdata.path,
-        fs_PathToString(path.type, path.ptr, path.size, tmp, 256));
+    snprintf(p, 256, "savecheck/%s/%s",
+             self->type_specific.sysdata.path,
+             fs_PathToString(path.type, path.ptr, path.size, tmp, 256));
 
     if(!fs_IsSafePath(p)) {
         ERROR("Got unsafe path.\n");
@@ -112,9 +112,9 @@ static u32 SaveDatacheck_OpenFile(archive* self, file_path path, u32 flags, u32 
     char p[256], tmp[256];
 
     // Generate path on host file system
-        snprintf(p, 256, "savecheck/%s/%s",
-            self->type_specific.sysdata.path,
-            fs_PathToString(path.type, path.ptr, path.size, tmp, 256));
+    snprintf(p, 256, "savecheck/%s/%s",
+             self->type_specific.sysdata.path,
+             fs_PathToString(path.type, path.ptr, path.size, tmp, 256));
 
     if(!fs_IsSafePath(p)) {
         ERROR("Got unsafe path.\n");
@@ -122,27 +122,21 @@ static u32 SaveDatacheck_OpenFile(archive* self, file_path path, u32 flags, u32 
     }
 
     FILE* fd = fopen(p, "rb");
-    if (fd == NULL)
-    {
-        if (flags & OPEN_CREATE)
-        {
+    if (fd == NULL) {
+        if (flags & OPEN_CREATE) {
             fd = fopen(p, "wb");
-            if (fd == NULL)
-            {
+            if (fd == NULL) {
                 ERROR("Failed to open/create SaveDatacheck, path=%s\n", p);
                 return 0;
             }
-        }
-        else
-        {
+        } else {
             ERROR("Failed to open SaveDatacheck, path=%s\n", p);
             return 0;
         }
     }
     fclose(fd);
 
-    switch (flags& (OPEN_READ | OPEN_WRITE))
-    {
+    switch (flags& (OPEN_READ | OPEN_WRITE)) {
     case 0:
         ERROR("Error open without write and read fallback to read only, path=%s\n", p);
         fd = fopen(p, "rb");
@@ -206,9 +200,9 @@ int SaveDatacheck_DeleteDir(archive* self, file_path path)
     char p[256], tmp[256];
 
     // Generate path on host file system
-        snprintf(p, 256, "savecheck/%s/%s",
-            self->type_specific.sysdata.path,
-            fs_PathToString(path.type, path.ptr, path.size, tmp, 256));
+    snprintf(p, 256, "savecheck/%s/%s",
+             self->type_specific.sysdata.path,
+             fs_PathToString(path.type, path.ptr, path.size, tmp, 256));
 
     if (!fs_IsSafePath(p)) {
         ERROR("Got unsafe path.\n");
@@ -223,8 +217,8 @@ int SaveDatacheck_CreateDir(archive* self, file_path path)
 
     // Generate path on host file system
     snprintf(p, 256, "savecheck/%s/%s",
-        self->type_specific.sysdata.path,
-        fs_PathToString(path.type, path.ptr, path.size, tmp, 256));
+             self->type_specific.sysdata.path,
+             fs_PathToString(path.type, path.ptr, path.size, tmp, 256));
 
     if (!fs_IsSafePath(p)) {
         ERROR("Got unsafe path.\n");

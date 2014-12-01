@@ -23,11 +23,9 @@
 
 s32 svcGetResourceLimitCurrentValues(u32 values_ptr,u32 handleResourceLimit,u32 names_ptr,u32 nameCount)
 {
-    for (u32 i = 0; i < nameCount; i++)
-    {
+    for (u32 i = 0; i < nameCount; i++) {
         u32 temp = mem_Read32(names_ptr + i*4);
-        switch (temp)
-        {
+        switch (temp) {
         case 1: //GetUsingMemorySize
             mem_Write32(values_ptr + i * 8, 0x0);
             mem_Write32(values_ptr + i * 8 + 4, 0x0);

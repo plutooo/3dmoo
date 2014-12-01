@@ -120,15 +120,12 @@ static u32 extsavedatafile_SetSize(file_type* self, u64 sz)
     FILE* fd = self->type_specific.sysdata.fd;
     u64 current_size = self->type_specific.sysdata.sz;
 
-    if (sz >= current_size)
-    {
+    if (sz >= current_size) {
         if (fseek64(fd, sz, SEEK_SET) == -1) {
             ERROR("fseek failed.\n");
             return -1;
         }
-    }
-    else
-    {
+    } else {
         DEBUG("Truncating a file is unsupported.\n");
     }
 
@@ -181,19 +178,18 @@ static u32 extsavedata_OpenFile(archive* self, file_path path, u32 flags, u32 at
     char mode[10];
     memset(mode, 0, 10);
 
-    switch (flags)
-    {
-        case 1: //R
-            strcpy(mode, "rb");
-            break;
-        case 2: //W
-        case 3: //RW
-            strcpy(mode, "rb+");
-            break;
-        case 4: //C
-        case 6: //W+C
-            strcpy(mode, "wb");
-            break;
+    switch (flags) {
+    case 1: //R
+        strcpy(mode, "rb");
+        break;
+    case 2: //W
+    case 3: //RW
+        strcpy(mode, "rb+");
+        break;
+    case 4: //C
+    case 6: //W+C
+        strcpy(mode, "wb");
+        break;
     }
 
     FILE* fd = fopen(p, mode);

@@ -443,9 +443,6 @@
     <ClInclude Include="..\inc\loader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\config.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\inc\dirent.h">
       <Filter>Header Files</Filter>
     </ClInclude>

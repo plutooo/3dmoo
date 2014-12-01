@@ -1,4 +1,5 @@
 /*
+    Copyright (C) 2014 - ichfly
 	Copyright (C) 2006 Ben Jaques
 	Copyright (C) 2008-2009 DeSmuME team
 
@@ -57,8 +58,8 @@ struct armcpu_ctrl_iface {
 
     /** install the post execute function */
     void(*install_post_ex_fn)(void *instance,
-        void(*fn)(void *, u32 adr, int thumb),
-        void *fn_data);
+                              void(*fn)(void *, u32 adr, int thumb),
+                              void *fn_data);
 
     /** remove the post execute function */
     void(*remove_post_ex_fn)(void *instance);
@@ -92,10 +93,10 @@ void
 activateStub_gdb( gdbstub_handle_t stub,
                   struct armcpu_ctrl_iface *cpu_ctrl);
 
-  /*
-   * An implementation of the following functions is required
-   * for the GDB stub to function.
-   */
+/*
+ * An implementation of the following functions is required
+ * for the GDB stub to function.
+ */
 
 
 void *

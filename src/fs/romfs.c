@@ -61,8 +61,7 @@ static u32 rawromfs_Read(file_type* self, u32 ptr, u32 sz, u64 off, u32* read_ou
 
     ctr_aes_context ctx;
 
-    if (loader_encrypted)
-    {
+    if (loader_encrypted) {
         u8* temp = calloc(sz + (off & 0xF) + (sz & 0xF), sizeof(u8));
         memcpy(temp + (off & 0xF), b, sz);
         ncch_extract_prepare(&ctx, &loader_h, NCCHTYPE_ROMFS, loader_key);
@@ -110,8 +109,7 @@ u32 romfs_OpenFile(archive* self, file_path path, u32 flags, u32 attr)
     DEBUG("romfs_OpenFile\n");
 
     // RomFS has support for raw reads.
-    if (path.type == PATH_BINARY)
-    {
+    if (path.type == PATH_BINARY) {
         rawromfs_file.handle = handle_New(HANDLE_TYPE_FILE, (uintptr_t)&rawromfs_file);
         return rawromfs_file.handle;
     }

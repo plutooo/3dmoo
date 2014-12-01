@@ -48,28 +48,27 @@ typedef unsigned short t_dbl;
 typedef unsigned short t_int;
 typedef unsigned long  t_dbl;
 #else
-  typedef unsigned long t_int;
-  #if defined(_MSC_VER) && defined(_M_IX86)
-  typedef unsigned __int64 t_dbl;
-  #else
-    #if defined(__amd64__) || defined(__x86_64__)    || \
+typedef unsigned long t_int;
+#if defined(_MSC_VER) && defined(_M_IX86)
+typedef unsigned __int64 t_dbl;
+#else
+#if defined(__amd64__) || defined(__x86_64__)    || \
         defined(__ppc64__) || defined(__powerpc64__) || \
         defined(__ia64__)  || defined(__alpha__)
-    typedef unsigned int t_dbl __attribute__((mode(TI)));
-    #else
-      #if defined(POLARSSL_HAVE_LONGLONG)
-      typedef unsigned long long t_dbl;
-      #endif
-    #endif
-  #endif
+typedef unsigned int t_dbl __attribute__((mode(TI)));
+#else
+#if defined(POLARSSL_HAVE_LONGLONG)
+typedef unsigned long long t_dbl;
+#endif
+#endif
+#endif
 #endif
 #endif
 
 /**
  * \brief          MPI structure
  */
-typedef struct
-{
+typedef struct {
     int s;              /*!<  integer sign      */
     int n;              /*!<  total # of limbs  */
     t_int *p;           /*!<  pointer to limbs  */
@@ -448,7 +447,7 @@ int mpi_mod_int( t_int *r, const mpi *A, int b );
 /**
  * \brief          Sliding-window exponentiation: X = A^E mod N
  *
- * \param X        Destination MPI 
+ * \param X        Destination MPI
  * \param A        Left-hand MPI
  * \param E        Exponent MPI
  * \param N        Modular MPI

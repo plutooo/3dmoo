@@ -521,8 +521,7 @@ static s64 vfp_single_to_doubleintern(ARMul_State* state, s32 m, u32 fpscr) //ic
         if (tm == VFP_QNAN)
             vdd.significand |= VFP_DOUBLE_SIGNIFICAND_QNAN;
         goto pack_nan;
-    }
-    else if (tm & VFP_ZERO)
+    } else if (tm & VFP_ZERO)
         vdd.exponent = 0;
     else
         vdd.exponent = vsm.exponent + (1023 - 127);
@@ -946,7 +945,7 @@ vfp_single_multiply(struct vfp_single *vsd, struct vfp_single *vsn, struct vfp_s
 static u32
 vfp_single_multiply_accumulate(ARMul_State* state, int sd, int sn, s32 m, u32 fpscr, u32 negate, char *func)
 {
-    
+
     {
         struct vfp_single vsd, vsp, vsn, vsm;
         u32 exceptions;

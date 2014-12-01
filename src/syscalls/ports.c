@@ -41,9 +41,9 @@ u32 err_f_SyncRequest()
     // Read command-id.
     switch (cid) {
 
-        case 0x00010800: //ThrowFatalError
-            DEBUG("ThrowFatalError\n");
-            break;
+    case 0x00010800: //ThrowFatalError
+        DEBUG("ThrowFatalError\n");
+        break;
 
     default:
         ERROR("Unimplemented command %08x in \"err:f\"\n", cid);

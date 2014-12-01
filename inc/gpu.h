@@ -70,7 +70,7 @@ extern u32 GPU_Regs[0xFFFF];
 #define Viewport_depth_range 0x4D
 #define Viewport_depth_far_plane 0x4E
 
-#define VSVertexAttributeOutputMap 0x50 
+#define VSVertexAttributeOutputMap 0x50
 // untill 0x56
 
 #define TEXTURINGSETINGS80 0x80
@@ -93,7 +93,7 @@ extern u32 GPU_Regs[0xFFFF];
 #define Framebuffer_FORMAT11E  0x11E
 
 #define VertexAttributeConfig 0x200
-// untill 0x226 
+// untill 0x226
 #define IndexArrayConfig 0x227
 #define NumVertices 0x228
 #define TriggerDraw 0x22E
@@ -164,7 +164,7 @@ void Clipper_ProcessTriangle(struct OutputVertex *v0, struct OutputVertex *v1, s
 
 //rasterizer.c
 void rasterizer_ProcessTriangle(const struct OutputVertex *v0,
-    const struct OutputVertex * v1,
-    const struct OutputVertex * v2);
-    
+                                const struct OutputVertex * v1,
+                                const struct OutputVertex * v2);
+
 #endif

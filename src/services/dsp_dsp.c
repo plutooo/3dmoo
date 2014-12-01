@@ -134,10 +134,8 @@ u32 dsp_dsp_SyncRequest()
 
         u32 initialSize = ReadPipeIfPossibleCount;
 
-        for (u32 i = 0; i < size; i += 2)
-        {
-            if (ReadPipeIfPossibleCount < 16)
-            {
+        for (u32 i = 0; i < size; i += 2) {
+            if (ReadPipeIfPossibleCount < 16) {
                 mem_Write16(buffer + i, ReadPipeIfPossibleResp[ReadPipeIfPossibleCount]);
             }
             ReadPipeIfPossibleCount++;
@@ -154,7 +152,7 @@ u32 dsp_dsp_SyncRequest()
         mem_Write32(arm11_ServiceBufferAddress() + 0x84, 0); //no error
         return 0;
     }
-    case 0x00190040: { //GetVirtualAddress 
+    case 0x00190040: { //GetVirtualAddress
         u32 addr = mem_Read32(arm11_ServiceBufferAddress() + 0x84);
         DEBUG("GetVirtualAddress %08X\n", addr);
         u32 ret = 0;
@@ -164,7 +162,7 @@ u32 dsp_dsp_SyncRequest()
         mem_Write32(arm11_ServiceBufferAddress() + 0x88, ret);
         return 0;
     }
-    case 0x001f0000: { //GetHeadphoneStatus 
+    case 0x001f0000: { //GetHeadphoneStatus
         DEBUG("GetHeadphoneStatus\n");
         mem_Write32(arm11_ServiceBufferAddress() + 0x84, 0); //no error
         mem_Write32(arm11_ServiceBufferAddress() + 0x88, 0); //no

@@ -44,8 +44,7 @@ SERVICE_CMD(0x00010140)   // Initialize
     CSND_sharedmem = (u8*)malloc(CSND_sharedmemsize);
 
     // Init some event handles.
-    if (!CSND_mutex)
-    {
+    if (!CSND_mutex) {
         CSND_mutex = handle_New(HANDLE_TYPE_EVENT, HANDLE_SUBEVENT_CSNDEVENT);
         handleinfo* h = handle_Get(CSND_mutex);
         h->locked = true;

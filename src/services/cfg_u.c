@@ -41,8 +41,7 @@ u32 Read32(uint8_t p[4])
 
 u32 getconfigfromNAND(u32 size, u32 id, u32 pointer,u32 filter)
 {
-    if (config_usesys)
-    {
+    if (config_usesys) {
         char p[0x200];
         snprintf(p, 256, "%s/0001001700000000/config", config_sysdataoutpath);
         FILE* fd = fopen(p, "rb");
@@ -51,60 +50,47 @@ u32 getconfigfromNAND(u32 size, u32 id, u32 pointer,u32 filter)
         fread(&numb, 1, 2, fd);
         fread(&unk, 1, 2, fd);
         int i;
-        for (i = 0; i < numb; i++)
-        {
+        for (i = 0; i < numb; i++) {
             config_block conf;
             fread(&conf, 1, sizeof(conf), fd);
-            if (id == Read32(conf.BlkID))
-            {
+            if (id == Read32(conf.BlkID)) {
                 u16 asize = (conf.size[0]) | (conf.size[1] << 8);
                 u16 flags = (conf.flags[0]) | (conf.flags[1] << 8);
                 u16 readsize = size < asize ? size : asize;
                 DEBUG("found %04x %04x\n", asize,flags);
-                if (filter & flags)
-                {
-                    if (size <= 4)
-                    {
-                        for (int j = 0; j < readsize; j++)
-                        {
+                if (filter & flags) {
+                    if (size <= 4) {
+                        for (int j = 0; j < readsize; j++) {
                             mem_Write8(pointer + j, conf.offset[j]);
                         }
-                    }
-                    else
-                    {
+                    } else {
                         u8 abuffer[0x8000]; //max size
                         long temp = ftell(fd);
                         fseek(fd, Read32(conf.offset), SEEK_SET);
                         fread(abuffer, 1, readsize, fd);
-                        for (int j = 0; j < readsize; j++)
-                        {
+                        for (int j = 0; j < readsize; j++) {
                             mem_Write8(pointer + j, abuffer[j]);
                         }
                         fseek(fd, temp, SEEK_SET);
                     }
                     break;
-                }
-                else
-                {
+                } else {
                     DEBUG("filtered out\n");
                 }
             }
         }
-        if (numb == i)
-        {
+        if (numb == i) {
             DEBUG("error not found\n");
         }
         fclose(fd);
-    }
-    else
-    {
+    } else {
         switch (id) {
         case 0x00070001:// Sound Mode?
-                mem_Write8(pointer, 0);
-                break;
+            mem_Write8(pointer, 0);
+            break;
         case 0x000A0002: // Language
-                mem_Write8(pointer, 1); // 1=English
-                break;
+            mem_Write8(pointer, 1); // 1=English
+            break;
         case 0x000B0000: // CountryInfo
             mem_Write8(pointer, 1); //?
             mem_Write8(pointer + 1, 1); //?

@@ -129,17 +129,14 @@ static u32 sdmcfile_SetSize(file_type* self, u64 sz)
     FILE* fd = self->type_specific.sysdata.fd;
     u64 current_size = self->type_specific.sysdata.sz;
 
-    if (sz >= current_size)
-    {
+    if (sz >= current_size) {
         if (fseek64(fd, sz-1, SEEK_SET) == -1) {
             ERROR("fseek failed.\n");
             return -1;
         }
         u8 dummy = 0;
         fwrite(&dummy, 1, 1, fd);
-    }
-    else
-    {
+    } else {
         DEBUG("Truncating a file is unsupported.\n");
     }
 
@@ -165,15 +162,12 @@ static bool sdmc_FileExists(archive* self, file_path path)
     struct stat st;
 
     // Generate path on host file system
-    if (config_has_sdmc)
-    {
+    if (config_has_sdmc) {
         snprintf(p, 256, "%s/%s", config_sdmc_path,
-            fs_PathToString(path.type, path.ptr, path.size, tmp, 256));
-    }
-    else
-    {
+                 fs_PathToString(path.type, path.ptr, path.size, tmp, 256));
+    } else {
         snprintf(p, 256, "sdmc/%s",
-            fs_PathToString(path.type, path.ptr, path.size, tmp, 256));
+                 fs_PathToString(path.type, path.ptr, path.size, tmp, 256));
     }
 
     if(!fs_IsSafePath(p)) {
@@ -191,15 +185,12 @@ static u32 sdmc_OpenFile(archive* self, file_path path, u32 flags, u32 attr)
     char tmp[256];
 
     // Generate path on host file system
-    if (config_has_sdmc)
-    {
+    if (config_has_sdmc) {
         snprintf(p, 256, "%s/%s", config_sdmc_path,
-            fs_PathToString(path.type, path.ptr, path.size, tmp, 256));
-    }
-    else
-    {
+                 fs_PathToString(path.type, path.ptr, path.size, tmp, 256));
+    } else {
         snprintf(p, 256, "sdmc/%s",
-            fs_PathToString(path.type, path.ptr, path.size, tmp, 256));
+                 fs_PathToString(path.type, path.ptr, path.size, tmp, 256));
     }
 
     if(!fs_IsSafePath(p)) {
@@ -208,27 +199,21 @@ static u32 sdmc_OpenFile(archive* self, file_path path, u32 flags, u32 attr)
     }
 
     FILE* fd = fopen(p, "rb");
-    if(fd == NULL) 
-    {
-        if (flags & OPEN_CREATE)
-        {
+    if(fd == NULL) {
+        if (flags & OPEN_CREATE) {
             fd = fopen(p, "wb");
-            if (fd == NULL)
-            {
+            if (fd == NULL) {
                 ERROR("Failed to open/create sdmc, path=%s\n", p);
                 return 0;
             }
-        }
-        else
-        {
-        ERROR("Failed to open sdmc, path=%s\n", p);
-        return 0;
+        } else {
+            ERROR("Failed to open sdmc, path=%s\n", p);
+            return 0;
         }
     }
     fclose(fd);
-    
-    switch (flags& (OPEN_READ | OPEN_WRITE))
-    {
+
+    switch (flags& (OPEN_READ | OPEN_WRITE)) {
     case 0:
         ERROR("Error open without write and read fallback to read only, path=%s\n", p);
         fd = fopen(p, "rb");
@@ -291,17 +276,15 @@ u32 sdmc_ReadDir(dir_type* self, u32 ptr, u32 entrycount, u32* read_out)
 
     while (current < entrycount) {
         errno = 0;
-        if((ent = readdir(self->dir)) == NULL)
-        {
+        if((ent = readdir(self->dir)) == NULL) {
             if (errno == 0) {
                 // Dir empty. Memset region?
                 return 0;
-            }
-            else {
+            } else {
                 ERROR("readdir() failed.\n");
                 return -1;
             }
-        }  
+        }
         current++;
     }
 
@@ -326,27 +309,24 @@ u32 sdmc_ReadDir(dir_type* self, u32 ptr, u32 entrycount, u32* read_out)
         mem_Write8(ptr + 0x216, ' '); // 8.3 file extension
         mem_Write8(ptr + 0x217, ' ');
         mem_Write8(ptr + 0x218, ' ');
-    }
-    else { // Is directory flag
+    } else { // Is directory flag
         mem_Write8(ptr + 0x21C, 0x0);
     }
 
     // XXX: hidden flag @ 0x21D
     // XXX: archive flag @ 0x21E
     // XXX: readonly flag @ 0x21F
-    
-    if(ent->d_type != DT_DIR)
-    {
+
+    if(ent->d_type != DT_DIR) {
         struct stat st;
-        
+
         char path[256];
         snprintf(path, sizeof(path), "%s/%s", self->path, ent->d_name);
-        
+
         if(stat(path, &st) == 0) {
             mem_Write32(ptr + 0x220, st.st_size);
             mem_Write32(ptr + 0x224, (st.st_size>>32));
-        }
-        else {
+        } else {
             ERROR("Failed to stat: %s\n", path);
             return -1;
         }
@@ -363,20 +343,17 @@ static u32 sdmc_OpenDir(archive* self, file_path path)
 
     dir->f_path = path;
     dir->self = self;
-    
+
     // Setup function pointers.
     dir->fnRead = &sdmc_ReadDir;
 
     char tmp[256];
-    if (config_has_sdmc)
-    {
+    if (config_has_sdmc) {
         snprintf(dir->path, 256, "%s/%s", config_sdmc_path,
-            fs_PathToString(path.type, path.ptr, path.size, tmp, 256));
-    }
-    else
-    {
+                 fs_PathToString(path.type, path.ptr, path.size, tmp, 256));
+    } else {
         snprintf(dir->path, 256, "sdmc/%s",
-            fs_PathToString(path.type, path.ptr, path.size, tmp, 256));
+                 fs_PathToString(path.type, path.ptr, path.size, tmp, 256));
     }
 
     dir->dir = opendir(dir->path);
@@ -396,15 +373,12 @@ static u32 sdmc_DeleteFile(archive* self, file_path path)
     char p[256], tmp[256];
 
     // Generate path on host file system
-    if (config_has_sdmc)
-    {
+    if (config_has_sdmc) {
         snprintf(p, 256, "%s/%s", config_sdmc_path,
-            fs_PathToString(path.type, path.ptr, path.size, tmp, 256));
-    }
-    else
-    {
+                 fs_PathToString(path.type, path.ptr, path.size, tmp, 256));
+    } else {
         snprintf(p, 256, "sdmc/%s",
-            fs_PathToString(path.type, path.ptr, path.size, tmp, 256));
+                 fs_PathToString(path.type, path.ptr, path.size, tmp, 256));
     }
 
     if (!fs_IsSafePath(p)) {
@@ -420,19 +394,16 @@ static int sdmc_Rename(archive* self, file_path srcpath, file_path dstpath)
     char p[256], p2[256], tmp[256];
 
     // Generate path on host file system
-    if (config_has_sdmc)
-    {
+    if (config_has_sdmc) {
         snprintf(p, 256, "%s/%s", config_sdmc_path,
-            fs_PathToString(srcpath.type, srcpath.ptr, srcpath.size, tmp, 256));
+                 fs_PathToString(srcpath.type, srcpath.ptr, srcpath.size, tmp, 256));
         snprintf(p2, 256, "%s/%s", config_sdmc_path,
-            fs_PathToString(dstpath.type, dstpath.ptr, dstpath.size, tmp, 256));
-    }
-    else
-    {
+                 fs_PathToString(dstpath.type, dstpath.ptr, dstpath.size, tmp, 256));
+    } else {
         snprintf(p, 256, "sdmc/%s",
-            fs_PathToString(srcpath.type, srcpath.ptr, srcpath.size, tmp, 256));
+                 fs_PathToString(srcpath.type, srcpath.ptr, srcpath.size, tmp, 256));
         snprintf(p2, 256, "sdmc/%s",
-            fs_PathToString(dstpath.type, dstpath.ptr, dstpath.size, tmp, 256));
+                 fs_PathToString(dstpath.type, dstpath.ptr, dstpath.size, tmp, 256));
     }
 
     if (!fs_IsSafePath(p) || !fs_IsSafePath(p2)) {
@@ -448,15 +419,12 @@ int sdmc_CreateDir(archive* self, file_path path)
     char p[256], tmp[256];
 
     // Generate path on host file system
-    if (config_has_sdmc)
-    {
+    if (config_has_sdmc) {
         snprintf(p, 256, "%s/%s", config_sdmc_path,
-            fs_PathToString(path.type, path.ptr, path.size, tmp, 256));
-    }
-    else
-    {
+                 fs_PathToString(path.type, path.ptr, path.size, tmp, 256));
+    } else {
         snprintf(p, 256, "sdmc/%s",
-            fs_PathToString(path.type, path.ptr, path.size, tmp, 256));
+                 fs_PathToString(path.type, path.ptr, path.size, tmp, 256));
     }
 
     if (!fs_IsSafePath(p)) {
@@ -471,15 +439,12 @@ int sdmc_DeleteDir(archive* self, file_path path)
     char p[256], tmp[256];
 
     // Generate path on host file system
-    if (config_has_sdmc)
-    {
+    if (config_has_sdmc) {
         snprintf(p, 256, "%s/%s", config_sdmc_path,
-            fs_PathToString(path.type, path.ptr, path.size, tmp, 256));
-    }
-    else
-    {
+                 fs_PathToString(path.type, path.ptr, path.size, tmp, 256));
+    } else {
         snprintf(p, 256, "sdmc/%s",
-            fs_PathToString(path.type, path.ptr, path.size, tmp, 256));
+                 fs_PathToString(path.type, path.ptr, path.size, tmp, 256));
     }
 
     if (!fs_IsSafePath(p)) {

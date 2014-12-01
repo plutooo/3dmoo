@@ -147,8 +147,7 @@ clean:
     return 0;
 }
 
-struct _3DSX_LoadInfo
-{
+struct _3DSX_LoadInfo {
     void* segPtrs[3]; // code, rodata & data
     u32 segAddrs[3];
     u32 segSizes[3];
@@ -168,8 +167,7 @@ int Load3DSXFile(FILE* f, u32 baseAddr)
     u32 i, j, k, m;
 
     _3DSX_Header hdr;
-    if (fread(&hdr, sizeof(hdr), 1, f) != 1)
-    {
+    if (fread(&hdr, sizeof(hdr), 1, f) != 1) {
         ERROR("error reading 3DSX header");
         return 2;
     }
@@ -188,8 +186,7 @@ int Load3DSXFile(FILE* f, u32 baseAddr)
     ESWAP(bssSize, word);
 #undef ESWAP
 
-    if (hdr.magic != _3DSX_MAGIC)
-    {
+    if (hdr.magic != _3DSX_MAGIC) {
         ERROR("error not a 3DSX file");
         return 3;
     }
@@ -219,25 +216,21 @@ int Load3DSXFile(FILE* f, u32 baseAddr)
     u32* relocs = (u32*)((char*)d.segPtrs[2] + hdr.dataSegSize);
 
     for (i = 0; i < 3; i++)
-    if (fread(&relocs[i*nRelocTables], nRelocTables * 4, 1, f) != 1)
-    {
-        ERROR("error reading reloc header");
-        return 4;
-    }
+        if (fread(&relocs[i*nRelocTables], nRelocTables * 4, 1, f) != 1) {
+            ERROR("error reading reloc header");
+            return 4;
+        }
 
     // Read the segments
-    if (fread(d.segPtrs[0], hdr.codeSegSize, 1, f) != 1)
-    {
+    if (fread(d.segPtrs[0], hdr.codeSegSize, 1, f) != 1) {
         ERROR("error reading code");
         return 5;
     }
-    if (fread(d.segPtrs[1], hdr.rodataSegSize, 1, f) != 1)
-    {
+    if (fread(d.segPtrs[1], hdr.rodataSegSize, 1, f) != 1) {
         ERROR("error reading rodata");
         return 5;
     }
-    if (fread(d.segPtrs[2], hdr.dataSegSize - hdr.bssSize, 1, f) != 1)
-    {
+    if (fread(d.segPtrs[2], hdr.dataSegSize - hdr.bssSize, 1, f) != 1) {
         ERROR("error reading data");
         return 5;
     }
@@ -246,13 +239,10 @@ int Load3DSXFile(FILE* f, u32 baseAddr)
     memset((char*)d.segPtrs[2] + hdr.dataSegSize - hdr.bssSize, 0, hdr.bssSize);
 
     // Relocate the segments
-    for (i = 0; i < 3; i++)
-    {
-        for (j = 0; j < nRelocTables; j++)
-        {
+    for (i = 0; i < 3; i++) {
+        for (j = 0; j < nRelocTables; j++) {
             u32 nRelocs = le_word(relocs[i*nRelocTables + j]);
-            if (j >= 2)
-            {
+            if (j >= 2) {
                 // We are not using this table - ignore it
                 fseek(f, nRelocs*sizeof(_3DSX_Reloc), SEEK_CUR);
                 continue;
@@ -264,28 +254,28 @@ int Load3DSXFile(FILE* f, u32 baseAddr)
             u32* pos = (u32*)d.segPtrs[i];
             u32* endPos = pos + (d.segSizes[i] / 4);
 
-            while (nRelocs)
-            {
+            while (nRelocs) {
                 u32 toDo = nRelocs > RELOCBUFSIZE ? RELOCBUFSIZE : nRelocs;
                 nRelocs -= toDo;
 
                 if (fread(relocTbl, toDo*sizeof(_3DSX_Reloc), 1, f) != 1)
                     return 6;
 
-                for (k = 0; k < toDo && pos < endPos; k++)
-                {
+                for (k = 0; k < toDo && pos < endPos; k++) {
                     //DEBUG("(t=%d,skip=%u,patch=%u)\n", j, (u32)relocTbl[k].skip, (u32)relocTbl[k].patch);
                     pos += le_hword(relocTbl[k].skip);
                     u32 num_patches = le_hword(relocTbl[k].patch);
-                    for (m = 0; m < num_patches && pos < endPos; m++)
-                    {
+                    for (m = 0; m < num_patches && pos < endPos; m++) {
                         u32 inAddr = (char*)pos - (char*)allMem;
                         u32 addr = TranslateAddr(le_word(*pos), &d, offsets);
                         //DEBUG("Patching %08X <-- rel(%08X,%d) (%08X)\n", baseAddr + inAddr, addr, j, le_word(*pos));
-                        switch (j)
-                        {
-                        case 0: *pos = le_word(addr); break;
-                        case 1: *pos = le_word(addr - inAddr); break;
+                        switch (j) {
+                        case 0:
+                            *pos = le_word(addr);
+                            break;
+                        case 1:
+                            *pos = le_word(addr - inAddr);
+                            break;
                         }
                         pos++;
                     }
@@ -295,8 +285,7 @@ int Load3DSXFile(FILE* f, u32 baseAddr)
     }
 
     // Write the data
-    if (mem_AddSegment(baseAddr, d.segSizes[0] + d.segSizes[1] + d.segSizes[2], allMem))
-    {
+    if (mem_AddSegment(baseAddr, d.segSizes[0] + d.segSizes[1] + d.segSizes[2], allMem)) {
         ERROR("error in AddSegment");
         return 7;
     }
@@ -316,7 +305,7 @@ static u32 LoadElfFile(u8 *addr)
     u32 *phdr = (u32*) (addr + Read32((u8*) &header[7]));
     u32 n = Read32((u8*)&header[11]) &0xFFFF;
     u32 i;
-    
+
     for (i = 0; i < n; i++, phdr += 8) {
         if (phdr[0] != 1) // PT_LOAD
             continue;
@@ -454,19 +443,13 @@ int loader_LoadFile(FILE* fd)
     }
 
     ctr_aes_context ctx;
-    if (!memcmp(ex.arm11systemlocalcaps.programid, loader_h.programid, 8))
-    {
+    if (!memcmp(ex.arm11systemlocalcaps.programid, loader_h.programid, 8)) {
         // program id's match, so it's probably not encrypted
         loader_encrypted = false;
-    }
-    else if (loader_h.flags[7] & 4)
-    {
+    } else if (loader_h.flags[7] & 4) {
         loader_encrypted = false; // not encrypted
-    }
-    else if (loader_h.flags[7] & 1)
-    {
-        if (programid_is_system(loader_h.programid))
-        {
+    } else if (loader_h.flags[7] & 1) {
+        if (programid_is_system(loader_h.programid)) {
             // fixed system key
 #ifdef NYUU_DEC
             Nyuu_getkey(NINKEY_TYPE_FIX,&loader_h,loader_key);
@@ -475,16 +458,12 @@ int loader_LoadFile(FILE* fd)
             ERROR("Fixed system key not included in 3dmoo\n");
             return 1;
 #endif
-        }
-        else
-        {
+        } else {
             // null key
             loader_encrypted = true;
             memset(loader_key, 0, 0x10);
         }
-    }
-    else
-    {
+    } else {
         // secure key (cannot decrypt!)
         loader_encrypted = true;
 #ifdef NYUU_DEC
@@ -494,8 +473,7 @@ int loader_LoadFile(FILE* fd)
         return 1;
 #endif
     }
-    if (loader_encrypted)
-    {
+    if (loader_encrypted) {
         ncch_extract_prepare(&ctx, &loader_h, NCCHTYPE_EXHEADER, loader_key);
         ctr_crypt_counter(&ctx,&ex, &ex, sizeof(ex));
     }
@@ -520,8 +498,7 @@ int loader_LoadFile(FILE* fd)
         ERROR("failed to read ExeFS header.\n");
         return 1;
     }
-    if (loader_encrypted)
-    {
+    if (loader_encrypted) {
         ncch_extract_prepare(&ctx, &loader_h, NCCHTYPE_EXEFS, loader_key);
         ctr_crypt_counter(&ctx, &eh, &eh, sizeof(eh));
     }
@@ -559,8 +536,7 @@ int loader_LoadFile(FILE* fd)
                 return 1;
             }
 
-            if (loader_encrypted)
-            {
+            if (loader_encrypted) {
                 ncch_extract_prepare(&ctx, &loader_h, NCCHTYPE_EXEFS, loader_key);
                 ctr_add_counter(&ctx, (sec_off - (exefs_off)) / 0x10);
                 ctr_crypt_counter(&ctx, sec, sec, sec_size);

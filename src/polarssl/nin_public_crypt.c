@@ -21,13 +21,13 @@ u32 getle16(const u8* p)
     return (p[0] << 0) | (p[1] << 8);
 }
 void ctr_set_counter(ctr_aes_context* ctx,
-    u8 ctr[16])
+                     u8 ctr[16])
 {
     memcpy(ctx->ctr, ctr, 16);
 }
 
 void ctr_add_counter(ctr_aes_context* ctx,
-    u32 carry)
+                     u32 carry)
 {
     u32 counter[4];
     u32 sum;
@@ -36,8 +36,7 @@ void ctr_add_counter(ctr_aes_context* ctx,
     for (i = 0; i<4; i++)
         counter[i] = (ctx->ctr[i * 4 + 0] << 24) | (ctx->ctr[i * 4 + 1] << 16) | (ctx->ctr[i * 4 + 2] << 8) | (ctx->ctr[i * 4 + 3] << 0);
 
-    for (i = 3; i >= 0; i--)
-    {
+    for (i = 3; i >= 0; i--) {
         sum = counter[i] + carry;
 
         if (sum < counter[i])
@@ -48,8 +47,7 @@ void ctr_add_counter(ctr_aes_context* ctx,
         counter[i] = sum;
     }
 
-    for (i = 0; i<4; i++)
-    {
+    for (i = 0; i<4; i++) {
         ctx->ctr[i * 4 + 0] = counter[i] >> 24;
         ctx->ctr[i * 4 + 1] = counter[i] >> 16;
         ctx->ctr[i * 4 + 2] = counter[i] >> 8;
@@ -58,16 +56,16 @@ void ctr_add_counter(ctr_aes_context* ctx,
 }
 
 void ctr_init_counter(ctr_aes_context* ctx,
-    u8 key[16],
-    u8 ctr[16])
+                      u8 key[16],
+                      u8 ctr[16])
 {
     aes_setkey_enc(&ctx->aes, key, 128);
     ctr_set_counter(ctx, ctr);
 }
 
 void ctr_crypt_counter_block(ctr_aes_context* ctx,
-    u8 input[16],
-    u8 output[16])
+                             u8 input[16],
+                             u8 output[16])
 {
     int i;
     u8 stream[16];
@@ -76,15 +74,11 @@ void ctr_crypt_counter_block(ctr_aes_context* ctx,
     aes_crypt_ecb(&ctx->aes, AES_ENCRYPT, ctx->ctr, stream);
 
 
-    if (input)
-    {
-        for (i = 0; i<16; i++)
-        {
+    if (input) {
+        for (i = 0; i<16; i++) {
             output[i] = stream[i] ^ input[i];
         }
-    }
-    else
-    {
+    } else {
         for (i = 0; i<16; i++)
             output[i] = stream[i];
     }
@@ -93,15 +87,14 @@ void ctr_crypt_counter_block(ctr_aes_context* ctx,
 }
 
 void ctr_crypt_counter(ctr_aes_context* ctx,
-    u8* input,
-    u8* output,
-    u32 size)
+                       u8* input,
+                       u8* output,
+                       u32 size)
 {
     u8 stream[16];
     u32 i;
 
-    while (size >= 16)
-    {
+    while (size >= 16) {
         ctr_crypt_counter_block(ctx, input, output);
 
         if (input)
@@ -112,18 +105,14 @@ void ctr_crypt_counter(ctr_aes_context* ctx,
         size -= 16;
     }
 
-    if (size)
-    {
+    if (size) {
         memset(stream, 0, 16);
         ctr_crypt_counter_block(ctx, stream, stream);
 
-        if (input)
-        {
+        if (input) {
             for (i = 0; i<size; i++)
                 output[i] = input[i] ^ stream[i];
-        }
-        else
-        {
+        } else {
             memcpy(output, stream, size);
         }
     }
@@ -145,14 +134,11 @@ void ncch_get_counter(ctr_ncchheader* h, u8 counter[16], u8 type)
 
     memset(counter, 0, 16);
 
-    if (version == 2 || version == 0)
-    {
+    if (version == 2 || version == 0) {
         for (i = 0; i<8; i++)
             counter[i] = partitionid[7 - i];
         counter[8] = type;
-    }
-    else if (version == 1)
-    {
+    } else if (version == 1) {
         if (type == NCCHTYPE_EXHEADER)
             x = 0x200;
         else if (type == NCCHTYPE_EXEFS)

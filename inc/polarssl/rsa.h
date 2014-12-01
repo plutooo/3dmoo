@@ -123,8 +123,7 @@
 /**
  * \brief          RSA context structure
  */
-typedef struct
-{
+typedef struct {
     int ver;                    /*!<  always 0          */
     int len;                    /*!<  size(N) in chars  */
 
@@ -284,7 +283,7 @@ int rsa_pkcs1_decrypt( rsa_context *ctx,
                        int mode, int *olen,
                        const unsigned char *input,
                        unsigned char *output,
-		               int output_max_len );
+                       int output_max_len );
 
 /**
  * \brief          Do a private RSA to sign a message digest

@@ -160,27 +160,21 @@ static u32 sharedextd_OpenFile(archive* self, file_path path, u32 flags, u32 att
     }
 
     FILE* fd = fopen(p, "rb");
-    if (fd == NULL)
-    {
-        if (flags & OPEN_CREATE)
-        {
+    if (fd == NULL) {
+        if (flags & OPEN_CREATE) {
             fd = fopen(p, "wb");
-            if (fd == NULL)
-            {
+            if (fd == NULL) {
                 ERROR("Failed to open/create sharedexd, path=%s\n", p);
                 return 0;
             }
-        }
-        else
-        {
+        } else {
             ERROR("Failed to open sharedexd, path=%s\n", p);
             return 0;
         }
     }
     fclose(fd);
 
-    switch (flags& (OPEN_READ | OPEN_WRITE))
-    {
+    switch (flags& (OPEN_READ | OPEN_WRITE)) {
     case 0:
         ERROR("Error open without write and read fallback to read only, path=%s\n", p);
         fd = fopen(p, "rb");
@@ -241,8 +235,8 @@ static u32 sharedextd_DeleteFile(archive* self, file_path path)
 
     // Generate path on host file system
     snprintf(p, 256, "sys/shared/%s/%s",
-        self->type_specific.sharedextd.path,
-        fs_PathToString(path.type, path.ptr, path.size, tmp, 256));
+             self->type_specific.sharedextd.path,
+             fs_PathToString(path.type, path.ptr, path.size, tmp, 256));
 
     if (!fs_IsSafePath(p)) {
         ERROR("Got unsafe path.\n");
@@ -258,8 +252,8 @@ int sharedextd_DeleteDir(archive* self, file_path path)
 
     // Generate path on host file system
     snprintf(p, 256, "sys/shared/%s/%s",
-        self->type_specific.sharedextd.path,
-        fs_PathToString(path.type, path.ptr, path.size, tmp, 256));
+             self->type_specific.sharedextd.path,
+             fs_PathToString(path.type, path.ptr, path.size, tmp, 256));
 
     if (!fs_IsSafePath(p)) {
         ERROR("Got unsafe path.\n");

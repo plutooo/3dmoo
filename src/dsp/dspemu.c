@@ -94,11 +94,10 @@ u16 DSPread16_16(u16 addr)
 
 s32 getlastbit(u32 val)
 {
-    for (s32 i = 31; i >= 0; --i) 
-    {
+    for (s32 i = 31; i >= 0; --i) {
         if (val & (1 << i)) return i;
     }
-    
+
     return -1;
 }
 void updatecmpflags(u32 data, u8 MSB, bool v, bool c)

@@ -103,7 +103,7 @@ ARMword ARMul_ReadWord (ARMul_State * state, ARMword address)
     ARMword data;
 
 #ifdef GDB_STUB
-        gdb_memio->read32(gdb_memio->data, address);
+    gdb_memio->read32(gdb_memio->data, address);
 #endif
     data = mem_Read32(address);
     /*if (fault) {

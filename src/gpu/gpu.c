@@ -26,7 +26,7 @@
 #include "gpu.h"
 #include <math.h>
 
-//#define GSP_ENABLE_LOG
+#define GSP_ENABLE_LOG
 
 u32 GPU_Regs[0xFFFF]; //do they all exist don't know but well
 
@@ -101,10 +101,8 @@ u32 unknownaddr = 0;
 void updateGPUintreg(u32 data,u32 ID,u8 mask)
 {
     int i;
-    for (i = 0; i < 4; i++)
-    {
-        if (mask&(1 << i))
-        {
+    for (i = 0; i < 4; i++) {
+        if (mask&(1 << i)) {
             GPU_Regs[ID] = (GPU_Regs[ID] & ~(0xFF << (8 * i))) | (data & (0xFF << (8 * i)));
         }
     }
@@ -130,39 +128,36 @@ struct VertexShaderState {
     u32* program_counter;
     u32* program_counter_end;
 
-	//Registers are like this:
-	//name			nr component	count	R/W		Nr Bits
-	//-----------------------------------------------------
-	//input			4				16		R		24
-	//temp			4				16		RW		24
-	//float const	4				96		R		24
-	//address		2				1		RW		8
-	//boolean		1				16		R		1
-	//integer		1				4		R		24
-	//loop counter	1				1		R		8
-	//output		4				16		W		24
-	//status		1				2		RW		1
-    
+    //Registers are like this:
+    //name			nr component	count	R/W		Nr Bits
+    //-----------------------------------------------------
+    //input			4				16		R		24
+    //temp			4				16		RW		24
+    //float const	4				96		R		24
+    //address		2				1		RW		8
+    //boolean		1				16		R		1
+    //integer		1				4		R		24
+    //loop counter	1				1		R		8
+    //output		4				16		W		24
+    //status		1				2		RW		1
+
     float* input_register_table[16];
     float* output_register_table[7 * 4];
-    
+
     struct vec4  temporary_registers[16];
     bool boolean_registers[16];
     bool status_registers[2];
     s8  address_registers[4];
-    
+
     u32 call_stack[16]; // TODO: What is the maximal call stack depth?
     u32* call_stack_pointer;
 };
 
 u32 getattribute_register_map(u32 reg,u32 data1,u32 data2)
 {
-    if (reg < 8)
-    {
+    if (reg < 8) {
         return (data1 >> (reg*4))&0xF;
-    }
-    else
-    {
+    } else {
         return (data2 >> (reg * 4)) & 0xF;
     }
 }
@@ -184,8 +179,7 @@ void PrimitiveAssembly_SubmitVertex(struct OutputVertex* vtx)
         if (buffer_index < 2) {
             memcpy(&buffer[buffer_index++], vtx, sizeof(struct OutputVertex));
             //buffer[buffer_index++] = vtx;
-        }
-        else {
+        } else {
             buffer_index = 0;
 
             Clipper_ProcessTriangle(&buffer[0], &buffer[1], vtx);
@@ -196,34 +190,32 @@ void PrimitiveAssembly_SubmitVertex(struct OutputVertex* vtx)
         if (buffer_index == 2) {
             buffer_index = 0;
 
-           Clipper_ProcessTriangle(&buffer[0], &buffer[1], vtx);
+            Clipper_ProcessTriangle(&buffer[0], &buffer[1], vtx);
 
             //buffer[1] = vtx;
-           memcpy(&buffer[1], vtx, sizeof(struct OutputVertex));
-        }
-        else {
+            memcpy(&buffer[1], vtx, sizeof(struct OutputVertex));
+        } else {
             //buffer[buffer_index++] = vtx;
             memcpy(&buffer[buffer_index++], vtx, sizeof(struct OutputVertex));
         }
         break;
 
-      case 1: //Strip
-             if (buffer_index < 2) {
-                //buffer[buffer_index++] = vtx;
-                 memcpy(&buffer[buffer_index++], vtx, sizeof(struct OutputVertex));
-            }
-            else {
-                Clipper_ProcessTriangle(&buffer[0], &buffer[1], vtx);
-                // TODO: This could be done a lot more efficiently...
-                /*buffer[buffer_index] = vtx;
-                std::swap(buffer[0], buffer[1]);
-                std::swap(buffer[1], buffer[2]);*/
-                /*buffer[0] = buffer[1];
-                buffer[1] = vtx;*/
-                memcpy(&buffer[0], &buffer[1], sizeof(struct OutputVertex));
-                memcpy(&buffer[1], vtx, sizeof(struct OutputVertex));
-            }
-            break;
+    case 1: //Strip
+        if (buffer_index < 2) {
+            //buffer[buffer_index++] = vtx;
+            memcpy(&buffer[buffer_index++], vtx, sizeof(struct OutputVertex));
+        } else {
+            Clipper_ProcessTriangle(&buffer[0], &buffer[1], vtx);
+            // TODO: This could be done a lot more efficiently...
+            /*buffer[buffer_index] = vtx;
+            std::swap(buffer[0], buffer[1]);
+            std::swap(buffer[1], buffer[2]);*/
+            /*buffer[0] = buffer[1];
+            buffer[1] = vtx;*/
+            memcpy(&buffer[0], &buffer[1], sizeof(struct OutputVertex));
+            memcpy(&buffer[1], vtx, sizeof(struct OutputVertex));
+        }
+        break;
     default:
         GPUDEBUG("Unknown triangle mode %x\n", (int)topology);
         break;
@@ -307,23 +299,29 @@ bool swizzle_DestComponentEnabled(int i, u32 swizzle)
 
 static bool ShaderCMP(float a, float b, u32 mode)
 {
-	//Not 100% sure:
-	switch (mode)
-	{
-	case 0: return a == b;
-	case 1: return a != b;
-	case 2: return a < b;
-	case 3: return a <= b;
-	case 4: return a > b;
-	case 5: return a >= b;
-	}
-	//This is not possible!
-	return false;
+    //Not 100% sure:
+    switch (mode) {
+    case 0:
+        return a == b;
+    case 1:
+        return a != b;
+    case 2:
+        return a < b;
+    case 3:
+        return a <= b;
+    case 4:
+        return a > b;
+    case 5:
+        return a >= b;
+    }
+    //This is not possible!
+    return false;
 }
 
 #define printfunc
 
-void ProcessShaderCode(struct VertexShaderState* state) {
+void ProcessShaderCode(struct VertexShaderState* state)
+{
     while (true) {
         bool increment_pc = true;
         bool exit_loop = false;
@@ -332,18 +330,18 @@ void ProcessShaderCode(struct VertexShaderState* state) {
         s8 idx = state->address_registers[instr_common_idx(instr)];
         u32 instr_common_src1v = instr_common_src1(instr) + idx;
         const float* src1_ = (instr_common_src1v < 0x10) ? state->input_register_table[instr_common_src1v]
-            : (instr_common_src1v < 0x20) ? &state->temporary_registers[instr_common_src1v - 0x10].v[0]
-            : (instr_common_src1v < 0x80) ? &vectors[instr_common_src1v - 0x20].v[0]
-            : (float*)0;
+                             : (instr_common_src1v < 0x20) ? &state->temporary_registers[instr_common_src1v - 0x10].v[0]
+                             : (instr_common_src1v < 0x80) ? &vectors[instr_common_src1v - 0x20].v[0]
+                             : (float*)0;
 
         u32 instr_common_src2v = instr_common_src2(instr);
         const float* src2_ = (instr_common_src2v < 0x10) ? state->input_register_table[instr_common_src2v]
-            : &state->temporary_registers[instr_common_src2v - 0x10].v[0];
+                             : &state->temporary_registers[instr_common_src2v - 0x10].v[0];
         u32 instr_common_destv = instr_common_dest(instr);
         float* dest = (instr_common_destv < 8) ? state->output_register_table[4 * instr_common_destv]
-            : (instr_common_destv < 0x10) ? (float*)0
-            : (instr_common_destv < 0x20) ? &state->temporary_registers[instr_common_destv - 0x10].v[0]
-            : (float*)0;
+                      : (instr_common_destv < 0x10) ? (float*)0
+                      : (instr_common_destv < 0x20) ? &state->temporary_registers[instr_common_destv - 0x10].v[0]
+                      : (float*)0;
 
         u32 swizzle = swizzle_data[instr_common_operand_desc_id(instr)];
 
@@ -371,167 +369,156 @@ void ProcessShaderCode(struct VertexShaderState* state) {
         DEBUG("opcode: %08x\n", instr);
 #endif
         switch (instr_opcode(instr)) {
-        case SHDR_ADD:
-        {
+        case SHDR_ADD: {
 #ifdef printfunc
-                         DEBUG("ADD %02X %02X %02X %08x\n", instr_common_destv, instr_common_src1v, instr_common_src2v, swizzle);
+            DEBUG("ADD %02X %02X %02X %08x\n", instr_common_destv, instr_common_src1v, instr_common_src2v, swizzle);
 #endif
-                                         for (int i = 0; i < 4; ++i) {
-                                             if (!swizzle_DestComponentEnabled(i, swizzle))
-                                                 continue;
+            for (int i = 0; i < 4; ++i) {
+                if (!swizzle_DestComponentEnabled(i, swizzle))
+                    continue;
 
-                                             dest[i] = src1[i] + src2[i];
-                                         }
+                dest[i] = src1[i] + src2[i];
+            }
 
-                                         break;
+            break;
         }
         case SHDR_DP3:
-        case SHDR_DP4:
-        {
+        case SHDR_DP4: {
 #ifdef printfunc
-                         DEBUG("DP3/4 %02X %02X %02X %08x\n", instr_common_destv, instr_common_src1v, instr_common_src2v, swizzle);
+            DEBUG("DP3/4 %02X %02X %02X %08x\n", instr_common_destv, instr_common_src1v, instr_common_src2v, swizzle);
 #endif
-                                         float dot = (0.f);
-                                         int num_components = (instr_opcode(instr) == SHDR_DP3) ? 3 : 4;
-                                         for (int i = 0; i < num_components; ++i)
-                                             dot = dot + src1[i] * src2[i];
+            float dot = (0.f);
+            int num_components = (instr_opcode(instr) == SHDR_DP3) ? 3 : 4;
+            for (int i = 0; i < num_components; ++i)
+                dot = dot + src1[i] * src2[i];
 
-                                         for (int i = 0; i < num_components; ++i) {
-                                             if (!swizzle_DestComponentEnabled(i, swizzle))
-                                                 continue;
+            for (int i = 0; i < num_components; ++i) {
+                if (!swizzle_DestComponentEnabled(i, swizzle))
+                    continue;
 
-                                             dest[i] = dot;
-                                         }
-                                         break;
+                dest[i] = dot;
+            }
+            break;
         }
-		case SHDR_DST:
-		{
+        case SHDR_DST: {
 #ifdef printfunc
-			DEBUG("DST %02X %02X %02X %08x\n", instr_common_destv, instr_common_src1v, instr_common_src2v, swizzle);
+            DEBUG("DST %02X %02X %02X %08x\n", instr_common_destv, instr_common_src1v, instr_common_src2v, swizzle);
 #endif
-			if (swizzle_DestComponentEnabled(0, swizzle)) dest[0] = 1;
-			if (swizzle_DestComponentEnabled(1, swizzle)) dest[1] = src1[1] * src2[1];
-			if (swizzle_DestComponentEnabled(2, swizzle)) dest[2] = src1[2];
-			if (swizzle_DestComponentEnabled(3, swizzle)) dest[3] = src2[3];
-			break;
-		}
-		case SHDR_EXP:
-		{
+            if (swizzle_DestComponentEnabled(0, swizzle)) dest[0] = 1;
+            if (swizzle_DestComponentEnabled(1, swizzle)) dest[1] = src1[1] * src2[1];
+            if (swizzle_DestComponentEnabled(2, swizzle)) dest[2] = src1[2];
+            if (swizzle_DestComponentEnabled(3, swizzle)) dest[3] = src2[3];
+            break;
+        }
+        case SHDR_EXP: {
 #ifdef printfunc
-			DEBUG("EXP %02X %02X %02X %08x\n", instr_common_destv, instr_common_src1v, instr_common_src2v, swizzle);
+            DEBUG("EXP %02X %02X %02X %08x\n", instr_common_destv, instr_common_src1v, instr_common_src2v, swizzle);
 #endif
-			for (int i = 0; i < 4; ++i) {
-				if (!swizzle_DestComponentEnabled(i, swizzle))
-					continue;
+            for (int i = 0; i < 4; ++i) {
+                if (!swizzle_DestComponentEnabled(i, swizzle))
+                    continue;
 
-				dest[i] = powf(2.f, src1[0]);
-			}
-			break;
-		}
-		case SHDR_LOG:
-		{
+                dest[i] = powf(2.f, src1[0]);
+            }
+            break;
+        }
+        case SHDR_LOG: {
 #ifdef printfunc
-			DEBUG("LOG %02X %02X %02X %08x\n", instr_common_destv, instr_common_src1v, instr_common_src2v, swizzle);
+            DEBUG("LOG %02X %02X %02X %08x\n", instr_common_destv, instr_common_src1v, instr_common_src2v, swizzle);
 #endif
-			for (int i = 0; i < 4; ++i) {
-				if (!swizzle_DestComponentEnabled(i, swizzle))
-					continue;
+            for (int i = 0; i < 4; ++i) {
+                if (!swizzle_DestComponentEnabled(i, swizzle))
+                    continue;
 
-				dest[i] = log2f(src1[0]);
-			}
-			break;
-		}
-		case SHDR_MUL:
-		{
+                dest[i] = log2f(src1[0]);
+            }
+            break;
+        }
+        case SHDR_MUL: {
 #ifdef printfunc
-			DEBUG("MUL %02X %02X %02X %08x\n", instr_common_destv, instr_common_src1v, instr_common_src2v, swizzle);
+            DEBUG("MUL %02X %02X %02X %08x\n", instr_common_destv, instr_common_src1v, instr_common_src2v, swizzle);
 #endif
-			for (int i = 0; i < 4; ++i) {
-				if (!swizzle_DestComponentEnabled(i, swizzle))
-					continue;
+            for (int i = 0; i < 4; ++i) {
+                if (!swizzle_DestComponentEnabled(i, swizzle))
+                    continue;
 
-				dest[i] = src1[i] * src2[i];
-			}
+                dest[i] = src1[i] * src2[i];
+            }
 
-			break;
-		}
-		case SHDR_MAX:
-		{
+            break;
+        }
+        case SHDR_MAX: {
 #ifdef printfunc
-			DEBUG("MAX %02X %02X %02X %08x\n", instr_common_destv, instr_common_src1v, instr_common_src2v, swizzle);
+            DEBUG("MAX %02X %02X %02X %08x\n", instr_common_destv, instr_common_src1v, instr_common_src2v, swizzle);
 #endif
-			for (int i = 0; i < 4; ++i) {
-				if (!swizzle_DestComponentEnabled(i, swizzle))
-					continue;
+            for (int i = 0; i < 4; ++i) {
+                if (!swizzle_DestComponentEnabled(i, swizzle))
+                    continue;
 
-				dest[i] = ((src1[i] > src2[i]) ? src1[i] : src2[i]);
-			}
+                dest[i] = ((src1[i] > src2[i]) ? src1[i] : src2[i]);
+            }
 
-			break;
-		}
-		case SHDR_MIN:
-		{
+            break;
+        }
+        case SHDR_MIN: {
 #ifdef printfunc
-			DEBUG("MIN %02X %02X %02X %08x\n", instr_common_destv, instr_common_src1v, instr_common_src2v, swizzle);
+            DEBUG("MIN %02X %02X %02X %08x\n", instr_common_destv, instr_common_src1v, instr_common_src2v, swizzle);
 #endif
-			for (int i = 0; i < 4; ++i) {
-				if (!swizzle_DestComponentEnabled(i, swizzle))
-					continue;
+            for (int i = 0; i < 4; ++i) {
+                if (!swizzle_DestComponentEnabled(i, swizzle))
+                    continue;
 
-				dest[i] = ((src1[i] < src2[i]) ? src1[i] : src2[i]);
-			}
+                dest[i] = ((src1[i] < src2[i]) ? src1[i] : src2[i]);
+            }
 
-			break;
-		}
-
-            // Reciprocal
-        case SHDR_RCP:
-        {
-#ifdef printfunc
-                         DEBUG("RCP %02X %02X %08x\n", instr_common_destv, instr_common_src1v, swizzle);
-#endif
-                                         for (int i = 0; i < 4; ++i) {
-                                             if (!swizzle_DestComponentEnabled(i, swizzle))
-                                                 continue;
-
-                                             // TODO: Be stable against division by zero!
-                                             // TODO: I think this might be wrong... we should only use one component here
-                                             dest[i] = (1.0f / src1[i]);
-                                         }
-
-                                         break;
+            break;
         }
 
-            // Reciprocal Square Root
-        case SHDR_RSQ:
-        {
+        // Reciprocal
+        case SHDR_RCP: {
 #ifdef printfunc
-                         DEBUG("RSQ %02X %02X %08x\n", instr_common_destv, instr_common_src1v, swizzle);
-#endif     
-                                         for (int i = 0; i < 4; ++i) {
-                                             if (!swizzle_DestComponentEnabled(i, swizzle))
-                                                 continue;
+            DEBUG("RCP %02X %02X %08x\n", instr_common_destv, instr_common_src1v, swizzle);
+#endif
+            for (int i = 0; i < 4; ++i) {
+                if (!swizzle_DestComponentEnabled(i, swizzle))
+                    continue;
 
-                                             // TODO: Be stable against division by zero!
-                                             // TODO: I think this might be wrong... we should only use one component here
-                                             dest[i] = (1.0f / sqrtf(src1[i]));
-                                         }
+                // TODO: Be stable against division by zero!
+                // TODO: I think this might be wrong... we should only use one component here
+                dest[i] = (1.0f / src1[i]);
+            }
 
-                                         break;
+            break;
         }
 
-        case SHDR_MOV:
-        {
+        // Reciprocal Square Root
+        case SHDR_RSQ: {
 #ifdef printfunc
-                         DEBUG("MOV %02X %02X %08x\n", instr_common_destv, instr_common_src1v, swizzle);
-#endif   
-                                         for (int i = 0; i < 4; ++i) {
-                                             if (!swizzle_DestComponentEnabled(i, swizzle))
-                                                 continue;
+            DEBUG("RSQ %02X %02X %08x\n", instr_common_destv, instr_common_src1v, swizzle);
+#endif
+            for (int i = 0; i < 4; ++i) {
+                if (!swizzle_DestComponentEnabled(i, swizzle))
+                    continue;
 
-                                             dest[i] = src1[i];
-                                         }
-                                         break;
+                // TODO: Be stable against division by zero!
+                // TODO: I think this might be wrong... we should only use one component here
+                dest[i] = (1.0f / sqrtf(src1[i]));
+            }
+
+            break;
+        }
+
+        case SHDR_MOV: {
+#ifdef printfunc
+            DEBUG("MOV %02X %02X %08x\n", instr_common_destv, instr_common_src1v, swizzle);
+#endif
+            for (int i = 0; i < 4; ++i) {
+                if (!swizzle_DestComponentEnabled(i, swizzle))
+                    continue;
+
+                dest[i] = src1[i];
+            }
+            break;
         }
 
         case SHDR_RET:
@@ -542,17 +529,16 @@ void ProcessShaderCode(struct VertexShaderState* state) {
             state->call_stack_pointer--;
             if (*state->call_stack_pointer == VertexShaderState_INVALID_ADDRESS) {
                 exit_loop = true;
-            }
-            else {
+            } else {
                 state->program_counter = &GPUshadercodebuffer[*state->call_stack_pointer];
-           }
+            }
 
             break;
 
         case SHDR_CALL:
 #ifdef printfunc
             DEBUG("CALL %08x\n",instr_flow_control_offset_words(instr));
-#endif   
+#endif
             increment_pc = false;
 
             //_dbg_assert_(GPU, state.call_stack_pointer - state.call_stack < sizeof(state.call_stack)); //todo
@@ -566,25 +552,23 @@ void ProcessShaderCode(struct VertexShaderState* state) {
         case SHDR_FLS:
 #ifdef printfunc
             DEBUG("FLS\n");
-#endif   
+#endif
             // TODO: Do whatever needs to be done here?
             break;
-		case SHDR_CMP:
-        case SHDR_CMP2:
-		{
+        case SHDR_CMP:
+        case SHDR_CMP2: {
 #ifdef printfunc
-			DEBUG("CMP\n");
-#endif  
-			//Not 100% sure:
-			u32 mode1 = (instr >> 19) & 0x7;
-			u32 mode2 = (instr >> 22) & 0x7;
-			//This is correct
-			state->status_registers[0] = ShaderCMP(src1[0], src2[0], mode1);
-			state->status_registers[1] = ShaderCMP(src1[1], src2[1], mode2);
-			break;
-		}
-        case SHDR_IFB:
-        {
+            DEBUG("CMP\n");
+#endif
+            //Not 100% sure:
+            u32 mode1 = (instr >> 19) & 0x7;
+            u32 mode2 = (instr >> 22) & 0x7;
+            //This is correct
+            state->status_registers[0] = ShaderCMP(src1[0], src2[0], mode1);
+            state->status_registers[1] = ShaderCMP(src1[1], src2[1], mode2);
+            break;
+        }
+        case SHDR_IFB: {
             u32 addrv = (instr >> 8) & 0x3FFC;
             u32 boolv = (instr >> 22) & 0xF;
             u32 retv = instr & 0x3FF;
@@ -593,11 +577,10 @@ void ProcessShaderCode(struct VertexShaderState* state) {
 
 #ifdef printfunc
             DEBUG("IFB %02X (%s)\n", boolv, condition?"true":"false");
-#endif 
+#endif
 
             //If condition is false skip to else case
-            if (!condition)
-            {
+            if (!condition) {
                 increment_pc = false;
                 state->program_counter = &GPUshadercodebuffer[addrv/4];
                 break;
@@ -616,8 +599,7 @@ void ProcessShaderCode(struct VertexShaderState* state) {
             //state->program_counter = next_pc;
             break;
         }
-		case SHDR_IFC:
-		{
+        case SHDR_IFC: {
             u32 addrv = (instr >> 8) & 0x3FFC;
             u32 flagsv = (instr >> 22) & 0xF;
             u32 retv = instr & 0x3FF;
@@ -627,33 +609,31 @@ void ProcessShaderCode(struct VertexShaderState* state) {
             bool status1 = flagsv & 0x8;
 
             bool condition = false;
-            switch (mode)
-            {
-                case 0: //OR
-                    if ((status0 == state->status_registers[0]) || (status1 == state->status_registers[1]))
-                        condition = true;
-                        break;
-                case 1: //AND
-                    if ((status0 == state->status_registers[0]) && (status1 == state->status_registers[1]))
-                        condition = true;
-                        break;
-                case 2: //Y
-                    if (status0 == state->status_registers[0])
-                        condition = true;
-                        break;
-                case 3: //X
-                    if (status1 == state->status_registers[1])
-                        condition = true;
-                        break;
+            switch (mode) {
+            case 0: //OR
+                if ((status0 == state->status_registers[0]) || (status1 == state->status_registers[1]))
+                    condition = true;
+                break;
+            case 1: //AND
+                if ((status0 == state->status_registers[0]) && (status1 == state->status_registers[1]))
+                    condition = true;
+                break;
+            case 2: //Y
+                if (status0 == state->status_registers[0])
+                    condition = true;
+                break;
+            case 3: //X
+                if (status1 == state->status_registers[1])
+                    condition = true;
+                break;
             }
 
 #ifdef printfunc
             DEBUG("IFC %s\n", condition ? "true" : "false");
-#endif 
+#endif
 
             //If condition is false skip to else case
-            if (!condition)
-            {
+            if (!condition) {
                 increment_pc = false;
                 state->program_counter = &GPUshadercodebuffer[addrv / 4];
                 break;
@@ -670,11 +650,10 @@ void ProcessShaderCode(struct VertexShaderState* state) {
 
             increment_pc = false;
             //state->program_counter = next_pc;
-			break;
-		}
+            break;
+        }
 
-        case SHDR_JPB:
-        {
+        case SHDR_JPB: {
             u32 addrv = (instr >> 8) & 0x3FFC;
             u32 boolv = (instr >> 22) & 0xF;
             u32 retv = instr & 0x3FF;
@@ -688,8 +667,7 @@ void ProcessShaderCode(struct VertexShaderState* state) {
 #ifdef printfunc
             DEBUG("JPB %08X, %s\n", addrv, condition?"true":"false");
 #endif
-            if (condition)
-            {
+            if (condition) {
                 state->program_counter = &GPUshadercodebuffer[addrv / 4];
                 increment_pc = false;
             }
@@ -697,8 +675,7 @@ void ProcessShaderCode(struct VertexShaderState* state) {
             break;
         }
 
-        case SHDR_JPC:
-        {
+        case SHDR_JPC: {
             u32 addrv = (instr >> 8) & 0x3FFC;
             u32 flagsv = (instr >> 22) & 0xF;
             u32 retv = instr & 0x3FF;
@@ -706,33 +683,31 @@ void ProcessShaderCode(struct VertexShaderState* state) {
             u32 mode = flagsv & 0x3;
             bool status0 = flagsv & 0x4;
             bool status1 = flagsv & 0x8;
- 
+
             bool condition = false;
-            switch (mode)
-            {
-                case 0: //OR
-                    if ((status0 == state->status_registers[0]) || (status1 == state->status_registers[1]))
-                        condition = true;
-                    break;
-                case 1: //AND
-                    if ((status0 == state->status_registers[0]) && (status1 == state->status_registers[1]))
-                        condition = true;
-                    break;
-                case 2: //Y
-                    if (status0 == state->status_registers[0])
-                        condition = true;
-                    break;
-                case 3: //X
-                    if (status1 == state->status_registers[1])
-                        condition = true;
-                    break;
+            switch (mode) {
+            case 0: //OR
+                if ((status0 == state->status_registers[0]) || (status1 == state->status_registers[1]))
+                    condition = true;
+                break;
+            case 1: //AND
+                if ((status0 == state->status_registers[0]) && (status1 == state->status_registers[1]))
+                    condition = true;
+                break;
+            case 2: //Y
+                if (status0 == state->status_registers[0])
+                    condition = true;
+                break;
+            case 3: //X
+                if (status1 == state->status_registers[1])
+                    condition = true;
+                break;
             }
 
 #ifdef printfunc
             DEBUG("JPC %08X, %s\n", addrv, condition ? "true" : "false");
 #endif
-            if (condition)
-            {
+            if (condition) {
                 state->program_counter = &GPUshadercodebuffer[addrv / 4];
                 increment_pc = false;
             }
@@ -740,18 +715,17 @@ void ProcessShaderCode(struct VertexShaderState* state) {
             break;
         }
 
-        case SHDR_MOVA: //TODO: FIX
-        {
+        case SHDR_MOVA: { //TODO: FIX
 #ifdef printfunc
             DEBUG("MOVA %02X %02X %08x\n", instr_common_destv, instr_common_src1v, swizzle);
-#endif   
-            
+#endif
+
             for (int i = 0; i < 2; ++i) {
                 //Is it just high 8bits or low 8bits? can't be more than 8 bits at the value looks wrong otherwise
                 state->address_registers[i+1] = ((u32)src1[i] >> 24);
             }
 
-            break; 
+            break;
         }
 
         default:
@@ -762,8 +736,7 @@ void ProcessShaderCode(struct VertexShaderState* state) {
         if (increment_pc)
             state->program_counter++;
 
-        if (state->program_counter == state->program_counter_end)
-        {
+        if (state->program_counter == state->program_counter_end) {
             state->program_counter_end = 0;
             break;
         }
@@ -810,7 +783,7 @@ void RunShader(struct vec4 input[17], int num_attributes, struct OutputVertex *r
     if (num_attributes > 13) state.input_register_table[getattribute_register_map(13, GPU_Regs[VSInputRegisterMap], GPU_Regs[VSInputRegisterMap + 1])] = &input[13].v[0];
     if (num_attributes > 14) state.input_register_table[getattribute_register_map(14, GPU_Regs[VSInputRegisterMap], GPU_Regs[VSInputRegisterMap + 1])] = &input[14].v[0];
     if (num_attributes > 15) state.input_register_table[getattribute_register_map(15, GPU_Regs[VSInputRegisterMap], GPU_Regs[VSInputRegisterMap + 1])] = &input[15].v[0];*/
-    
+
     // Setup output register table
     //struct OutputVertex ret;
     for (int i = 0; i < 7; ++i) {
@@ -832,8 +805,7 @@ void RunShader(struct vec4 input[17], int num_attributes, struct OutputVertex *r
     for (k = 0; k < 16; k++)state.call_stack[k] = VertexShaderState_INVALID_ADDRESS;
     state.call_stack_pointer = &state.call_stack[1];
 
-    for (int i = 0; i < 16; i++)
-    {
+    for (int i = 0; i < 16; i++) {
         for (int j = 0; j < 4; j++)state.temporary_registers[i].v[j] = (0.f);
     }
     ret->tc0.v[0] = 0.f;
@@ -843,9 +815,9 @@ void RunShader(struct vec4 input[17], int num_attributes, struct OutputVertex *r
     ProcessShaderCode(&state);
 
     GPUDEBUG("Output vertex: pos (%.2f, %.2f, %.2f, %.2f), col(%.2f, %.2f, %.2f, %.2f), tc0(%.2f, %.2f)\n",
-        ret->pos.v[0], ret->pos.v[1], ret->pos.v[2], ret->pos.v[3],
-        ret->color.v[0], ret->color.v[1], ret->color.v[2], ret->color.v[3],
-        ret->tc0.v[0], ret->tc0.v[1]);
+             ret->pos.v[0], ret->pos.v[1], ret->pos.v[2], ret->pos.v[3],
+             ret->color.v[0], ret->color.v[1], ret->color.v[2], ret->color.v[3],
+             ret->tc0.v[0], ret->tc0.v[1]);
 
     //return ret;
 }
@@ -863,41 +835,32 @@ void RunShader(struct vec4 input[17], int num_attributes, struct OutputVertex *r
 
 u32 GetComponent(u32 n,u32* data)
 {
-    if (n < 8)
-    {
+    if (n < 8) {
         return ((*(data + 1)) >> n * 4) & 0xF;
-    }
-    else
-    {
+    } else {
         return ((*(data + 2)) >> (n - 8) * 4) & 0xF;
     }
 }
 
 u32 GetNumElements(u32 n, u32* data)
 {
-    if (n < 8)
-    {
+    if (n < 8) {
         u32 temp = *(data + 1);
         return ((temp >> ((n * 4) + 2)) & 0x3) + 1;
-    }
-    else
-    {
+    } else {
         return ((*(data + 2)) >> (((n - 8) * 4) + 2 )) & 0x3;
     }
 }
 
 u32 GetFormat(u32 n, u32* data)
 {
-    if (n < 8)
-    {
+    if (n < 8) {
         return ((*(data + 1)) >> n * 4) & 0x3;
-    }
-    else
-    {
+    } else {
         return ((*(data + 2)) >> (n - 8) * 4) & 0x3;
     }
 }
-u32 GetElementSizeInBytes(int n, u32* data) 
+u32 GetElementSizeInBytes(int n, u32* data)
 {
     return (GetFormat(n,data) == Format_FLOAT) ? 4 : (GetFormat(n,data) == Format_SHORT) ? 2 : 1;
 }
@@ -908,97 +871,96 @@ u32 GetStride(int n, u32* data)
 void writeGPUID(u16 ID, u8 mask, u32 size, u32* buffer)
 {
     u32 i;
-    switch (ID)
-    {
+    switch (ID) {
     // It seems like these trigger vertex rendering
     case TriggerDraw:
-    case TriggerDrawIndexed:
-    {
-                               u32* attribute_config = &GPU_Regs[VertexAttributeConfig];
-                               u32 base_address = (*attribute_config) << 3;
-                               // Information about internal vertex attributes
-                               u8* vertex_attribute_sources[16];
-                               u32 vertex_attribute_strides[16];
-                               u32 vertex_attribute_formats[16];
-                               u32 vertex_attribute_elements[16];
-                               u32 vertex_attribute_element_size[16];
+    case TriggerDrawIndexed: {
+        u32* attribute_config = &GPU_Regs[VertexAttributeConfig];
+        u32 base_address = (*attribute_config) << 3;
+        // Information about internal vertex attributes
+        u8* vertex_attribute_sources[16];
+        u32 vertex_attribute_strides[16];
+        u32 vertex_attribute_formats[16];
+        u32 vertex_attribute_elements[16];
+        u32 vertex_attribute_element_size[16];
 
-                               memset(&vertex_attribute_sources[0], 0, 16);
-                               memset(&vertex_attribute_strides[0], 0, 16 * 4);
-                               memset(&vertex_attribute_formats[0], 0, 16 * 4);
-                               memset(&vertex_attribute_elements[0], 0, 16 * 4);
-                               memset(&vertex_attribute_element_size[0], 0, 16 * 4);
+        memset(&vertex_attribute_sources[0], 0, 16);
+        memset(&vertex_attribute_strides[0], 0, 16 * 4);
+        memset(&vertex_attribute_formats[0], 0, 16 * 4);
+        memset(&vertex_attribute_elements[0], 0, 16 * 4);
+        memset(&vertex_attribute_element_size[0], 0, 16 * 4);
 
-                               //mem_Dbugdump();
-                               // Setup attribute data from loaders
-                               //u8 NumTotalAttributes = 0;
-                               for (int loader = 0; loader < 12; loader++) {
-                                   u32* loader_config = (attribute_config + (loader + 1) * 3);
+        //mem_Dbugdump();
+        // Setup attribute data from loaders
+        //u8 NumTotalAttributes = 0;
+        for (int loader = 0; loader < 12; loader++) {
+            u32* loader_config = (attribute_config + (loader + 1) * 3);
 
-                                   u32 load_address = base_address + *loader_config;
+            u32 load_address = base_address + *loader_config;
 
-                                   // TODO: What happens if a loader overwrites a previous one's data?
-                                   u8 component_count = loader_config[2] >> 28;
-                                   //NumTotalAttributes = component_count;
-                                   for (int component = 0; component < component_count; component++) {
-                                       u32 attribute_index = GetComponent(component, loader_config);//loader_config.GetComponent(component);
-                                       vertex_attribute_sources[attribute_index] = (u8*)get_pymembuffer(load_address);
-                                       vertex_attribute_strides[attribute_index] = (loader_config[2] >> 16) & 0xFFF;
-                                       vertex_attribute_formats[attribute_index] = GetFormat(attribute_index, attribute_config);
-                                       vertex_attribute_elements[attribute_index] = GetNumElements(attribute_index, attribute_config);
-                                       vertex_attribute_element_size[attribute_index] = GetElementSizeInBytes(attribute_index, attribute_config);
-                                       load_address += GetStride(attribute_index, attribute_config);
+            // TODO: What happens if a loader overwrites a previous one's data?
+            u8 component_count = loader_config[2] >> 28;
+            //NumTotalAttributes = component_count;
+            for (int component = 0; component < component_count; component++) {
+                u32 attribute_index = GetComponent(component, loader_config);//loader_config.GetComponent(component);
+                vertex_attribute_sources[attribute_index] = (u8*)get_pymembuffer(load_address);
+                vertex_attribute_strides[attribute_index] = (loader_config[2] >> 16) & 0xFFF;
+                vertex_attribute_formats[attribute_index] = GetFormat(attribute_index, attribute_config);
+                vertex_attribute_elements[attribute_index] = GetNumElements(attribute_index, attribute_config);
+                vertex_attribute_element_size[attribute_index] = GetElementSizeInBytes(attribute_index, attribute_config);
+                load_address += GetStride(attribute_index, attribute_config);
 
-                                   }
-                               }
-                               // Load vertices
-                               bool is_indexed = (ID == TriggerDrawIndexed);
-                               //const auto& index_info = registers.Get<Regs::IndexArrayConfig>();
-                               u32 index_info_offset = GPU_Regs[IndexArrayConfig] & 0x7FFFFFFF;
-                               const u8* index_address_8 = (u8*)get_pymembuffer(base_address + index_info_offset);
-                               const u16* index_address_16 = (u16*)index_address_8;
-                               bool index_u16 = (GPU_Regs[IndexArrayConfig] >> 31);
-                               for (u32 index = 0; index < GPU_Regs[NumVertices]; index++)
-                               {
-                                   int vertex = is_indexed ? (index_u16 ? index_address_16[index] : index_address_8[index]) : index;
+            }
+        }
+        // Load vertices
+        bool is_indexed = (ID == TriggerDrawIndexed);
+        //const auto& index_info = registers.Get<Regs::IndexArrayConfig>();
+        u32 index_info_offset = GPU_Regs[IndexArrayConfig] & 0x7FFFFFFF;
+        const u8* index_address_8 = (u8*)get_pymembuffer(base_address + index_info_offset);
+        const u16* index_address_16 = (u16*)index_address_8;
+        bool index_u16 = (GPU_Regs[IndexArrayConfig] >> 31);
+        for (u32 index = 0; index < GPU_Regs[NumVertices]; index++) {
+            int vertex = is_indexed ? (index_u16 ? index_address_16[index] : index_address_8[index]) : index;
 
-                                   if (is_indexed) {
-                                       // TODO: Implement some sort of vertex cache!
-                                   }
+            if (is_indexed) {
+                // TODO: Implement some sort of vertex cache!
+            }
 
-                                   // Initialize data for the current vertex
-                                   struct vec4 input[17];
-                                   u8 NumTotalAttributes = (attribute_config[2] >> 28) + 1;
-                                   for (int i = 0; i < NumTotalAttributes; i++) {
-                                       for (u32 comp = 0; comp < vertex_attribute_elements[i]; comp++) {
-                                           const u8* srcdata = vertex_attribute_sources[i] + vertex_attribute_strides[i] * vertex + comp * vertex_attribute_element_size[i];
-                                           const float srcval = (vertex_attribute_formats[i] == 0) ? *(s8*)srcdata :
-                                               (vertex_attribute_formats[i] == 1) ? *(u8*)srcdata :
-                                               (vertex_attribute_formats[i] == 2) ? *(s16*)srcdata :
-                                               *(float*)srcdata;
-                                           input[i].v[comp] = srcval;
-                                           GPUDEBUG("Loaded component %x of attribute %x for vertex %x (index %x) from 0x%08x + 0x%08lx + 0x%04lx: %f\n",
-                                               comp, i, vertex, index,
-                                               base_address,
-                                               vertex_attribute_sources[i] - (u8*)get_pymembuffer(base_address),
-                                               srcdata - vertex_attribute_sources[i],
-                                               input[i].v[comp]);
-                                       }
-                                   }
-                                   struct OutputVertex output;
-                                   RunShader(input, NumTotalAttributes, &output);
-                                   //VertexShader::OutputVertex output = VertexShader::RunShader(input, attribute_config.GetNumTotalAttributes());
+            // Initialize data for the current vertex
+            struct vec4 input[17];
+            u8 NumTotalAttributes = (attribute_config[2] >> 28) + 1;
+            for (int i = 0; i < NumTotalAttributes; i++) {
+                for (u32 comp = 0; comp < vertex_attribute_elements[i]; comp++) {
+                    const u8* srcdata = vertex_attribute_sources[i] + vertex_attribute_strides[i] * vertex + comp * vertex_attribute_element_size[i];
+                    const float srcval = (vertex_attribute_formats[i] == 0) ? *(s8*)srcdata :
+                                         (vertex_attribute_formats[i] == 1) ? *(u8*)srcdata :
+                                         (vertex_attribute_formats[i] == 2) ? *(s16*)srcdata :
+                                         *(float*)srcdata;
+                    input[i].v[comp] = srcval;
+                    GPUDEBUG("Loaded component %x of attribute %x for vertex %x (index %x) from 0x%08x + 0x%08lx + 0x%04lx: %f\n",
+                             comp, i, vertex, index,
+                             base_address,
+                             vertex_attribute_sources[i] - (u8*)get_pymembuffer(base_address),
+                             srcdata - vertex_attribute_sources[i],
+                             input[i].v[comp]);
+                }
+            }
+            struct OutputVertex output;
+            RunShader(input, NumTotalAttributes, &output);
+            //VertexShader::OutputVertex output = VertexShader::RunShader(input, attribute_config.GetNumTotalAttributes());
 
-                                   if (is_indexed) {
-                                       // TODO: Add processed vertex to vertex cache!
+            if (is_indexed) {
+                // TODO: Add processed vertex to vertex cache!
 
-                                   }
+            }
 
-                                   // Send to triangle clipper
-                                   PrimitiveAssembly_SubmitVertex(&output);
+            // Send to triangle clipper
+            PrimitiveAssembly_SubmitVertex(&output);
 
-                               }
-                               break;
+            //screen_RenderGPUaddr(GPU_Regs[COLORBUFFER_ADDRESS] << 3);
+
+        }
+        break;
 
     }
     // Load shader program code
@@ -1010,8 +972,7 @@ void writeGPUID(u16 ID, u8 mask, u32 size, u32* buffer)
     case VSLoadProgramData + 5:
     case VSLoadProgramData + 6:
     case VSLoadProgramData + 7:
-        if (mask != 0xF)
-        {
+        if (mask != 0xF) {
             GPUDEBUG("abnormal VSLoadProgramData %0x1 %0x3\n", mask, size);
         }
         for (i = 0; i < size; i++)
@@ -1027,8 +988,7 @@ void writeGPUID(u16 ID, u8 mask, u32 size, u32* buffer)
     case VSLoadSwizzleData + 5:
     case VSLoadSwizzleData + 6:
     case VSLoadSwizzleData + 7:
-        if (mask != 0xF)
-        {
+        if (mask != 0xF) {
             GPUDEBUG("abnormal VSLoadSwizzleData %0x1 %0x3\n", mask, size);
         }
         for (i = 0; i < size; i++)
@@ -1052,13 +1012,11 @@ void writeGPUID(u16 ID, u8 mask, u32 size, u32* buffer)
     case VSFloatUniformSetup + 6:
     case VSFloatUniformSetup + 7:
     case VSFloatUniformSetup + 8:
-        for (i = 0; i < size; i++)
-        {
+        for (i = 0; i < size; i++) {
             VSFloatUniformSetuptembuffer[VSFloatUniformSetuptembuffercurrent++] = *(buffer + i);
             bool isfloat32 = (GPU_Regs[VSFloatUniformSetup] >> 31) == 1;
 
-            if (VSFloatUniformSetuptembuffercurrent == (isfloat32 ? 4 : 3))
-            {
+            if (VSFloatUniformSetuptembuffercurrent == (isfloat32 ? 4 : 3)) {
                 VSFloatUniformSetuptembuffercurrent = 0;
                 u8 index = GPU_Regs[VSFloatUniformSetup] & 0x7F;
                 if (index > 95) {
@@ -1071,8 +1029,7 @@ void writeGPUID(u16 ID, u8 mask, u32 size, u32* buffer)
                     vectors[index].v[2] = *(float*)(&VSFloatUniformSetuptembuffer[1]);
                     vectors[index].v[1] = *(float*)(&VSFloatUniformSetuptembuffer[2]);
                     vectors[index].v[0] = *(float*)(&VSFloatUniformSetuptembuffer[3]);
-                }
-                else {
+                } else {
                     f24to32(VSFloatUniformSetuptembuffer[0] >> 8, &vectors[index].v[3]);
                     f24to32(((VSFloatUniformSetuptembuffer[0] & 0xFF) << 16) | ((VSFloatUniformSetuptembuffer[1] >> 16) & 0xFFFF), &vectors[index].v[2]);
                     f24to32(((VSFloatUniformSetuptembuffer[1] & 0xFFFF) << 8) | ((VSFloatUniformSetuptembuffer[2] >> 24) & 0xFF), &vectors[index].v[1]);
@@ -1081,16 +1038,15 @@ void writeGPUID(u16 ID, u8 mask, u32 size, u32* buffer)
                 }
 
                 GPUDEBUG("Set uniform %02x to (%f %f %f %f)\n", index,
-                    vectors[index].v[0], vectors[index].v[1], vectors[index].v[2],
-                    vectors[index].v[3]);
+                         vectors[index].v[0], vectors[index].v[1], vectors[index].v[2],
+                         vectors[index].v[3]);
                 // TODO: Verify that this actually modifies the register!
                 GPU_Regs[VSFloatUniformSetup]++;
             }
         }
         break;
     case TRIGGER_IRQ:
-        if (mask != 0xF && size != 0 && *buffer == 0x12345678)
-        {
+        if (mask != 0xF && size != 0 && *buffer == 0x12345678) {
             GPUDEBUG("abnormal TRIGGER_IRQ %0x1 %0x3 %08x\n", mask, size, *buffer);
         }
         gpu_SendInterruptToAll(5);//P3D
@@ -1105,8 +1061,7 @@ void writeGPUID(u16 ID, u8 mask, u32 size, u32* buffer)
 void runGPU_Commands(u8* buffer, u32 sizea)
 {
     u32 i;
-    for (i = 0; i < sizea; i += 8)
-    {
+    for (i = 0; i < sizea; i += 8) {
         u32 cmd = *(u32*)(buffer + 4 + i);
         u32 dataone = *(u32*)(buffer + i);
         u16 ID = cmd & 0xFFFF;
@@ -1119,37 +1074,29 @@ void runGPU_Commands(u8* buffer, u32 sizea)
         GPUDEBUG("cmd %04x mask %01x size %03x (%08x) %s \n", ID, mask, size, dataone, grouping ? "grouping" : "")
 #endif
         int j;
-        for (j = 0; j < size; j++)
-        {
+        for (j = 0; j < size; j++) {
             datafild[1 + j] = *(u32*)(buffer + 8 + i);
 #ifdef GSP_ENABLE_LOG
             GPUDEBUG("data %08x\n", datafild[1 + j]);
 #endif
             i += 4;
         }
-        if (size & 0x1)
-        {
+        if (size & 0x1) {
             u32 data = *(u32*)(buffer + 8 + i);
 #ifdef GSP_ENABLE_LOG
             GPUDEBUG("padding data %08x\n", data);
 #endif
             i += 4;
         }
-        if (mask != 0)
-        {
+        if (mask != 0) {
             if (size > 0 && mask != 0xF)
                 GPUDEBUG("masked data? cmd %04x mask %01x size %03x (%08x) %s \n", ID, mask, size, dataone, grouping ? "grouping" : "");
-            if (grouping)
-            {
+            if (grouping) {
                 for (j = 0; j <= size; j++)writeGPUID(ID + j, mask, 1, &datafild[j]);
-            }
-            else
-            {
+            } else {
                 writeGPUID(ID, mask, size + 1, datafild);
             }
-        }
-        else
-        {
+        } else {
             GPUDEBUG("masked out data is ignored cmd %04x mask %01x size %03x (%08x) %s \n", ID, mask, size, dataone, grouping ? "grouping" : "");
         }
 
@@ -1161,24 +1108,22 @@ void updateFramebufferaddr(u32 addr,bool bot)
 {
     //we use the last in buffer with flag set
     if (!bot) {
-            if ((mem_Read32(addr) & 0x1) == 0)
-                gpu_WriteReg32(RGBuponeleft, convertvirtualtopys(mem_Read32(addr + 4)));
-            else
-                gpu_WriteReg32(RGBuptwoleft, convertvirtualtopys(mem_Read32(addr + 4)));
-            gpu_WriteReg32(frameselectoben, mem_Read32(addr + 0x14));
-            u32 u90 = mem_Read32(addr + 0xC);
-            u32 format = mem_Read32(addr + 0x10);
-            int i = 0;
-            //the rest is todo
-        }
+        if ((mem_Read32(addr) & 0x1) == 0)
+            gpu_WriteReg32(RGBuponeleft, convertvirtualtopys(mem_Read32(addr + 4)));
         else
-        {
-            if ((mem_Read32(addr)& 0x1) == 0)
-                gpu_WriteReg32(RGBdownoneleft, convertvirtualtopys(mem_Read32(addr + 4)));
-            else
-                gpu_WriteReg32(RGBdowntwoleft, convertvirtualtopys(mem_Read32(addr + 4)));
-            gpu_WriteReg32(frameselectbot, mem_Read32(addr + 0x14));
-            //the rest is todo
+            gpu_WriteReg32(RGBuptwoleft, convertvirtualtopys(mem_Read32(addr + 4)));
+        gpu_WriteReg32(frameselectoben, mem_Read32(addr + 0x14));
+        u32 u90 = mem_Read32(addr + 0xC);
+        u32 format = mem_Read32(addr + 0x10);
+        int i = 0;
+        //the rest is todo
+    } else {
+        if ((mem_Read32(addr)& 0x1) == 0)
+            gpu_WriteReg32(RGBdownoneleft, convertvirtualtopys(mem_Read32(addr + 4)));
+        else
+            gpu_WriteReg32(RGBdowntwoleft, convertvirtualtopys(mem_Read32(addr + 4)));
+        gpu_WriteReg32(frameselectbot, mem_Read32(addr + 0x14));
+        //the rest is todo
     }
     return;
 }

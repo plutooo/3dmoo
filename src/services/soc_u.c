@@ -101,16 +101,11 @@ SERVICE_CMD(0x00050084) //bind
     }
     struct sockaddr serv_addr;
     memset((char *)&serv_addr, 0, sizeof(struct sockaddr));
-    if (CMD(2) == 0x8)
-    {
+    if (CMD(2) == 0x8) {
         memcpy(serv_addr.sa_data, &b[2], 0x6);
-    }
-    else if (CMD(2) == 0x1c)
-    {
+    } else if (CMD(2) == 0x1c) {
         memcpy(serv_addr.sa_data, &b[2], 14);
-    }
-    else
-    {
+    } else {
         DEBUG("unknown len\n");
     }
     /*serv_addr.sin_family = AF_INET;
@@ -224,18 +219,13 @@ SERVICE_CMD(0x00090106) //sendto_other
     }
     struct sockaddr serv_addr;
     memset((char *)&serv_addr, 0, sizeof(struct sockaddr));
-    if (CMD(4) == 0x8)
-    {
+    if (CMD(4) == 0x8) {
         serv_addr.sa_family = a[1];
         memcpy(serv_addr.sa_data, &a[2], 0x6);
-    }
-    else if (CMD(4) == 0x1c)
-    {
+    } else if (CMD(4) == 0x1c) {
         serv_addr.sa_family = a[1];
         memcpy(serv_addr.sa_data, &a[2], 14);
-    }
-    else
-    {
+    } else {
         DEBUG("unknown len\n");
     }
 
@@ -280,18 +270,13 @@ SERVICE_CMD(0x000a0106) //sendto
     }
     struct sockaddr serv_addr;
     memset((char *)&serv_addr, 0, sizeof(struct sockaddr));
-    if (CMD(4) == 0x8)
-    {
+    if (CMD(4) == 0x8) {
         serv_addr.sa_family = a[1];
         memcpy(serv_addr.sa_data, &a[2], 0x6);
-    }
-    else if (CMD(4) == 0x1c)
-    {
+    } else if (CMD(4) == 0x1c) {
         serv_addr.sa_family = a[1];
         memcpy(serv_addr.sa_data, &a[2], 14);
-    }
-    else
-    {
+    } else {
         DEBUG("unknown len\n");
     }
 
@@ -329,24 +314,18 @@ SERVICE_CMD(0x00070104) //recvfrom_other
     }
     struct sockaddr serv_addr;
     memset((char *)&serv_addr, 0, sizeof(serv_addr));
-    if (CMD(4) == 0x8)
-    {
+    if (CMD(4) == 0x8) {
         serv_addr.sa_family = a[1];
         memcpy(serv_addr.sa_data, &a[2], 0x6);
-    }
-    else if (CMD(4) == 0x1c)
-    {
+    } else if (CMD(4) == 0x1c) {
         serv_addr.sa_family = a[1];
         memcpy(serv_addr.sa_data, &a[2], 14);
-    }
-    else
-    {
+    } else {
         DEBUG("unknown len\n");
     }
 
     int size = CMD(2);
-    while (size > 0)
-    {
+    while (size > 0) {
         size -= recvfrom(*(SOCKET*)(h->misc_ptr[0]), b + CMD(2) - size, size, CMD(3), &serv_addr, sizeof(serv_addr));
     }
 
@@ -390,23 +369,18 @@ SERVICE_CMD(0x00080102) //recvfrom
     }
     struct sockaddr serv_addr;
     memset((char *)&serv_addr, 0, sizeof(struct sockaddr));
-    if (CMD(4) == 0x8)
-    {
+    if (CMD(4) == 0x8) {
         serv_addr.sa_family = a[1];
         memcpy(serv_addr.sa_data, &a[2], 0x6);
-    }
-    else if (CMD(4) == 0x1c)
-    {
+    } else if (CMD(4) == 0x1c) {
         serv_addr.sa_family = a[1];
         memcpy(serv_addr.sa_data, &a[2], 14);
-    }
-    else
-    {
+    } else {
         DEBUG("unknown len\n");
     }
 
     RESP(3, (u32)recvfrom(*(SOCKET*)(h->misc_ptr[0]), b, CMD(2), CMD(3), &serv_addr, sizeof(serv_addr)));
-    
+
     if (mem_Write(b, EXTENDED_CMD(1), CMD(2)) != 0) { //cmd 2 is not yet overwritten
         ERROR("mem_Write failed.\n");
         free(b);

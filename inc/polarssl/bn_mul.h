@@ -673,14 +673,14 @@
     __asm   mov     c, ecx                      \
     __asm   mov     d, edi                      \
     __asm   mov     s, esi                      \
-
+ 
 #else
 
 #define MULADDC_STOP                            \
     __asm   mov     c, ecx                      \
     __asm   mov     d, edi                      \
     __asm   mov     s, esi                      \
-
+ 
 #endif /* SSE2 */
 #endif /* MSVC */
 

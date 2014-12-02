@@ -129,9 +129,10 @@ int main(int argc, char* argv[])
             i++;
             strcpy(config_sysdataoutpath, argv[i]);
             config_usesys = true;
-        } else if ((strcmp(argv[i], "-sdwrite") == 0))config_slotone = true;
-        else if ((strcmp(argv[i], "-slotone") == 0))config_nand_cfg_save = true;
-        else if ((strcmp(argv[i], "-configsave") == 0))config_sdmcwriteable = true;
+        }
+        else if ((strcmp(argv[i], "-sdwrite") == 0))config_sdmcwriteable = true;
+        else if ((strcmp(argv[i], "-slotone") == 0))config_slotone = true;
+        else if ((strcmp(argv[i], "-configsave") == 0))config_nand_cfg_save = true;
 
 #ifdef GDB_STUB
         if ((strcmp(argv[i], "-gdbport") == 0)) {
@@ -156,10 +157,6 @@ int main(int argc, char* argv[])
             gdb_base_memory_iface.write16 = gdb_write16;
             gdb_base_memory_iface.read8 = gdb_read8;
             gdb_base_memory_iface.write8 = gdb_write8;
-
-
-
-
         }
 #endif
         if (i >= argc)break;

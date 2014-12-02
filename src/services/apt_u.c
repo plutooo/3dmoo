@@ -214,7 +214,7 @@ SERVICE_CMD(0xb0040)
     DEBUG("InquireNotification, appID=%08x\n", appID);
 
     RESP(1, 0); // Result
-    RESP(2, 0); // Signal type (1=home button press, 7=shutdown, 8=pwr button, ..)
+    RESP(2, 7); // Signal type (1=home button press, 7=shutdown, 8=pwr button, ..)
     return 0;
 }
 

@@ -102,11 +102,11 @@ static void DrawPixel(int x, int y, const struct clov4* color)
 
     case 0: //RGBA8
         outaddr = color_buffer + x * 4 + y * (GPU_Regs[Framebuffer_FORMAT11E] & 0xFFF)* 4; //check if that is correct
-        *outaddr = color->v[0];
+        *outaddr = color->v[2];
         outaddr++;
         *outaddr = color->v[1];
         outaddr++;
-        *outaddr = color->v[2];
+        *outaddr = color->v[0];
         outaddr++;
         *outaddr = color->v[3];
         outaddr++;

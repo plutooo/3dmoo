@@ -482,7 +482,7 @@ static int load_sockaddr(struct sockaddr *saddr, socklen_t *addrlen, uint32_t sr
 
     if (*addrlen == 0x8) {
         /* AF_INET */
-        if (mem_Read(addrbuf, CMD(6), *addrlen) != 0) {
+        if (mem_Read(addrbuf, src, *addrlen) != 0) {
             RESP(2, translate_error(EFAULT));
             RESP(1, 0);
             return -1;
@@ -493,7 +493,7 @@ static int load_sockaddr(struct sockaddr *saddr, socklen_t *addrlen, uint32_t sr
     }
     else if (*addrlen == 0x1C) {
         /* AF_INET6 ? */
-        if (mem_Read(addrbuf, CMD(6), *addrlen) != 0) {
+        if (mem_Read(addrbuf, src, *addrlen) != 0) {
             RESP(2, translate_error(EFAULT));
             RESP(1, 0);
             return -1;

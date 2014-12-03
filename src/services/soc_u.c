@@ -22,6 +22,7 @@ WSADATA wsaData;
 #define SOCKET_FAILED(s) (s == NULL)
 #define ssize_t int
 #define SHUT_RDWR SD_BOTH
+static void init_error_map(void);
 #else
 typedef int SOCKET;
 #define SOCKET_FAILED(s) (s < 0)
@@ -52,6 +53,7 @@ SERVICE_CMD(0x00010044)   //InitializeSockets
     DEBUG("InitializeSockets %08x %08x\n", CMD(1), CMD(5));
 #ifdef _WIN32
     WSAStartup(MAKEWORD(1, 1), &wsaData);
+	init_error_map();
 #endif
     soc_shared_size       = CMD(1);
     soc_shared_mem_handle = CMD(5);

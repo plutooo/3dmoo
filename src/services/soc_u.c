@@ -38,6 +38,8 @@ static u32 soc_shared_size = 0;
 static u32 soc_shared_mem_handle = 0;
 
 static int translate_error(int error);
+static int load_sockaddr(struct sockaddr *saddr, socklen_t *addrlen, uint32_t src);
+static int save_sockaddr(struct sockaddr *saddr, socklen_t addrlen, uint32_t dst, socklen_t dstlen);
 
 SERVICE_START(soc_u)
 
@@ -115,7 +117,6 @@ SERVICE_CMD(0x00050084) //bind
 {
     DEBUG("bind %08X %08X %08X\n", CMD(1), CMD(2), CMD(6));
 
-    uint8_t                 addrbuf[0x1C];
     struct sockaddr_storage addr;
     struct sockaddr         *saddr = (struct sockaddr*)&addr;
     socklen_t               addrlen = CMD(2);
@@ -129,32 +130,8 @@ SERVICE_CMD(0x00050084) //bind
     }
 
     memset(&addr, 0, sizeof(addr));
-    if (addrlen == 0x8) {
-        if (mem_Read(addrbuf, CMD(6), addrlen) != 0) {
-            RESP(2, translate_error(EFAULT));
-            RESP(1, 0);
-            return 0;
-        }
-        saddr->sa_family = addrbuf[1];
-        memcpy(saddr->sa_data, &addrbuf[2], 0x6);
-    }
-    else if (addrlen == 0x1C) {
-        if (mem_Read((uint8_t*)&addr, CMD(6), addrlen) != 0) {
-            RESP(2, translate_error(EFAULT));
-            RESP(1, 0);
-            return 0;
-        }
-        /* this size of 0xE seems bogus */
-        saddr->sa_family = addrbuf[1];
-        memcpy(saddr->sa_data, &addrbuf[2], 0xE);
-        addrlen = 0x10;
-    }
-    else {
-        DEBUG("unknown len\n");
-        RESP(2, translate_error(EINVAL));
-        RESP(1, 0);
+    if (load_sockaddr(saddr, &addrlen, CMD(6)) != 0)
         return 0;
-    }
 
     SOCKET s  = (long)h->misc_ptr[0];
     int    rc = bind(s, saddr, addrlen);
@@ -256,13 +233,11 @@ SERVICE_CMD(0x00040082) //accept
     }
     ha->misc_ptr[0] = (void*)(long)s;
 
-    if (mem_Write((uint8_t*)saddr, EXTENDED_CMD(1), CMD(2) > addrlen ? addrlen : CMD(2)) != 0) {
-      RESP(2, translate_error(EFAULT));
-      RESP(1, 0);
-      shutdown(s, SHUT_RDWR);
-      closesocket(s);
-      /* TODO cleanup ha */
-      return 0;
+    if (save_sockaddr(saddr, addrlen, EXTENDED_CMD(1), CMD(2)) != 0) {
+        shutdown(s, SHUT_RDWR);
+        closesocket(s);
+        /* TODO cleanup ha */
+        return 0;
     }
 
     RESP(2, handle - HANDLES_BASE); //bit(31) must not be set
@@ -274,7 +249,6 @@ SERVICE_CMD(0x00090106) //sendto_other
 {
     DEBUG("sendto_other %08X %08X %08X %08X %08X %08X\n", CMD(1), CMD(2), CMD(3), CMD(4), CMD(8), CMD(10));
 
-    uint8_t                 addrbuf[0x1C];
     struct sockaddr_storage addr;
     struct sockaddr         *saddr = (struct sockaddr*)&addr;
     socklen_t               addrlen = CMD(4);
@@ -303,32 +277,8 @@ SERVICE_CMD(0x00090106) //sendto_other
         return 0;
     }
 
-    if (addrlen == 0x8) {
-        if (mem_Read(addrbuf, CMD(8), addrlen) != 0) {
-            RESP(2, translate_error(EFAULT));
-            RESP(1, 0);
-            free(buffer);
-            return 0;
-        }
-        saddr->sa_family = addrbuf[1];
-        memcpy(saddr->sa_data, &addrbuf[2], 0x6);
-    }
-    else if (addrlen == 0x1C) {
-        if (mem_Read((uint8_t*)&addr, CMD(8), addrlen) != 0) {
-            RESP(2, translate_error(EFAULT));
-            RESP(1, 0);
-            free(buffer);
-            return 0;
-        }
-        /* this size of 0xE seems bogus */
-        saddr->sa_family = addrbuf[1];
-        memcpy(saddr->sa_data, &addrbuf[2], 0xE);
-        addrlen = 0x10;
-    }
-    else {
-        DEBUG("unknown len\n");
-        RESP(2, translate_error(EINVAL));
-        RESP(1, 0);
+    memset(&addr, 0, sizeof(addr));
+    if (load_sockaddr(saddr, &addrlen, CMD(8)) != 0) {
         free(buffer);
         return 0;
     }
@@ -353,7 +303,6 @@ SERVICE_CMD(0x000a0106) //sendto
 {
     DEBUG("sendto %08X %08X %08X %08X %08X %08X\n", CMD(1), CMD(2), CMD(3), CMD(4), CMD(8), CMD(10));
 
-    uint8_t                 addrbuf[0x1C];
     struct sockaddr_storage addr;
     struct sockaddr         *saddr = (struct sockaddr*)&addr;
     socklen_t               addrlen = CMD(4);
@@ -382,32 +331,8 @@ SERVICE_CMD(0x000a0106) //sendto
         return 0;
     }
 
-    if (addrlen == 0x8) {
-        if (mem_Read(addrbuf, CMD(10), addrlen) != 0) {
-            RESP(2, translate_error(EFAULT));
-            RESP(1, 0);
-            free(buffer);
-            return 0;
-        }
-        saddr->sa_family = addrbuf[1];
-        memcpy(saddr->sa_data, &addrbuf[2], 0x6);
-    }
-    else if (addrlen == 0x1C) {
-        if (mem_Read((uint8_t*)&addr, CMD(10), addrlen) != 0) {
-            RESP(2, translate_error(EFAULT));
-            RESP(1, 0);
-            free(buffer);
-            return 0;
-        }
-        /* this size of 0xE seems bogus */
-        saddr->sa_family = addrbuf[1];
-        memcpy(saddr->sa_data, &addrbuf[2], 0xE);
-        addrlen = 0x10;
-    }
-    else {
-        DEBUG("unknown len\n");
-        RESP(2, translate_error(EINVAL));
-        RESP(1, 0);
+    memset(&addr, 0, sizeof(addr));
+    if (load_sockaddr(saddr, &addrlen, CMD(10)) != 0) {
         free(buffer);
         return 0;
     }
@@ -432,7 +357,6 @@ SERVICE_CMD(0x00070104) //recvfrom_other
 {
     DEBUG("recvfrom_other %08X %08X %08X %08X %08X %08X\n", CMD(1), CMD(2), CMD(3), CMD(4), CMD(8), EXTENDED_CMD(1));
 
-    uint8_t                 addrbuf[0x1C];
     struct sockaddr_storage addr;
     struct sockaddr         *saddr = (struct sockaddr*)&addr;
     socklen_t               addrlen = CMD(4);
@@ -453,32 +377,8 @@ SERVICE_CMD(0x00070104) //recvfrom_other
         return 0;
     }
 
-    if (addrlen == 0x8) {
-        if (mem_Read(addrbuf, EXTENDED_CMD(1), addrlen) != 0) {
-            RESP(2, translate_error(EFAULT));
-            RESP(1, 0);
-            free(buffer);
-            return 0;
-        }
-        saddr->sa_family = addrbuf[1];
-        memcpy(saddr->sa_data, &addrbuf[2], 0x6);
-    }
-    else if (addrlen == 0x1C) {
-        if (mem_Read(addrbuf, EXTENDED_CMD(1), addrlen) != 0) {
-            RESP(2, translate_error(EFAULT));
-            RESP(1, 0);
-            free(buffer);
-            return 0;
-        }
-        /* this size of 0xE seems bogus */
-        saddr->sa_family = addrbuf[1];
-        memcpy(saddr->sa_data, &addrbuf[2], 0xE);
-        addrlen = 0x10;
-    }
-    else {
-        DEBUG("unknown len\n");
-        RESP(2, translate_error(errno));
-        RESP(1, 0);
+    memset(&addr, 0, sizeof(addr));
+    if (load_sockaddr(saddr, &addrlen, EXTENDED_CMD(1)) != 0) {
         free(buffer);
         return 0;
     }
@@ -502,15 +402,9 @@ SERVICE_CMD(0x00070104) //recvfrom_other
         return 0;
     }
 
-    memcpy(&addrbuf[2], saddr->sa_data, addrlen-2);
-    addrbuf[0] = addrlen;
-    addrbuf[1] = saddr->sa_family;
-
-    if (mem_Write(addrbuf, EXTENDED_CMD(1), CMD(4) < addrlen ? CMD(4) : addrlen) != 0) {
-      RESP(2, translate_error(EFAULT));
-      RESP(1, 0);
-      free(buffer);
-      return 0;
+    if (save_sockaddr(saddr, addrlen, EXTENDED_CMD(1), CMD(4)) != 0) {
+        free(buffer);
+        return 0;
     }
 
     RESP(2, 0);
@@ -523,7 +417,6 @@ SERVICE_CMD(0x00080102) //recvfrom
 {
     DEBUG("recvfrom %08X %08X %08X %08X %08X %08X\n", CMD(1), CMD(2), CMD(3), CMD(4), EXTENDED_CMD(1), EXTENDED_CMD(3));
 
-    uint8_t                 addrbuf[0x1C];
     struct sockaddr_storage addr;
     struct sockaddr         *saddr = (struct sockaddr*)&addr;
     socklen_t               addrlen = CMD(4);
@@ -544,32 +437,7 @@ SERVICE_CMD(0x00080102) //recvfrom
         return 0;
     }
 
-    if (addrlen == 0x8) {
-        if (mem_Read(addrbuf, EXTENDED_CMD(3), addrlen) != 0) {
-            RESP(2, translate_error(EFAULT));
-            RESP(1, 0);
-            free(buffer);
-            return 0;
-        }
-        saddr->sa_family = addrbuf[1];
-        memcpy(saddr->sa_data, &addrbuf[2], 0x6);
-    }
-    else if (addrlen == 0x1C) {
-        if (mem_Read(addrbuf, EXTENDED_CMD(3), addrlen) != 0) {
-            RESP(2, translate_error(EFAULT));
-            RESP(1, 0);
-            free(buffer);
-            return 0;
-        }
-        /* this size of 0xE seems bogus */
-        saddr->sa_family = addrbuf[1];
-        memcpy(saddr->sa_data, &addrbuf[2], 0xE);
-        addrlen = 0x10;
-    }
-    else {
-        DEBUG("unknown len\n");
-        RESP(2, translate_error(errno));
-        RESP(1, 0);
+    if (load_sockaddr(saddr, &addrlen, EXTENDED_CMD(3)) != 0) {
         free(buffer);
         return 0;
     }
@@ -593,15 +461,9 @@ SERVICE_CMD(0x00080102) //recvfrom
         return 0;
     }
 
-    memcpy(&addrbuf[2], saddr->sa_data, addrlen-2);
-    addrbuf[0] = addrlen;
-    addrbuf[1] = saddr->sa_family;
-
-    if (mem_Write(addrbuf, EXTENDED_CMD(3), CMD(4) < addrlen ? CMD(4) : addrlen) != 0) {
-      RESP(2, translate_error(EFAULT));
-      RESP(1, 0);
-      free(buffer);
-      return 0;
+    if (save_sockaddr(saddr, addrlen, EXTENDED_CMD(3), CMD(4)) != 0) {
+        free(buffer);
+        return 0;
     }
 
     RESP(2, 0);
@@ -612,6 +474,61 @@ SERVICE_CMD(0x00080102) //recvfrom
 }
 
 SERVICE_END()
+
+
+static int load_sockaddr(struct sockaddr *saddr, socklen_t *addrlen, uint32_t src)
+{
+    uint8_t addrbuf[0x1C];
+
+    if (*addrlen == 0x8) {
+        /* AF_INET */
+        if (mem_Read(addrbuf, src, *addrlen) != 0) {
+            RESP(2, translate_error(EFAULT));
+            RESP(1, 0);
+            return -1;
+        }
+        saddr->sa_family = addrbuf[1];
+        memcpy(saddr->sa_data, &addrbuf[2], 0x6);
+	*addrlen = sizeof(struct sockaddr_in);
+    }
+    else if (*addrlen == 0x1C) {
+        /* AF_INET6 ? */
+        if (mem_Read(addrbuf, src, *addrlen) != 0) {
+            RESP(2, translate_error(EFAULT));
+            RESP(1, 0);
+            return -1;
+        }
+        /* this size of 0xE seems bogus */
+        saddr->sa_family = addrbuf[1];
+        memcpy(saddr->sa_data, &addrbuf[2], 0xE);
+        *addrlen = 0x10;
+    }
+    else {
+        DEBUG("unknown len\n");
+        RESP(2, translate_error(EINVAL));
+        RESP(1, 0);
+        return -1;
+    }
+
+    return 0;
+}
+
+static int save_sockaddr(struct sockaddr *saddr, socklen_t addrlen, uint32_t dst, socklen_t dstlen)
+{
+    uint8_t addrbuf[0x1C];
+
+    memcpy(&addrbuf[2], saddr->sa_data, addrlen-2);
+    addrbuf[0] = addrlen;
+    addrbuf[1] = saddr->sa_family;
+
+    if (mem_Write(addrbuf, dst, dstlen < addrlen ? dstlen : addrlen) != 0) {
+      RESP(2, translate_error(EFAULT));
+      RESP(1, 0);
+      return -1;
+    }
+
+    return 0;
+}
 
 typedef struct error_map_t {
     int from;

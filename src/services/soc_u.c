@@ -15,25 +15,29 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#ifdef _WIN32
+#include <winsock2.h>
+#include <ws2tcpip.h>
+WSADATA wsaData;
+#define SOCKET_FAILED(s) (s == NULL)
+#define ssize_t int
+#define SHUT_RDWR SD_BOTH
+#else
+typedef int SOCKET;
+#define SOCKET_FAILED(s) (s < 0)
+#define closesocket(s)   close(s)
+
 #include <arpa/inet.h>
 #include <netdb.h>
 #include <netinet/in.h>
 #include <unistd.h>
+#endif
 #include "util.h"
 #include "handles.h"
 #include "mem.h"
 #include "arm11.h"
 #include "service_macros.h"
 
-#ifdef _WIN32
-#include <winsock.h>
-WSADATA wsaData;
-#define SOCKET_FAILED(s) (s == NULL)
-#else
-typedef int SOCKET;
-#define SOCKET_FAILED(s) (s < 0)
-#define closesocket(s)   close(s)
-#endif
 static u32 soc_shared_size = 0;
 static u32 soc_shared_mem_handle = 0;
 
@@ -555,7 +559,9 @@ static error_map_t error_map[] = {
     { EDEADLK,         16, },
     { EDESTADDRREQ,    17, },
     { EDOM,            18, },
+#ifndef _WIN32
     { EDQUOT,          19, },
+#endif
     { EEXIST,          20, },
     { EFAULT,          21, },
     { EFBIG,           22, },
@@ -572,7 +578,9 @@ static error_map_t error_map[] = {
     { EMFILE,          33, },
     { EMLINK,          34, },
     { EMSGSIZE,        35, },
+#ifndef _WIN32
     { EMULTIHOP,       36, },
+#endif
     { ENAMETOOLONG,    37, },
     { ENETDOWN,        38, },
     { ENETRESET,       39, },
@@ -610,7 +618,9 @@ static error_map_t error_map[] = {
     { EROFS,           71, },
     { ESPIPE,          72, },
     { ESRCH,           73, },
+#ifndef _WIN32
     { ESTALE,          74, },
+#endif
     { ETIME,           75, },
     { ETIMEDOUT,       76, },
 };
@@ -629,7 +639,9 @@ static int error_map_cmp(const void *p1, const void *p2)
     return 0;
 }
 
+#ifndef _WIN32
 __attribute__((constructor))
+#endif
 static void init_error_map(void)
 {
     qsort(error_map, num_error_map, sizeof(error_map_t), error_map_cmp);

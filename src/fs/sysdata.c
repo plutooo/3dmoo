@@ -315,7 +315,7 @@ int sysdata_CreateDir(archive* self, file_path path)
         ERROR("Got unsafe path.\n");
         return 0;
     }
-    return mkdir(p);
+    return mkdir(p, 0777);
 }
 
 archive* sysdata_OpenArchive(file_path path)

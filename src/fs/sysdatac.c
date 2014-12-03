@@ -228,7 +228,7 @@ int SaveDatacheck_CreateDir(archive* self, file_path path)
         ERROR("Got unsafe path.\n");
         return 0;
     }
-    return mkdir(p);
+    return mkdir(p, 0777);
 }
 
 archive* SaveDatacheck_OpenArchive(file_path path)

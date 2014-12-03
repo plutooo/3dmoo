@@ -441,7 +441,7 @@ int sdmc_CreateDir(archive* self, file_path path)
         ERROR("Got unsafe path.\n");
         return 0;
     }
-    return mkdir(p);
+    return mkdir(p, 0777);
 }
 
 int sdmc_DeleteDir(archive* self, file_path path)

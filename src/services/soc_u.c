@@ -85,7 +85,7 @@ SERVICE_CMD(0x00160000)   //Gethostid
 
     char ac[80];
     if (gethostname(ac, sizeof(ac)) != 0) {
-        RESP(2, translate_error(errno));
+        RESP(2, translate_error(GET_ERRNO));
         RESP(1, 0);
         return 0;
     }
@@ -126,7 +126,7 @@ SERVICE_CMD(0x000200c2) //socket
     SOCKET s = socket(CMD(1), CMD(2), CMD(3));
     if (SOCKET_FAILED(s)) {
         DEBUG("failed to get newly created SOCKET\n");
-        RESP(2, translate_error(errno));
+        RESP(2, translate_error(GET_ERRNO));
         RESP(1, 0);
         return 0;
     }
@@ -148,7 +148,7 @@ SERVICE_CMD(0x00050084) //bind
     handleinfo* h = handle_Get(CMD(1) + HANDLES_BASE); //bit(31) must not be set
     if (h == NULL) {
         DEBUG("failed to get Handle\n");
-        RESP(2, translate_error(EBADF));
+        RESP(2, translate_error(ERRNO(EBADF)));
         RESP(1, 0);
         return 0;
     }
@@ -160,7 +160,7 @@ SERVICE_CMD(0x00050084) //bind
     SOCKET s  = (long)h->misc_ptr[0];
     int    rc = bind(s, saddr, addrlen);
     if (rc != 0) {
-        RESP(2, translate_error(errno));
+        RESP(2, translate_error(GET_ERRNO));
         RESP(1, 0);
         return 0;
     }
@@ -177,7 +177,7 @@ SERVICE_CMD(0x00030082) //listen
     handleinfo* h = handle_Get(CMD(1) + HANDLES_BASE); //bit(31) must not be set
     if (h == NULL) {
         DEBUG("failed to get Handle\n");
-        RESP(2, translate_error(EBADF));
+        RESP(2, translate_error(ERRNO(EBADF)));
         RESP(1, 0);
         return 0;
     }
@@ -185,7 +185,7 @@ SERVICE_CMD(0x00030082) //listen
     SOCKET s  = (long)h->misc_ptr[0];
     int    rc = listen(s, CMD(2));
     if (rc != 0) {
-        RESP(2, translate_error(errno));
+        RESP(2, translate_error(GET_ERRNO));
         RESP(1, 0);
         return 0;
     }
@@ -202,7 +202,7 @@ SERVICE_CMD(0x000B0042) //close
     handleinfo* h = handle_Get(CMD(1) + HANDLES_BASE); //bit(31) must not be set
     if (h == NULL) {
         DEBUG("failed to get Handle\n");
-        RESP(2, translate_error(EBADF));
+        RESP(2, translate_error(ERRNO(EBADF)));
         RESP(1, 0);
         return 0;
     }
@@ -210,7 +210,7 @@ SERVICE_CMD(0x000B0042) //close
     SOCKET s = (long)h->misc_ptr[0];
     int    rc = closesocket(s);
     if (rc != 0) {
-        RESP(2, translate_error(errno));
+        RESP(2, translate_error(GET_ERRNO));
         RESP(1, 0);
         return 0;
     }
@@ -233,7 +233,7 @@ SERVICE_CMD(0x00040082) //accept
     handleinfo* h = handle_Get(CMD(1) + HANDLES_BASE); //bit(31) must not be set
     if (h == NULL) {
         DEBUG("failed to get Handle\n");
-        RESP(2, translate_error(EBADF));
+        RESP(2, translate_error(ERRNO(EBADF)));
         RESP(1, 0);
         return 0;
     }
@@ -251,7 +251,7 @@ SERVICE_CMD(0x00040082) //accept
     s = accept(s, saddr, &addrlen);
     if (SOCKET_FAILED(s)) {
         DEBUG("failed to get newly created SOCKET\n");
-        RESP(2, translate_error(errno));
+        RESP(2, translate_error(GET_ERRNO));
         RESP(1, 0);
         return 0;
     }
@@ -280,7 +280,7 @@ SERVICE_CMD(0x00090106) //sendto_other
     handleinfo* h = handle_Get(CMD(1) + HANDLES_BASE); //bit(31) must not be set
     if (h == NULL) {
         DEBUG("failed to get Handle\n");
-        RESP(2, translate_error(EBADF));
+        RESP(2, translate_error(ERRNO(EBADF)));
         RESP(1, 0);
         return 0;
     }
@@ -295,7 +295,7 @@ SERVICE_CMD(0x00090106) //sendto_other
 
     if (mem_Read(buffer, CMD(10), CMD(2)) != 0) {
         ERROR("mem_Read failed.\n");
-        RESP(2, translate_error(EFAULT));
+        RESP(2, translate_error(ERRNO(EFAULT)));
         RESP(1, 0);
         free(buffer);
         return 0;
@@ -311,7 +311,7 @@ SERVICE_CMD(0x00090106) //sendto_other
     SOCKET  s  = (long)h->misc_ptr[0];
     ssize_t rc = sendto(s, buffer, CMD(2), CMD(3), saddr, addrlen);
     if (rc < 0) {
-        RESP(2, translate_error(errno));
+        RESP(2, translate_error(GET_ERRNO));
         RESP(1, 0);
         free(buffer);
         return 0;
@@ -334,7 +334,7 @@ SERVICE_CMD(0x000a0106) //sendto
     handleinfo* h = handle_Get(CMD(1) + HANDLES_BASE); //bit(31) must not be set
     if (h == NULL) {
         DEBUG("failed to get Handle\n");
-        RESP(2, translate_error(EBADF));
+        RESP(2, translate_error(ERRNO(EBADF)));
         RESP(1, 0);
         return 0;
     }
@@ -349,7 +349,7 @@ SERVICE_CMD(0x000a0106) //sendto
 
     if (mem_Read(buffer, CMD(8), CMD(2)) != 0) {
         ERROR("mem_Read failed.\n");
-        RESP(2, translate_error(EFAULT));
+        RESP(2, translate_error(ERRNO(EFAULT)));
         RESP(1, 0);
         free(buffer);
         return 0;
@@ -365,7 +365,7 @@ SERVICE_CMD(0x000a0106) //sendto
     SOCKET  s  = (long)h->misc_ptr[0];
     ssize_t rc = sendto(s, buffer, CMD(2), CMD(3), saddr, addrlen);
     if (rc < 0) {
-        RESP(2, translate_error(errno));
+        RESP(2, translate_error(GET_ERRNO));
         RESP(1, 0);
         free(buffer);
         return 0;
@@ -388,7 +388,7 @@ SERVICE_CMD(0x00070104) //recvfrom_other
     handleinfo* h = handle_Get(CMD(1) + HANDLES_BASE); //bit(31) must not be set
     if (h == NULL) {
         DEBUG("failed to get Handle\n");
-        RESP(2, translate_error(EBADF));
+        RESP(2, translate_error(ERRNO(EBADF)));
         RESP(1, 0);
         return 0;
     }
@@ -412,7 +412,7 @@ SERVICE_CMD(0x00070104) //recvfrom_other
     ssize_t rc = recvfrom(s, buffer, CMD(2), CMD(3), saddr, &addrlen);
     if (rc < 0) {
         ERROR("recvfrom failed.\n");
-        RESP(2, translate_error(errno));
+        RESP(2, translate_error(GET_ERRNO));
         RESP(1, 0);
         free(buffer);
         return 0;
@@ -420,7 +420,7 @@ SERVICE_CMD(0x00070104) //recvfrom_other
 
     if (mem_Write(buffer, CMD(8), rc) != 0) {
         ERROR("mem_Write failed.\n");
-        RESP(2, translate_error(EFAULT));
+        RESP(2, translate_error(ERRNO(EFAULT)));
         RESP(1, 0);
         free(buffer);
         return 0;
@@ -448,7 +448,7 @@ SERVICE_CMD(0x00080102) //recvfrom
     handleinfo* h = handle_Get(CMD(1) + HANDLES_BASE); //bit(31) must not be set
     if (h == NULL) {
         DEBUG("failed to get Handle\n");
-        RESP(2, translate_error(EBADF));
+        RESP(2, translate_error(ERRNO(EBADF)));
         RESP(1, 0);
         return 0;
     }
@@ -471,7 +471,7 @@ SERVICE_CMD(0x00080102) //recvfrom
     ssize_t rc = recvfrom(s, buffer, CMD(2), CMD(3), saddr, &addrlen);
     if (rc < 0) {
         ERROR("recvfrom failed.\n");
-        RESP(2, translate_error(errno));
+        RESP(2, translate_error(GET_ERRNO));
         RESP(1, 0);
         free(buffer);
         return 0;
@@ -479,7 +479,7 @@ SERVICE_CMD(0x00080102) //recvfrom
 
     if (mem_Write(buffer, CMD(1), rc) != 0) {
         ERROR("mem_Write failed.\n");
-        RESP(2, translate_error(EFAULT));
+        RESP(2, translate_error(ERRNO(EFAULT)));
         RESP(1, 0);
         free(buffer);
         return 0;
@@ -507,7 +507,7 @@ static int load_sockaddr(struct sockaddr *saddr, socklen_t *addrlen, uint32_t sr
     if (*addrlen == 0x8) {
         /* AF_INET */
         if (mem_Read(addrbuf, src, *addrlen) != 0) {
-            RESP(2, translate_error(EFAULT));
+            RESP(2, translate_error(ERRNO(EFAULT)));
             RESP(1, 0);
             return -1;
         }
@@ -518,7 +518,7 @@ static int load_sockaddr(struct sockaddr *saddr, socklen_t *addrlen, uint32_t sr
     else if (*addrlen == 0x1C) {
         /* AF_INET6 ? */
         if (mem_Read(addrbuf, src, *addrlen) != 0) {
-            RESP(2, translate_error(EFAULT));
+            RESP(2, translate_error(ERRNO(EFAULT)));
             RESP(1, 0);
             return -1;
         }
@@ -529,7 +529,7 @@ static int load_sockaddr(struct sockaddr *saddr, socklen_t *addrlen, uint32_t sr
     }
     else {
         DEBUG("unknown len\n");
-        RESP(2, translate_error(EINVAL));
+        RESP(2, translate_error(ERRNO(EINVAL)));
         RESP(1, 0);
         return -1;
     }
@@ -546,7 +546,7 @@ static int save_sockaddr(struct sockaddr *saddr, socklen_t addrlen, uint32_t dst
 	addrbuf[1] = (uint8_t)saddr->sa_family; /* I hope this data truncation doesn't break anything */
 
     if (mem_Write(addrbuf, dst, dstlen < addrlen ? dstlen : addrlen) != 0) {
-      RESP(2, translate_error(EFAULT));
+      RESP(2, translate_error(ERRNO(EFAULT)));
       RESP(1, 0);
       return -1;
     }

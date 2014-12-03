@@ -42,7 +42,7 @@ static WSADATA wsaData;
 #include <unistd.h>
 
 typedef int SOCKET;
-#define SOCKET_FAILED(s) (s < 0)
+#define SOCKET_FAILED(s) ((s) < 0)
 #define closesocket(s)   close(s)
 
 #define ERRNO(x)  x

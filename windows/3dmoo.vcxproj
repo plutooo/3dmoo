@@ -123,7 +123,7 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>1GDB_STUB;WIN32;MODET;MODE32;_DEBUG;_CONSOLE;_LIB;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>GDB_STUB;WIN32;MODET;MODE32;_DEBUG;_CONSOLE;_LIB;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>..\inc;..\inc\arm11;..\src;..\src\arm11;$(SDL2)\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <MinimalRebuild>false</MinimalRebuild>
@@ -347,6 +347,7 @@
     <ClInclude Include="..\inc\init.h" />
     <ClInclude Include="..\inc\loader.h" />
     <ClInclude Include="..\inc\mem.h" />
+    <ClInclude Include="..\inc\nin_public_crypto.h" />
     <ClInclude Include="..\inc\screen.h" />
     <ClInclude Include="..\inc\gpu.h" />
     <ClInclude Include="..\inc\svc.h" />

@@ -86,6 +86,28 @@ SERVICE_CMD(0x30040)
     RESP(1, 0); // Result
     return 0;
 }
+SERVICE_CMD(0x00040040)
+{
+    u32 unk = CMD(1);
+    DEBUG("Finalize, unk=%08x\n", unk);
+
+    RESP(1, 0x0); // Result
+    return 0;
+}
+SERVICE_CMD(0x00050040)
+{
+    u32 unk = CMD(1);
+    DEBUG("GetAppletManInfo, unk=%02x\n", unk);
+
+
+    RESP(2, 0x0); // u8 unk
+    RESP(3, 0x0); // u32 unk
+    RESP(4, 0x101); // Menu AppID 
+    RESP(5, 0x102); // APPID
+    RESP(1, 0x0); // Result
+    return 0;
+}
+
 SERVICE_CMD(0x00090040)
 {
     u32 unk = CMD(1);

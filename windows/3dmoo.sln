@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
-VisualStudioVersion = 12.0.31101.0
+VisualStudioVersion = 12.0.21005.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "3dmoo", "3dmoo.vcxproj", "{815BBB93-2E22-44D4-AC5B-F33035A9CBD1}"
 EndProject
@@ -17,8 +17,8 @@ Global
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{815BBB93-2E22-44D4-AC5B-F33035A9CBD1}.Debug|Win32.ActiveCfg = Debug|Win32
 		{815BBB93-2E22-44D4-AC5B-F33035A9CBD1}.Debug|Win32.Build.0 = Debug|Win32
-		{815BBB93-2E22-44D4-AC5B-F33035A9CBD1}.Debug|x64.ActiveCfg = Debug|x64
-		{815BBB93-2E22-44D4-AC5B-F33035A9CBD1}.Debug|x64.Build.0 = Debug|x64
+		{815BBB93-2E22-44D4-AC5B-F33035A9CBD1}.Debug|x64.ActiveCfg = Debug|Win32
+		{815BBB93-2E22-44D4-AC5B-F33035A9CBD1}.Debug|x64.Build.0 = Debug|Win32
 		{815BBB93-2E22-44D4-AC5B-F33035A9CBD1}.Release_nodebug|Win32.ActiveCfg = Release_nodebug|Win32
 		{815BBB93-2E22-44D4-AC5B-F33035A9CBD1}.Release_nodebug|Win32.Build.0 = Release_nodebug|Win32
 		{815BBB93-2E22-44D4-AC5B-F33035A9CBD1}.Release_nodebug|x64.ActiveCfg = Release_nodebug|x64

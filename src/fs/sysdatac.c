@@ -28,6 +28,10 @@
 
 #include "config.h"
 
+#ifdef _WIN32
+#include <direct.h>
+#endif
+
 
 /* ____ File implementation ____ */
 
@@ -224,7 +228,7 @@ int SaveDatacheck_CreateDir(archive* self, file_path path)
         ERROR("Got unsafe path.\n");
         return 0;
     }
-    return mkdir(p, 0777);
+    return mkdir(p);
 }
 
 archive* SaveDatacheck_OpenArchive(file_path path)

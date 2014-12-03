@@ -449,5 +449,8 @@
     <ClInclude Include="..\inc\3dsx.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\inc\nin_public_crypto.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

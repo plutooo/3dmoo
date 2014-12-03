@@ -21,8 +21,12 @@
 #include "handles.h"
 #include "threads.h"
 
-s32 svcGetResourceLimitCurrentValues(u32 values_ptr,u32 handleResourceLimit,u32 names_ptr,u32 nameCount)
+s32 svcGetResourceLimitCurrentValues()
 {
+    u32 values_ptr = arm11_R(0);
+    u32 handleResourceLimit = arm11_R(1);
+    u32 names_ptr = arm11_R(2);
+    u32 nameCount = arm11_R(3);
     for (u32 i = 0; i < nameCount; i++) {
         u32 temp = mem_Read32(names_ptr + i*4);
         switch (temp) {

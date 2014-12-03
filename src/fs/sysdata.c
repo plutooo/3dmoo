@@ -27,7 +27,9 @@
 #include "fs.h"
 
 #include "config.h"
-
+#ifdef _WIN32
+#include <direct.h>
+#endif
 
 /* ____ File implementation ____ */
 
@@ -313,7 +315,7 @@ int sysdata_CreateDir(archive* self, file_path path)
         ERROR("Got unsafe path.\n");
         return 0;
     }
-    return mkdir(p, 0777);
+    return mkdir(p);
 }
 
 archive* sysdata_OpenArchive(file_path path)

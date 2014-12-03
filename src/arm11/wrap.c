@@ -204,7 +204,7 @@ void ARMul_StoreByte (ARMul_State * state, ARMword address, ARMword data)
 ARMword ARMul_SwapWord (ARMul_State * state, ARMword address, ARMword data)
 {
 #ifdef GDB_STUB
-    gdb_memio->read32(gdb_memio->data, address, data);
+    gdb_memio->read32(gdb_memio->data, address);
     gdb_memio->write32(gdb_memio->data, address, data);
 #endif
     ARMword temp;
@@ -217,7 +217,7 @@ ARMword ARMul_SwapWord (ARMul_State * state, ARMword address, ARMword data)
 ARMword ARMul_SwapByte (ARMul_State * state, ARMword address, ARMword data)
 {
 #ifdef GDB_STUB
-    gdb_memio->read8(gdb_memio->data, address, data);
+    gdb_memio->read8(gdb_memio->data, address);
     gdb_memio->write8(gdb_memio->data, address, data);
 #endif
     ARMword temp;

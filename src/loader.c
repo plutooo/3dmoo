@@ -29,6 +29,8 @@
 
 #include "3dsx.h"
 
+#include "nin_public_crypto.h"
+
 u8 loader_key[0x10];
 u32 loader_txt = 0;
 u32 loader_data = 0;
@@ -475,7 +477,7 @@ int loader_LoadFile(FILE* fd)
     }
     if (loader_encrypted) {
         ncch_extract_prepare(&ctx, &loader_h, NCCHTYPE_EXHEADER, loader_key);
-        ctr_crypt_counter(&ctx,&ex, &ex, sizeof(ex));
+        ctr_crypt_counter(&ctx, (u8*)&ex, (u8*)&ex, sizeof(ex));
     }
 
     bool is_compressed = ex.codesetinfo.flags.flag & 1;
@@ -500,7 +502,7 @@ int loader_LoadFile(FILE* fd)
     }
     if (loader_encrypted) {
         ncch_extract_prepare(&ctx, &loader_h, NCCHTYPE_EXEFS, loader_key);
-        ctr_crypt_counter(&ctx, &eh, &eh, sizeof(eh));
+        ctr_crypt_counter(&ctx, (u8*)&eh, (u8*)&eh, sizeof(eh));
     }
 
     u32 i;

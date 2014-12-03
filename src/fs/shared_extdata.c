@@ -26,6 +26,9 @@
 #include "handles.h"
 #include "fs.h"
 
+#ifdef _WIN32
+#include <direct.h>
+#endif
 
 /* ____ File implementation ____ */
 

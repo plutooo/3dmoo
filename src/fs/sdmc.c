@@ -441,7 +441,11 @@ int sdmc_CreateDir(archive* self, file_path path)
         ERROR("Got unsafe path.\n");
         return 0;
     }
+#ifdef _MSC_VER 
+    return _mkdir(p);
+#else
     return mkdir(p, 0777);
+#endif
 }
 
 int sdmc_DeleteDir(archive* self, file_path path)
@@ -461,7 +465,11 @@ int sdmc_DeleteDir(archive* self, file_path path)
         ERROR("Got unsafe path.\n");
         return 0;
     }
-    return rmdir(p);
+#ifdef _MSC_VER 
+    return _rmdir(p);
+#else
+    return rmdir(p, 0777);
+#endif
 }
 
 archive* sdmc_OpenArchive(file_path path)

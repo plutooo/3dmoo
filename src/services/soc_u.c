@@ -16,23 +16,40 @@
  */
 
 #ifdef _WIN32
+
 #include <winsock2.h>
 #include <ws2tcpip.h>
-WSADATA wsaData;
-#define SOCKET_FAILED(s) (s == NULL)
-#define ssize_t int
+#include <BaseTsd.h>
+
+typedef SSIZE_T ssize_t;
+static WSADATA wsaData;
+#define SOCKET_FAILED(s) ((s) == (SOCKET)NULL)
+
+#define WSAEAGAIN    WSAEWOULDBLOCK
+
+#define SHUT_RD   SD_RECEIVE
+#define SHUT_WR   SD_SEND
 #define SHUT_RDWR SD_BOTH
-static void init_error_map(void);
+
+#define ERRNO(x)  WSA##x
+#define GET_ERRNO WSAGetLastError()
+
 #else
-typedef int SOCKET;
-#define SOCKET_FAILED(s) (s < 0)
-#define closesocket(s)   close(s)
 
 #include <arpa/inet.h>
 #include <netdb.h>
 #include <netinet/in.h>
 #include <unistd.h>
+
+typedef int SOCKET;
+#define SOCKET_FAILED(s) (s < 0)
+#define closesocket(s)   close(s)
+
+#define ERRNO(x)  x
+#define GET_ERRNO errno
+
 #endif
+
 #include "util.h"
 #include "handles.h"
 #include "mem.h"
@@ -42,6 +59,7 @@ typedef int SOCKET;
 static u32 soc_shared_size = 0;
 static u32 soc_shared_mem_handle = 0;
 
+static void init_error_map(void);
 static int translate_error(int error);
 static int load_sockaddr(struct sockaddr *saddr, socklen_t *addrlen, uint32_t src);
 static int save_sockaddr(struct sockaddr *saddr, socklen_t addrlen, uint32_t dst, socklen_t dstlen);
@@ -53,8 +71,8 @@ SERVICE_CMD(0x00010044)   //InitializeSockets
     DEBUG("InitializeSockets %08x %08x\n", CMD(1), CMD(5));
 #ifdef _WIN32
     WSAStartup(MAKEWORD(1, 1), &wsaData);
-	init_error_map();
 #endif
+    init_error_map();
     soc_shared_size       = CMD(1);
     soc_shared_mem_handle = CMD(5);
     RESP(1, 0);
@@ -525,7 +543,7 @@ static int save_sockaddr(struct sockaddr *saddr, socklen_t addrlen, uint32_t dst
 
     memcpy(&addrbuf[2], saddr->sa_data, addrlen-2);
     addrbuf[0] = addrlen;
-    addrbuf[1] = saddr->sa_family;
+	addrbuf[1] = (uint8_t)saddr->sa_family; /* I hope this data truncation doesn't break anything */
 
     if (mem_Write(addrbuf, dst, dstlen < addrlen ? dstlen : addrlen) != 0) {
       RESP(2, translate_error(EFAULT));
@@ -542,89 +560,85 @@ typedef struct error_map_t {
 } error_map_t;
 
 static error_map_t error_map[] = {
-    { 0,                0, },
-    { E2BIG,            1, },
-    { EACCES,           2, },
-    { EADDRINUSE,       3, },
-    { EADDRNOTAVAIL,    4, },
-    { EAFNOSUPPORT,     5, },
-    { EAGAIN,           6, },
-    { EALREADY,         7, },
-    { EBADF,            8, },
-    { EBADMSG,          9, },
-    { EBUSY,           10, },
-    { ECANCELED,       11, },
-    { ECHILD,          12, },
-    { ECONNABORTED,    13, },
-    { ECONNREFUSED,    14, },
-    { ECONNRESET,      15, },
-    { EDEADLK,         16, },
-    { EDESTADDRREQ,    17, },
-    { EDOM,            18, },
+    { 0,                       0, },
+    { E2BIG,                   1, },
+    { ERRNO(EACCES),           2, },
+    { ERRNO(EADDRINUSE),       3, },
+    { ERRNO(EADDRNOTAVAIL),    4, },
+    { ERRNO(EAFNOSUPPORT),     5, },
+    { ERRNO(EAGAIN),           6, },
+    { ERRNO(EALREADY),         7, },
+    { ERRNO(EBADF),            8, },
+    { EBADMSG,                 9, },
+    { EBUSY,                  10, },
+    { ECANCELED,              11, },
+    { ECHILD,                 12, },
+    { ERRNO(ECONNABORTED),    13, },
+    { ERRNO(ECONNREFUSED),    14, },
+    { ERRNO(ECONNRESET),      15, },
+    { EDEADLK,                16, },
+    { ERRNO(EDESTADDRREQ),    17, },
+    { EDOM,                   18, },
+    { ERRNO(EDQUOT),          19, },
+    { EEXIST,                 20, },
+    { ERRNO(EFAULT),          21, },
+    { EFBIG,                  22, },
+    { ERRNO(EHOSTUNREACH),    23, },
+    { EIDRM,                  24, },
+    { EILSEQ,                 25, },
+    { ERRNO(EINPROGRESS),     26, },
+    { ERRNO(EINTR),           27, },
+    { ERRNO(EINVAL),          28, },
+    { EIO,                    29, },
+    { ERRNO(EISCONN),         30, },
+    { EISDIR,                 31, },
+    { ERRNO(ELOOP),           32, },
+    { ERRNO(EMFILE),          33, },
+    { EMLINK,                 34, },
+    { ERRNO(EMSGSIZE),        35, },
 #ifndef _WIN32
-    { EDQUOT,          19, },
+    { ERRNO(EMULTIHOP),       36, },
 #endif
-    { EEXIST,          20, },
-    { EFAULT,          21, },
-    { EFBIG,           22, },
-    { EHOSTUNREACH,    23, },
-    { EIDRM,           24, },
-    { EILSEQ,          25, },
-    { EINPROGRESS,     26, },
-    { EINTR,           27, },
-    { EINVAL,          28, },
-    { EIO,             29, },
-    { EISCONN,         30, },
-    { EISDIR,          31, },
-    { ELOOP,           32, },
-    { EMFILE,          33, },
-    { EMLINK,          34, },
-    { EMSGSIZE,        35, },
-#ifndef _WIN32
-    { EMULTIHOP,       36, },
-#endif
-    { ENAMETOOLONG,    37, },
-    { ENETDOWN,        38, },
-    { ENETRESET,       39, },
-    { ENETUNREACH,     40, },
-    { ENFILE,          41, },
-    { ENOBUFS,         42, },
-    { ENODATA,         43, },
-    { ENODEV,          44, },
-    { ENOENT,          45, },
-    { ENOEXEC,         46, },
-    { ENOLCK,          47, },
-    { ENOLINK,         48, },
-    { ENOMEM,          49, },
-    { ENOMSG,          50, },
-    { ENOPROTOOPT,     51, },
-    { ENOSPC,          52, },
-    { ENOSR,           53, },
-    { ENOSTR,          54, },
-    { ENOSYS,          55, },
-    { ENOTCONN,        56, },
-    { ENOTDIR,         57, },
-    { ENOTEMPTY,       58, },
-    { ENOTSOCK,        59, },
-    { ENOTSUP,         60, },
-    { ENOTTY,          61, },
-    { ENXIO,           62, },
-    { EOPNOTSUPP,      63, },
-    { EOVERFLOW,       64, },
-    { EPERM,           65, },
-    { EPIPE,           66, },
-    { EPROTO,          67, },
-    { EPROTONOSUPPORT, 68, },
-    { EPROTOTYPE,      69, },
-    { ERANGE,          70, },
-    { EROFS,           71, },
-    { ESPIPE,          72, },
-    { ESRCH,           73, },
-#ifndef _WIN32
-    { ESTALE,          74, },
-#endif
-    { ETIME,           75, },
-    { ETIMEDOUT,       76, },
+    { ERRNO(ENAMETOOLONG),    37, },
+    { ERRNO(ENETDOWN),        38, },
+    { ERRNO(ENETRESET),       39, },
+    { ERRNO(ENETUNREACH),     40, },
+    { ENFILE,                 41, },
+    { ERRNO(ENOBUFS),         42, },
+    { ENODATA,                43, },
+    { ENODEV,                 44, },
+    { ENOENT,                 45, },
+    { ENOEXEC,                46, },
+    { ENOLCK,                 47, },
+    { ENOLINK,                48, },
+    { ENOMEM,                 49, },
+    { ENOMSG,                 50, },
+    { ERRNO(ENOPROTOOPT),     51, },
+    { ENOSPC,                 52, },
+    { ENOSR,                  53, },
+    { ENOSTR,                 54, },
+    { ENOSYS,                 55, },
+    { ERRNO(ENOTCONN),        56, },
+    { ENOTDIR,                57, },
+    { ERRNO(ENOTEMPTY),       58, },
+    { ERRNO(ENOTSOCK),        59, },
+    { ENOTSUP,                60, },
+    { ENOTTY,                 61, },
+    { ENXIO,                  62, },
+    { ERRNO(EOPNOTSUPP),      63, },
+    { EOVERFLOW,              64, },
+    { EPERM,                  65, },
+    { EPIPE,                  66, },
+    { EPROTO,                 67, },
+    { ERRNO(EPROTONOSUPPORT), 68, },
+    { ERRNO(EPROTOTYPE),      69, },
+    { ERANGE,                 70, },
+    { EROFS,                  71, },
+    { ESPIPE,                 72, },
+    { ESRCH,                  73, },
+    { ERRNO(ESTALE),          74, },
+    { ETIME,                  75, },
+    { ERRNO(ETIMEDOUT),       76, },
 };
 static const size_t num_error_map = sizeof(error_map)/sizeof(error_map[0]);
 
@@ -641,9 +655,6 @@ static int error_map_cmp(const void *p1, const void *p2)
     return 0;
 }
 
-#ifndef _WIN32
-__attribute__((constructor))
-#endif
 static void init_error_map(void)
 {
     qsort(error_map, num_error_map, sizeof(error_map_t), error_map_cmp);

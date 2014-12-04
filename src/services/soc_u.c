@@ -15,6 +15,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <stdint.h>
+
 #ifdef _WIN32
 
 #include <winsock2.h>
@@ -130,7 +132,7 @@ SERVICE_CMD(0x000200c2) //socket
         RESP(1, 0);
         return 0;
     }
-    h->misc_ptr[0] = (void*)(long)s;
+    h->misc_ptr[0] = (void*)s;
 
     RESP(2, handle - HANDLES_BASE); //bit(31) must not be set
     RESP(1, 0);
@@ -144,6 +146,7 @@ SERVICE_CMD(0x00050084) //bind
     struct sockaddr_storage addr;
     struct sockaddr         *saddr = (struct sockaddr*)&addr;
     socklen_t               addrlen = CMD(2);
+    SOCKET                  s;
 
     handleinfo* h = handle_Get(CMD(1) + HANDLES_BASE); //bit(31) must not be set
     if (h == NULL) {
@@ -157,8 +160,8 @@ SERVICE_CMD(0x00050084) //bind
     if (load_sockaddr(saddr, &addrlen, CMD(6)) != 0)
         return 0;
 
-    SOCKET s  = (long)h->misc_ptr[0];
-    int    rc = bind(s, saddr, addrlen);
+    s = (uintptr_t)h->misc_ptr[0];
+    int rc = bind(s, saddr, addrlen);
     if (rc != 0) {
         RESP(2, translate_error(GET_ERRNO));
         RESP(1, 0);
@@ -174,6 +177,8 @@ SERVICE_CMD(0x00030082) //listen
 {
     DEBUG("listen %08X %08X\n", CMD(1), CMD(2));
 
+    SOCKET s;
+
     handleinfo* h = handle_Get(CMD(1) + HANDLES_BASE); //bit(31) must not be set
     if (h == NULL) {
         DEBUG("failed to get Handle\n");
@@ -182,8 +187,8 @@ SERVICE_CMD(0x00030082) //listen
         return 0;
     }
 
-    SOCKET s  = (long)h->misc_ptr[0];
-    int    rc = listen(s, CMD(2));
+    s = (uintptr_t)h->misc_ptr[0];
+    int rc = listen(s, CMD(2));
     if (rc != 0) {
         RESP(2, translate_error(GET_ERRNO));
         RESP(1, 0);
@@ -199,6 +204,8 @@ SERVICE_CMD(0x000B0042) //close
 {
     DEBUG("close %08X --todo--\n", CMD(1));
 
+    SOCKET s;
+
     handleinfo* h = handle_Get(CMD(1) + HANDLES_BASE); //bit(31) must not be set
     if (h == NULL) {
         DEBUG("failed to get Handle\n");
@@ -207,8 +214,8 @@ SERVICE_CMD(0x000B0042) //close
         return 0;
     }
 
-    SOCKET s = (long)h->misc_ptr[0];
-    int    rc = closesocket(s);
+    s = (uintptr_t)h->misc_ptr[0];
+    int rc = closesocket(s);
     if (rc != 0) {
         RESP(2, translate_error(GET_ERRNO));
         RESP(1, 0);
@@ -229,6 +236,7 @@ SERVICE_CMD(0x00040082) //accept
     struct sockaddr_storage addr;
     struct sockaddr         *saddr = (struct sockaddr*)&addr;
     socklen_t               addrlen = sizeof(addr);
+    SOCKET                  s;
 
     handleinfo* h = handle_Get(CMD(1) + HANDLES_BASE); //bit(31) must not be set
     if (h == NULL) {
@@ -247,7 +255,7 @@ SERVICE_CMD(0x00040082) //accept
         return 0;
     }
 
-    SOCKET s = (long)h->misc_ptr[0];
+    s = (uintptr_t)h->misc_ptr[0];
     s = accept(s, saddr, &addrlen);
     if (SOCKET_FAILED(s)) {
         DEBUG("failed to get newly created SOCKET\n");
@@ -255,7 +263,7 @@ SERVICE_CMD(0x00040082) //accept
         RESP(1, 0);
         return 0;
     }
-    ha->misc_ptr[0] = (void*)(long)s;
+    ha->misc_ptr[0] = (void*)s;
 
     if (save_sockaddr(saddr, addrlen, EXTENDED_CMD(1), CMD(2)) != 0) {
         shutdown(s, SHUT_RDWR);
@@ -276,6 +284,7 @@ SERVICE_CMD(0x00090106) //sendto_other
     struct sockaddr_storage addr;
     struct sockaddr         *saddr = (struct sockaddr*)&addr;
     socklen_t               addrlen = CMD(4);
+    SOCKET                  s;
 
     handleinfo* h = handle_Get(CMD(1) + HANDLES_BASE); //bit(31) must not be set
     if (h == NULL) {
@@ -308,7 +317,7 @@ SERVICE_CMD(0x00090106) //sendto_other
     }
 
     // TODO detect that we are doing send()
-    SOCKET  s  = (long)h->misc_ptr[0];
+    s = (uintptr_t)h->misc_ptr[0];
     ssize_t rc = sendto(s, buffer, CMD(2), CMD(3), saddr, addrlen);
     if (rc < 0) {
         RESP(2, translate_error(GET_ERRNO));
@@ -318,7 +327,7 @@ SERVICE_CMD(0x00090106) //sendto_other
     }
 
     RESP(2, 0);
-    RESP(1, rc);
+    RESP(1, (uint32_t)rc);
     free(buffer);
     return 0;
 }
@@ -330,6 +339,7 @@ SERVICE_CMD(0x000a0106) //sendto
     struct sockaddr_storage addr;
     struct sockaddr         *saddr = (struct sockaddr*)&addr;
     socklen_t               addrlen = CMD(4);
+    SOCKET                  s;
 
     handleinfo* h = handle_Get(CMD(1) + HANDLES_BASE); //bit(31) must not be set
     if (h == NULL) {
@@ -362,7 +372,7 @@ SERVICE_CMD(0x000a0106) //sendto
     }
 
     // TODO detect that we are doing send()
-    SOCKET  s  = (long)h->misc_ptr[0];
+    s = (uintptr_t)h->misc_ptr[0];
     ssize_t rc = sendto(s, buffer, CMD(2), CMD(3), saddr, addrlen);
     if (rc < 0) {
         RESP(2, translate_error(GET_ERRNO));
@@ -372,7 +382,7 @@ SERVICE_CMD(0x000a0106) //sendto
     }
 
     RESP(2, 0);
-    RESP(1, rc);
+    RESP(1, (uint32_t)rc);
     free(buffer);
     return 0;
 }
@@ -384,6 +394,7 @@ SERVICE_CMD(0x00070104) //recvfrom_other
     struct sockaddr_storage addr;
     struct sockaddr         *saddr = (struct sockaddr*)&addr;
     socklen_t               addrlen = CMD(4);
+    SOCKET                  s;
 
     handleinfo* h = handle_Get(CMD(1) + HANDLES_BASE); //bit(31) must not be set
     if (h == NULL) {
@@ -408,7 +419,7 @@ SERVICE_CMD(0x00070104) //recvfrom_other
     }
 
     // TODO detect that we are doing recv()
-    SOCKET s = (long)h->misc_ptr[0];
+    s = (uintptr_t)h->misc_ptr[0];
     ssize_t rc = recvfrom(s, buffer, CMD(2), CMD(3), saddr, &addrlen);
     if (rc < 0) {
         ERROR("recvfrom failed.\n");
@@ -418,7 +429,7 @@ SERVICE_CMD(0x00070104) //recvfrom_other
         return 0;
     }
 
-    if (mem_Write(buffer, CMD(8), rc) != 0) {
+    if (mem_Write(buffer, CMD(8), (uint32_t)rc) != 0) {
         ERROR("mem_Write failed.\n");
         RESP(2, translate_error(ERRNO(EFAULT)));
         RESP(1, 0);
@@ -432,7 +443,7 @@ SERVICE_CMD(0x00070104) //recvfrom_other
     }
 
     RESP(2, 0);
-    RESP(1, rc);
+    RESP(1, (uint32_t)rc);
     free(buffer);
     return 0;
 }
@@ -444,6 +455,7 @@ SERVICE_CMD(0x00080102) //recvfrom
     struct sockaddr_storage addr;
     struct sockaddr         *saddr = (struct sockaddr*)&addr;
     socklen_t               addrlen = CMD(4);
+    SOCKET                  s;
 
     handleinfo* h = handle_Get(CMD(1) + HANDLES_BASE); //bit(31) must not be set
     if (h == NULL) {
@@ -467,7 +479,7 @@ SERVICE_CMD(0x00080102) //recvfrom
     }
 
     // TODO detect that we are doing recv()
-    SOCKET s = (long)h->misc_ptr[0];
+    s = (uintptr_t)h->misc_ptr[0];
     ssize_t rc = recvfrom(s, buffer, CMD(2), CMD(3), saddr, &addrlen);
     if (rc < 0) {
         ERROR("recvfrom failed.\n");
@@ -477,7 +489,7 @@ SERVICE_CMD(0x00080102) //recvfrom
         return 0;
     }
 
-    if (mem_Write(buffer, CMD(1), rc) != 0) {
+    if (mem_Write(buffer, CMD(1), (uint32_t)rc) != 0) {
         ERROR("mem_Write failed.\n");
         RESP(2, translate_error(ERRNO(EFAULT)));
         RESP(1, 0);
@@ -491,7 +503,7 @@ SERVICE_CMD(0x00080102) //recvfrom
     }
 
     RESP(2, 0);
-    RESP(1, rc);
+    RESP(1, (uint32_t)rc);
     free(buffer);
     return 0;
 
@@ -513,7 +525,7 @@ static int load_sockaddr(struct sockaddr *saddr, socklen_t *addrlen, uint32_t sr
         }
         saddr->sa_family = addrbuf[1];
         memcpy(saddr->sa_data, &addrbuf[2], 0x6);
-	*addrlen = sizeof(struct sockaddr_in);
+        *addrlen = sizeof(struct sockaddr_in);
     }
     else if (*addrlen == 0x1C) {
         /* AF_INET6 ? */
@@ -543,7 +555,7 @@ static int save_sockaddr(struct sockaddr *saddr, socklen_t addrlen, uint32_t dst
 
     memcpy(&addrbuf[2], saddr->sa_data, addrlen-2);
     addrbuf[0] = addrlen;
-	addrbuf[1] = (uint8_t)saddr->sa_family; /* I hope this data truncation doesn't break anything */
+    addrbuf[1] = (uint8_t)saddr->sa_family; /* I hope this data truncation doesn't break anything */
 
     if (mem_Write(addrbuf, dst, dstlen < addrlen ? dstlen : addrlen) != 0) {
       RESP(2, translate_error(ERRNO(EFAULT)));

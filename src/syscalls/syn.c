@@ -110,7 +110,7 @@ u32 svcDuplicateHandle()
         PAUSE();
         return -1;
     }
-
+    arm11_SetR(1, handle); // handle_out
     return 0;
 }
 

@@ -123,8 +123,10 @@ u32 translate_to_bit(const SDL_KeyboardEvent* key)
 }
 void hid_update() //todo
 {
-    *(u32*)&HIDsharedbuffSPVR[0x0] = *(u32*)&HIDsharedbuff[0x0] = (*(u64*)&HIDsharedbuff[0x0])++;
-    *(u32*)&HIDsharedbuffSPVR[0x8] = *(u32*)&HIDsharedbuff[0x8] = (*(u64*)&HIDsharedbuff[0x8])++;
+    *(u64*)&HIDsharedbuff[0x0] = (*(u64*)&HIDsharedbuff[0x0])++;
+    *(u64*)&HIDsharedbuffSPVR[0x0] = *(u64*)&HIDsharedbuff[0x0];
+    *(u64*)&HIDsharedbuff[0x8] = (*(u64*)&HIDsharedbuff[0x8])++;
+    *(u64*)&HIDsharedbuffSPVR[0x8] = *(u64*)&HIDsharedbuff[0x8];
 }
 void hid_keyup(const SDL_KeyboardEvent* key)
 {

@@ -111,11 +111,11 @@ const char* fs_PathToString(u32 type, u32 ptr, u32 size,
 
     switch(type) {
     case PATH_BINARY:
-        if(size >= size_out/2)
+        if(size >= size_out)
             return "<couldn't fit it>";
 
         // Dump binary paths in hex.
-        for(i=0; i<size; i++) {
+        for (i = 0; i<size / 2; i++) {
             u8 b = mem_Read8(ptr + i);
             buf_out[2*i] = hex_digits[(b>>4) & 0xF];
             buf_out[2*i+1] = hex_digits[b & 0xF];

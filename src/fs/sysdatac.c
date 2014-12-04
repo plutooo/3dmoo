@@ -275,8 +275,8 @@ archive* SaveDatacheck_OpenArchive(file_path path)
 
     snprintf(arch->type_specific.sysdata.path,
              sizeof(arch->type_specific.sysdata.path),
-             "%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x",
-             buf[0xF], buf[0xE], buf[0xD], buf[0xC], buf[0xB], buf[0xA], buf[9], buf[8], buf[7], buf[6], buf[5], buf[4], buf[3], buf[2], buf[1], buf[0]);
+             "%02x%02x%02x%02x%02x%02x%02x%02x",
+             buf[7], buf[6], buf[5], buf[4], buf[3], buf[2], buf[1], buf[0]);
 
     printf("%s\n", arch->type_specific.sysdata.path);
     return arch;

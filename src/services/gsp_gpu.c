@@ -22,6 +22,8 @@
 #include "mem.h"
 #include "gpu.h"
 
+#include "screen.h"
+
 #include "service_macros.h"
 
 
@@ -130,7 +132,7 @@ void gsp_ExecuteCommandFromSharedMem()
                 break;
             }
             case GSP_ID_SET_DISPLAY_TRANSFER:
-theother: {
+            {
                     gpu_SendInterruptToAll(1); //this should be at the start
                     gpu_SendInterruptToAll(4); //this is wrong
 

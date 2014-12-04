@@ -78,7 +78,7 @@ static struct {
 u32 svcConnectToPort()
 {
     //u32 handle_out   = arm11_R(0);
-    u32 portname_ptr = arm11_R(1);;
+    u32 portname_ptr = arm11_R(1);
     char name[12];
 
     u32 i;

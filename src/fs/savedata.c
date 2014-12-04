@@ -27,6 +27,9 @@
 #include "handles.h"
 #include "fs.h"
 
+#ifdef _WIN32
+#include <direct.h>
+#endif
 
 /* ____ Save Data implementation ____ */
 
@@ -198,7 +201,11 @@ u32 savedata_ReadDir(dir_type* self, u32 ptr, u32 entrycount, u32* read_out)
 
         if (stat(path, &st) == 0) {
             mem_Write32(ptr + 0x220, st.st_size);
+#if defined(ENV64BIT)
             mem_Write32(ptr + 0x224, (st.st_size >> 32));
+#else
+            mem_Write32(ptr + 0x224, 0);
+#endif
         } else {
             ERROR("Failed to stat: %s\n", path);
             return -1;
@@ -336,7 +343,11 @@ int savedata_CreateDir(archive* self, file_path path)
         ERROR("Got unsafe path.\n");
         return 0;
     }
+#ifdef _MSC_VER 
+    return _mkdir(p);
+#else
     return mkdir(p, 0777);
+#endif
 }
 
 

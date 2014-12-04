@@ -347,6 +347,7 @@
     <ClInclude Include="..\inc\init.h" />
     <ClInclude Include="..\inc\loader.h" />
     <ClInclude Include="..\inc\mem.h" />
+    <ClInclude Include="..\inc\nin_public_crypto.h" />
     <ClInclude Include="..\inc\screen.h" />
     <ClInclude Include="..\inc\gpu.h" />
     <ClInclude Include="..\inc\svc.h" />

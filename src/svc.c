@@ -262,7 +262,7 @@ void svc_Execute(ARMul_State * state, u8 num)
     case 0x3A:
         DEBUG("values_ptr=%08x, handleResourceLimit=%08x, names_ptr=%08x, nameCount=%d\n",
               arm11_R(0), arm11_R(1), arm11_R(2), arm11_R(3));
-        arm11_SetR(0, svcGetResourceLimitCurrentValues(arm11_R(0), arm11_R(1), arm11_R(2), arm11_R(3)));
+        arm11_SetR(0, svcGetResourceLimitCurrentValues());
         return;
     case 0x3C: //Break
         ERROR("Break %x (%d).\n", arm11_R(0), arm11_R(0));

@@ -102,7 +102,7 @@ SERVICE_CMD(0x00160000)   //Gethostid
 
 
     struct in_addr *addr = (struct in_addr*)phe->h_addr_list[0];
-    ERROR("hostid=%s\n", inet_ntoa(*addr));
+    DEBUG("hostid=%s\n", inet_ntoa(*addr));
 #ifdef _WIN32
     RESP(2, addr->S_un.S_addr);
 #else

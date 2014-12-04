@@ -32,6 +32,8 @@
 #include "armemu.h"
 #include "gdbstub.h"
 #include "armdefs.h"
+
+#include "mem.h"
 extern volatile bool arm_stall;
 
 extern ARMul_State s;
@@ -45,7 +47,7 @@ extern struct armcpu_ctrl_iface gdb_ctrl_iface;
 
 
 void *
-createThread_gdb(void(*thread_function)(void *data),
+createThread_gdb(void (WINAPI *thread_function)(void *data),
                  void *thread_data)
 {
     u32 ThreadId;

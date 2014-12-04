@@ -29,6 +29,10 @@
 
 #include "config.h"
 
+#ifdef _WIN32
+#include <direct.h>
+#endif
+
 /* ____ File implementation ____ */
 
 static u32 sdmcfile_Write(file_type* self, u32 ptr, u32 sz, u64 off, u32 flush_flags, u32* written_out)
@@ -325,7 +329,13 @@ u32 sdmc_ReadDir(dir_type* self, u32 ptr, u32 entrycount, u32* read_out)
 
         if(stat(path, &st) == 0) {
             mem_Write32(ptr + 0x220, st.st_size);
-            mem_Write32(ptr + 0x224, (st.st_size>>32));
+
+#if defined(ENV64BIT)
+            mem_Write32(ptr + 0x224, (st.st_size >> 32));
+#else
+            mem_Write32(ptr + 0x224, 0);
+#endif
+
         } else {
             ERROR("Failed to stat: %s\n", path);
             return -1;
@@ -431,7 +441,11 @@ int sdmc_CreateDir(archive* self, file_path path)
         ERROR("Got unsafe path.\n");
         return 0;
     }
+#ifdef _MSC_VER 
+    return _mkdir(p);
+#else
     return mkdir(p, 0777);
+#endif
 }
 
 int sdmc_DeleteDir(archive* self, file_path path)
@@ -451,7 +465,11 @@ int sdmc_DeleteDir(archive* self, file_path path)
         ERROR("Got unsafe path.\n");
         return 0;
     }
-    return rmdir(p);
+#ifdef _MSC_VER 
+    return _rmdir(p);
+#else
+    return rmdir(p, 0777);
+#endif
 }
 
 archive* sdmc_OpenArchive(file_path path)

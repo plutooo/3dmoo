@@ -26,6 +26,9 @@
 #include "handles.h"
 #include "fs.h"
 
+#ifdef _WIN32
+#include <direct.h>
+#endif
 
 /* ____ File implementation ____ */
 
@@ -259,7 +262,11 @@ int sharedextd_DeleteDir(archive* self, file_path path)
         ERROR("Got unsafe path.\n");
         return 0;
     }
-    return rmdir(p);
+#ifdef _MSC_VER 
+    return _rmdir(p);
+#else
+    return rmdir(p, 0777);
+#endif
 }
 
 archive* sharedextd_OpenArchive(file_path path)

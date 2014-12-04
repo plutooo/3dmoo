@@ -123,6 +123,7 @@ SERVICE_CMD(0x00160000)   //Gethostid
     if(info->ai_addr == NULL || info->ai_addr->sa_family != AF_INET) {
         RESP(2, translate_error(ENOENT));
         RESP(1, 0);
+        freeaddrinfo(info);
         return 0;
     }
 
@@ -131,6 +132,7 @@ SERVICE_CMD(0x00160000)   //Gethostid
     if(inet_ntop(AF_INET, addr, addrstr, sizeof(addrstr)) == NULL) {
         RESP(2, translate_error(ENOENT));
         RESP(1, 0);
+        freeaddrinfo(info);
         return 0;
     }
     DEBUG("hostid=%s\n", addrstr);

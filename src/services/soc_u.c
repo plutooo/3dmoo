@@ -85,30 +85,62 @@ SERVICE_CMD(0x00160000)   //Gethostid
 {
     DEBUG("gethostid\n", CMD(1), CMD(2), CMD(3));
 
-    char ac[80];
-    if (gethostname(ac, sizeof(ac)) != 0) {
+    struct addrinfo hints, *info;
+    char   host[80];
+    if (gethostname(host, sizeof(host)) != 0) {
         RESP(2, translate_error(GET_ERRNO));
         RESP(1, 0);
         return 0;
     }
 
-    struct hostent *phe = gethostbyname(ac);
-    if (phe == NULL) {
-        /* TODO better error */
+    memset(&hints, 0, sizeof(hints));
+    hints.ai_family = AF_INET;
+
+    int rc = getaddrinfo(host, NULL, &hints, &info);
+    if (rc != 0) {
+        int err;
+        switch(rc) {
+        case EAI_AGAIN:
+            err = EAGAIN; break;
+
+        case EAI_MEMORY:
+            err = ENOMEM; break;
+
+#ifdef EAI_SYSTEM
+        case EAI_SYSTEM:
+            err = errno;  break;
+#endif
+
+        default:
+            err = ENOENT; break;
+        }
+
+        RESP(2, translate_error(err));
+        RESP(1, 0);
+        return 0;
+    }
+
+    if(info->ai_addr == NULL || info->ai_addr->sa_family != AF_INET) {
         RESP(2, translate_error(ENOENT));
         RESP(1, 0);
         return 0;
     }
 
-
-    struct in_addr *addr = (struct in_addr*)phe->h_addr_list[0];
-    DEBUG("hostid=%s\n", inet_ntoa(*addr));
+    struct in_addr *addr = &((struct sockaddr_in*)info->ai_addr)->sin_addr;
+    char addrstr[INET_ADDRSTRLEN];
+    if(inet_ntop(AF_INET, addr, addrstr, sizeof(addrstr)) == NULL) {
+        RESP(2, translate_error(ENOENT));
+        RESP(1, 0);
+        return 0;
+    }
+    DEBUG("hostid=%s\n", addrstr);
 #ifdef _WIN32
     RESP(2, addr->S_un.S_addr);
 #else
     RESP(2, addr->s_addr);
 #endif
     RESP(1, 0);
+    freeaddrinfo(info);
     return 0;
 }
 
@@ -132,7 +164,7 @@ SERVICE_CMD(0x000200c2) //socket
         RESP(1, 0);
         return 0;
     }
-    h->misc_ptr[0] = (void*)s;
+    h->misc_ptr[0] = (void*)(uintptr_t)s;
 
     RESP(2, handle - HANDLES_BASE); //bit(31) must not be set
     RESP(1, 0);
@@ -263,7 +295,7 @@ SERVICE_CMD(0x00040082) //accept
         RESP(1, 0);
         return 0;
     }
-    ha->misc_ptr[0] = (void*)s;
+    ha->misc_ptr[0] = (void*)(uintptr_t)s;
 
     if (save_sockaddr(saddr, addrlen, EXTENDED_CMD(1), CMD(2)) != 0) {
         shutdown(s, SHUT_RDWR);

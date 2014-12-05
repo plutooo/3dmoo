@@ -130,25 +130,25 @@ static void color_restore(int old)
         fprintf(stdout, "%s: ", __func__);              \
         color_restore(old);                             \
         fprintf(stdout, __VA_ARGS__);                   \
-} while (0);
+} while (0)
 #else
-#define DEBUG(...)
+#define DEBUG(...) ((void)0)
 #endif
 
 #if 1
 #define GPUDEBUG(...) do {                                 \
     DEBUG(__VA_ARGS__);                   \
-} while (0);
+} while (0)
 #else
-#define GPUDEBUG(...)
+#define GPUDEBUG(...) ((void)0)
 #endif
 
 #if 1
 #define THREADDEBUG(...) do {                                 \
     DEBUG(__VA_ARGS__);                   \
-} while (0);
+} while (0)
 #else
-#define THREADDEBUG(...)
+#define THREADDEBUG(...) ((void)0)
 #endif
 
 #if 1
@@ -156,9 +156,9 @@ static void color_restore(int old)
     int old = color_teal();                           \
     fprintf(stdout, __VA_ARGS__);                     \
     color_restore(old);                               \
-} while(0);
+} while(0)
 #else
-#define LOG(...)
+#define LOG(...) ((void)0)
 #endif
 
 #define ERROR(...) do {                                 \
@@ -166,12 +166,12 @@ static void color_restore(int old)
         fprintf(stdout, "%s: ", __func__);              \
         color_restore(old);                             \
         fprintf(stdout, __VA_ARGS__);       			\
-    } while(0);
+    } while(0)
 
 #if 0
 #define PAUSE() fgetc(stdin);
 #else
-#define PAUSE()
+#define PAUSE() ((void)0)
 #endif
 
 #define ARRAY_SIZE(s) (sizeof(s)/sizeof((s)[0]))

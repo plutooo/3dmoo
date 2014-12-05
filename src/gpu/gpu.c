@@ -1071,7 +1071,7 @@ void runGPU_Commands(u8* buffer, u32 sizea)
         u32 datafild[0x800]; //maximal size
         datafild[0] = dataone;
 #ifdef GSP_ENABLE_LOG
-        GPUDEBUG("cmd %04x mask %01x size %03x (%08x) %s \n", ID, mask, size, dataone, grouping ? "grouping" : "")
+		GPUDEBUG("cmd %04x mask %01x size %03x (%08x) %s \n", ID, mask, size, dataone, grouping ? "grouping" : "");
 #endif
         int j;
         for (j = 0; j < size; j++) {

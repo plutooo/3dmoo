@@ -10,6 +10,10 @@
 
 static u32 priority;
 
+#ifndef DISABLE_DEBUG
+static char tmp[256];
+#endif
+
 
 SERVICE_START(fs_user);
 
@@ -30,8 +34,6 @@ SERVICE_CMD(0x08040142)   // DeleteFile
     u32 file_lowpath_sz = CMD(5);
     u32 transaction2 = CMD(6);
     u32 file_lowpath_ptr = CMD(7);
-
-    char tmp[256];
 
     DEBUG("DeleteFile\n");
     DEBUG("   archive_handle=%08x\n",
@@ -86,8 +88,6 @@ SERVICE_CMD(0x08050244)   // RenameFile
     u32 src_file_lowpath_ptr = CMD(11);
     u32 transaction3 = CMD(12);
     u32 dst_file_lowpath_ptr = CMD(13);
-
-    char tmp[256];
 
     DEBUG("RenameFile\n");
     DEBUG("   src_archive_handle=%08x\n",
@@ -161,8 +161,6 @@ SERVICE_CMD(0x08060142)   // DeleteDirectory
     u32 transaction2 = CMD(6);
     u32 dir_lowpath_ptr = CMD(7);
 
-    char tmp[256];
-
     DEBUG("DeleteDirectory\n");
     DEBUG("   archive_handle=%08x\n",
           handle_arch);
@@ -210,8 +208,6 @@ SERVICE_CMD(0x08070142)   // DeleteDirectoryRecursively
     u32 dir_lowpath_sz = CMD(5);
     u32 transaction2 = CMD(6);
     u32 dir_lowpath_ptr = CMD(7);
-
-    char tmp[256];
 
     DEBUG("DeleteDirectoryRecursively\n");
     DEBUG("   archive_handle=%08x\n",
@@ -262,7 +258,6 @@ SERVICE_CMD(0x08090182)   // CreateDirectory
     u32 transaction2 = CMD(7);
     u32 dir_lowpath_ptr = CMD(8);
 
-    char tmp[256];
 
     DEBUG("CreateDirectory\n");
     DEBUG("   archive_handle=%08x\n",
@@ -319,8 +314,6 @@ SERVICE_CMD(0x080A0244)   // RenameDirectory
     u32 src_file_lowpath_ptr = CMD(11);
     u32 transaction3 = CMD(12);
     u32 dst_file_lowpath_ptr = CMD(13);
-
-    char tmp[256];
 
     DEBUG("RenameDirectory\n");
     DEBUG("   src_archive_handle=%08x\n",
@@ -397,7 +390,6 @@ SERVICE_CMD(0x080201C2)   // OpenFile
     u32 file_lowpath_desc = CMD(8);
     u32 file_lowpath_ptr  = CMD(9);
 
-    char tmp[256];
 
     DEBUG("OpenFile\n");
     DEBUG("   archive_handle=%08x\n",
@@ -448,7 +440,6 @@ SERVICE_CMD(0x080201C2)   // OpenFile
 }
 SERVICE_CMD(0x080b0102) //OpenDirectory
 {
-    char tmp[256];
     u32 handle_arch_lo = CMD(1);
     u32 handle_arch = CMD(2);
     u32 dirtype = CMD(3);
@@ -511,7 +502,6 @@ SERVICE_CMD(0x08030204)   // OpenFileDirectly
     u32 file_lowpath_desc = CMD(11);
     u32 file_lowpath_ptr  = CMD(12);
 
-    char tmp[256];
     archive_type* arch_type = fs_GetArchiveTypeById(arch_id);
 
     DEBUG("OpenFileDirectly\n");
@@ -561,7 +551,7 @@ SERVICE_CMD(0x08030204)   // OpenFileDirectly
             RESP(1, -1);
         }
     } else {
-        ERROR("OpenArchive not implemented for %x\n", arch_id)
+		ERROR("OpenArchive not implemented for %x\n", arch_id);
         RESP(1, -1);
     }
 
@@ -585,8 +575,6 @@ SERVICE_CMD(0x08080202)   // CreateFile
 
     u32 flags = 6; //Create
     u32 attr = 0;
-
-    char tmp[256];
 
     DEBUG("CreateFile\n");
     DEBUG("   archive_handle=%08x\n",
@@ -643,7 +631,6 @@ SERVICE_CMD(0x080C00C2)   // OpenArchive
     u32 arch_lowpath_desc = CMD(4);
     u32 arch_lowpath_ptr  = CMD(5);
 
-    char tmp[256];
     archive_type* arch_type = fs_GetArchiveTypeById(arch_id);
 
     DEBUG("OpenArchive\n");

@@ -329,6 +329,18 @@ u32 threads_GetCurrentThreadHandle()
 {
     return threads[current_thread].handle;
 }
+void threads_Getallactive(u32* handles,u32 * size)
+{
+    threads[current_thread].handle;
+    for (u32 i = 0; i < num_threads; i++)
+    {
+        if (threads[i].state != STOPPED)
+        {
+            handles[*size] = threads[i].handle;
+            (*size)++;
+        }
+    }
+}
 
 void threads_StopThread(u32 threadid)
 {
@@ -339,7 +351,17 @@ void threads_StopCurrentThread()
 {
     threads_StopThread(current_thread);
 }
-
+bool thread_isalive(u32 handle)
+{
+    int ret = -1;
+    for (u32 i = 0; i<num_threads; i++) {
+        if (threads[i].handle == handle)
+            ret = i;
+    }
+    if (ret == -1)
+        return false;
+    return (threads[ret].state != STOPPED);
+}
 u32 threads_FindIdByHandle(u32 handle)
 {
     u32 i;
@@ -352,6 +374,40 @@ u32 threads_FindIdByHandle(u32 handle)
             return i;
     }
     return -1;
+}
+void threads_Getprintableinfo(u32 handle, char* string) //sting must be at last 0x1000 in size
+{
+    int res = -1;
+    for (u32 i = 0; i<threads_Count(); i++) {
+        if (threads[i].handle == handle)
+            res = i;
+    }
+    if (res == -1)
+        return;
+    switch (threads[res].state)
+    {
+        case RUNNING:
+            sprintf(string, "running ");
+            break;
+        case WAITING_SYNC:
+        {
+            sprintf(string, "sync ");
+            for (u32 i = 0; i < threads[res].wait_list_size;i++)
+            {
+                sprintf(string, "%s %08x ",string, threads[res].wait_list[i]);
+            }
+            if (threads[res].wait_all)
+                sprintf(string, "%s wait all ", string);
+            break;
+        }
+        case WAITING_ARB:
+            sprintf(string, "AddressArbiter %08x %08x ", threads[res].arb_addr, threads[res].arb_handle);
+            break;
+        default:
+            sprintf(string,"unknown staus ");
+        break;
+    }
+    sprintf(string, "%sprio %i", string, threads[res].priority);
 }
 
 void threads_SaveContextCurrentThread()

@@ -775,12 +775,14 @@ u32 svcReplyAndReceive()
         break;
     }*/
 
+    RESP(0, 0x00010800);
+
     //feed end
 
     times++;
 
     arm11_SetR(1, 0);
-    return 1;
+    return 0;
 }
 u32 svcAcceptSession()
 {

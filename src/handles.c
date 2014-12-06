@@ -211,6 +211,7 @@ u32 wrapWaitSynchronizationN(u32 nanoseconds1,u32 handles_ptr,u32 handles_count,
         handleinfo* hi = handle_Get(handle);
 
         if (hi == NULL) {
+            arm11_SetR(1, i);
             ERROR("handle %08x not found.\n", handle);
             PAUSE();
 #ifdef EXIT_ON_ERROR

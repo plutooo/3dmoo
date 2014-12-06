@@ -67,10 +67,28 @@ u32  threads_New(u32 handle);
 bool threads_IsThreadActive(u32 id);
 void threads_Execute();
 u32  threads_Count();
+#ifdef __cplusplus
+extern "C"
+#endif
+void threads_Getallactive(u32* handles, u32 * size);
+#ifdef __cplusplus
+extern "C"
+#endif
 u32  threads_GetCurrentThreadHandle();
+#ifdef __cplusplus
+extern "C"
+#endif
+void threads_Getprintableinfo(u32 handle, char* string); //sting must be at last 0x1000 in size
 void threads_StopThread(u32 threadid);
 void threads_StopCurrentThread();
+#ifdef __cplusplus
+extern "C"
+#endif
 u32  threads_FindIdByHandle(u32 handle);
+#ifdef __cplusplus
+extern "C"
+#endif
+bool thread_isalive(u32 handle);
 void threads_SaveContextCurrentThread();
 void threads_SetCurrentThreadWaitList(u32* wait_list, bool wait_all, u32 num);
 

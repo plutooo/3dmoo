@@ -241,7 +241,7 @@ step_instruction_watch( void *data, uint32_t addr, UNUSED_PARM(int thunmb)) {
       addr);
 
   if ( addr == stub->step_instr_address) {
-    DEBUG_LOG("Step hit -> %08x\n", stub->cpu_ctrl->read_reg( stub->cpu_ctrl->data, 15));
+      DEBUG_LOG("Step hit -> %08x\n", stub->cpu_ctrl->read_reg(stub->cpu_ctrl->data, 15, gdb_id_glob));
     /* stall the processor */
     stub->cpu_ctrl->stall( stub->cpu_ctrl->data);
 
@@ -705,7 +705,7 @@ processPacket_gdb( SOCKET_TYPE sock, const uint8_t *packet,
   int send_reply = 1;
   uint32_t send_size = 0;
 
-  DEBUG_LOG("Processing packet %c\n", packet[0]);
+  DEBUG_LOG("Processing packet %s\n", packet);
 
   switch( packet[0]) {
   case 3:
@@ -735,7 +735,7 @@ processPacket_gdb( SOCKET_TYPE sock, const uint8_t *packet,
       DEBUG_LOG("unknown v %s", (char*)packet);
       break;
   case 'H':
-      /*if (packet[1] == 'c' || packet[1] == 'g')
+      if (packet[1] == 'c' || packet[1] == 'g')
       {
           int pid = hex_or_minus_one((char*)&packet[2],NULL);
           u32 handle = 0;
@@ -773,7 +773,7 @@ processPacket_gdb( SOCKET_TYPE sock, const uint8_t *packet,
           strcpy((char *)out_ptr, "OK");
           send_size = 2;
       }
-      else*/
+      else
       {
           /* Silently ignore it so that gdb can extend the protocol
           without compatibility headaches.  */
@@ -860,19 +860,72 @@ processPacket_gdb( SOCKET_TYPE sock, const uint8_t *packet,
           break;
       }
 
+      if (strcmp((char*)packet, "qfThreadInfo") == 0) {
+          u32 ids[MAX_THREADS];
+          u32 size = 0;
+          threads_Getallactive(ids, &size);
+          sprintf((char*)out_ptr, "m%x", ids[0]);
+          for (u32 i = 1; i < size;i++)
+              sprintf((char*)out_ptr, "%s,%x", out_ptr, ids[i]);
+          send_size = strlen((char*)out_ptr);
+          break;
+      }
+      if (strcmp((char*)packet, "qsThreadInfo") == 0) {
+          sprintf((char*)out_ptr, "l"); //we have send all with the f cmd
+          send_size = 1;
+          break;
+      }
+      if (strncmp("qThreadExtraInfo", (char*)packet, sizeof("qThreadExtraInfo") - 1) == 0) {
+          u32 addr = 0;
+          const uint8_t *rx_ptr = &packet[17];
+          hexToInt(&rx_ptr, &addr);
+          char data[0x1000];
+          char* ptr = data;
+          u8* tempptr = out_ptr;
+          threads_Getprintableinfo(addr, data);
+          do 
+          {
+              *tempptr++ = hexchars[*ptr >> 4];
+              *tempptr++ = hexchars[*ptr & 0xf];
+              ptr++;
+          } while (*ptr != 0);
+          *tempptr = 0;
+          send_size = strlen((char*)out_ptr);
+          break;
+      }
       if (strcmp((char*)packet, "qSupported") == 0) {
           /* query of supported features */
           sprintf((char*)out_ptr, "PacketSize=%u;ReverseContinue-;ReverseStep-", sizeof(packet)); //it is how it is
+          send_size = strlen((char*)out_ptr);
           break;
       }
       if (strcmp((char*)packet, "qSupported:qRelocInsn+") == 0) {
           /* query of supported features */
           sprintf((char*)out_ptr, "PacketSize=%u;RelocInsn-;ReverseContinue-;ReverseStep-", sizeof(packet)); //it is how it is
+          send_size = strlen((char*)out_ptr);
           break;
       }
       DEBUG_LOG("unknown q %s\n", (char*)packet);
   }
   break;
+  case 'T':
+  {
+      u32 addr;
+      const uint8_t *rx_ptr = &packet[1];
+
+      hexToInt(&rx_ptr, &addr);
+      if (thread_isalive(addr))
+      {
+          strcpy((char *)out_ptr, "OK");
+          send_size = 2;
+      }
+      else
+      {
+          strcpy((char *)out_ptr, "E01");
+          send_size = 3;
+      }
+      break;
+  }
   case '?':
     send_size = make_stop_packet( out_ptr, stub->stop_type, stub->stop_address);
     /**ptr++ = 'S';
@@ -892,7 +945,7 @@ processPacket_gdb( SOCKET_TYPE sock, const uint8_t *packet,
     break;
 
   case 's': {
-    uint32_t instr_addr = stub->cpu_ctrl->read_reg( stub->cpu_ctrl->data, 15);
+      uint32_t instr_addr = stub->cpu_ctrl->read_reg(stub->cpu_ctrl->data, 15, gdb_id_glob);
     /* Determine where the next instruction will take the CPU.
      * Execute the instruction using a copy of the CPU with a zero memory interface.
      */
@@ -933,9 +986,9 @@ processPacket_gdb( SOCKET_TYPE sock, const uint8_t *packet,
         value = LITTLE_ENDIAN_TO_UINT32_T( tmp_mem);
         DEBUG_LOG("Setting reg %d to %08x\n", reg, value);
         if ( reg < 16)
-          stub->cpu_ctrl->set_reg( stub->cpu_ctrl->data, reg, value);
+            stub->cpu_ctrl->set_reg(stub->cpu_ctrl->data, reg, value, gdb_id_glob);
         if ( reg == 25) {
-          stub->cpu_ctrl->set_reg( stub->cpu_ctrl->data, 16, value);
+            stub->cpu_ctrl->set_reg(stub->cpu_ctrl->data, 16, value, gdb_id_glob);
         }
 
         strcpy( (char *)out_ptr, "OK");
@@ -966,8 +1019,11 @@ processPacket_gdb( SOCKET_TYPE sock, const uint8_t *packet,
         }
       }
     }
-    if ( error01)
-      strcpy( (char *)out_ptr,"E01");
+    if (error01)
+    {
+        strcpy((char *)out_ptr, "E01");
+        send_size = 3;
+    }
     break;
   }
 
@@ -996,6 +1052,7 @@ processPacket_gdb( SOCKET_TYPE sock, const uint8_t *packet,
             }
 
             strcpy( (char *)out_ptr, "OK");
+            send_size = 2;
             error01 = 0;
           }
         }
@@ -1013,6 +1070,7 @@ processPacket_gdb( SOCKET_TYPE sock, const uint8_t *packet,
 
     if ( error01) {
       strcpy( (char *)out_ptr, "E02");
+      send_size = 3;
     }
     break;
   }
@@ -1153,7 +1211,7 @@ processPacket_gdb( SOCKET_TYPE sock, const uint8_t *packet,
 
         reg_values[i] = LITTLE_ENDIAN_TO_UINT32_T( tmp_mem);
         DEBUG_LOG("Setting reg %d to %08x\n", i, reg_values[i]);
-        stub->cpu_ctrl->set_reg(stub->cpu_ctrl->data, i, reg_values[i]);
+        stub->cpu_ctrl->set_reg(stub->cpu_ctrl->data, i, reg_values[i], gdb_id_glob);
       }
 
       /* skip the floaing point registers and floating point status register */
@@ -1164,7 +1222,7 @@ processPacket_gdb( SOCKET_TYPE sock, const uint8_t *packet,
       rx_ptr = hex2mem( rx_ptr, tmp_mem, 4);
       cpsr = LITTLE_ENDIAN_TO_UINT32_T( tmp_mem);
       DEBUG_LOG("Setting cpsr to %08x\n", cpsr);
-      stub->cpu_ctrl->set_reg(stub->cpu_ctrl->data, 16, cpsr);
+      stub->cpu_ctrl->set_reg(stub->cpu_ctrl->data, 16, cpsr, gdb_id_glob);
 
       strcpy( (char *)out_ptr, "OK");
       send_size = 2;
@@ -1203,25 +1261,27 @@ processPacket_gdb( SOCKET_TYPE sock, const uint8_t *packet,
               }*/
   }
   case 'g':		/* return the value of the CPU registers */
-    {
+  {
       int i;
       int out_index = 0;
-      uint32_t pc_value = stub->cpu_ctrl->read_reg( stub->cpu_ctrl->data, 15);
-      uint32_t cpsr_value = stub->cpu_ctrl->read_reg( stub->cpu_ctrl->data, 16);
+
+
+      uint32_t pc_value = stub->cpu_ctrl->read_reg(stub->cpu_ctrl->data, 15, gdb_id_glob);
+      uint32_t cpsr_value = stub->cpu_ctrl->read_reg(stub->cpu_ctrl->data, 16, gdb_id_glob);
 
       DEBUG_LOG("'g' command PC = %08x\n", pc_value);
 
       /* general purpose regs 0 to 14 */
-      for ( i = 0; i < 15; i++) {
-        uint32_t reg = stub->cpu_ctrl->read_reg( stub->cpu_ctrl->data, i);
-	out_ptr[out_index++] = hexchars[(reg >> 4) & 0xf];
-	out_ptr[out_index++] = hexchars[(reg >> 0) & 0xf];
-	out_ptr[out_index++] = hexchars[(reg >> 12) & 0xf];
-	out_ptr[out_index++] = hexchars[(reg >> 8) & 0xf];
-	out_ptr[out_index++] = hexchars[(reg >> 20) & 0xf];
-	out_ptr[out_index++] = hexchars[(reg >> 16) & 0xf];
-	out_ptr[out_index++] = hexchars[(reg >> 28) & 0xf];
-	out_ptr[out_index++] = hexchars[(reg >> 24) & 0xf];
+      for (i = 0; i < 15; i++) {
+          uint32_t reg = stub->cpu_ctrl->read_reg(stub->cpu_ctrl->data, i, gdb_id_glob);
+          out_ptr[out_index++] = hexchars[(reg >> 4) & 0xf];
+          out_ptr[out_index++] = hexchars[(reg >> 0) & 0xf];
+          out_ptr[out_index++] = hexchars[(reg >> 12) & 0xf];
+          out_ptr[out_index++] = hexchars[(reg >> 8) & 0xf];
+          out_ptr[out_index++] = hexchars[(reg >> 20) & 0xf];
+          out_ptr[out_index++] = hexchars[(reg >> 16) & 0xf];
+          out_ptr[out_index++] = hexchars[(reg >> 28) & 0xf];
+          out_ptr[out_index++] = hexchars[(reg >> 24) & 0xf];
       }
 
       out_ptr[out_index++] = hexchars[(pc_value >> 4) & 0xf];
@@ -1234,34 +1294,34 @@ processPacket_gdb( SOCKET_TYPE sock, const uint8_t *packet,
       out_ptr[out_index++] = hexchars[(pc_value >> 24) & 0xf];
 
       /* floating point registers (8 96bit) */
-      for ( i = 0; i < 8; i++) {
-	int j;
-	for ( j = 0; j < (96/4); j++) {
-	  out_ptr[out_index++] = '0';
-	}
+      for (i = 0; i < 8; i++) {
+          int j;
+          for (j = 0; j < (96 / 4); j++) {
+              out_ptr[out_index++] = '0';
+          }
       }
 
       /* floating point status register? */
-      for ( i = 0; i < 1; i++) {
-	int j;
-	for ( j = 0; j < 8; j++) {
-	  out_ptr[out_index++] = '0';
-	}
+      for (i = 0; i < 1; i++) {
+          int j;
+          for (j = 0; j < 8; j++) {
+              out_ptr[out_index++] = '0';
+          }
       }
 
       /* The CPSR */
-      for ( i = 0; i < 1; i++) {
-	out_ptr[out_index++] = hexchars[(cpsr_value >> 4) & 0xf];
-	out_ptr[out_index++] = hexchars[(cpsr_value >> 0) & 0xf];
-	out_ptr[out_index++] = hexchars[(cpsr_value >> 12) & 0xf];
-	out_ptr[out_index++] = hexchars[(cpsr_value >> 8) & 0xf];
-	out_ptr[out_index++] = hexchars[(cpsr_value >> 20) & 0xf];
-	out_ptr[out_index++] = hexchars[(cpsr_value >> 16) & 0xf];
-	out_ptr[out_index++] = hexchars[(cpsr_value >> 28) & 0xf];
-	out_ptr[out_index++] = hexchars[(cpsr_value >> 24) & 0xf];
+      for (i = 0; i < 1; i++) {
+          out_ptr[out_index++] = hexchars[(cpsr_value >> 4) & 0xf];
+          out_ptr[out_index++] = hexchars[(cpsr_value >> 0) & 0xf];
+          out_ptr[out_index++] = hexchars[(cpsr_value >> 12) & 0xf];
+          out_ptr[out_index++] = hexchars[(cpsr_value >> 8) & 0xf];
+          out_ptr[out_index++] = hexchars[(cpsr_value >> 20) & 0xf];
+          out_ptr[out_index++] = hexchars[(cpsr_value >> 16) & 0xf];
+          out_ptr[out_index++] = hexchars[(cpsr_value >> 28) & 0xf];
+          out_ptr[out_index++] = hexchars[(cpsr_value >> 24) & 0xf];
       }
       send_size = out_index;
-    }
+  }
     break;
   default:
       DEBUG_LOG("unknown %s\n", (char*)packet);

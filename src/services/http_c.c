@@ -76,6 +76,8 @@ SERVICE_CMD(0x00020082)
     h->misc_ptr[0] = malloc(size + 1);
     strncpy(h->misc_ptr[0], b, size + 1);
 
+    DEBUG("address %s\n", h->misc_ptr[0]);
+
     RESP(2, handle);
     RESP(1, 0); // Result
     return 0;

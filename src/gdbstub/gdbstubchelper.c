@@ -44,6 +44,7 @@ extern gdbstub_handle_t gdb_stub;
 extern struct armcpu_memory_iface *gdb_memio;
 extern struct armcpu_memory_iface gdb_base_memory_iface;
 extern struct armcpu_ctrl_iface gdb_ctrl_iface;
+extern thread threads[MAX_THREADS];
 
 
 void *
@@ -76,26 +77,69 @@ void unstall_cpu(void *instance)
 {
     arm_stall = false;
 }
-u32 read_cpu_reg(void *instance, u32 reg_num)
+u32 read_cpu_reg(void *instance, u32 reg_num,u32 handle)
 {
-    if (reg_num == 0x10)return s.Cpsr;
+    if (handle == threads_GetCurrentThreadHandle()){
+
+        if (reg_num == 0x10)return s.Cpsr;
 #ifdef impropergdb
-    if (reg_num == 0xF) {
-        if (s.NextInstr == PRIMEPIPE)return arm11_R(reg_num);
-        else return arm11_R(reg_num) - 4;
-    }
+        if (reg_num == 0xF) {
+            if (s.NextInstr == PRIMEPIPE)return arm11_R(reg_num);
+            else return arm11_R(reg_num) - 4;
+        }
 #else
-    if (reg_num == 0xF) {
-        if (s.NextInstr >= PRIMEPIPE)
-            return arm11_R(reg_num);
-        return arm11_R(reg_num) - 4;
-    }
+        if (reg_num == 0xF) {
+            if (s.NextInstr >= PRIMEPIPE)
+                return arm11_R(reg_num);
+            return arm11_R(reg_num) - 4;
+        }
 #endif
-    return arm11_R(reg_num);
+        return arm11_R(reg_num);
+    }
+    else
+    {
+        if (reg_num >= 17) {
+            DEBUG("Invalid reg_num.\n");
+            return 0;
+        }
+        if (reg_num <= 13)
+            return threads[threads_FindIdByHandle(handle)].r[reg_num];
+        else if (reg_num == 14)
+            return threads[threads_FindIdByHandle(handle)].lr;
+        else if (reg_num == 15)
+        {
+            return threads[threads_FindIdByHandle(handle)].pc;
+        }
+        else if (reg_num == 16)
+        {
+            return threads[threads_FindIdByHandle(handle)].cpsr;
+        }
+    }
+    return 0;
 }
-void set_cpu_reg(void *instance, u32 reg_num, u32 value)
+void set_cpu_reg(void *instance, u32 reg_num, u32 value, u32 handle)
 {
-    arm11_SetR(reg_num, value);
+    if (handle == threads_GetCurrentThreadHandle())
+        arm11_SetR(reg_num, value);
+    else
+    {
+        if (reg_num >= 17) {
+            DEBUG("Invalid reg_num.\n");
+            return;
+        }
+        if (reg_num <= 13)
+            threads[threads_FindIdByHandle(handle)].r[reg_num] = value;
+        else if (reg_num == 14)
+            threads[threads_FindIdByHandle(handle)].lr = value;
+        else if (reg_num == 15)
+        {
+            threads[threads_FindIdByHandle(handle)].pc = value;
+        }
+        else if (reg_num == 16)
+        {
+            threads[threads_FindIdByHandle(handle)].cpsr = value;
+        }
+    }
 
 }
 void install_post_exec_fn(void *instance, void(*ex_fn)(void *, u32 adr, int thumb), void *fn_data)

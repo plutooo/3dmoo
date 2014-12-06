@@ -1,8 +1,8 @@
 void joinThread_gdb(void *thread_handle);
 void stall_cpu(void *instance);
 void unstall_cpu(void *instance);
-u32 read_cpu_reg(void *instance, u32 reg_num);
-void set_cpu_reg(void *instance, u32 reg_num, u32 value);
+u32 read_cpu_reg(void *instance, u32 reg_num, u32 handle);
+void set_cpu_reg(void *instance, u32 reg_num, u32 value, u32 handle);
 void install_post_exec_fn(void *instance, void(*ex_fn)(void *, u32 adr, int thumb), void *fn_data);
 void remove_post_exec_fn(void *instance);
 u16 gdb_prefetch16(void *data, u32 adr);

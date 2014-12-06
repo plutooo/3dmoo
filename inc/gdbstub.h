@@ -51,10 +51,10 @@ struct armcpu_ctrl_iface {
     void(*unstall)(void *instance);
 
     /** read a register value */
-    u32(*read_reg)(void *instance, u32 reg_num);
+    u32(*read_reg)(void *instance, u32 reg_num,u32 cpuhandle);
 
     /** set a register value */
-    void(*set_reg)(void *instance, u32 reg_num, u32 value);
+    void(*set_reg)(void *instance, u32 reg_num, u32 value, u32 cpuhandle);
 
     /** install the post execute function */
     void(*install_post_ex_fn)(void *instance,

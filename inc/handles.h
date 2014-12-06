@@ -18,7 +18,7 @@
 
 #include "armdefs.h"
 
-#define HANDLES_BASE    0xDEADBABE
+#define HANDLES_BASE    0x0DADBABE
 
 #define HANDLE_SERV_STAT_TAKEN       0x1
 #define HANDLE_SERV_STAT_WAITING     0x2

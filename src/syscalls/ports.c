@@ -72,7 +72,7 @@ static struct {
         PORT_TYPE_err_f,
         &err_f_InitHandle,
         &err_f_SyncRequest
-    },
+    }
 };
 
 u32 svcConnectToPort()

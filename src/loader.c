@@ -201,7 +201,7 @@ int Load3DSXFile(FILE* f, u32 baseAddr)
     u32 dataLoadSize = (hdr.dataSegSize - hdr.bssSize + 0xFFF) &~0xFFF;
     u32 bssLoadSize = d.segSizes[2] - dataLoadSize;
     u32 nRelocTables = hdr.relocHdrSize / 4;
-    void* allMem = malloc(d.segSizes[0] + d.segSizes[1] + d.segSizes[2] + 3 * nRelocTables);
+    void* allMem = malloc(d.segSizes[0] + d.segSizes[1] + d.segSizes[2] + (4 *3 * nRelocTables));
     if (!allMem)
         return 3;
     d.segAddrs[0] = baseAddr;

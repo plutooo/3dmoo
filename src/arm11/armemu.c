@@ -5731,30 +5731,9 @@ L_stm_s_takeabort:
 
     static int
     handle_v6_insn (ARMul_State * state, ARMword instr) {
-        switch (BITS (20, 27)) {
-        //ichfly
-        case 0x66: //UQSUB8
-            if ((instr & 0x0FF00FF0) == 0x06600FF0) {
-                u32 rd = (instr >> 12) & 0xF;
-                u32 rm = (instr >> 16) & 0xF;
-                u32 rn = (instr >> 0) & 0xF;
-                u32 subfrom = state->Reg[rm];
-                u32 tosub = state->Reg[rn];
+		ARMword lhs, temp;
 
-                u8 b1 = (u8)((u8)(subfrom)-(u8)(tosub));
-                if (b1 > (u8)(subfrom)) b1 = 0;
-                u8 b2 = (u8)((u8)(subfrom >> 8) - (u8)(tosub >> 8));
-                if (b2 > (u8)(subfrom >> 8)) b2 = 0;
-                u8 b3 = (u8)((u8)(subfrom >> 16) - (u8)(tosub >> 16));
-                if (b3 > (u8)(subfrom >> 16)) b3 = 0;
-                u8 b4 = (u8)((u8)(subfrom >> 24) - (u8)(tosub >> 24));
-                if (b4 > (u8)(subfrom >> 24)) b4 = 0;
-                state->Reg[rd] = (u32)(b1 | b2 << 8 | b3 << 16 | b4 << 24);
-                return 1;
-            } else {
-                printf("UQSUB8 decoding fail %08X",instr);
-            }
-#if 0
+        switch (BITS (20, 27)) {
         case 0x03:
             printf ("Unhandled v6 insn: ldr\n");
             break;
@@ -5768,9 +5747,43 @@ L_stm_s_takeabort:
             printf ("Unhandled v6 insn: smi\n");
             break;
         case 0x18:
+			if (BITS(4, 7) == 0x9) {
+				/* strex */
+				u32 l = LHSReg;
+				u32 r = RHSReg;
+				lhs = LHS;
+
+				bool enter = false;
+
+				if (state->currentexval == (u32)ARMul_ReadWord(state, state->currentexaddr))enter = true;
+				//StoreWord(state, lhs, RHS)
+				if (state->Aborted) {
+					TAKEABORT;
+				}
+
+				if (enter) {
+					ARMul_StoreWordS(state, lhs, RHS);
+					state->Reg[DESTReg] = 0;
+				}
+				else {
+					state->Reg[DESTReg] = 1;
+				}
+
+				return 1;
+			}
             printf ("Unhandled v6 insn: strex\n");
             break;
         case 0x19:
+			/* ldrex */
+			if (BITS(4, 7) == 0x9) {
+				lhs = LHS;
+
+				state->currentexaddr = lhs;
+				state->currentexval = ARMul_ReadWord(state, lhs);
+
+				LoadWord(state, instr, lhs);
+				return 1;
+			}
             printf ("Unhandled v6 insn: ldrex\n");
             break;
         case 0x1a:
@@ -5780,9 +5793,52 @@ L_stm_s_takeabort:
             printf ("Unhandled v6 insn: ldrexd\n");
             break;
         case 0x1c:
+			if (BITS(4, 7) == 0x9) {
+				/* strexb */
+				lhs = LHS;
+
+				bool enter = false;
+
+				if (state->currentexval == (u32)ARMul_ReadByte(state, state->currentexaddr))enter = true;
+
+				BUSUSEDINCPCN;
+				if (state->Aborted) {
+					TAKEABORT;
+				}
+
+
+				if (enter) {
+					ARMul_StoreByte(state, lhs, RHS);
+					state->Reg[DESTReg] = 0;
+				}
+				else {
+					state->Reg[DESTReg] = 1;
+				}
+
+				//printf("In %s, strexb not implemented\n", __FUNCTION__);
+				UNDEF_LSRBPC;
+				/* WRITESDEST (dest); */
+				return 1;
+			}
             printf ("Unhandled v6 insn: strexb\n");
             break;
         case 0x1d:
+			if ((BITS(4, 7)) == 0x9) {
+				/* ldrexb */
+				temp = LHS;
+				LoadByte(state, instr, temp, LUNSIGNED);
+
+				state->currentexaddr = temp;
+				state->currentexval = (u32)ARMul_ReadByte(state, temp);
+
+				//state->Reg[BITS(12, 15)] = ARMul_LoadByte(state, state->Reg[BITS(16, 19)]);
+				//printf("ldrexb\n");
+				//printf("instr is %x rm is %d\n", instr, BITS(16, 19));
+				//exit(-1);
+
+				//printf("In %s, ldrexb not implemented\n", __FUNCTION__);
+				return 1;
+			}
             printf ("Unhandled v6 insn: ldrexb\n");
             break;
         case 0x1e:
@@ -5803,7 +5859,6 @@ L_stm_s_takeabort:
         case 0x3f:
             printf ("Unhandled v6 insn: rbit\n");
             break;
-#endif
         case 0x61:
             if ((instr & 0xFF0) == 0xf70) { //ssub16
                 u8 tar = BITS(12, 15);
@@ -5813,7 +5868,7 @@ L_stm_s_takeabort:
                 s16 a2 = ((state->Reg[src1] >> 0x10) & 0xFFFF);
                 s16 b1 = (state->Reg[src2] & 0xFFFF);
                 s16 b2 = ((state->Reg[src2] >> 0x10) & 0xFFFF);
-                state->Reg[tar] = ((a1 - a2)&0xFFFF) | (((b1 - b2)&0xFFFF)<< 0x10);
+				state->Reg[tar] = ((a1 - a2) & 0xFFFF) | (((b1 - b2) & 0xFFFF) << 0x10);
                 return 1;
             } else if ((instr & 0xFF0) == 0xf10) { //sadd16
                 u8 tar = BITS(12, 15);
@@ -5823,7 +5878,7 @@ L_stm_s_takeabort:
                 s16 a2 = ((state->Reg[src1] >> 0x10) & 0xFFFF);
                 s16 b1 = (state->Reg[src2] & 0xFFFF);
                 s16 b2 = ((state->Reg[src2] >> 0x10) & 0xFFFF);
-                state->Reg[tar] = ((a1 + a2) & 0xFFFF) | (((b1 + b2) & 0xFFFF) << 0x10);
+				state->Reg[tar] = ((a1 + a2) & 0xFFFF) | (((b1 + b2) & 0xFFFF) << 0x10);
                 return 1;
             } else if ((instr & 0xFF0) == 0xf50) { //ssax
                 u8 tar = BITS(12, 15);
@@ -5833,7 +5888,7 @@ L_stm_s_takeabort:
                 s16 a2 = ((state->Reg[src1] >> 0x10) & 0xFFFF);
                 s16 b1 = (state->Reg[src2] & 0xFFFF);
                 s16 b2 = ((state->Reg[src2] >> 0x10) & 0xFFFF);
-                state->Reg[tar] = ((a1 + b2) & 0xFFFF) | (((a2 - b1) & 0xFFFF) << 0x10);
+				state->Reg[tar] = ((a1 + b2) & 0xFFFF) | (((a2 - b1) & 0xFFFF) << 0x10);
                 return 1;
             } else if ((instr & 0xFF0) == 0xf30) { //sasx
                 u8 tar = BITS(12, 15);
@@ -5843,9 +5898,9 @@ L_stm_s_takeabort:
                 s16 a2 = ((state->Reg[src1] >> 0x10) & 0xFFFF);
                 s16 b1 = (state->Reg[src2] & 0xFFFF);
                 s16 b2 = ((state->Reg[src2] >> 0x10) & 0xFFFF);
-                state->Reg[tar] = ((a1 - b2) & 0xFFFF) | (((a2 + b1) & 0xFFFF) << 0x10);
+				state->Reg[tar] = ((a1 - b2) & 0xFFFF) | (((a2 + b1) & 0xFFFF) << 0x10);
                 return 1;
-            } else printf ("Unhandled v6 insn: sadd/ssub\n");
+            } else printf ("Unhandled v6 insn: sadd/ssub/ssax/sasx\n");
             break;
         case 0x62:
             if ((instr & 0xFF0) == 0xf70) { //QSUB16
@@ -5880,9 +5935,8 @@ L_stm_s_takeabort:
                 if (res2 < 0x7FFF) res2 = -0x8000;
                 state->Reg[tar] = ((res1) & 0xFFFF) | (((res2) & 0xFFFF) << 0x10);
                 return 1;
-            } else printf ("Unhandled v6 insn: qadd/qsub\n");
+            } else printf ("Unhandled v6 insn: qadd16/qsub16\n");
             break;
-#if 0
         case 0x63:
             printf ("Unhandled v6 insn: shadd/shsub\n");
             break;
@@ -5890,7 +5944,26 @@ L_stm_s_takeabort:
             printf ("Unhandled v6 insn: uadd/usub\n");
             break;
         case 0x66:
-            printf ("Unhandled v6 insn: uqadd/uqsub\n");
+			if ((instr & 0x0FF00FF0) == 0x06600FF0) { //uqadd16
+                u32 rd = (instr >> 12) & 0xF;
+                u32 rm = (instr >> 16) & 0xF;
+                u32 rn = (instr >> 0) & 0xF;
+                u32 subfrom = state->Reg[rm];
+                u32 tosub = state->Reg[rn];
+
+                u8 b1 = (u8)((u8)(subfrom)-(u8)(tosub));
+                if (b1 > (u8)(subfrom)) b1 = 0;
+                u8 b2 = (u8)((u8)(subfrom >> 8) - (u8)(tosub >> 8));
+                if (b2 > (u8)(subfrom >> 8)) b2 = 0;
+                u8 b3 = (u8)((u8)(subfrom >> 16) - (u8)(tosub >> 16));
+                if (b3 > (u8)(subfrom >> 16)) b3 = 0;
+                u8 b4 = (u8)((u8)(subfrom >> 24) - (u8)(tosub >> 24));
+                if (b4 > (u8)(subfrom >> 24)) b4 = 0;
+                state->Reg[rd] = (u32)(b1 | b2 << 8 | b3 << 16 | b4 << 24);
+                return 1;
+            } else {
+                printf ("Unhandled v6 insn: uqsub8\n");
+            }
             break;
         case 0x67:
             printf ("Unhandled v6 insn: uhadd/uhsub\n");
@@ -5898,7 +5971,114 @@ L_stm_s_takeabort:
         case 0x68:
             printf ("Unhandled v6 insn: pkh/sxtab/selsxtb\n");
             break;
-#endif
+		case 0x6a: {
+			ARMword Rm;
+			int ror = -1;
+
+			switch (BITS(4, 11)) {
+				case 0x07:
+					ror = 0;
+					break;
+				case 0x47:
+					ror = 8;
+					break;
+				case 0x87:
+					ror = 16;
+					break;
+				case 0xc7:
+					ror = 24;
+					break;
+
+				case 0x01:
+				case 0xf3:
+					//ichfly
+					//SSAT16
+				{
+					u8 tar = BITS(12, 15);
+					u8 src = BITS(0, 3);
+					u8 val = BITS(16, 19) + 1;
+					s16 a1 = (state->Reg[src]);
+					s16 a2 = (state->Reg[src] >> 0x10);
+					s16 min = (s16)(0x8000 >> (16 - val));
+					s16 max = 0x7FFF >> (16 - val);
+					if (min > a1) a1 = min;
+					if (max < a1) a1 = max;
+					if (min > a2) a2 = min;
+					if (max < a2) a2 = max;
+					u32 temp2 = ((u32)(a2)) << 0x10;
+					state->Reg[tar] = (a1 & 0xFFFF) | (temp2);
+				}
+
+				return 1;
+				default:
+					break;
+			}
+
+			if (ror == -1) {
+				if (BITS(4, 6) == 0x7) {
+					printf("Unhandled v6 insn: ssat\n");
+					return 0;
+				}
+				break;
+			}
+
+			Rm = ((state->Reg[BITS(0, 3)] >> ror) & 0xFF);
+			if (Rm & 0x80)
+				Rm |= 0xffffff00;
+
+			if (BITS(16, 19) == 0xf)
+				/* SXTB */
+				state->Reg[BITS(12, 15)] = Rm;
+			else
+				/* SXTAB */
+				state->Reg[BITS(12, 15)] += Rm;
+
+			return 1;
+		}
+		case 0x6b: {
+			ARMword Rm;
+			int ror = -1;
+
+			switch (BITS(4, 11)) {
+				case 0x07:
+					ror = 0;
+					break;
+				case 0x47:
+					ror = 8;
+					break;
+				case 0x87:
+					ror = 16;
+					break;
+				case 0xc7:
+					ror = 24;
+					break;
+
+				case 0xf3:
+					DEST = ((RHS & 0xFF) << 24) | ((RHS & 0xFF00)) << 8 | ((RHS & 0xFF0000) >> 8) | ((RHS & 0xFF000000) >> 24);
+					return 1;
+				case 0xfb:
+					DEST = ((RHS & 0xFF) << 8) | ((RHS & 0xFF00)) >> 8 | ((RHS & 0xFF0000) << 8) | ((RHS & 0xFF000000) >> 8);
+					return 1;
+				default:
+					break;
+			}
+
+			if (ror == -1)
+				break;
+
+			Rm = ((state->Reg[BITS(0, 3)] >> ror) & 0xFFFF);
+			if (Rm & 0x8000)
+				Rm |= 0xffff0000;
+
+			if (BITS(16, 19) == 0xf)
+				/* SXTH */
+				state->Reg[BITS(12, 15)] = Rm;
+			else
+				/* SXTAH */
+				state->Reg[BITS(12, 15)] = state->Reg[BITS(16, 19)] + Rm;
+
+			return 1;
+		}
         case 0x6c:
             if ((instr & 0xf03f0) == 0xf0070) { //uxtb16
                 u8 src1 = BITS(0, 3);
@@ -5909,8 +6089,116 @@ L_stm_s_takeabort:
                 state->Reg[tar] = in & 0x00FF00FF;
                 return 1;
             } else
-                printf ("Unhandled v6 insn: uxtb16/uxtab16\n");
+                printf ("Unhandled v6 insn: uxtab16\n");
             break;
+		case 0x6e: {
+			ARMword Rm;
+			int ror = -1;
+
+			switch (BITS(4, 11)) {
+				case 0x07:
+					ror = 0;
+					break;
+				case 0x47:
+					ror = 8;
+					break;
+				case 0x87:
+					ror = 16;
+					break;
+				case 0xc7:
+					ror = 24;
+					break;
+
+				case 0x01:
+				case 0xf3:
+					//ichfly
+					//USAT16
+				{
+					u8 tar = BITS(12, 15);
+					u8 src = BITS(0, 3);
+					u8 val = BITS(16, 19);
+					s16 a1 = (state->Reg[src]);
+					s16 a2 = (state->Reg[src] >> 0x10);
+					s16 max = 0xFFFF >> (16 - val);
+					if (max < a1) a1 = max;
+					if (max < a2) a2 = max;
+					u32 temp2 = ((u32)(a2)) << 0x10;
+					state->Reg[tar] = (a1 & 0xFFFF) | (temp2);
+				}
+				return 1;
+				default:
+					break;
+			}
+
+			if (ror == -1) {
+				if (BITS(4, 6) == 0x7) {
+					printf("Unhandled v6 insn: usat\n");
+					return 0;
+				}
+				break;
+			}
+
+			Rm = ((state->Reg[BITS(0, 3)] >> ror) & 0xFF);
+
+			if (BITS(16, 19) == 0xf)
+				/* UXTB */
+				state->Reg[BITS(12, 15)] = Rm;
+			else
+				/* UXTAB */
+				state->Reg[BITS(12, 15)] = state->Reg[BITS(16, 19)] + Rm;
+
+			return 1;
+		}
+
+		case 0x6f: {
+			ARMword Rm;
+			int ror = -1;
+
+			switch (BITS(4, 11)) {
+				case 0x07:
+					ror = 0;
+					break;
+				case 0x47:
+					ror = 8;
+					break;
+				case 0x87:
+					ror = 16;
+					break;
+				case 0xc7:
+					ror = 24;
+					break;
+
+				case 0xfb:
+					printf("Unhandled v6 insn: revsh\n");
+					return 0;
+				default:
+					break;
+			}
+
+			if (ror == -1)
+				break;
+
+			Rm = ((state->Reg[BITS(0, 3)] >> ror) & 0xFFFF);
+
+			/* UXT */
+			/* state->Reg[BITS (12, 15)] = Rm; */
+			/* dyf add */
+			if (BITS(16, 19) == 0xf) {
+				state->Reg[BITS(12, 15)] = (Rm >> (8 * BITS(10, 11))) & 0x0000FFFF;
+			}
+			else {
+				/* UXTAH */
+				/* state->Reg[BITS (12, 15)] = state->Reg [BITS (16, 19)] + Rm; */
+				//            printf("rd is %x rn is %x rm is %x rotate is %x\n", state->Reg[BITS (12, 15)], state->Reg[BITS (16, 19)]
+				//                   , Rm, BITS(10, 11));
+				//            printf("icounter is %lld\n", state->NumInstrs);
+				state->Reg[BITS(12, 15)] = (state->Reg[BITS(16, 19)] >> (8 * (BITS(10, 11)))) + Rm;
+				//        printf("rd is %x\n", state->Reg[BITS (12, 15)]);
+				//        exit(-1);
+			}
+
+			return 1;
+		}
         case 0x70:
             if ((instr & 0xf0d0) == 0xf010) { //smuad //ichfly
                 u8 tar = BITS(16, 19);
@@ -5961,329 +6249,15 @@ L_stm_s_takeabort:
         case 0x78:
             printf ("Unhandled v6 insn: usad/usada8\n");
             break;
-#if 0
         case 0x7a:
             printf ("Unhandled v6 insn: usbfx\n");
             break;
         case 0x7c:
             printf ("Unhandled v6 insn: bfc/bfi\n");
             break;
-#endif
-
-
-            /* add new instr for arm v6. */
-            ARMword lhs, temp;
-        case 0x18: {	/* ORR reg */
-            /* dyf add armv6 instr strex  2010.9.17 */
-            if (BITS (4, 7) == 0x9) {
-                u32 l = LHSReg;
-                u32 r = RHSReg;
-                lhs = LHS;
-
-                bool enter = false;
-
-                if (state->currentexval == (u32)ARMul_ReadWord(state, state->currentexaddr))enter = true;
-                //StoreWord(state, lhs, RHS)
-                if (state->Aborted) {
-                    TAKEABORT;
-                }
-
-                if (enter) {
-                    ARMul_StoreWordS(state, lhs, RHS);
-                    state->Reg[DESTReg] = 0;
-                } else {
-                    state->Reg[DESTReg] = 1;
-                }
-
-                return 1;
-            }
-            break;
-        }
-
-        case 0x19: {	/* orrs reg */
-            /* dyf add armv6 instr ldrex  */
-            if (BITS (4, 7) == 0x9) {
-                lhs = LHS;
-
-                state->currentexaddr = lhs;
-                state->currentexval = ARMul_ReadWord(state, lhs);
-
-                LoadWord (state, instr, lhs);
-                return 1;
-            }
-            break;
-        }
-
-        case 0x1c: {	/* BIC reg */
-            /* dyf add for STREXB */
-            if (BITS (4, 7) == 0x9) {
-                lhs = LHS;
-
-                bool enter = false;
-
-                if (state->currentexval == (u32)ARMul_ReadByte(state, state->currentexaddr))enter = true;
-
-                BUSUSEDINCPCN;
-                if (state->Aborted) {
-                    TAKEABORT;
-                }
-
-
-                if (enter) {
-                    ARMul_StoreByte (state, lhs, RHS);
-                    state->Reg[DESTReg] = 0;
-                } else {
-                    state->Reg[DESTReg] = 1;
-                }
-
-                //printf("In %s, strexb not implemented\n", __FUNCTION__);
-                UNDEF_LSRBPC;
-                /* WRITESDEST (dest); */
-                return 1;
-            }
-            break;
-        }
-
-        case 0x1d: {	/* BICS reg */
-            if ((BITS (4, 7)) == 0x9) {
-                /* ldrexb */
-                temp = LHS;
-                LoadByte (state, instr, temp, LUNSIGNED);
-
-                state->currentexaddr = temp;
-                state->currentexval = (u32)ARMul_ReadByte(state, temp);
-
-                //state->Reg[BITS(12, 15)] = ARMul_LoadByte(state, state->Reg[BITS(16, 19)]);
-                //printf("ldrexb\n");
-                //printf("instr is %x rm is %d\n", instr, BITS(16, 19));
-                //exit(-1);
-
-                //printf("In %s, ldrexb not implemented\n", __FUNCTION__);
-                return 1;
-            }
-            break;
-        }
-        /* add end */
-
-        case 0x6a: {
-            ARMword Rm;
-            int ror = -1;
-
-            switch (BITS (4, 11)) {
-            case 0x07:
-                ror = 0;
-                break;
-            case 0x47:
-                ror = 8;
-                break;
-            case 0x87:
-                ror = 16;
-                break;
-            case 0xc7:
-                ror = 24;
-                break;
-
-            case 0x01:
-            case 0xf3:
-                //ichfly
-                //SSAT16
-            {
-                u8 tar = BITS(12,15);
-                u8 src = BITS(0, 3);
-                u8 val = BITS(16, 19) + 1;
-                s16 a1 = (state->Reg[src]);
-                s16 a2 = (state->Reg[src] >> 0x10);
-                s16 min = (s16)(0x8000 >> (16 - val));
-                s16 max = 0x7FFF >> (16 - val);
-                if (min > a1) a1 = min;
-                if (max < a1) a1 = max;
-                if (min > a2) a2 = min;
-                if (max < a2) a2 = max;
-                u32 temp2 = ((u32)(a2)) << 0x10;
-                state->Reg[tar] = (a1&0xFFFF) | (temp2);
-            }
-
-            return 1;
-            default:
-                break;
-            }
-
-            if (ror == -1) {
-                if (BITS (4, 6) == 0x7) {
-                    printf ("Unhandled v6 insn: ssat\n");
-                    return 0;
-                }
-                break;
-            }
-
-            Rm = ((state->Reg[BITS (0, 3)] >> ror) & 0xFF);
-            if (Rm & 0x80)
-                Rm |= 0xffffff00;
-
-            if (BITS (16, 19) == 0xf)
-                /* SXTB */
-                state->Reg[BITS (12, 15)] = Rm;
-            else
-                /* SXTAB */
-                state->Reg[BITS (12, 15)] += Rm;
-        }
-        return 1;
-
-        case 0x6b: {
-            ARMword Rm;
-            int ror = -1;
-
-            switch (BITS (4, 11)) {
-            case 0x07:
-                ror = 0;
-                break;
-            case 0x47:
-                ror = 8;
-                break;
-            case 0x87:
-                ror = 16;
-                break;
-            case 0xc7:
-                ror = 24;
-                break;
-
-            case 0xf3:
-                DEST = ((RHS & 0xFF) << 24) | ((RHS & 0xFF00)) << 8 | ((RHS & 0xFF0000) >> 8) | ((RHS & 0xFF000000) >> 24);
-                return 1;
-            case 0xfb:
-                DEST = ((RHS & 0xFF) << 8) | ((RHS & 0xFF00)) >> 8 | ((RHS & 0xFF0000) << 8) | ((RHS & 0xFF000000) >> 8);
-                return 1;
-            default:
-                break;
-            }
-
-            if (ror == -1)
-                break;
-
-            Rm = ((state->Reg[BITS (0, 3)] >> ror) & 0xFFFF);
-            if (Rm & 0x8000)
-                Rm |= 0xffff0000;
-
-            if (BITS (16, 19) == 0xf)
-                /* SXTH */
-                state->Reg[BITS (12, 15)] = Rm;
-            else
-                /* SXTAH */
-                state->Reg[BITS (12, 15)] = state->Reg[BITS (16, 19)] + Rm;
-        }
-        return 1;
-
-        case 0x6e: {
-            ARMword Rm;
-            int ror = -1;
-
-            switch (BITS (4, 11)) {
-            case 0x07:
-                ror = 0;
-                break;
-            case 0x47:
-                ror = 8;
-                break;
-            case 0x87:
-                ror = 16;
-                break;
-            case 0xc7:
-                ror = 24;
-                break;
-
-            case 0x01:
-            case 0xf3:
-                //ichfly
-                //USAT16
-            {
-                u8 tar = BITS(12, 15);
-                u8 src = BITS(0, 3);
-                u8 val = BITS(16, 19);
-                s16 a1 = (state->Reg[src]);
-                s16 a2 = (state->Reg[src] >> 0x10);
-                s16 max = 0xFFFF >> (16 - val);
-                if (max < a1) a1 = max;
-                if (max < a2) a2 = max;
-                u32 temp2 = ((u32)(a2)) << 0x10;
-                state->Reg[tar] = (a1 & 0xFFFF) | (temp2);
-            }
-            return 1;
-            default:
-                break;
-            }
-
-            if (ror == -1) {
-                if (BITS (4, 6) == 0x7) {
-                    printf ("Unhandled v6 insn: usat\n");
-                    return 0;
-                }
-                break;
-            }
-
-            Rm = ((state->Reg[BITS (0, 3)] >> ror) & 0xFF);
-
-            if (BITS (16, 19) == 0xf)
-                /* UXTB */
-                state->Reg[BITS (12, 15)] = Rm;
-            else
-                /* UXTAB */
-                state->Reg[BITS (12, 15)] = state->Reg[BITS (16, 19)] + Rm;
-        }
-        return 1;
-
-        case 0x6f: {
-            ARMword Rm;
-            int ror = -1;
-
-            switch (BITS (4, 11)) {
-            case 0x07:
-                ror = 0;
-                break;
-            case 0x47:
-                ror = 8;
-                break;
-            case 0x87:
-                ror = 16;
-                break;
-            case 0xc7:
-                ror = 24;
-                break;
-
-            case 0xfb:
-                printf ("Unhandled v6 insn: revsh\n");
-                return 0;
-            default:
-                break;
-            }
-
-            if (ror == -1)
-                break;
-
-            Rm = ((state->Reg[BITS (0, 3)] >> ror) & 0xFFFF);
-
-            /* UXT */
-            /* state->Reg[BITS (12, 15)] = Rm; */
-            /* dyf add */
-            if (BITS (16, 19) == 0xf) {
-                state->Reg[BITS (12, 15)] = (Rm >> (8 * BITS(10, 11))) & 0x0000FFFF;
-            } else {
-                /* UXTAH */
-                /* state->Reg[BITS (12, 15)] = state->Reg [BITS (16, 19)] + Rm; */
-//            printf("rd is %x rn is %x rm is %x rotate is %x\n", state->Reg[BITS (12, 15)], state->Reg[BITS (16, 19)]
-//                   , Rm, BITS(10, 11));
-//            printf("icounter is %lld\n", state->NumInstrs);
-                state->Reg[BITS (12, 15)] = (state->Reg[BITS (16, 19)] >> (8 * (BITS(10, 11)))) + Rm;
-//        printf("rd is %x\n", state->Reg[BITS (12, 15)]);
-//        exit(-1);
-            }
-        }
-        return 1;
-
-#if 0
         case 0x84:
             printf ("Unhandled v6 insn: srs\n");
             break;
-#endif
         default:
             break;
         }

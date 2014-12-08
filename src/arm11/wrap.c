@@ -378,27 +378,27 @@ bool aufloeser(char* a,u32 addr)
 }
 void arm11_Dump()
 {
-    DEBUG("Reg dump:\n");
+    ERROR("Reg dump:\n");
     char a[256];
     u32 i;
     for (i = 0; i < 4; i++) {
-        DEBUG("r%02d: %08x r%02d: %08x r%02d: %08x r%02d: %08x\n",
+        ERROR("r%02d: %08x r%02d: %08x r%02d: %08x r%02d: %08x\n",
               4 * i, s.Reg[4 * i], 4 * i + 1, s.Reg[4 * i + 1], 4 * i + 2, s.Reg[4 * i + 2], 4 * i + 3, s.Reg[4 * i + 3]);
     }
     memset(a, 0, 256);
     aufloeser(a, s.Reg[15]);
-    DEBUG("current pc %s\n",a);
+    ERROR("current pc %s\n", a);
     memset(a, 0, 256);
     aufloeser(a, s.Reg[14]);
-    DEBUG("current lr %s\n", a);
+    ERROR("current lr %s\n", a);
     for (int i = 0; i < dumpstacksize; i++) {
 
         if (mem_test(s.Reg[13] + i * 4)) {
             aufloeser(a, mem_Read32(s.Reg[13] + i * 4));
-            DEBUG("%08X %08x %s\n", s.Reg[13] + i * 4, mem_Read32(s.Reg[13] + i * 4), a);
+            ERROR("%08X %08x %s\n", s.Reg[13] + i * 4, mem_Read32(s.Reg[13] + i * 4), a);
         }
     }
-    DEBUG("\n");
+    ERROR("\n");
 }
 void arm11_SetPCSP(u32 pc, u32 sp)
 {

@@ -5941,8 +5941,62 @@ L_stm_s_takeabort:
             printf ("Unhandled v6 insn: shadd/shsub\n");
             break;
         case 0x65:
-            printf ("Unhandled v6 insn: uadd/usub\n");
+        {
+            u32 rd = (instr >> 12) & 0xF;
+            u32 rn = (instr >> 16) & 0xF;
+            u32 rm = (instr >> 0) & 0xF;
+            u32 from = state->Reg[rn];
+            u32 to = state->Reg[rm];
+
+            if ((instr & 0xFF0) == 0xF10 || (instr & 0xFF0) == 0xF70) { // UADD16/USUB16
+                u32 h1, h2;
+                state->Cpsr &= 0xfff0ffff;
+                if ((instr & 0x0F0) == 0x070) { // USUB16
+                    h1 = ((u16)from - (u16)to);
+                    h2 = ((u16)(from >> 16) - (u16)(to >> 16));
+                    if (!(h1 & 0xffff0000)) state->Cpsr |= (3 << 16);
+                    if (!(h2 & 0xffff0000)) state->Cpsr |= (3 << 18);
+                }
+                else { // UADD16
+                    h1 = ((u16)from + (u16)to);
+                    h2 = ((u16)(from >> 16) + (u16)(to >> 16));
+                    if (h1 & 0xffff0000) state->Cpsr |= (3 << 16);
+                    if (h2 & 0xffff0000) state->Cpsr |= (3 << 18);
+                }
+                state->Reg[rd] = (u32)((h1 & 0xffff) | ((h2 & 0xffff) << 16));
+                return 1;
+            }
+            else
+                if ((instr & 0xFF0) == 0xF90 || (instr & 0xFF0) == 0xFF0) { // UADD8/USUB8
+                    u32 b1, b2, b3, b4;
+                    state->Cpsr &= 0xfff0ffff;
+                    if ((instr & 0x0F0) == 0x0F0) { // USUB8
+                        b1 = ((u8)from - (u8)to);
+                        b2 = ((u8)(from >> 8) - (u8)(to >> 8));
+                        b3 = ((u8)(from >> 16) - (u8)(to >> 16));
+                        b4 = ((u8)(from >> 24) - (u8)(to >> 24));
+                        if (!(b1 & 0xffffff00)) state->Cpsr |= (1 << 16);
+                        if (!(b2 & 0xffffff00)) state->Cpsr |= (1 << 17);
+                        if (!(b3 & 0xffffff00)) state->Cpsr |= (1 << 18);
+                        if (!(b4 & 0xffffff00)) state->Cpsr |= (1 << 19);
+                    }
+                    else { // UADD8
+                        b1 = ((u8)from + (u8)to);
+                        b2 = ((u8)(from >> 8) + (u8)(to >> 8));
+                        b3 = ((u8)(from >> 16) + (u8)(to >> 16));
+                        b4 = ((u8)(from >> 24) + (u8)(to >> 24));
+                        if (b1 & 0xffffff00) state->Cpsr |= (1 << 16);
+                        if (b2 & 0xffffff00) state->Cpsr |= (1 << 17);
+                        if (b3 & 0xffffff00) state->Cpsr |= (1 << 18);
+                        if (b4 & 0xffffff00) state->Cpsr |= (1 << 19);
+                    }
+                    state->Reg[rd] = (u32)(b1 | (b2 & 0xff) << 8 | (b3 & 0xff) << 16 | (b4 & 0xff) << 24);
+                    return 1;
+                }
+        }
+            printf("Unhandled v6 insn: uasx/usax\n");
             break;
+#if 0
         case 0x66:
 			if ((instr & 0x0FF00FF0) == 0x06600FF0) { //uqadd16
                 u32 rd = (instr >> 12) & 0xF;
@@ -5968,8 +6022,38 @@ L_stm_s_takeabort:
         case 0x67:
             printf ("Unhandled v6 insn: uhadd/uhsub\n");
             break;
+#endif
         case 0x68:
-            printf ("Unhandled v6 insn: pkh/sxtab/selsxtb\n");
+        {
+            u32 rd = (instr >> 12) & 0xF;
+            u32 rn = (instr >> 16) & 0xF;
+            u32 rm = (instr >> 0) & 0xF;
+            u32 from = state->Reg[rn];
+            u32 to = state->Reg[rm];
+            u32 cpsr = state->Cpsr;
+            if ((instr & 0xFF0) == 0xFB0) { // SEL
+                u32 result;
+                if (cpsr & (1 << 16))
+                    result = from & 0xff;
+                else
+                    result = to & 0xff;
+                if (cpsr & (1 << 17))
+                    result |= from & 0x0000ff00;
+                else
+                    result |= to & 0x0000ff00;
+                if (cpsr & (1 << 18))
+                    result |= from & 0x00ff0000;
+                else
+                    result |= to & 0x00ff0000;
+                if (cpsr & (1 << 19))
+                    result |= from & 0xff000000;
+                else
+                    result |= to & 0xff000000;
+                state->Reg[rd] = result;
+                return 1;
+            }
+        }
+            printf("Unhandled v6 insn: pkh/sxtab/selsxtb\n");
             break;
 		case 0x6a: {
 			ARMword Rm;

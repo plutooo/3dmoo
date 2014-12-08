@@ -844,6 +844,17 @@ SERVICE_CMD(0x08030102)   // Write
     return 0;
 }
 
+SERVICE_CMD(0x08010100)   // OpenSubFile
+{
+
+    DEBUG("OpenSubFile, %08x %08x %08x %08x --stub--\n", CMD(1), CMD(2), CMD(3), CMD(4));
+
+
+    RESP(3, 0); // handle
+    RESP(1, 0); // Result
+    return 0;
+}
+
 SERVICE_CMD(0x08040000)   // GetSize
 {
     u32 rc = 0;

@@ -92,6 +92,16 @@ SERVICE_CMD(0x30040)
     return 0;
 }
 
+SERVICE_CMD(0x00090040)
+{
+    u32 unk = CMD(1);
+    DEBUG("IsRegistered, APPID=%08x\n", unk);
+
+    RESP(2, 1); // registered
+    RESP(1, 0); // Result
+    return 0;
+}
+
 SERVICE_CMD(0x3E0080)
 {
     u32 unk  = CMD(1);
@@ -106,6 +116,8 @@ SERVICE_CMD(0x430040)
 {
     u32 app_id = CMD(1);
     DEBUG("NotifyToWait, app_id=%08x\n", app_id);
+    handleinfo* hi = handle_Get(event_handles[1]); //unlock
+    hi->locked = false;
 
     RESP(1, 0); // Result
     return 0;

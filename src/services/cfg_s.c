@@ -105,7 +105,7 @@ SERVICE_CMD(0x04070000)   // SecureInfoGetByte101
 }
 SERVICE_CMD(0x00030040)   // GenHashConsoleUnique
 {
-    DEBUG("GenHashConsoleUnique\n");
+    DEBUG("GenHashConsoleUnique %08x\n", CMD(1));
 
     RESP(1, 0); // Result
     RESP(2, 0x33646D6F ^ (CMD(1) & 0xFFFFF)); //3dmooSHA

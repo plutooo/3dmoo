@@ -26,4 +26,41 @@
 
 SERVICE_START(ptm_s);
 
+SERVICE_CMD(0x080F0000)
+{
+    DEBUG("IsLegacyPowerOff\n");
+
+    RESP(2, 0); //power is on
+    RESP(1, 0);
+    return 0;
+}
+SERVICE_CMD(0x08100000)
+{
+    DEBUG("ClearLegacyPowerOff\n");
+
+    RESP(1, 0); //power off
+    return 0;
+}
+
+SERVICE_CMD(0xC0000)   //GetTotalStepCount
+{
+    DEBUG("GetTotalStepCount\n");
+    RESP(1, 0); // Result
+    RESP(2, 0); //this is a pc it is not taking steps
+    return 0;
+}
+SERVICE_CMD(0xB00C2)   //GetStepHistory
+{
+    u32 unk1 = CMD(1);
+    u32 unk2 = CMD(2);
+    u32 unk3 = CMD(3);
+    u32 unk4 = CMD(4);
+    u32 pointer = CMD(5);
+    DEBUG("GetStepHistory %08x %08x %08x %08x %08x --todo--\n", unk1, unk2, unk3, unk4, pointer);
+    RESP(1, 0); // Result
+    //RESP(2, 0); //this is a pc it is not taking steps
+    return 0;
+}
+
+
 SERVICE_END();

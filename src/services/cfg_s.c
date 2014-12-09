@@ -57,6 +57,17 @@ SERVICE_CMD(0x00010082)   // GetConfigInfoBlk2
     RESP(1, getconfigfromNAND(size,id,pointer,0x2)); // Result
     return 0;
 }
+SERVICE_CMD(0x04010082)   // GetConfigInfoBlk8
+{
+    u32 size = CMD(1);
+    u32 id = CMD(2);
+    u32 pointer = CMD(4);
+
+    DEBUG("GetConfigInfoBlk8 %08x %08x %08x\n", size, id, pointer);
+
+    RESP(1, getconfigfromNAND(size, id, pointer, 0x8)); // Result
+    return 0;
+}
 
 SERVICE_CMD(0x00020000)   // SecureInfoGetRegion this is mirrored in all cfg change all if you change this
 {
@@ -90,6 +101,15 @@ SERVICE_CMD(0x04070000)   // SecureInfoGetByte101
     DEBUG("SecureInfoGetByte101\n");
     RESP(1, 0); // Result
     RESP(2, 0x11223344); // u8 value loaded from SecureInfo offset 0x101, from the already-loaded SecureInfo buffer.
+    return 0;
+}
+SERVICE_CMD(0x00030040)   // GenHashConsoleUnique
+{
+    DEBUG("GenHashConsoleUnique\n");
+
+    RESP(1, 0); // Result
+    RESP(2, 0x33646D6F ^ (CMD(1) & 0xFFFFF)); //3dmooSHA
+    RESP(3, 0x6F534841 ^ (CMD(1) & 0xFFFFF));
     return 0;
 }
 

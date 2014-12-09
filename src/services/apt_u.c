@@ -141,6 +141,8 @@ SERVICE_CMD(0x430040)
 {
     u32 app_id = CMD(1);
     DEBUG("NotifyToWait, app_id=%08x\n", app_id);
+    handleinfo* hi = handle_Get(event_handles[1]); //unlock
+    hi->locked = false;
 
     RESP(1, 0); // Result
     return 0;

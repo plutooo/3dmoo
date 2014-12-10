@@ -28,11 +28,13 @@ SERVICE_START(cdc_csn);
 
 SERVICE_CMD(0x90000)   //wtf
 {
+    DEBUG("unk 9");
     RESP(1, 0); // Result
     return 0;
 }
 SERVICE_CMD(0x00040040)   //wtf2
 {
+    DEBUG("unk 4 %08x",CMD(1));
     RESP(1, 0); // Result
     return 0;
 }

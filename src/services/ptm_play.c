@@ -26,7 +26,7 @@ SERVICE_START(ptm_play);
 
 SERVICE_CMD(0x08080000)   //GetPlayHistoryStart
 {
-    DEBUG("GetPlayHistoryStart\n");
+    DEBUG("GetPlayHistoryStart --stub--\n");
 
     RESP(2, 0); // start?
     RESP(1, 0); // Result
@@ -34,7 +34,7 @@ SERVICE_CMD(0x08080000)   //GetPlayHistoryStart
 }
 SERVICE_CMD(0x08090000)   //GetPlayHistoryLength
 {
-    DEBUG("GetPlayHistoryLength\n");
+    DEBUG("GetPlayHistoryLength --stub--\n");
 
     RESP(2, 4); // lenght?
     RESP(1, 0); // Result
@@ -42,7 +42,7 @@ SERVICE_CMD(0x08090000)   //GetPlayHistoryLength
 }
 SERVICE_CMD(0x000F0084)   //GetPlayHistoryLength
 {
-    DEBUG("GetPlayHistoryLength\n", CMD(0), CMD(1), CMD(2), CMD(3), CMD(4), CMD(5));
+    DEBUG("GetPlayHistoryLength --stub--\n", CMD(0), CMD(1), CMD(2), CMD(3), CMD(4), CMD(5));
 
     RESP(1, 0); // Result
     return 0;

@@ -100,7 +100,7 @@ SERVICE_CMD(0x04070000)   // SecureInfoGetByte101
 {
     DEBUG("SecureInfoGetByte101\n");
     RESP(1, 0); // Result
-    RESP(2, 0x11223344); // u8 value loaded from SecureInfo offset 0x101, from the already-loaded SecureInfo buffer.
+    RESP(2, 0x0); // u8 value loaded from SecureInfo offset 0x101, from the already-loaded SecureInfo buffer.
     return 0;
 }
 SERVICE_CMD(0x00030040)   // GenHashConsoleUnique

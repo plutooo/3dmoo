@@ -26,6 +26,7 @@
 #include "threads.h"
 
 #include "gpu.h"
+#include "gdbstub.h"
 
 
 thread threads[MAX_THREADS];
@@ -289,14 +290,12 @@ void threads_Execute()
         //arm11_Run(11172*16); //process one line
 
 #ifdef GDB_STUB
-        extern volatile bool arm_stall;
-        while (arm_stall)Sleep(1);
+        wait_while_stall();
 #endif
         //arm11_Run(11172 * 16);
         arm11_Run(0xFFFFFFFF); //state->NumInstrsToExecute don't count down
 #ifdef GDB_STUB
-        extern volatile bool arm_stall;
-        while (arm_stall)Sleep(1);
+        wait_while_stall();
 #endif
 
     }

@@ -197,7 +197,7 @@ u32 file_WaitSynchronization(handleinfo* h, bool *locked);
 u32 nop_SyncRequest(handleinfo* h, bool *locked);
 
 static struct {
-    char* name;
+    const char* name;
     u32(*fnSyncRequest)(handleinfo* h, bool *locked);
     u32(*fnCloseHandle)(ARMul_State *state, handleinfo* h);
     u32(*fnWaitSynchronization)(handleinfo* h, bool *locked);

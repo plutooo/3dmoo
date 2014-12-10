@@ -34,7 +34,14 @@
 #include "armdefs.h"
 
 #include "mem.h"
-extern volatile bool arm_stall;
+
+#ifdef _WIN32
+static volatile bool arm_stall = false;
+#else
+static bool arm_stall = false;
+static pthread_mutex_t arm_stall_mutex = PTHREAD_MUTEX_INITIALIZER;
+static pthread_cond_t  arm_stall_cond  = PTHREAD_COND_INITIALIZER;
+#endif
 
 extern ARMul_State s;
 
@@ -47,10 +54,11 @@ extern struct armcpu_ctrl_iface gdb_ctrl_iface;
 extern thread threads[MAX_THREADS];
 
 
-void *
-createThread_gdb(void (WINAPI *thread_function)(void *data),
-                 void *thread_data)
+thread_handle_t
+createThread_gdb( thread_func_t thread_function,
+                  void *thread_data)
 {
+#ifdef _WIN32
     u32 ThreadId;
     HANDLE *new_thread = CreateThread(
                              NULL,                   // default security attributes
@@ -61,22 +69,65 @@ createThread_gdb(void (WINAPI *thread_function)(void *data),
                              &ThreadId);   // returns the thread identifier
 
     return new_thread;
+#else
+    pthread_t ThreadId;
+    int rc = pthread_create(&ThreadId, NULL, thread_function, thread_data);
+    if(rc != 0)
+        printf("pthread_create: %s\n", strerror(rc));
+    return ThreadId;
+#endif
 }
 
 void
-joinThread_gdb(void *thread_handle)
+joinThread_gdb( thread_handle_t thread_handle)
 {
+#ifdef _WIN32
     return;//todo
+#else
+    int rc = pthread_join(thread_handle, NULL);
+    if(rc != 0)
+        printf("pthread_create: %s\n", strerror(rc));
+#endif
 }
+
+void wait_while_stall(void)
+{
+#ifdef _WIN32
+    while(arm_stall)
+        Sleep(1);
+#else
+    pthread_mutex_lock(&arm_stall_mutex);
+    while(arm_stall)
+        pthread_cond_wait(&arm_stall_cond, &arm_stall_mutex);
+    pthread_mutex_unlock(&arm_stall_mutex);
+#endif
+}
+
 void stall_cpu(void *instance)
 {
+#ifdef _WIN32
     arm_stall = true;
+#else
+    pthread_mutex_lock(&arm_stall_mutex);
+    arm_stall = true;
+    pthread_cond_signal(&arm_stall_cond);
+    pthread_mutex_unlock(&arm_stall_mutex);
+#endif
     s.NumInstrsToExecute = 0;
 }
+
 void unstall_cpu(void *instance)
 {
+#ifdef _WIN32
     arm_stall = false;
+#else
+    pthread_mutex_lock(&arm_stall_mutex);
+    arm_stall = false;
+    pthread_cond_signal(&arm_stall_cond);
+    pthread_mutex_unlock(&arm_stall_mutex);
+#endif
 }
+
 u32 read_cpu_reg(void *instance, u32 reg_num,u32 handle)
 {
     if (handle == threads_GetCurrentThreadHandle()){

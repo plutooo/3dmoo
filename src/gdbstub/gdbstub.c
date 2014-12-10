@@ -53,11 +53,11 @@
 
 #include "threads.h"
 
-extern "C" u32 loader_txt;
-extern "C" u32 loader_data;
-extern "C" u32 loader_bss;
-extern "C" int mem_Write(uint8_t* in_buff, uint32_t addr, uint32_t size);
-extern "C" thread threads[MAX_THREADS];
+extern u32 loader_txt;
+extern u32 loader_data;
+extern u32 loader_bss;
+int mem_Write(uint8_t* in_buff, uint32_t addr, uint32_t size);
+extern thread threads[MAX_THREADS];
 
 #define uint32_t u32
 #define uint16_t u16
@@ -197,7 +197,7 @@ causeQuit_gdb( struct gdb_stub_state *stub) {
 #endif
 }
 
-extern "C" static void
+static void
 indicateCPUStop_gdb( struct gdb_stub_state *stub) {
   uint8_t command = CPU_STOPPED_STUB_MESSAGE;
 
@@ -216,7 +216,7 @@ indicateCPUStop_gdb( struct gdb_stub_state *stub) {
  *
  *
  */
-extern "C" void
+void
 break_execution( void *data, UNUSED_PARM(uint32_t addr), UNUSED_PARM(int thunmb)) {
   struct gdb_stub_state *stub = (struct gdb_stub_state *)data;
 
@@ -563,8 +563,8 @@ make_stop_packet( uint8_t *ptr, enum stop_type type, uint32_t stop_address) {
 }
 
 int
-remote_unescape_input(const byte *buffer, int len,
-byte *out_buf, int out_maxlen)
+remote_unescape_input(const u8 *buffer, int len,
+u8 *out_buf, int out_maxlen)
 {
     int input_index, output_index;
     int escaped;
@@ -573,7 +573,7 @@ byte *out_buf, int out_maxlen)
     escaped = 0;
     for (input_index = 0; input_index < len; input_index++)
     {
-        byte b = buffer[input_index];
+        u8 b = buffer[input_index];
 
         if (output_index + 1 > out_maxlen)
             DEBUG("Received too much data from the target.");
@@ -686,7 +686,7 @@ unsigned int *len_ptr, unsigned char **to_p)
     if (*to_p == NULL)
         *to_p = (unsigned char*)malloc(*len_ptr);
 
-    if (remote_unescape_input((const byte *)&from[i], packet_len - i,
+    if (remote_unescape_input((const u8 *)&from[i], packet_len - i,
         *to_p, *len_ptr) != *len_ptr)
         return -1;
 
@@ -710,7 +710,7 @@ processPacket_gdb( SOCKET_TYPE sock, const uint8_t *packet,
   switch( packet[0]) {
   case 3:
     /* The break command */
-    //stub->running_state = gdb_stub_state::STOPPED_GDB_STATE;
+    //stub->running_state = STOPPED_GDB_STATE;
     //*ptr++ = 'S';
     //*ptr++ = hexchars[0x2 >> 4];
     //*ptr++ = hexchars[0x2 & 0xf];
@@ -935,8 +935,8 @@ processPacket_gdb( SOCKET_TYPE sock, const uint8_t *packet,
     break;
 
   case 'c':
-	stub->emu_stub_state = gdb_stub_state::RUNNING_EMU_GDB_STATE;
-    stub->ctl_stub_state = gdb_stub_state::START_RUN_GDB_STATE;
+	stub->emu_stub_state = RUNNING_EMU_GDB_STATE;
+    stub->ctl_stub_state = START_RUN_GDB_STATE;
     stub->main_stop_flag = 0;
     send_reply = 0;
     /* remove the cpu stall */
@@ -957,8 +957,8 @@ processPacket_gdb( SOCKET_TYPE sock, const uint8_t *packet,
                                         step_instruction_watch,
                                         stub);
 
-    stub->emu_stub_state = gdb_stub_state::RUNNING_EMU_GDB_STATE;
-    stub->ctl_stub_state = gdb_stub_state::START_RUN_GDB_STATE;
+    stub->emu_stub_state = RUNNING_EMU_GDB_STATE;
+    stub->ctl_stub_state = START_RUN_GDB_STATE;
     stub->main_stop_flag = 0;
     send_reply = 0;
 
@@ -1432,8 +1432,14 @@ check_breaks_gdb( struct gdb_stub_state *gdb_state,
   return found_break;
 }
 
+#ifdef _WIN32
 static void
-WINAPI listenerThread_gdb( void *data) {
+WINAPI listenerThread_gdb( void *data)
+#else
+static void*
+listenerThread_gdb( void *data)
+#endif
+{
   struct gdb_stub_state *state = (struct gdb_stub_state *)data;
   fd_set read_sock_set;
   fd_set main_set;
@@ -1471,13 +1477,13 @@ WINAPI listenerThread_gdb( void *data) {
 
 	case CPU_STOPPED_STUB_MESSAGE:
 	  if ( state->active &&
-		  state->ctl_stub_state != gdb_stub_state::STOPPED_GDB_STATE) {
+		  state->ctl_stub_state != STOPPED_GDB_STATE) {
 	    struct debug_out_packet *out_packet = getOutPacket();
 	    uint8_t *ptr = out_packet->start_ptr;
             uint32_t send_size;
 
 	    /* mark the stub as stopped and send the stop packet */
-			state->ctl_stub_state = gdb_stub_state::STOPPED_GDB_STATE;
+			state->ctl_stub_state = STOPPED_GDB_STATE;
 	    state->main_stop_flag = 1;
 
             send_size = make_stop_packet( ptr, state->stop_type, state->stop_address);
@@ -1590,7 +1596,7 @@ WINAPI listenerThread_gdb( void *data) {
 
             case READ_BREAK: {
               /* break the running of the cpu */
-				if ( state->ctl_stub_state != gdb_stub_state::STOPPED_GDB_STATE) {
+				if ( state->ctl_stub_state != STOPPED_GDB_STATE) {
                 /* this will cause the emulation to break the execution */
                 DEBUG_LOG( "Breaking execution\n");
 
@@ -1609,7 +1615,7 @@ WINAPI listenerThread_gdb( void *data) {
               int close_socket = 0;
               struct packet_reader_gdb *packet = &state->rx_packet;
 
-              if ( state->ctl_stub_state != gdb_stub_state::STOPPED_GDB_STATE) {
+              if ( state->ctl_stub_state != STOPPED_GDB_STATE) {
                 /* not ready to process packet yet, send a bad reply */
                 reply = '-';
               }
@@ -1671,7 +1677,11 @@ WINAPI listenerThread_gdb( void *data) {
   close( state->listen_fd);
 #endif
 
+#ifdef _WIN32
   return;
+#else
+  return NULL;
+#endif
 }
 
 
@@ -1850,31 +1860,9 @@ control_creator( LPVOID lpParameter)
 
 
 
-void *
-createThread_gdb(void(*thread_function)(void *data),void *thread_data)
-{
-    DWORD ThreadId;
-    HANDLE new_thread = CreateThread(
-        NULL,                   // default security attributes
-        0,                      // use default stack size  
-        (LPTHREAD_START_ROUTINE)thread_function,       // thread function name
-        thread_data,          // argument to thread function 
-        0,                      // use default creation flags 
-        &ThreadId);   // returns the thread identifier 
-
-    return (void*)new_thread;
-}
-
-void
-joinThread_gdb(void *thread_handle) {
-    return;//todo
-}
-
-
 
 /**
  */
-extern "C"
 gdbstub_handle_t
 createStub_gdb( uint16_t port,
                 struct armcpu_memory_iface **cpu_memio,
@@ -1884,7 +1872,7 @@ createStub_gdb( uint16_t port,
   int i;
   int res = 0;
 
-  stub = (gdb_stub_state*)malloc( sizeof (struct gdb_stub_state));
+  stub = (struct gdb_stub_state*)malloc( sizeof (struct gdb_stub_state));
   if ( stub == NULL) {
     return NULL;
   }
@@ -1988,8 +1976,8 @@ createStub_gdb( uint16_t port,
 #endif
   else {
     stub->active = 1;
-	stub->emu_stub_state = gdb_stub_state::RUNNING_EMU_GDB_STATE;
-	stub->ctl_stub_state = gdb_stub_state::STOPPED_GDB_STATE;
+	stub->emu_stub_state = RUNNING_EMU_GDB_STATE;
+	stub->ctl_stub_state = STOPPED_GDB_STATE;
     stub->rx_packet.state = IDLE_READ_STATE;
 
     stub->main_stop_flag = 1;
@@ -2008,6 +1996,7 @@ createStub_gdb( uint16_t port,
 
   if ( res != -1) {
     /* create the listenering thread */
+#ifdef _WIN32
       DWORD ThreadId;
       stub->thread  = (void*)CreateThread(
           NULL,                   // default security attributes
@@ -2021,6 +2010,14 @@ createStub_gdb( uint16_t port,
       LOG_ERROR("Failed to create listener thread\n");
       free( stub);
     }
+#else
+    int rc = pthread_create(&stub->thread, NULL, listenerThread_gdb, stub);
+    if(rc != 0)
+    {
+      LOG_ERROR("Failed to create listener thread\n");
+      free( stub);
+    }
+#endif
     else {
       handle = stub;
 
@@ -2049,7 +2046,6 @@ destroyStub_gdb( gdbstub_handle_t instance) {
   free( stub);
 }
 
-extern "C"
 void
 activateStub_gdb( gdbstub_handle_t instance,
                   struct armcpu_ctrl_iface *cpu_ctrl) {

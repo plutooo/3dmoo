@@ -35,7 +35,6 @@
 #include "gdbstub.h"
 #include "armdefs.h"
 #include "gdbstubchelper.h"
-volatile bool arm_stall = false;
 #endif
 
 extern ARMul_State s;
@@ -80,7 +79,6 @@ void AtExit(void)
 {
     arm11_Dump();
 
-	fflush(stdout);
     if(!noscreen)
         screen_Free();
 
@@ -100,6 +98,8 @@ void FPS_Lock(void)
 
 int main(int argc, char* argv[])
 {
+    setlinebuf(stdout);
+    setlinebuf(stderr);
     atexit(AtExit);
     if (argc < 2) {
         printf("Usage:\n");

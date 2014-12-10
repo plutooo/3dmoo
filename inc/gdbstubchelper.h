@@ -1,4 +1,3 @@
-void joinThread_gdb(void *thread_handle);
 void stall_cpu(void *instance);
 void unstall_cpu(void *instance);
 u32 read_cpu_reg(void *instance, u32 reg_num, u32 handle);

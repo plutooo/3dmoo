@@ -1,11 +1,11 @@
 ### 3dmoo Makefile ###
 
 CC      = gcc
-CFLAGS  = -c -std=c99 -Wno-format-zero-length -iquoteinc -iquotesrc/arm11 -iquotesrc/arm11/vfp `pkg-config sdl2 --cflags` -DMODET -DMODE32 -D_BSD_SOURCE -D_POSIX_SOURCE
+CFLAGS  = -c -g -std=c99 -Wno-format-zero-length -iquoteinc -iquotesrc/arm11 -iquotesrc/arm11/vfp `pkg-config sdl2 --cflags` -DMODET -DMODE32 -D_BSD_SOURCE -D_POSIX_SOURCE -DGDB_STUB
 LIBS    = `pkg-config sdl2 --libs` -lm
 LDFLAGS =
 
-SRC_FILES = src/mem.c src/screen.c src/handles.c src/loader.c src/utils.c src/svc.c src/config.c
+SRC_FILES = src/mem.c src/screen.c src/handles.c src/loader.c src/utils.c src/svc.c src/config.c src/gdbstub/gdbstubchelper.c src/gdbstub/gdbstub.c
 
 INC_FILES = inc/*
 

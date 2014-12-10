@@ -19,6 +19,10 @@
 
 #include <stdio.h>
 
+#ifndef _WIN32
+#include <pthread.h>
+#endif
+
 struct armcpu_memory_iface {
     /** the 32 bit instruction prefetch */
     u32 (*prefetch32)(void *data, u32 adr);
@@ -98,12 +102,22 @@ activateStub_gdb( gdbstub_handle_t stub,
  * for the GDB stub to function.
  */
 
+#ifdef _WIN32
+typedef HANDLE thread_handle_t;
+typedef void (WINAPI *thread_func_t)(void*);
+#else
+typedef pthread_t thread_handle_t;
+typedef void* (*thread_func_t)(void*);
+#endif
 
-void *
-createThread_gdb( void (WINAPI *thread_function)( void *data),
+thread_handle_t
+createThread_gdb( thread_func_t thread_function,
                   void *thread_data);
 void
-joinThread_gdb( void *thread_handle);
+joinThread_gdb( thread_handle_t thread_handle);
+
+void
+wait_while_stall(void);
 
 #ifdef __GNUC__
 #define UNUSED_PARM( parm) parm __attribute__((unused))

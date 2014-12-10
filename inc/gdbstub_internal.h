@@ -89,7 +89,7 @@ struct gdb_stub_state {
     int main_stop_flag;
 
     /** the listener thread */
-    void *thread;
+    thread_handle_t thread;
 
     /** the id of the cpu the is under control */
     //u32 cpu_id;

@@ -98,8 +98,16 @@ void FPS_Lock(void)
 
 int main(int argc, char* argv[])
 {
+#ifndef WIN32
     setlinebuf(stdout);
     setlinebuf(stderr);
+#else
+    char outBuf[4096];
+    char errBuf[4096];
+
+    setvbuf(stdout, outBuf, _IOLBF, sizeof(outBuf));
+    setvbuf(stderr, errBuf, _IOLBF, sizeof(errBuf));
+#endif
     atexit(AtExit);
     if (argc < 2) {
         printf("Usage:\n");

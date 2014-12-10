@@ -263,7 +263,7 @@
     <ClCompile Include="..\src\fs\sysdata.c" />
     <ClCompile Include="..\src\fs\sysdatac.c" />
     <ClCompile Include="..\src\fs\util.c" />
-    <ClCompile Include="..\src\gdbstub\gdbstub.cpp" />
+    <ClCompile Include="..\src\gdbstub\gdbstub.c" />
     <ClCompile Include="..\src\gdbstub\gdbstubchelper.c" />
     <ClCompile Include="..\src\gpu\clipper.c" />
     <ClCompile Include="..\src\gpu\io.c" />

@@ -587,6 +587,7 @@ SERVICE_CMD(0x08080202)   // CreateFile
           fs_PathToString(file_lowpath_type, file_lowpath_ptr, file_lowpath_sz, tmp, sizeof(tmp)));
     DEBUG("   attr=%s\n",
           fs_AttrToString(attr, tmp));
+	DEBUG("   initial_size=0x%x\n", size);
 
     handleinfo* arch_hi = handle_Get(handle_arch);
 
@@ -786,6 +787,13 @@ SERVICE_CMD(0x080D0144)   // ControlArchive
     return 0;
 }
 
+SERVICE_CMD(0x0084c0242)   // FormatSaveData
+{
+	DEBUG("FormatSaveData %08x %08x %08x %08x %08x %08x %08x %08x --todo--\n", CMD(1), CMD(2), CMD(3), CMD(4), CMD(5), CMD(6), CMD(7), CMD(8));
+
+	RESP(1, 0);
+	return 0;
+}
 
 SERVICE_END();
 

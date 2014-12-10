@@ -5996,9 +5996,8 @@ L_stm_s_takeabort:
         }
             printf("Unhandled v6 insn: uasx/usax\n");
             break;
-#if 0
         case 0x66:
-			if ((instr & 0x0FF00FF0) == 0x06600FF0) { //uqadd16
+			if ((instr & 0x0FF00FF0) == 0x06600FF0) { //uqsub8
                 u32 rd = (instr >> 12) & 0xF;
                 u32 rm = (instr >> 16) & 0xF;
                 u32 rn = (instr >> 0) & 0xF;
@@ -6016,13 +6015,12 @@ L_stm_s_takeabort:
                 state->Reg[rd] = (u32)(b1 | b2 << 8 | b3 << 16 | b4 << 24);
                 return 1;
             } else {
-                printf ("Unhandled v6 insn: uqsub8\n");
+                printf ("Unhandled v6 insn: uqsub16\n");
             }
             break;
         case 0x67:
             printf ("Unhandled v6 insn: uhadd/uhsub\n");
             break;
-#endif
         case 0x68:
         {
             u32 rd = (instr >> 12) & 0xF;

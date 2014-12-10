@@ -43,4 +43,13 @@ SERVICE_CMD(0x00080000)   //GetMyPresence
     return 0;
 }
 
+SERVICE_CMD(0x00200002)   //???
+{
+	DEBUG("???_200002 %08x,%08x\n",
+		EXTENDED_CMD(0), EXTENDED_CMD(1));
+
+	RESP(1, -1); // Result
+	return 0;
+}
+
 SERVICE_END();

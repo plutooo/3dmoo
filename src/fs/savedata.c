@@ -107,8 +107,11 @@ static u32 savedatafile_Write(file_type* self, u32 ptr, u32 sz, u64 off, u32 flu
         return -1;
     }
 
+	self->type_specific.sysdata.sz = ftell64(fd);
+
     *written_out = written;
     free(b);
+	fflush(fd);
 
     return 0; // Result
 }
@@ -289,6 +292,9 @@ static u32 savedata_OpenFile(archive* self, file_path path, u32 flags, u32 attr)
     case 6: //W+C
         strcpy(mode, "wb");
         break;
+	case 7: //All?
+		strcpy(mode, "wb+");
+		break;
     }
 
     FILE* fd = fopen(p, mode);
@@ -350,6 +356,24 @@ int savedata_CreateDir(archive* self, file_path path)
 #endif
 }
 
+int savedata_DeleteDir(archive* self, file_path path)
+{
+	char p[256], tmp[256];
+
+	// Generate path on host file system
+	snprintf(p, 256, "savedata/%s",
+		fs_PathToString(path.type, path.ptr, path.size, tmp, 256));
+
+	if (!fs_IsSafePath(p)) {
+		ERROR("Got unsafe path.\n");
+		return 0;
+	}
+#ifdef _MSC_VER 
+	return _rmdir(p);
+#else
+	return rmdir(p, 0777);
+#endif
+}
 
 static void savedata_Deinitialize(archive* self)
 {
@@ -371,6 +395,10 @@ archive* savedata_OpenArchive(file_path path)
     arch->fnOpenDir = &savedata_OpenDir;
     arch->fnFileExists = &savedata_FileExists;
     arch->fnOpenFile = &savedata_OpenFile;
+	arch->fnDeleteFile = &savedata_DeleteDir;
+	arch->fnDeleteDir = NULL;
+	arch->fnRenameFile = NULL;
+	arch->fnRenameDir = NULL;
     arch->fnDeinitialize = &savedata_Deinitialize;
 
     snprintf(arch->type_specific.sysdata.path,

@@ -37,4 +37,12 @@ SERVICE_CMD(0xD0000) //GetWifiStatus
     return 0;
 }
 
+SERVICE_CMD(0x300004) //RegisterDisconnectEvent
+{
+	DEBUG("RegisterDisconnectEvent\n");
+
+	RESP(1, 0); // Result
+	return 0;
+}
+
 SERVICE_END();

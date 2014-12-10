@@ -138,11 +138,11 @@ struct OutputVertex {
 };
 
 struct clov4 {
-    u8 v[4];
+    u8 v[5];
 };
 
 struct clov3 {
-    u8 v[4];
+    u8 v[5];
 };
 
 

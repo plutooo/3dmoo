@@ -79,6 +79,8 @@ void AtSig(int t)
 void AtExit(void)
 {
     arm11_Dump();
+
+	fflush(stdout);
     if(!noscreen)
         screen_Free();
 

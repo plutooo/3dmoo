@@ -164,6 +164,7 @@ void screen_RenderGPU()
     if (updateSurface) {
         SDL_UnlockSurface(bitmapSurface);
         SDL_UpdateWindowSurface(win);
+		fflush(stdout);
     }
 }
 

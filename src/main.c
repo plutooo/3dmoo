@@ -105,8 +105,8 @@ int main(int argc, char* argv[])
     char outBuf[4096];
     char errBuf[4096];
 
-    setvbuf(stdout, outBuf, _IOLBF, sizeof(outBuf));
-    setvbuf(stderr, errBuf, _IOLBF, sizeof(errBuf));
+    //setvbuf(stdout, outBuf, _IOLBF, sizeof(outBuf));
+    //setvbuf(stderr, errBuf, _IOLBF, sizeof(errBuf));
 #endif
     atexit(AtExit);
     if (argc < 2) {
@@ -268,6 +268,10 @@ int main(int argc, char* argv[])
         fclose(fd);
         return 1;
     }
+#ifdef MODULE_SUPPORT
+        ModuleSupport_SwapProcessMem(0);
+        threads_Switch(0);
+#endif
 
 #ifdef GDB_STUB
     if (global_gdb_port) {
@@ -294,21 +298,19 @@ int main(int argc, char* argv[])
 #endif
     // Execute.
     while (running) {
-        if (!noscreen)
-            screen_HandleEvent();
-
 #ifdef MODULE_SUPPORT
-        int k;
-        for (k = 0; k <= modulenum; k++) {
-            ModuleSupport_SwapProcess(k);
-            DEBUG("Process %X\n",k);
-        }
-#else
-        threads_Execute();
+        for (int i = 0; i < modulenum + 1; i++)
+        {
 #endif
-
-        //FPS_Lock();
-        //mem_Dbugdump();
+            if (!noscreen)
+                screen_HandleEvent();
+            threads_Execute();
+            //FPS_Lock();
+            //mem_Dbugdump();
+#ifdef MODULE_SUPPORT
+            ModuleSupport_SwapProcessMem(i);
+        }
+#endif
     }
 
 

@@ -787,7 +787,19 @@ SERVICE_CMD(0x080D0144)   // ControlArchive
     return 0;
 }
 
-SERVICE_CMD(0x0084c0242)   // FormatSaveData
+SERVICE_CMD(0x084500c2)   // GetFormatInfo
+{
+	DEBUG("GetFormatInfo %08x %08x %08x %08x %08x %08x %08x %08x --todo--\n", CMD(1), CMD(2), CMD(3), CMD(4), CMD(5), CMD(6), CMD(7), CMD(8));
+
+	RESP(1, 0);
+	RESP(2, 255); //entrydir
+	RESP(3, 255); //entryfile
+	RESP(4, 0);
+	RESP(5, 0);
+	return 0;
+}
+
+SERVICE_CMD(0x084c0242)   // FormatSaveData
 {
 	DEBUG("FormatSaveData %08x %08x %08x %08x %08x %08x %08x %08x --todo--\n", CMD(1), CMD(2), CMD(3), CMD(4), CMD(5), CMD(6), CMD(7), CMD(8));
 

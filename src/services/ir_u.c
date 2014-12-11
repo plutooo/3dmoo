@@ -34,6 +34,37 @@ void ir_u_init()
 
 SERVICE_START(ir_u);
 
+SERVICE_CMD(0x00020000)   //Shutdown?
+{
+	u32 unk1 = CMD(1);
+	u32 unk2 = CMD(2);
+	u32 unk3 = CMD(3);
+	u32 unk4 = CMD(4);
+	u32 unk5 = CMD(5);
+	u8  unk6 = CMD(6);
+	u32 unk7 = CMD(7);
+	DEBUG("Shutdown %08x %08x %08x %08x %08x %02x %08x\n", unk1, unk2, unk3, unk4, unk5, unk6, unk7);
+
+	RESP(1, 0); // Result
+	return 0;
+}
+
+SERVICE_CMD(0x00060040)   //WaitRecvTransfer?
+{
+	u32 unk1 = CMD(1);
+	u32 unk2 = CMD(2);
+	u32 unk3 = CMD(3);
+	u32 unk4 = CMD(4);
+	u32 unk5 = CMD(5);
+	u8  unk6 = CMD(6);
+	u32 unk7 = CMD(7);
+	DEBUG("WaitRecvTransfer %08x %08x %08x %08x %08x %02x %08x\n", unk1, unk2, unk3, unk4, unk5, unk6, unk7);
+
+	RESP(1, 0); // Result
+	RESP(2, 0); // Total amount of newly received data
+	return 0;
+}
+
 SERVICE_CMD(0x000c0000)   //GetConnectionStatusEvent
 {
     DEBUG("GetConnectionStatusEvent\n");
@@ -45,17 +76,17 @@ SERVICE_CMD(0x000c0000)   //GetConnectionStatusEvent
 
 SERVICE_CMD(0x00180182)   //InitializeIrnopShared
 {
-    u32 unk1 = CMD(1);
-    u32 unk2 = CMD(2);
-    u32 unk3 = CMD(3);
-    u32 unk4 = CMD(4);
-    u32 unk5 = CMD(5);
-    u8  unk6 = CMD(6);
-    u32 unk7 = CMD(7);
-    DEBUG("InitializeIrnopShared %08x %08x %08x %08x %08x %02x %08x", unk1, unk2, unk3, unk4, unk5, unk6, unk7);
+	u32 unk1 = CMD(1);
+	u32 unk2 = CMD(2);
+	u32 unk3 = CMD(3);
+	u32 unk4 = CMD(4);
+	u32 unk5 = CMD(5);
+	u8  unk6 = CMD(6);
+	u32 unk7 = CMD(7);
+	DEBUG("InitializeIrnopShared %08x %08x %08x %08x %08x %02x %08x\n", unk1, unk2, unk3, unk4, unk5, unk6, unk7);
 
-    RESP(1, 0); // Result
-    return 0;
+	RESP(1, 0); // Result
+	return 0;
 }
 
 SERVICE_END();

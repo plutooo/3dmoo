@@ -24,4 +24,19 @@
 
 SERVICE_START(boss_u);
 
+SERVICE_CMD(0x00010082)   //???
+{
+	u32 unk1 = CMD(1);
+	u32 unk2 = CMD(2);
+	u32 unk3 = CMD(3);
+	u32 unk4 = CMD(4);
+	u32 unk5 = CMD(5);
+	u8  unk6 = CMD(6);
+	u32 unk7 = CMD(7);
+	DEBUG("???_10082 %08x %08x %08x %08x %08x %02x %08x\n", unk1, unk2, unk3, unk4, unk5, unk6, unk7);
+
+	RESP(1, 0); // Result
+	return 0;
+}
+
 SERVICE_END();

@@ -141,9 +141,9 @@ void screen_RenderFramebuffer(u8 *bitmapPixels, u8* buffer, u32 format, u32 widt
 
                     //RGB5A1
                     u16  pixel = buffer[((x * 240 + y) * 2) + 0] + (buffer[((x * 240 + y) * 2) + 1] << 8);
-                    *(row + 0) = ((pixel >> 11) & 0x1F) << 3;
+                    *(row + 2) = ((pixel >> 11) & 0x1F) << 3;
                     *(row + 1) = ((pixel >> 6) & 0x1F) << 3;
-                    *(row + 2) = ((pixel >> 1) & 0x1F) << 3;
+                    *(row + 0) = ((pixel >> 1) & 0x1F) << 3;
                     *(row + 3) = ((pixel >> 0) & 1) ? 0xFF : 0;
                 }
             }

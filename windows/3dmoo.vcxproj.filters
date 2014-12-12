@@ -267,13 +267,13 @@
     <ClCompile Include="..\src\gpu\clipper.c">
       <Filter>Source Files\GPU</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\gdbstub\gdbstub.cpp">
+    <ClCompile Include="..\src\gdb\gdbstub.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\src\services\mic_u.c">
       <Filter>Source Files\services</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\gdbstub\gdbstubchelper.c">
+    <ClCompile Include="..\src\gdb\gdbstubchelper.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\src\services\PxiPS9.c">

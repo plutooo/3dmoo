@@ -218,9 +218,10 @@ u32 svcControlMemory()
         } else {
             if ((op & 0x10000) == 0x10000) { //LINEAR
                 addr0 = 0x14000000 + linearalloced;
+                u8* outLINEmembuffer = LINEmembuffer + linearalloced;
                 linearalloced += size;
                 arm11_SetR(1, addr0); // outaddr is in R1
-                return mem_AddMappingShared(addr0, size, LINEmembuffer);
+                return mem_AddMappingShared(addr0, size, outLINEmembuffer);
             }
             /*else
             {

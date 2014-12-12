@@ -56,10 +56,10 @@ void gsp_ExecuteCommandFromSharedMem()
                 u32 dest = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x8);
                 u32 size = *(u32*)(baseaddr + (j + 1) * 0x20 + 0xC);
 
-                DEBUG("GX RequestDma 0x%08x 0x%08x 0x%08x\n", src, dest, size);
+                GPUDEBUG("GX RequestDma 0x%08x 0x%08x 0x%08x\n", src, dest, size);
 
                 if (dest - 0x1f000000 > 0x600000 || dest + size - 0x1f000000 > 0x600000) {
-                    DEBUG("dma copy into non VRAM not suported\n");
+                    GPUDEBUG("dma copy into non VRAM not suported\n");
                     continue;
                 }
 
@@ -73,7 +73,7 @@ void gsp_ExecuteCommandFromSharedMem()
                 u32 size = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x8);
                 u32 flags = *(u32*)(baseaddr + (j + 1) * 0x20 + 0xC);
 
-                DEBUG("GX SetCommandList Last 0x%08x 0x%08x 0x%08x\n", addr, size, flags);
+                GPUDEBUG("GX SetCommandList Last 0x%08x 0x%08x 0x%08x\n", addr, size, flags);
 
 #ifdef DUMP_CMDLIST
                 char name[0x100];
@@ -105,9 +105,9 @@ void gsp_ExecuteCommandFromSharedMem()
                 addrend2 = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x18);
                 width = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x1C);
 
-                DEBUG("GX SetMemoryFill 0x%08X 0x%08X 0x%08X 0x%08X 0x%08X 0x%08X 0x%08X\r\n", addr1, val1, addrend1, addr2, val2, addrend2, width);
+                GPUDEBUG("GX SetMemoryFill 0x%08X 0x%08X 0x%08X 0x%08X 0x%08X 0x%08X 0x%08X\r\n", addr1, val1, addrend1, addr2, val2, addrend2, width);
                 if (addr1 - 0x1f000000 > 0x600000 || addrend1 - 0x1f000000 > 0x600000) {
-                    DEBUG("SetMemoryFill into non VRAM not suported\r\n");
+                    GPUDEBUG("SetMemoryFill into non VRAM not suported\r\n");
                 } else {
                     u32 size = getsizeofwight(width & 0xFFFF);
                     u32 k;
@@ -118,7 +118,7 @@ void gsp_ExecuteCommandFromSharedMem()
                     }
                 }
                 if (addr2 - 0x1f000000 > 0x600000 || addrend2 - 0x1f000000 > 0x600000) {
-                    DEBUG("SetMemoryFill into non VRAM not suported\r\n");
+                    GPUDEBUG("SetMemoryFill into non VRAM not suported\r\n");
                 } else {
                     u32 size = getsizeofwight((width >> 16) & 0xFFFF);
                     u32 k;
@@ -143,10 +143,10 @@ void gsp_ExecuteCommandFromSharedMem()
                     inputdim = *(u32*)(baseaddr + (j + 1) * 0x20 + 0xC);
                     outputdim = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x10);
                     flags = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x14);
-                    DEBUG("GX SetDisplayTransfer 0x%08X 0x%08X 0x%08X 0x%08X 0x%08X\r\n", inpaddr, outputaddr, inputdim, outputdim, flags);
+                    GPUDEBUG("GX SetDisplayTransfer 0x%08X 0x%08X 0x%08X 0x%08X 0x%08X\r\n", inpaddr, outputaddr, inputdim, outputdim, flags);
 
                     if (inputdim != outputdim) {
-                        DEBUG("error converting from %08x to %08x\n", inputdim, outputdim);
+                        GPUDEBUG("error converting from %08x to %08x\n", inputdim, outputdim);
                         break;
                     }
 
@@ -218,7 +218,7 @@ void gsp_ExecuteCommandFromSharedMem()
                                 break;
                             }
                             default:
-                                DEBUG("error unknow input format\n");
+                                GPUDEBUG("error unknow input format\n");
                                 break;
                             }
                             //write it back
@@ -278,7 +278,7 @@ void gsp_ExecuteCommandFromSharedMem()
                                 outaddr++;
                                 break;
                             default:
-                                DEBUG("error unknow output format\n");
+                                GPUDEBUG("error unknow output format\n");
                                 break;
                             }
 
@@ -296,7 +296,7 @@ void gsp_ExecuteCommandFromSharedMem()
                 inputdim = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x10);
                 outputdim = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x14);
                 flags = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x18);
-                DEBUG("GX SetTextureCopy 0x%08X 0x%08X 0x%08X 0x%08X 0x%08X 0x%08X --todo--\r\n", inpaddr, outputaddr, size, inputdim, outputdim, flags);
+                GPUDEBUG("GX SetTextureCopy 0x%08X 0x%08X 0x%08X 0x%08X 0x%08X 0x%08X --todo--\r\n", inpaddr, outputaddr, size, inputdim, outputdim, flags);
 
                 updateFramebuffer();
                 //goto theother; //untill I know what is the differnece
@@ -310,11 +310,11 @@ void gsp_ExecuteCommandFromSharedMem()
                 size2 = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x10);
                 addr3 = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x14);
                 size3 = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x18);
-                DEBUG("GX SetCommandList First 0x%08X 0x%08X 0x%08X 0x%08X 0x%08X 0x%08X\r\n", addr1, size1, addr2, size2, addr3, size3);
+                GPUDEBUG("GX SetCommandList First 0x%08X 0x%08X 0x%08X 0x%08X 0x%08X 0x%08X\r\n", addr1, size1, addr2, size2, addr3, size3);
                 break;
             }
             default:
-                DEBUG("GX cmd 0x%08X 0x%08X 0x%08X 0x%08X 0x%08X 0x%08X 0x%08X 0x%08X\r\n", *(u32*)(baseaddr + (j + 1) * 0x20), *(u32*)((baseaddr + (j + 1) * 0x20) + 0x4), *(u32*)((baseaddr + (j + 1) * 0x20) + 0x8), *(u32*)((baseaddr + (j + 1) * 0x20) + 0xC), *(u32*)((baseaddr + (j + 1) * 0x20) + 0x10), *(u32*)((baseaddr + (j + 1) * 0x20) + 0x14), *(u32*)((baseaddr + (j + 1) * 0x20) + 0x18), *(u32*)((baseaddr + (j + 1) * 0x20)) + 0x1C);
+                GPUDEBUG("GX cmd 0x%08X 0x%08X 0x%08X 0x%08X 0x%08X 0x%08X 0x%08X 0x%08X\r\n", *(u32*)(baseaddr + (j + 1) * 0x20), *(u32*)((baseaddr + (j + 1) * 0x20) + 0x4), *(u32*)((baseaddr + (j + 1) * 0x20) + 0x8), *(u32*)((baseaddr + (j + 1) * 0x20) + 0xC), *(u32*)((baseaddr + (j + 1) * 0x20) + 0x10), *(u32*)((baseaddr + (j + 1) * 0x20) + 0x14), *(u32*)((baseaddr + (j + 1) * 0x20) + 0x18), *(u32*)((baseaddr + (j + 1) * 0x20)) + 0x1C);
                 break;
             }
         }
@@ -328,7 +328,7 @@ u32 GPURegisterInterruptRelayQueue(u32 flags, u32 Kevent, u32*threadID, u32*outM
     trigevent = Kevent;
     handleinfo* h = handle_Get(Kevent);
     if (h == NULL) {
-        DEBUG("failed to get Event\n");
+        GPUDEBUG("failed to get Event\n");
         PAUSE();
         return -1;// -1;
     }
@@ -350,22 +350,22 @@ SERVICE_CMD(0x10082) // WriteHWRegs
     u32 addr    = CMD(1);
     u32 ret     = 0;
 
-    DEBUG("GSPGPU_WriteHWRegs\n");
+    GPUDEBUG("GSPGPU_WriteHWRegs\n");
 
     if ((addr & 0x3) != 0) {
-        DEBUG("Misaligned address\n");
+        GPUDEBUG("Misaligned address\n");
         ret = 0xe0e02a01;
     }
     if (addr > 0x420000) {
-        DEBUG("Address out of range\n");
+        GPUDEBUG("Address out of range\n");
         ret = 0xe0e02a01;
     }
     if (length > 0x80) {
-        DEBUG("Too long\n");
+        GPUDEBUG("Too long\n");
         ret = 0xe0e02bec;
     }
     if (length & 0x3) {
-        DEBUG("Length misaligned\n");
+        GPUDEBUG("Length misaligned\n");
         ret = 0xe0e02bf2;
     }
 
@@ -376,7 +376,7 @@ SERVICE_CMD(0x10082) // WriteHWRegs
             u32 val = mem_Read32(inaddr + i);
             u32 addr_out = addr + i;
 
-            DEBUG("Writing %08x to register %08x..\n", val, addr_out);
+            GPUDEBUG("Writing %08x to register %08x..\n", val, addr_out);
             gpu_WriteReg32(addr_out, val);
         }
     }
@@ -393,22 +393,22 @@ SERVICE_CMD(0x20084) // WriteHWRegsWithMask
     u32 addr    = CMD(1);
     u32 ret     = 0;
 
-    DEBUG("GSPGPU_WriteHWRegsWithMask\n");
+    GPUDEBUG("GSPGPU_WriteHWRegsWithMask\n");
 
     if ((addr & 0x3) != 0) {
-        DEBUG("Misaligned address\n");
+        GPUDEBUG("Misaligned address\n");
         ret = 0xe0e02a01;
     }
     if (addr > 0x420000) {
-        DEBUG("Address out of range\n");
+        GPUDEBUG("Address out of range\n");
         ret = 0xe0e02a01;
     }
     if (length > 0x80) {
-        DEBUG("Too long\n");
+        GPUDEBUG("Too long\n");
         ret = 0xe0e02bec;
     }
     if (length & 0x3) {
-        DEBUG("Length misaligned\n");
+        GPUDEBUG("Length misaligned\n");
         ret = 0xe0e02bf2;
     }
 
@@ -420,7 +420,7 @@ SERVICE_CMD(0x20084) // WriteHWRegsWithMask
             u32 mask = mem_Read32(inaddr + i);
             u32 val = mem_Read32(inaddr + i);
 
-            DEBUG("Writing %08x mask %08x to register %08x..\n", val, mask, addr + i);
+            GPUDEBUG("Writing %08x mask %08x to register %08x..\n", val, mask, addr + i);
             gpu_WriteReg32(addr + i, (reg & ~mask) | (val & mask));
         }
     }
@@ -436,22 +436,22 @@ SERVICE_CMD(0x30082) // WriteHWRegsRepeat
     u32 addr    = CMD(1);
     u32 ret     = 0;
 
-    DEBUG("GSPGPU_WriteHWRegsRepeat\n");
+    GPUDEBUG("GSPGPU_WriteHWRegsRepeat\n");
 
     if ((addr & 0x3) != 0) {
-        DEBUG("Misaligned address\n");
+        GPUDEBUG("Misaligned address\n");
         ret = 0xe0e02a01;
     }
     if (addr > 0x420000) {
-        DEBUG("Address out of range\n");
+        GPUDEBUG("Address out of range\n");
         ret = 0xe0e02a01;
     }
     if (length > 0x80) {
-        DEBUG("Too long\n");
+        GPUDEBUG("Too long\n");
         ret = 0xe0e02bec;
     }
     if (length & 0x3) {
-        DEBUG("Length misaligned\n");
+        GPUDEBUG("Length misaligned\n");
         ret = 0xe0e02bf2;
     }
 
@@ -462,7 +462,7 @@ SERVICE_CMD(0x30082) // WriteHWRegsRepeat
             u32 reg = gpu_ReadReg32(addr + i);
             u32 val = mem_Read32(inaddr + i);
 
-            DEBUG("Writing %08x to register %08x..\n", val, addr);
+            GPUDEBUG("Writing %08x to register %08x..\n", val, addr);
             gpu_WriteReg32(addr, val);
         }
     }
@@ -479,10 +479,10 @@ SERVICE_CMD(0x40080) // ReadHWRegs
     u32 addr    = CMD(1);
     u32 ret     = 0;
 
-    DEBUG("GSPGPU_ReadHWRegs addr=%08x to=%08x length=%08x\n", addr, outaddr, length);
+    GPUDEBUG("GSPGPU_ReadHWRegs addr=%08x to=%08x length=%08x\n", addr, outaddr, length);
 
     if ((length & 0x3) != 0) {
-        DEBUG("Misaligned address\n");
+        GPUDEBUG("Misaligned address\n");
         ret = 0xe0e02bf2;
     }
 
@@ -498,7 +498,7 @@ SERVICE_CMD(0x40080) // ReadHWRegs
 
 SERVICE_CMD(0x50200) // SetBufferSwap
 {
-    DEBUG("SetBufferSwap screen=%08x\n", CMD(1));
+    GPUDEBUG("SetBufferSwap screen=%08x\n", CMD(1));
 
     u32 screen = CMD(1);
     u32 reg = screen ? 0x400554 : 0x400454;
@@ -520,14 +520,14 @@ SERVICE_CMD(0x50200) // SetBufferSwap
 
 SERVICE_CMD(0x80082) // FlushDataCache
 {
-    DEBUG("FlushDataCache addr=%08x, size=%08x, h=%08x\n", CMD(1), CMD(2), CMD(4));
+    GPUDEBUG("FlushDataCache addr=%08x, size=%08x, h=%08x\n", CMD(1), CMD(2), CMD(4));
     RESP(1, 0);
     return 0;
 }
 
 SERVICE_CMD(0xB0040) // SetLcdForceBlack
 {
-    DEBUG("SetLcdForceBlack %02x --todo--\n", mem_Read8(arm11_ServiceBufferAddress() + 0x84));
+    GPUDEBUG("SetLcdForceBlack %02x --todo--\n", mem_Read8(arm11_ServiceBufferAddress() + 0x84));
     unsigned char* buffer = get_pymembuffer(0x18000000);
     //memset(buffer, 0, 0x46500 * 6); //no this is todo
 
@@ -537,7 +537,7 @@ SERVICE_CMD(0xB0040) // SetLcdForceBlack
 
 SERVICE_CMD(0xC0000) // TriggerCmdReqQueue
 {
-    DEBUG("TriggerCmdReqQueue\n");
+    GPUDEBUG("TriggerCmdReqQueue\n");
     gsp_ExecuteCommandFromSharedMem();
 
     RESP(1, 0);
@@ -546,7 +546,7 @@ SERVICE_CMD(0xC0000) // TriggerCmdReqQueue
 
 SERVICE_CMD(0x130042) // RegisterInterruptRelayQueue
 {
-    DEBUG("RegisterInterruptRelayQueue %08x %08x\n",
+    GPUDEBUG("RegisterInterruptRelayQueue %08x %08x\n",
           mem_Read32(arm11_ServiceBufferAddress() + 0x84),
           mem_Read32(arm11_ServiceBufferAddress() + 0x8C));
 
@@ -564,7 +564,7 @@ SERVICE_CMD(0x130042) // RegisterInterruptRelayQueue
 
 SERVICE_CMD(0x160042) // AcquireRight
 {
-    DEBUG("AcquireRight %08x %08x --todo--\n", mem_Read32(arm11_ServiceBufferAddress() + 0x84), mem_Read32(arm11_ServiceBufferAddress() + 0x8C));
+    GPUDEBUG("AcquireRight %08x %08x --todo--\n", mem_Read32(arm11_ServiceBufferAddress() + 0x84), mem_Read32(arm11_ServiceBufferAddress() + 0x8C));
     mem_Write32(arm11_ServiceBufferAddress() + 0x84, 0); //no error
     return 0;
 }

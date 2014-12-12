@@ -125,9 +125,9 @@ void screen_RenderFramebuffer(u8 *bitmapPixels, u8* buffer, u32 format, u32 widt
 
                     //RGB565
                     u16  pixel = buffer[((x * 240 + y) * 2) + 0] + (buffer[((x * 240 + y) * 2) + 1] << 8);
-                    *(row + 0) = (pixel & 0x1f) << 3;
-                    *(row + 1) = ((pixel >> 5) & 0x3f) << 2;
-                    *(row + 2) = ((pixel >> 11) & 0x1f) << 3;
+                    *(row + 0) = (pixel & 0x1F) << 3;
+                    *(row + 1) = ((pixel >> 5) & 0x3F) << 2;
+                    *(row + 2) = ((pixel >> 11) & 0x1F) << 3;
                     *(row + 3) = 0xFF;
                 }
             }
@@ -140,12 +140,11 @@ void screen_RenderFramebuffer(u8 *bitmapPixels, u8* buffer, u32 format, u32 widt
                     u8* row = (u8*)(bitmapPixels + ((239 - y) * 400 * 4) + ((x + xofs) * 4));
 
                     //RGB5A1
-                    u8 reg1 = buffer[((x * 240 + y) * 2) + 0];
-                    u8 reg2 = buffer[((x * 240 + y) * 2) + 1];
-                    *(row + 0) = (reg1 & 0x1F) << 3;
-                    *(row + 1) = (((reg1 & 0xE0) >> 5) + ((reg2 & 0x3) << 3)) << 3;
-                    *(row + 2) = ((reg2 & 0x7C) >> 3) << 3;
-                    *(row + 3) = reg2 ? 0xFF : 0;
+                    u16  pixel = buffer[((x * 240 + y) * 2) + 0] + (buffer[((x * 240 + y) * 2) + 1] << 8);
+                    *(row + 0) = ((pixel >> 11) & 0x1F) << 3;
+                    *(row + 1) = ((pixel >> 6) & 0x1F) << 3;
+                    *(row + 2) = ((pixel >> 1) & 0x1F) << 3;
+                    *(row + 3) = ((pixel >> 0) & 1) ? 0xFF : 0;
                 }
             }
             break;

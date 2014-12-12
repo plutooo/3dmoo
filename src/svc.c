@@ -269,16 +269,25 @@ void svc_Execute(ARMul_State * state, u8 num)
         exit(1);
         return;
     case 0x3D: { //OutputDebugString
-        char temp[256];
-        memset(temp, 0, 256);
+        static char   *buffer = NULL;
+        static size_t bufferlen = 0;
 
         size_t sz = arm11_R(1);
-        if (sz >= 256)
-            sz = 255;
+        if (sz >= bufferlen) {
+            char *tmp = (char*)realloc(buffer, sz+1);
+            if(tmp != NULL) {
+                buffer    = tmp;
+                bufferlen = sz+1;
+            }
+            else
+                sz = bufferlen-1;
+        }
 
-        mem_Read(temp, arm11_R(0), sz);
-        DEBUG("%s\n", temp);
-        //arm11_Dump();
+        if(buffer != NULL) {
+            memset(buffer, 0, bufferlen);
+            if(mem_Read(buffer, arm11_R(0), sz) == 0)
+                LOG("%s", buffer);
+        }
         return;
     }
     case 0x47:

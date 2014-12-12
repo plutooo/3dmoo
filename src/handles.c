@@ -34,7 +34,7 @@ static u32 handles_num;
 #define NUM_HANDLE_TYPES ARRAY_SIZE(handle_types)
 
 
-u32 handle_New(u32 type, u32 subtype)
+u32 handle_New(u32 type, uintptr_t subtype)
 {
     if(handles_num == MAX_NUM_HANDLES) {
         ERROR("not enough handles..\n");

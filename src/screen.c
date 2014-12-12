@@ -26,6 +26,9 @@ SDL_Renderer *renderer = NULL;
 SDL_Texture *bitmapTex = NULL;
 SDL_Surface *bitmapSurface = NULL;
 
+u32 topScreenFormat;
+u32 bottomScreenFormat;
+
 void screen_Init()
 {
     SDL_Init(SDL_INIT_EVERYTHING);
@@ -79,6 +82,96 @@ void screen_RenderGPUaddr(u32 addr)
     SDL_UpdateWindowSurface(win);
 }
 
+void screen_RenderFramebuffer(u8 *bitmapPixels, u8* buffer, u32 format, u32 xofs)
+{
+    switch(format & 7)
+    {
+        case 0: //RGBA8
+        {
+            for(int y = 0; y < 240; y++) {
+                for(int x = 0; x < 400; x++) {
+                    u8* row = (u8*)(bitmapPixels + ((239 - y) * 400 * 4) + ((x + xofs) * 4));
+
+                    //RGBA8
+                    *(row + 0) = buffer[((x * 240 + y) * 4) + 0];
+                    *(row + 1) = buffer[((x * 240 + y) * 4) + 1];
+                    *(row + 2) = buffer[((x * 240 + y) * 4) + 2];
+                    *(row + 3) = buffer[((x * 240 + y) * 4) + 3];
+                }
+            }
+            break;
+        }
+        case 1: //BGR8
+        {
+            for(int y = 0; y < 240; y++) {
+                for(int x = 0; x < 400; x++) {
+                    u8* row = (u8*)(bitmapPixels + ((239 - y) * 400 * 4) + ((x + xofs) * 4));
+
+                    //RGB8
+                    *(row + 0) = buffer[((x * 240 + y) * 3) + 0];
+                    *(row + 1) = buffer[((x * 240 + y) * 3) + 1];
+                    *(row + 2) = buffer[((x * 240 + y) * 3) + 2];
+                    *(row + 3) = 0xFF;
+                }
+            }
+            break;
+        }
+
+        case 2: //RGB565
+        {
+            for(int y = 0; y < 240; y++) {
+                for(int x = 0; x < 400; x++) {
+                    u8* row = (u8*)(bitmapPixels + ((239 - y) * 400 * 4) + ((x + xofs) * 4));
+
+                    //RGB565
+                    u16  pixel = buffer[((x * 240 + y) * 2) + 0] + (buffer[((x * 240 + y) * 2) + 1] << 8);
+                    *(row + 0) = (pixel & 0x1f) << 3;
+                    *(row + 1) = ((pixel >> 5) & 0x3f) << 2;
+                    *(row + 2) = ((pixel >> 11) & 0x1f) << 3;
+                    *(row + 3) = 0xFF;
+                }
+            }
+            break;
+        }
+        case 3: //RGB5A1 - TODO
+        {
+            for(int y = 0; y < 240; y++) {
+                for(int x = 0; x < 400; x++) {
+                    u8* row = (u8*)(bitmapPixels + ((239 - y) * 400 * 4) + ((x + xofs) * 4));
+
+                    //RGB565
+                    /*u16  pixel = buffer[((x * 240 + y) * 2) + 0] + (buffer[((x * 240 + y) * 2) + 1] << 8);
+                    *(row + 0) = (pixel & 0x1f) << 3;
+                    *(row + 1) = ((pixel >> 5) & 0x3f) << 2;
+                    *(row + 2) = ((pixel >> 11) & 0x1f) << 3;
+                    *(row + 3) = 0xFF;*/
+                }
+            }
+            break;
+        }
+        case 4: //RGBA4
+        {
+            for(int y = 0; y < 240; y++) {
+                for(int x = 0; x < 400; x++) {
+                    u8* row = (u8*)(bitmapPixels + ((239 - y) * 400 * 4) + ((x + xofs) * 4));
+
+                    //RGBA4
+                    u8 reg1 = buffer[((x * 240 + y) * 2) + 0];
+                    u8 reg2 = buffer[((x * 240 + y) * 2) + 1];
+                    *(row + 0) = (reg1 & 0xF) << 4;
+                    *(row + 1) = reg1 & 0xF0;
+                    *(row + 2) = (reg2 & 0xF) << 4;
+                    *(row + 3) = reg2 & 0xF0;
+                }
+            }
+            break;
+        }
+        default:
+            ERROR("Unknown top screen format %08X", topScreenFormat & 7);
+            break;
+    }
+}
+
 void screen_RenderGPU()
 {
     u32 addr = 0;
@@ -108,15 +201,7 @@ void screen_RenderGPU()
 
             u8 *bitmapPixels = (u8 *)bitmapSurface->pixels;
 
-            for (int y = 0; y < 240; y++) {
-                for (int x = 0; x < 400; x++) {
-                    u8* row = (u8*)(bitmapPixels + ((239 - y) * 400 * 4) + (x * 4));
-                    *(row + 0) = buffer[((x * 240 + y) * 3) + 0];
-                    *(row + 1) = buffer[((x * 240 + y) * 3) + 1];
-                    *(row + 2) = buffer[((x * 240 + y) * 3) + 2];
-                    *(row + 3) = 0xFF;
-                }
-            }
+            screen_RenderFramebuffer(bitmapPixels, buffer, topScreenFormat, 0);
 
             updateSurface = 1;
         }
@@ -146,15 +231,7 @@ void screen_RenderGPU()
 
             u8 *bitmapPixels = (u8 *)bitmapSurface->pixels + (240 * 400 * 4);
 
-            for (int y = 0; y < 240; y++) {
-                for (int x = 0; x < 320; x++) {
-                    u8* row = (u8*)(bitmapPixels + ((239 - y) * 400 * 4) + ((x + 40) * 4));
-                    *(row + 0) = buffer[((x * 240 + y) * 3) + 0];
-                    *(row + 1) = buffer[((x * 240 + y) * 3) + 1];
-                    *(row + 2) = buffer[((x * 240 + y) * 3) + 2];
-                    *(row + 3) = 0xFF;
-                }
-            }
+            screen_RenderFramebuffer(bitmapPixels, buffer, bottomScreenFormat, 40);
 
             updateSurface = 1;
         }

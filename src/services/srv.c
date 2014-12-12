@@ -477,12 +477,12 @@ u32 services_SyncRequest(handleinfo* h, bool *locked)
 
     if (h->subtype == SERVICE_DIRECT) {
         if (h->misc[0] & HANDLE_SERV_STAT_ACKING) {
-            mem_Write(h->misc_ptr[0], arm11_ServiceBufferAddress() + 0x80, 0x200);
+            mem_Write(h->misc_ptr[0], arm11_ServiceBufferAddress() + 0x80, 0x80); //todo 
             h->misc[0] &= ~(HANDLE_SERV_STAT_ACKING | HANDLE_SERV_STAT_SYNCING);
             *locked = false;
             return 0;
         } else {
-            if (!(h->misc[0] & HANDLE_SERV_STAT_SYNCING)) mem_Read(h->misc_ptr[0], arm11_ServiceBufferAddress() + 0x80, 0x200);
+            if (!(h->misc[0] & HANDLE_SERV_STAT_SYNCING)) mem_Read(h->misc_ptr[0], arm11_ServiceBufferAddress() + 0x80, 0x80);
             h->misc[0] |= HANDLE_SERV_STAT_SYNCING;
             *locked = true;
             return 0;
@@ -775,7 +775,7 @@ u32 svcReplyAndReceive()
         break;
     }*/
 
-    RESP(0, 0x00010800);
+    //RESP(0, 0x00010800);
 
     //feed end
 
@@ -795,7 +795,7 @@ u32 svcAcceptSession()
 u32 services_WaitSynchronization(handleinfo* h, bool *locked)
 {
     if (h->misc[0] & HANDLE_SERV_STAT_SYNCING) {
-        mem_Write(h->misc_ptr[0], arm11_ServiceBufferAddress() + 0x80, 0x200);
+        mem_Write(h->misc_ptr[0], arm11_ServiceBufferAddress() + 0x80, 0x80);
         *locked = false;
     } else*locked = true;
     return 0;

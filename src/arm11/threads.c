@@ -133,7 +133,10 @@ bool threads_IsThreadActive(u32 id)
             }
 
             if (ret) {
-                threads[id].r[1] = threads[id].wait_list_size;
+                if (current_thread == id)
+                    s.Reg[1] = threads[id].wait_list_size;
+                else
+                    threads[id].r[1] = threads[id].wait_list_size;
                 threads[id].state = RUNNING;
             }
             return ret;
@@ -154,7 +157,10 @@ bool threads_IsThreadActive(u32 id)
                             is_waiting ? "true" : "false");
 
                 if(!ret && !is_waiting) {
-                    threads[id].r[1] = i;
+                    if (current_thread == id)
+                        s.Reg[1] = i;
+                    else
+                        threads[id].r[1] = i;
                     threads[id].state = RUNNING;
                     ret = true;
                 }

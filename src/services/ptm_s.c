@@ -26,6 +26,14 @@
 
 SERVICE_START(ptm_s);
 
+SERVICE_CMD(0x00050000)
+{
+    DEBUG("GetAdapterState\n");
+
+    RESP(2, 0); //not charging
+    RESP(1, 0);
+    return 0;
+}
 SERVICE_CMD(0x080F0000)
 {
     DEBUG("IsLegacyPowerOff\n");

@@ -82,14 +82,14 @@ void screen_RenderGPUaddr(u32 addr)
     SDL_UpdateWindowSurface(win);
 }
 
-void screen_RenderFramebuffer(u8 *bitmapPixels, u8* buffer, u32 format, u32 xofs)
+void screen_RenderFramebuffer(u8 *bitmapPixels, u8* buffer, u32 format, u32 width, u32 xofs)
 {
     switch(format & 7)
     {
         case 0: //RGBA8
         {
             for(int y = 0; y < 240; y++) {
-                for(int x = 0; x < 400; x++) {
+                for(int x = 0; x < width; x++) {
                     u8* row = (u8*)(bitmapPixels + ((239 - y) * 400 * 4) + ((x + xofs) * 4));
 
                     //RGBA8
@@ -104,7 +104,7 @@ void screen_RenderFramebuffer(u8 *bitmapPixels, u8* buffer, u32 format, u32 xofs
         case 1: //BGR8
         {
             for(int y = 0; y < 240; y++) {
-                for(int x = 0; x < 400; x++) {
+                for(int x = 0; x < width; x++) {
                     u8* row = (u8*)(bitmapPixels + ((239 - y) * 400 * 4) + ((x + xofs) * 4));
 
                     //RGB8
@@ -120,7 +120,7 @@ void screen_RenderFramebuffer(u8 *bitmapPixels, u8* buffer, u32 format, u32 xofs
         case 2: //RGB565
         {
             for(int y = 0; y < 240; y++) {
-                for(int x = 0; x < 400; x++) {
+                for(int x = 0; x < width; x++) {
                     u8* row = (u8*)(bitmapPixels + ((239 - y) * 400 * 4) + ((x + xofs) * 4));
 
                     //RGB565
@@ -136,7 +136,7 @@ void screen_RenderFramebuffer(u8 *bitmapPixels, u8* buffer, u32 format, u32 xofs
         case 3: //RGB5A1 - TODO
         {
             for(int y = 0; y < 240; y++) {
-                for(int x = 0; x < 400; x++) {
+                for(int x = 0; x < width; x++) {
                     u8* row = (u8*)(bitmapPixels + ((239 - y) * 400 * 4) + ((x + xofs) * 4));
 
                     //RGB565
@@ -152,7 +152,7 @@ void screen_RenderFramebuffer(u8 *bitmapPixels, u8* buffer, u32 format, u32 xofs
         case 4: //RGBA4
         {
             for(int y = 0; y < 240; y++) {
-                for(int x = 0; x < 400; x++) {
+                for(int x = 0; x < width; x++) {
                     u8* row = (u8*)(bitmapPixels + ((239 - y) * 400 * 4) + ((x + xofs) * 4));
 
                     //RGBA4
@@ -201,7 +201,7 @@ void screen_RenderGPU()
 
             u8 *bitmapPixels = (u8 *)bitmapSurface->pixels;
 
-            screen_RenderFramebuffer(bitmapPixels, buffer, topScreenFormat, 0);
+            screen_RenderFramebuffer(bitmapPixels, buffer, topScreenFormat, 400, 0);
 
             updateSurface = 1;
         }
@@ -231,7 +231,7 @@ void screen_RenderGPU()
 
             u8 *bitmapPixels = (u8 *)bitmapSurface->pixels + (240 * 400 * 4);
 
-            screen_RenderFramebuffer(bitmapPixels, buffer, bottomScreenFormat, 40);
+            screen_RenderFramebuffer(bitmapPixels, buffer, bottomScreenFormat, 320, 40);
 
             updateSurface = 1;
         }

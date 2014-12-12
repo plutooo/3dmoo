@@ -37,6 +37,8 @@
 #include "gdbstubchelper.h"
 #endif
 
+#include "armemu.h"
+
 extern ARMul_State s;
 
 int loader_LoadFile(FILE* fd);
@@ -230,6 +232,8 @@ int main(int argc, char* argv[])
 
         ModuleSupport_SwapProcessMem(i);
 
+        s.NextInstr = RESUME;
+
         u32 hand = handle_New(HANDLE_TYPE_THREAD, 0);
         threads_New(hand);
 
@@ -269,8 +273,8 @@ int main(int argc, char* argv[])
         return 1;
     }
 #ifdef MODULE_SUPPORT
+        s.NextInstr = RESUME;
         ModuleSupport_SwapProcessMem(0);
-        threads_Switch(0);
 #endif
 
 #ifdef GDB_STUB
@@ -301,6 +305,8 @@ int main(int argc, char* argv[])
 #ifdef MODULE_SUPPORT
         for (int i = 0; i < modulenum + 1; i++)
         {
+            DEBUG("process:%d\n",i);
+            ModuleSupport_SwapProcessMem(i);
 #endif
             if (!noscreen)
                 screen_HandleEvent();
@@ -308,7 +314,6 @@ int main(int argc, char* argv[])
             //FPS_Lock();
             //mem_Dbugdump();
 #ifdef MODULE_SUPPORT
-            ModuleSupport_SwapProcessMem(i);
         }
 #endif
     }

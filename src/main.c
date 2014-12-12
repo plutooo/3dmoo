@@ -32,9 +32,10 @@
 
 #ifdef GDB_STUB
 #include "armemu.h"
-#include "gdbstub.h"
 #include "armdefs.h"
-#include "gdbstubchelper.h"
+
+#include "gdb/gdbstub.h"
+#include "gdb/gdbstubchelper.h"
 #endif
 
 #include "armemu.h"
@@ -48,6 +49,7 @@ u32 curprocesshandle;
 #ifdef GDB_STUB
 u32 global_gdb_port = 0;
 gdbstub_handle_t gdb_stub;
+
 struct armcpu_memory_iface *gdb_memio;
 struct armcpu_memory_iface gdb_base_memory_iface;
 struct armcpu_ctrl_iface gdb_ctrl_iface;

@@ -1,11 +1,11 @@
 ### 3dmoo Makefile ###
 
 CC      = gcc
-CFLAGS  = -c -g -std=c99 -Wno-format-zero-length -iquoteinc -iquotesrc/arm11 -iquotesrc/arm11/vfp `pkg-config sdl2 --cflags` -DMODET -DMODE32 -D_BSD_SOURCE -D_POSIX_SOURCE -DGDB_STUB
+CFLAGS  = -c -g -std=c99 -Wno-format-zero-length -iquoteinc -iquotesrc/arm11 -iquotesrc/arm11/vfp `pkg-config sdl2 --cflags` -DMODET -DMODE32 -D_DEFAULT_SOURCE -D_BSD_SOURCE -D_POSIX_SOURCE -DGDB_STUB
 LIBS    = `pkg-config sdl2 --libs` -lm
 LDFLAGS =
 
-SRC_FILES = src/mem.c src/screen.c src/handles.c src/loader.c src/utils.c src/svc.c src/config.c src/gdbstub/gdbstubchelper.c src/gdbstub/gdbstub.c
+SRC_FILES = src/mem.c src/screen.c src/handles.c src/loader.c src/utils.c src/svc.c src/config.c src/gdb/gdbstubchelper.c src/gdb/gdbstub.c
 
 INC_FILES = inc/*
 
@@ -17,10 +17,10 @@ SERVICES_FILES = $(foreach dir, src/services, $(wildcard $(dir)/*.c))
 FS_FILES       = $(foreach dir, src/fs,       $(wildcard $(dir)/*.c))
 GPU_FILES      = $(foreach dir, src/gpu,      $(wildcard $(dir)/*.c))
 DSP_FILES      = $(foreach dir, src/dsp,      $(wildcard $(dir)/*.c))
-POLARSSL_FILES = $(foreach dir, src/polarssl, $(wildcard $(dir)/*.c))
+CRYPTO_FILES   = $(foreach dir, src/crypto, $(wildcard $(dir)/*.c))
 HTTP_FILES     = $(foreach dir, src/http,     $(wildcard $(dir)/*.c))
 
-C_FILES = $(SRC_FILES) $(ARM11_FILES) $(SYSCALLS_FILES) $(SERVICES_FILES) $(FS_FILES) $(GPU_FILES) $(DSP_FILES) $(POLARSSL_FILES) $(HTTP_FILES)
+C_FILES = $(SRC_FILES) $(ARM11_FILES) $(SYSCALLS_FILES) $(SERVICES_FILES) $(FS_FILES) $(GPU_FILES) $(DSP_FILES) $(CRYPTO_FILES) $(HTTP_FILES)
 OBJECTS=$(C_FILES:.c=.o)
 
 MAIN_FILES=src/main.c

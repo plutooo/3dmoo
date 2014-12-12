@@ -86,23 +86,23 @@
 #define SERVICE_TYPE_PxiFS3     37
 #define SERVICE_TYPE_PxiAM9     38
 #define SERVICE_TYPE_MIC_U      39
-#define SERVICE_TYPE_PxiPS9      40
-#define SERVICE_TYPE_mcuPLS      41
-#define SERVICE_TYPE_csndSND      42
-#define SERVICE_TYPE_aci      43
-#define SERVICE_TYPE_acu      44
-#define SERVICE_TYPE_nims      45
+#define SERVICE_TYPE_PxiPS9     40
+#define SERVICE_TYPE_mcuPLS     41
+#define SERVICE_TYPE_csndSND    42
+#define SERVICE_TYPE_aci        43
+#define SERVICE_TYPE_acu        44
+#define SERVICE_TYPE_nims       45
 #define SERVICE_TYPE_ssl_c      46
 #define SERVICE_TYPE_http_c     47
-#define SERVICE_TYPE_frd_a     48
-#define SERVICE_TYPE_soc_u     49
+#define SERVICE_TYPE_frd_a      48
+#define SERVICE_TYPE_soc_u      49
 #define SERVICE_TYPE_am_app     50
-#define SERVICE_TYPE_nim_aoc   51
-#define SERVICE_TYPE_apt_a     52
-#define SERVICE_TYPE_y2r_u     53
-#define SERVICE_TYPE_pix_dev     54
-#define SERVICE_TYPE_IR_RST      55
-#define SERVICE_TYPE_PTM_PLAY      56
+#define SERVICE_TYPE_nim_aoc    51
+#define SERVICE_TYPE_apt_a      52
+#define SERVICE_TYPE_y2r_u      53
+#define SERVICE_TYPE_pix_dev    54
+#define SERVICE_TYPE_IR_RST     55
+#define SERVICE_TYPE_PTM_PLAY   56
 #define SERVICE_TYPE_CAM_U      57
 
 #define HANDLE_SUBEVENT_USER          0
@@ -118,13 +118,13 @@
 #define LOCK_TYPE_PULSE   2
 #define LOCK_TYPE_MAX     2
 
-#define MEM_TYPE_GSP_0           0
-#define MEM_TYPE_HID_0           1
-#define MEM_TYPE_APT_SHARED_FONT 2
-#define MEM_TYPE_ALLOC 3
-#define MEM_TYPE_HID_SPVR_0           4
+#define MEM_TYPE_GSP_0             0
+#define MEM_TYPE_HID_0             1
+#define MEM_TYPE_APT_SHARED_FONT   2
+#define MEM_TYPE_ALLOC             3
+#define MEM_TYPE_HID_SPVR_0        4
 #define MEM_TYPE_APT_S_SHARED_FONT 5
-#define MEM_TYPE_CSND 6
+#define MEM_TYPE_CSND              6
 
 
 #define HANDLE_CURRENT_THREAD  0xFFFF8000
@@ -146,8 +146,10 @@ typedef struct {
 } handleinfo;
 
 //main.c
+#ifdef MODULE_SUPPORT
 u32 overdrivnum;
 char** overdrivnames;
+#endif
 
 // handles.c
 handleinfo* handle_Get(u32 handle);
@@ -177,7 +179,6 @@ u32 port_SyncRequest(handleinfo* h, bool *locked);
 u32 event_WaitSynchronization(handleinfo* h, bool *locked);
 
 u32 file_SyncRequest(handleinfo* h, bool *locked);
-
 u32 dir_SyncRequest(handleinfo* h, bool *locked);
 
 //arm11/threads.c

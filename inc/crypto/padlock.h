@@ -25,7 +25,7 @@
 #ifndef POLARSSL_PADLOCK_H
 #define POLARSSL_PADLOCK_H
 
-#include "polarssl/aes.h"
+#include "crypto/aes.h"
 
 #if defined(POLARSSL_HAVE_ASM) && defined(__GNUC__) && defined(__i386__)
 

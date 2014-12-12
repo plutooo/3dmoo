@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -263,8 +263,8 @@
     <ClCompile Include="..\src\fs\sysdata.c" />
     <ClCompile Include="..\src\fs\sysdatac.c" />
     <ClCompile Include="..\src\fs\util.c" />
-    <ClCompile Include="..\src\gdbstub\gdbstub.c" />
-    <ClCompile Include="..\src\gdbstub\gdbstubchelper.c" />
+    <ClCompile Include="..\src\gdb\gdbstub.c" />
+    <ClCompile Include="..\src\gdb\gdbstubchelper.c" />
     <ClCompile Include="..\src\gpu\clipper.c" />
     <ClCompile Include="..\src\gpu\io.c" />
     <ClCompile Include="..\src\gpu\rasterizer.c" />
@@ -278,11 +278,11 @@
     <ClCompile Include="..\src\loader.c" />
     <ClCompile Include="..\src\main.c" />
     <ClCompile Include="..\src\mem.c" />
-    <ClCompile Include="..\src\polarssl\aes.c" />
-    <ClCompile Include="..\src\polarssl\bignum.c" />
-    <ClCompile Include="..\src\polarssl\nin_public_crypt.c" />
-    <ClCompile Include="..\src\polarssl\rsa.c" />
-    <ClCompile Include="..\src\polarssl\sha2.c" />
+    <ClCompile Include="..\src\crypto\aes.c" />
+    <ClCompile Include="..\src\crypto\bignum.c" />
+    <ClCompile Include="..\src\crypto\nin_public_crypt.c" />
+    <ClCompile Include="..\src\crypto\rsa.c" />
+    <ClCompile Include="..\src\crypto\sha2.c" />
     <ClCompile Include="..\src\screen.c" />
     <ClCompile Include="..\src\services\aci.c" />
     <ClCompile Include="..\src\services\am_app.c" />
@@ -353,15 +353,14 @@
     <ClInclude Include="..\inc\dirent.h" />
     <ClInclude Include="..\inc\dsp.h" />
     <ClInclude Include="..\inc\fs.h" />
-    <ClInclude Include="..\inc\gdbstub.h" />
-    <ClInclude Include="..\inc\gdbstubchelper.h" />
-    <ClInclude Include="..\inc\gdbstub_internal.h" />
+    <ClInclude Include="..\inc\gdb\gdbstub.h" />
+    <ClInclude Include="..\inc\gdb\gdbstubchelper.h" />
+    <ClInclude Include="..\inc\gdb\gdbstub_internal.h" />
     <ClInclude Include="..\inc\handles.h" />
     <ClInclude Include="..\inc\hid_user.h" />
     <ClInclude Include="..\inc\init.h" />
     <ClInclude Include="..\inc\loader.h" />
     <ClInclude Include="..\inc\mem.h" />
-    <ClInclude Include="..\inc\nin_public_crypto.h" />
     <ClInclude Include="..\inc\screen.h" />
     <ClInclude Include="..\inc\gpu.h" />
     <ClInclude Include="..\inc\svc.h" />

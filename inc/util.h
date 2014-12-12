@@ -178,9 +178,6 @@ static void color_restore(int old)
 
 #ifdef _WIN32
 #define snprintf sprintf_s
-#endif
-
-#ifdef _WIN32
 #define fseek64 _fseeki64
 #define ftell64 _ftelli64
 #else

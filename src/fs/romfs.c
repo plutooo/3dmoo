@@ -20,9 +20,9 @@
 #include "mem.h"
 #include "handles.h"
 #include "fs.h"
-#include "polarssl/aes.h"
 #include "loader.h"
-#include "nin_public_crypto.h"
+#include "crypto/aes.h"
+#include "crypto/nin_public_crypto.h"
 
 
 

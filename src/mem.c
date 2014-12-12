@@ -28,11 +28,12 @@
 
 
 #ifdef GDB_STUB
-#include "gdbstub.h"
-#include "gdbstub_internal.h"
-extern ARMul_State s;
+#include "gdb/gdbstub.h"
+#include "gdb/gdbstub_internal.h"
+
 extern struct armcpu_memory_iface *gdb_memio;
 #endif
+
 
 extern ARMul_State s;
 

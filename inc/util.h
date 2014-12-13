@@ -108,6 +108,14 @@ static void color_restore(int old)
 #endif
 }
 
+#define MESSAGE(color,...) do {         \
+        int old = set_color(color);     \
+        fprintf(stdout, __VA_ARGS__);   \
+        color_restore(old);             \
+} while (0)
+
+#define MSG(...) MESSAGE(3,__VA_ARGS__)
+
 #ifndef DISABLE_DEBUG
 #define DEBUG(...) do {                                 \
         int old = color_green();                        \

@@ -286,7 +286,7 @@ void svc_Execute(ARMul_State * state, u8 num)
         if(buffer != NULL) {
             memset(buffer, 0, bufferlen);
             if(mem_Read(buffer, arm11_R(0), sz) == 0)
-                LOG("%s", buffer);
+                MSG("%s", buffer);
         }
         return;
     }

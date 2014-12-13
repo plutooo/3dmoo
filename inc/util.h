@@ -151,7 +151,7 @@ static void color_restore(int old)
 #define THREADDEBUG(...) ((void)0)
 #endif
 
-#if 1
+#ifndef DISABLE_DEBUG
 #define LOG(...) do {                                 \
     int old = color_teal();                           \
     fprintf(stdout, __VA_ARGS__);                     \

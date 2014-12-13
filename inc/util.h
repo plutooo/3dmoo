@@ -64,56 +64,40 @@ typedef int64_t s64;
 #define __func__ __FUNCTION__
 #endif
 
-static int color_red()
+#ifdef _WIN32
+static int _wincolors[] = {
+    0,                                                          // black
+    FOREGROUND_RED   | FOREGROUND_INTENSITY,                    // red
+    FOREGROUND_GREEN | FOREGROUND_INTENSITY,                    // green
+    FOREGROUND_GREEN | FOREGROUND_RED | FOREGROUND_INTENSITY,   // yellow
+    FOREGROUND_BLUE  | FOREGROUND_INTENSITY,                    // blue
+    FOREGROUND_BLUE  | FOREGROUND_RED | FOREGROUND_INTENSITY,   // magenta
+    FOREGROUND_BLUE  | FOREGROUND_GREEN | FOREGROUND_INTENSITY, // cyan
+    FOREGROUND_RED   | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY, // white
+};
+#endif
+
+static set_color(int color)
 {
 #ifdef _WIN32
     CONSOLE_SCREEN_BUFFER_INFO csbiInfo;
     GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE),
-                               &csbiInfo);
+        &csbiInfo);
 
     SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE),
-                            FOREGROUND_RED | FOREGROUND_INTENSITY);
+        _wincolors[color]);
 
     return csbiInfo.wAttributes;
 #else
-    fprintf(stdout, "\033[0;31m");
+    fprintf(stdout, "\033[0;%dm", color + 30);
     return 0;
 #endif
 }
 
-static int color_green()
-{
-#ifdef _WIN32
-    CONSOLE_SCREEN_BUFFER_INFO csbiInfo;
-    GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE),
-                               &csbiInfo);
-
-    SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE),
-                            FOREGROUND_GREEN | FOREGROUND_INTENSITY);
-
-    return csbiInfo.wAttributes;
-#else
-    fprintf(stdout, "\033[0;32m");
-    return 0;
-#endif
-}
-
-static int color_teal()
-{
-#ifdef _WIN32
-    CONSOLE_SCREEN_BUFFER_INFO csbiInfo;
-    GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE),
-                               &csbiInfo);
-
-    SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE),
-                            FOREGROUND_BLUE | FOREGROUND_INTENSITY);
-
-    return csbiInfo.wAttributes;
-#else
-    fprintf(stdout, "\033[0;36m");
-    return 0;
-#endif
-}
+static int color_red() { return set_color(1); }
+static int color_green() { return set_color(2); }
+static int color_yellow() { return set_color(3); }
+static int color_teal()  { return set_color(6); }
 
 static void color_restore(int old)
 {

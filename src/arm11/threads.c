@@ -123,8 +123,13 @@ bool threads_IsThreadActive(u32 id)
                     continue;
 
                 bool is_waiting = false;
-                handle_types[hi->type].fnWaitSynchronization(hi, &is_waiting);
-
+                if (handle_types[hi->type].fnWaitSynchronization != NULL)
+                    handle_types[hi->type].fnWaitSynchronization(hi, &is_waiting);
+                else
+                {
+                    DEBUG("handle_types[hi->type].fnWaitSynchronization == NULL type %i", hi->type);
+                    return true;
+                }
                 THREADDEBUG("    %08x, type=%s, waiting=%s\n", handle, handle_types[hi->type].name,
                             is_waiting ? "true" : "false");
 

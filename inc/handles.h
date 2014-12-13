@@ -24,24 +24,27 @@
 #define HANDLE_SERV_STAT_WAITING     0x2
 #define HANDLE_SERV_STAT_SYNCING     0x4
 #define HANDLE_SERV_STAT_ACKING      0x8
+#define HANDLE_SERV_STAT_INITING     0x10
 
-#define HANDLE_TYPE_UNK       0
-#define HANDLE_TYPE_PORT      1
-#define HANDLE_TYPE_SERVICE   2
-#define HANDLE_TYPE_EVENT     3
-#define HANDLE_TYPE_MUTEX     4
-#define HANDLE_TYPE_SHAREDMEM 5
-#define HANDLE_TYPE_REDIR     6
-#define HANDLE_TYPE_THREAD    7
-#define HANDLE_TYPE_PROCESS   8
-#define HANDLE_TYPE_ARBITER   9
-#define HANDLE_TYPE_FILE      10
-#define HANDLE_TYPE_SEMAPHORE 11
-#define HANDLE_TYPE_ARCHIVE   12
-#define HANDLE_TYPE_SESSION   13
-#define HANDLE_TYPE_DIR       14
-#define HANDLE_TYPE_SOCKET    15
-#define HANDLE_TYPE_HTTPCont  16
+#define HANDLE_TYPE_UNK                     0
+#define HANDLE_TYPE_PORT                    1
+#define HANDLE_TYPE_SERVICE                 2
+#define HANDLE_TYPE_EVENT                   3
+#define HANDLE_TYPE_MUTEX                   4
+#define HANDLE_TYPE_SHAREDMEM               5
+#define HANDLE_TYPE_REDIR                   6
+#define HANDLE_TYPE_THREAD                  7
+#define HANDLE_TYPE_PROCESS                 8
+#define HANDLE_TYPE_ARBITER                 9
+#define HANDLE_TYPE_FILE                    10
+#define HANDLE_TYPE_SEMAPHORE               11
+#define HANDLE_TYPE_ARCHIVE                 12
+#define HANDLE_TYPE_SESSION                 13
+#define HANDLE_TYPE_DIR                     14
+#define HANDLE_TYPE_SOCKET                  15
+#define HANDLE_TYPE_HTTPCont                16
+#define HANDLE_TYPE_SERVICE_UNMOUNTED       17
+#define HANDLE_TYPE_SERVICE_SERVER          18
 
 
 #define PORT_TYPE_SRV         0
@@ -196,6 +199,12 @@ u32 file_WaitSynchronization(handleinfo* h, bool *locked);
 
 u32 nop_SyncRequest(handleinfo* h, bool *locked);
 
+u32 svc_unmountWaitSynchronization(handleinfo* h, bool *locked);
+u32 svc_unmountSyncRequest(handleinfo* h, bool *locked);
+
+u32 svc_serverSyncRequest(handleinfo* h, bool *locked);
+u32 svc_serverWaitSynchronization(handleinfo* h, bool *locked);
+
 static struct {
     const char* name;
     u32(*fnSyncRequest)(handleinfo* h, bool *locked);
@@ -292,5 +301,29 @@ static struct {
         &dir_SyncRequest,
         NULL,
         NULL
+    },
+    {
+        "socket",
+        NULL,
+        NULL,
+        NULL
+    },
+    {
+        "httpcont",
+        NULL,
+        NULL,
+        NULL
+    },
+    {
+        "UNMOUNTED",
+        &svc_unmountSyncRequest,
+        NULL,
+        &svc_unmountWaitSynchronization
+    },
+    {
+        "SERVICE_SERVER",
+        &svc_serverSyncRequest,
+        NULL,
+        &svc_serverWaitSynchronization
     }
 };

@@ -22,14 +22,12 @@
 #include "arm11.h"
 #include "mem.h"
 #include "fs.h"
-
 #include "threads.h"
-#include "polarssl/aes.h"
 #include "loader.h"
-
 #include "3dsx.h"
 
-#include "nin_public_crypto.h"
+#include "crypto/aes.h"
+#include "crypto/nin_public_crypto.h"
 
 u8 loader_key[0x10];
 u32 loader_txt = 0;

@@ -11,7 +11,8 @@
 #define maxdmupaddr 0x0033a850
 
 #ifdef GDB_STUB
-#include "gdbstub.h"
+#include "gdb/gdbstub.h"
+
 extern struct armcpu_memory_iface *gdb_memio;
 #endif
 

@@ -25,8 +25,10 @@
 
 //ichfly
 //#define callstacker 1
+
 #ifdef GDB_STUB
-#include "gdbstub.h"
+#include "gdb/gdbstub.h"
+
 extern gdbstub_handle_t gdb_stub;
 extern struct armcpu_memory_iface *gdb_memio;
 #endif

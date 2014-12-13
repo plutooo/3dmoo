@@ -1,19 +1,20 @@
 /*
-* Copyright (C) 2014 - Normmatt
-*
-* This program is free software: you can redistribute it and/or modify
-* it under the terms of the GNU General Public License as published by
-* the Free Software Foundation, either version 3 of the License, or
-* (at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-* GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
+ * Copyright (C) 2014 - Normmatt
+ * Copyright (C) 2014 - plutoo
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 
 #ifndef _THREADS_H_
 #define _THREADS_H_
@@ -67,28 +68,13 @@ u32  threads_New(u32 handle);
 bool threads_IsThreadActive(u32 id);
 void threads_Execute();
 u32  threads_Count();
-#ifdef __cplusplus
-extern "C"
-#endif
-void threads_Getallactive(u32* handles, u32 * size);
-#ifdef __cplusplus
-extern "C"
-#endif
+void threads_GetAllActive(u32* handles, u32* size);
 u32  threads_GetCurrentThreadHandle();
-#ifdef __cplusplus
-extern "C"
-#endif
-void threads_Getprintableinfo(u32 handle, char* string); //sting must be at last 0x1000 in size
+void threads_GetPrintableInfo(u32 handle, char* string); // String must be at last 0x1000 in size
 void threads_StopThread(u32 threadid);
 void threads_StopCurrentThread();
-#ifdef __cplusplus
-extern "C"
-#endif
 u32  threads_FindIdByHandle(u32 handle);
-#ifdef __cplusplus
-extern "C"
-#endif
-bool thread_isalive(u32 handle);
+bool threads_IsThreadAlive(u32 handle);
 void threads_SaveContextCurrentThread();
 void threads_SetCurrentThreadWaitList(u32* wait_list, bool wait_all, u32 num);
 

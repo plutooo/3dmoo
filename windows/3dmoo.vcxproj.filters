@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <Filter Include="Source Files">
@@ -270,7 +270,7 @@
     <ClCompile Include="..\src\services\mic_u.c">
       <Filter>Source Files\services</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\gdbstub\gdbstubchelper.c">
+    <ClCompile Include="..\src\gdb\gdbstubchelper.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\src\services\PxiPS9.c">
@@ -282,19 +282,19 @@
     <ClCompile Include="..\src\services\csnd_SND.c">
       <Filter>Source Files\services</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\polarssl\bignum.c">
+    <ClCompile Include="..\src\crypto\bignum.c">
       <Filter>Source Files\crypto</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\polarssl\rsa.c">
+    <ClCompile Include="..\src\crypto\rsa.c">
       <Filter>Source Files\crypto</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\polarssl\sha2.c">
+    <ClCompile Include="..\src\crypto\sha2.c">
       <Filter>Source Files\crypto</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\polarssl\aes.c">
+    <ClCompile Include="..\src\crypto\aes.c">
       <Filter>Source Files\crypto</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\polarssl\nin_public_crypt.c">
+    <ClCompile Include="..\src\crypto\nin_public_crypt.c">
       <Filter>Source Files\crypto</Filter>
     </ClCompile>
     <ClCompile Include="..\src\config.c">
@@ -434,13 +434,13 @@
     <ClInclude Include="..\inc\vec4.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\inc\gdbstub_internal.h">
+    <ClInclude Include="..\inc\gdb\gdbstub_internal.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\inc\gdbstub.h">
+    <ClInclude Include="..\inc\gdb\gdbstub.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\inc\gdbstubchelper.h">
+    <ClInclude Include="..\inc\gdb\gdbstubchelper.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\inc\loader.h">
@@ -452,7 +452,7 @@
     <ClInclude Include="..\inc\3dsx.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\inc\nin_public_crypto.h">
+    <ClInclude Include="..\inc\crypto\nin_public_crypto.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

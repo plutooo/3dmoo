@@ -30,7 +30,7 @@
 #include <SDL.h>
 
 #include "armemu.h"
-#include "gdbstub.h"
+#include "gdb/gdbstub.h"
 #include "armdefs.h"
 
 #include "mem.h"

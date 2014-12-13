@@ -26,7 +26,10 @@
 #include "threads.h"
 
 #include "gpu.h"
-#include "gdbstub.h"
+
+#ifdef GDB_STUB
+#include "gdb/gdbstub.h"
+#endif
 
 
 thread threads[MAX_THREADS];
@@ -37,6 +40,7 @@ static u32    reschedule = 0;
 extern ARMul_State s;
 
 //#define PROPER_THREADING
+//#define THREADING_DEBUG
 #define THREAD_ID_OFFSET 0xC
 
 
@@ -339,9 +343,11 @@ u32 threads_GetCurrentThreadHandle()
 {
     return threads[current_thread].handle;
 }
-void threads_Getallactive(u32* handles,u32 * size)
+
+void threads_GetAllActive(u32* handles, u32* size)
 {
     threads[current_thread].handle;
+    
     for (u32 i = 0; i < num_threads; i++)
     {
         if (threads[i].state != STOPPED)
@@ -361,7 +367,8 @@ void threads_StopCurrentThread()
 {
     threads_StopThread(current_thread);
 }
-bool thread_isalive(u32 handle)
+
+bool threads_IsThreadAlive(u32 handle)
 {
     int ret = -1;
     for (u32 i = 0; i<num_threads; i++) {
@@ -372,6 +379,7 @@ bool thread_isalive(u32 handle)
         return false;
     return (threads[ret].state != STOPPED);
 }
+
 u32 threads_FindIdByHandle(u32 handle)
 {
     u32 i;
@@ -385,39 +393,36 @@ u32 threads_FindIdByHandle(u32 handle)
     }
     return -1;
 }
-void threads_Getprintableinfo(u32 handle, char* string) //sting must be at last 0x1000 in size
+
+void threads_GetPrintableInfo(u32 handle, char* string)
 {
-    int res = -1;
-    for (u32 i = 0; i<threads_Count(); i++) {
-        if (threads[i].handle == handle)
-            res = i;
-    }
-    if (res == -1)
-        return;
-    switch (threads[res].state)
+    u32 id = threads_FindIdByHandle(handle);
+    
+    switch (threads[id].state)
     {
-        case RUNNING:
-            sprintf(string, "running ");
-            break;
-        case WAITING_SYNC:
+    case RUNNING:
+        sprintf(string, "running ");
+        break;
+    case WAITING_SYNC:
+    {
+        sprintf(string, "sync ");
+        for (u32 i = 0; i < threads[id].wait_list_size;i++)
         {
-            sprintf(string, "sync ");
-            for (u32 i = 0; i < threads[res].wait_list_size;i++)
-            {
-                sprintf(string, "%s %08x ",string, threads[res].wait_list[i]);
-            }
-            if (threads[res].wait_all)
-                sprintf(string, "%s wait all ", string);
-            break;
+            sprintf(string, "%s %08x ",string, threads[id].wait_list[i]);
         }
-        case WAITING_ARB:
-            sprintf(string, "AddressArbiter %08x %08x ", threads[res].arb_addr, threads[res].arb_handle);
-            break;
-        default:
-            sprintf(string,"unknown staus ");
+        if (threads[id].wait_all)
+            sprintf(string, "%s wait all ", string);
         break;
     }
-    sprintf(string, "%sprio %i", string, threads[res].priority);
+    case WAITING_ARB:
+        sprintf(string, "AddressArbiter %08x %08x ", threads[id].arb_addr, threads[id].arb_handle);
+        break;
+    default:
+        sprintf(string,"unknown staus ");
+        break;
+    }
+
+    sprintf(string, "%sprio %i", string, threads[id].priority);
 }
 
 void threads_SaveContextCurrentThread()

@@ -19,7 +19,7 @@
 #ifndef _LOADER_H_
 #define _LOADER_H_
 
-#include "polarssl/aes.h"
+#include "crypto/aes.h"
 
 // Shamelessly stolen from ctrtool.
 typedef struct {

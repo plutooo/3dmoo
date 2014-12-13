@@ -63,8 +63,8 @@ extern thread threads[MAX_THREADS];
 #define uint16_t u16
 #define uint8_t u8
 
-#include "gdbstub.h"
-#include "gdbstub_internal.h"
+#include "gdb/gdbstub.h"
+#include "gdb/gdbstub_internal.h"
 
 s32 gdb_id_loc = -1;
 s32 gdb_id_glob = -1;
@@ -863,7 +863,7 @@ processPacket_gdb( SOCKET_TYPE sock, const uint8_t *packet,
       if (strcmp((char*)packet, "qfThreadInfo") == 0) {
           u32 ids[MAX_THREADS];
           u32 size = 0;
-          threads_Getallactive(ids, &size);
+          threads_GetAllActive(ids, &size);
           sprintf((char*)out_ptr, "m%x", ids[0]);
           for (u32 i = 1; i < size;i++)
               sprintf((char*)out_ptr, "%s,%x", out_ptr, ids[i]);
@@ -882,7 +882,7 @@ processPacket_gdb( SOCKET_TYPE sock, const uint8_t *packet,
           char data[0x1000];
           char* ptr = data;
           u8* tempptr = out_ptr;
-          threads_Getprintableinfo(addr, data);
+          threads_GetPrintableInfo(addr, data);
           do 
           {
               *tempptr++ = hexchars[*ptr >> 4];
@@ -914,7 +914,7 @@ processPacket_gdb( SOCKET_TYPE sock, const uint8_t *packet,
       const uint8_t *rx_ptr = &packet[1];
 
       hexToInt(&rx_ptr, &addr);
-      if (thread_isalive(addr))
+      if (threads_IsThreadAlive(addr))
       {
           strcpy((char *)out_ptr, "OK");
           send_size = 2;

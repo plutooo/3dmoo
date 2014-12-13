@@ -82,8 +82,7 @@ u32 ptm_play_SyncRequest();
 u32 cam_u_SyncRequest();
 
 
-#ifndef _WIN32
-static size_t strnlen(const char* p, size_t n)
+static size_t _strnlen(const char* p, size_t n)
 {
     const char* q = p;
 
@@ -100,7 +99,6 @@ static size_t strnlen(const char* p, size_t n)
 
     return q-p;
 }
-#endif
 
 static struct {
     const char* name;
@@ -617,15 +615,15 @@ u32 srv_SyncRequest()
               req.unk2);
         PAUSE();
 
-        u32 i;
-
+#ifdef MODULE_SUPPORT
         bool overdr = false;
         for (u32 i = 0; i < overdrivnum; i++) {
-            if (memcmp(req.name, *(overdrivnames + i), strnlen(*(overdrivnames + i), 8)) == 0)overdr = true;
+            if (memcmp(req.name, *(overdrivnames + i), _strnlen(*(overdrivnames + i), 8)) == 0)overdr = true;
         }
+
         if (!overdr) {
             for (u32 i = 0; i < ownservice_num; i++) {
-                if (memcmp(req.name, ownservice[i].name, strnlen(ownservice[i].name, 8)) == 0) {
+                if (memcmp(req.name, ownservice[i].name, _strnlen(ownservice[i].name, 8)) == 0) {
 
                     u32 newhand = handle_New(HANDLE_TYPE_SERVICE, SERVICE_DIRECT);
 
@@ -663,9 +661,12 @@ u32 srv_SyncRequest()
                 }
             }
         }
+#endif
+
+        u32 i;
         for(i=0; i<ARRAY_SIZE(services); i++) {
             // Find service in list.
-            if(memcmp(req.name, services[i].name, strnlen(services[i].name, 8)) == 0) {
+            if(memcmp(req.name, services[i].name, _strnlen(services[i].name, 8)) == 0) {
 
 
                 // Write result.

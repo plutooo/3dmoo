@@ -25,7 +25,7 @@
 #ifndef POLARSSL_RSA_H
 #define POLARSSL_RSA_H
 
-#include "polarssl/bignum.h"
+#include "crypto/bignum.h"
 
 /*
  * RSA Error codes

@@ -30,12 +30,12 @@ void IPC_debugprint(u32 addr)
      u32 unused = (head >> 12) & 0xF;
      DEBUG("cmd %08X\n", head);
      addr += 4;
-     for (int i = 0; i < normal; i++)
+     for (u32 i = 0; i < normal; i++)
      {
          DEBUG("%08X\n", mem_Read32(addr));
          addr += 4;
      }
-     for (int i = 0; i < translated; i++)
+     for (u32 i = 0; i < translated; i++)
      {
          u32 desc = mem_Read32(addr);
          if (desc & 1)

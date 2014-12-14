@@ -22,3 +22,4 @@ u32 hid_user_SyncRequest();
 u32 translate_to_bit(const SDL_KeyboardEvent* key);
 void hid_keyup(const SDL_KeyboardEvent* key);
 void hid_keypress(const SDL_KeyboardEvent* key);
+void hid_position(const Sint32 x, const  Sint32 y);

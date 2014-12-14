@@ -23,6 +23,7 @@
 #include "service_macros.h"
 #include <SDL.h>
 
+extern ARMul_State s;
 
 extern u8 HIDsharedbuffSPVR[0x2000];
 u8 HIDsharedbuff[0x2000];
@@ -123,11 +124,49 @@ u32 translate_to_bit(const SDL_KeyboardEvent* key)
 }
 void hid_update() //todo
 {
-    *(u64*)&HIDsharedbuff[0x0] = (*(u64*)&HIDsharedbuff[0x0])++;
-    *(u64*)&HIDsharedbuffSPVR[0x0] = *(u64*)&HIDsharedbuff[0x0];
-    *(u64*)&HIDsharedbuff[0x8] = (*(u64*)&HIDsharedbuff[0x8])++;
-    *(u64*)&HIDsharedbuffSPVR[0x8] = *(u64*)&HIDsharedbuff[0x8];
+    *(u64*)&HIDsharedbuff[0x8] = *(u64*)&HIDsharedbuff[0x0];
+    *(u64*)&HIDsharedbuffSPVR[0x8] = *(u64*)&HIDsharedbuffSPVR[0x0];
+    *(u64*)&HIDsharedbuff[0x0] = s.NumInstrs;
+    *(u64*)&HIDsharedbuffSPVR[0x0] = s.NumInstrs;
 }
+void hid_updatetouch() //todo
+{
+    *(u64*)&HIDsharedbuff[0xB0] = *(u64*)&HIDsharedbuff[0xA8];
+    *(u64*)&HIDsharedbuffSPVR[0xB0] = *(u64*)&HIDsharedbuffSPVR[0xA8];
+    *(u64*)&HIDsharedbuff[0xA8] = s.NumInstrs;
+    *(u64*)&HIDsharedbuffSPVR[0xA8] = s.NumInstrs;
+}
+
+void hid_position(const Sint32 x, const Sint32 y)
+{
+    if (x > 0 && x < 240 && y > 0 && y < 320)
+    {
+        hid_updatetouch();
+        u32 offset = *(u32*)&HIDsharedbuff[0x10];
+        if (offset == 7)offset = 0;
+        else offset++;
+
+        *(u32*)&HIDsharedbuff[0xB8] = offset;
+
+        *(u32*)&HIDsharedbuff[0xC0] = x;
+        *(u32*)&HIDsharedbuff[0xC4] = y;
+        *(u32*)&HIDsharedbuffSPVR[0xC0] = *(u32*)&HIDsharedbuff[0xC0];
+        *(u32*)&HIDsharedbuffSPVR[0xC4] = *(u32*)&HIDsharedbuff[0xC4];
+
+        *(u16*)&HIDsharedbuff[0xC8 + offset * 0x8] = x; //	Current PAD state
+        *(u16*)&HIDsharedbuffSPVR[0xC8 + offset * 0x8] = *(u16*)&HIDsharedbuff[0xC8 + offset * 0x8];
+
+        *(u16*)&HIDsharedbuff[0xC8 + offset * 0x8 + 2] = y; //pressed
+        *(u16*)&HIDsharedbuffSPVR[0xC8 + offset * 0x8 + 2] = *(u16*)&HIDsharedbuff[0xC8 + offset * 0x8 + 2];
+
+        *(u32*)&HIDsharedbuff[0xC8 + offset * 0x8 + 4] |= 1; //contain data
+        *(u32*)&HIDsharedbuffSPVR[0xC8 + offset * 0x8 + 4] = *(u32*)&HIDsharedbuff[0xC8 + offset * 0x8 + 4];
+
+        *(u32*)&HIDsharedbuff[0xB8] = offset;
+        *(u32*)&HIDsharedbuffSPVR[0xB8] = *(u32*)&HIDsharedbuff[0xB8];
+    }
+}
+
 void hid_keyup(const SDL_KeyboardEvent* key)
 {
     *(u32*)&HIDsharedbuff[0x1C] &= ~translate_to_bit(key);
@@ -136,11 +175,17 @@ void hid_keyup(const SDL_KeyboardEvent* key)
     if (offset == 7)offset = 0;
     else offset++;
 
-    *(u32*)&HIDsharedbuffSPVR[0x28 + offset * 0x10] = *(u32*)&HIDsharedbuff[0x28 + offset * 0x10] = *(u32*)&HIDsharedbuffSPVR[0x1C]; //	Current PAD state
-    *(u32*)&HIDsharedbuffSPVR[0x28 + offset * 0x10 + 4] = *(u32*)&HIDsharedbuff[0x28 + offset * 0x10 + 4] = 0; //pressed
-    *(u32*)&HIDsharedbuffSPVR[0x28 + offset * 0x10 + 8] = *(u32*)&HIDsharedbuff[0x28 + offset * 0x10 + 8] = translate_to_bit(key); //released
+    *(u32*)&HIDsharedbuff[0x28 + offset * 0x10] = *(u32*)&HIDsharedbuffSPVR[0x1C]; //	Current PAD state
+    *(u32*)&HIDsharedbuffSPVR[0x28 + offset * 0x10] = *(u32*)&HIDsharedbuff[0x28 + offset * 0x10];
 
-    *(u32*)&HIDsharedbuffSPVR[0x10]  = *(u32*)&HIDsharedbuff[0x10] = offset;
+    *(u32*)&HIDsharedbuff[0x28 + offset * 0x10 + 4] = 0; //pressed
+    *(u32*)&HIDsharedbuffSPVR[0x28 + offset * 0x10 + 4] = *(u32*)&HIDsharedbuff[0x28 + offset * 0x10 + 4];
+
+    *(u32*)&HIDsharedbuff[0x28 + offset * 0x10 + 8] = translate_to_bit(key); //released
+    *(u32*)&HIDsharedbuffSPVR[0x28 + offset * 0x10 + 8] = *(u32*)&HIDsharedbuff[0x28 + offset * 0x10 + 8];
+
+    *(u32*)&HIDsharedbuff[0x10] = offset;
+    *(u32*)&HIDsharedbuffSPVR[0x10] = *(u32*)&HIDsharedbuff[0x10];
 
     hid_update();
 }
@@ -153,9 +198,14 @@ void hid_keypress(const SDL_KeyboardEvent* key)
     if (offset == 7)offset = 0;
     else offset++;
 
-    *(u32*)&HIDsharedbuffSPVR[0x28 + offset * 0x10] = *(u32*)&HIDsharedbuff[0x28 + offset * 0x10] = *(u32*)&HIDsharedbuffSPVR[0x1C]; //	Current PAD state
-    *(u32*)&HIDsharedbuffSPVR[0x28 + offset * 0x10 + 4] = *(u32*)&HIDsharedbuff[0x28 + offset * 0x10 + 4] = translate_to_bit(key); //pressed
-    *(u32*)&HIDsharedbuffSPVR[0x28 + offset * 0x10 + 8] = *(u32*)&HIDsharedbuff[0x28 + offset * 0x10 + 8] = 0; //released
+    *(u32*)&HIDsharedbuff[0x28 + offset * 0x10] = *(u32*)&HIDsharedbuffSPVR[0x1C]; //	Current PAD state
+    *(u32*)&HIDsharedbuffSPVR[0x28 + offset * 0x10] = *(u32*)&HIDsharedbuff[0x28 + offset * 0x10];
+
+    *(u32*)&HIDsharedbuff[0x28 + offset * 0x10 + 4] = translate_to_bit(key); //pressed
+    *(u32*)&HIDsharedbuffSPVR[0x28 + offset * 0x10 + 4] = *(u32*)&HIDsharedbuff[0x28 + offset * 0x10 + 4];
+
+    *(u32*)&HIDsharedbuff[0x28 + offset * 0x10 + 8] = 0; //released
+    *(u32*)&HIDsharedbuffSPVR[0x28 + offset * 0x10 + 8] = *(u32*)&HIDsharedbuff[0x28 + offset * 0x10 + 8];
 
     *(u32*)&HIDsharedbuffSPVR[0x10] = *(u32*)&HIDsharedbuff[0x10] = offset;
     hid_update();

@@ -237,6 +237,7 @@ void svc_Execute(ARMul_State * state, u8 num)
         return;
     case 0x28: //GetSystemTick
         arm11_SetR(0, (u32)s.NumInstrs);
+        arm11_SetR(1, (u32)(s.NumInstrs >> 32));
         return;
     case 0x2B:
         DEBUG("svcGetProcessInfo=%08x\n", arm11_R(2));

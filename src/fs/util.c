@@ -158,7 +158,7 @@ const char* fs_PathToString(u32 type, u32 ptr, u32 size,
 
 bool fs_IsSafePath(const char* p)
 {
-    size_t i, len=strlen(p);
+    size_t len=strlen(p);
 
     if(strstr(p, "..") /*|| p[0] == '/'*/) {
         ERROR("Unsafe path: %s\n", p);

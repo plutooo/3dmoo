@@ -636,8 +636,6 @@ u32 srv_SyncRequest()
 
                     newhi->misc_ptr[0] = malloc(0x200);
 
-                    newhi->misc_ptr[1] = ownservice[i].handle;
-
                     handleinfo* oldhi = handle_Get(ownservice[i].handle);
 
                     if (oldhi == NULL) {
@@ -880,9 +878,11 @@ u32 svc_unmountWaitSynchronization(handleinfo* h, bool *locked)
     if (h->misc[0]) {
         h->misc[0]--;
         *locked = 0;
+        return 0;
     }
     else {
         *locked = 1;
+        return 0;
     }
 }
 u32 svc_unmountSyncRequest(handleinfo* h, bool *locked)
@@ -890,9 +890,11 @@ u32 svc_unmountSyncRequest(handleinfo* h, bool *locked)
     if (h->misc[0]) {
         h->misc[0]--;
         *locked = 0;
+        return 0;
     }
     else {
         *locked = 1;
+        return 0;
     }
 }
 u32 svc_serverSyncRequest(handleinfo* h, bool *locked)
@@ -900,14 +902,16 @@ u32 svc_serverSyncRequest(handleinfo* h, bool *locked)
     handleinfo* hi = handle_Get(h->misc[0]);
     if (hi == NULL) {
         *locked = 1;
-        return;
+        return 0;
     }
     if (hi->misc[0] & HANDLE_SERV_STAT_SYNCING) {
         mem_Write(hi->misc_ptr[0], arm11_ServiceBufferAddress() + 0x80, 0x80); //todo 
         *locked = 0;
+        return 0;
     }
     else {
         *locked = 1;
+        return 0;
     }
 }
 u32 svc_serverWaitSynchronization(handleinfo* h, bool *locked)
@@ -915,13 +919,15 @@ u32 svc_serverWaitSynchronization(handleinfo* h, bool *locked)
     handleinfo* hi = handle_Get(h->misc[0]);
     if (hi == NULL) {
         *locked = 1;
-        return;
+        return 0;
     }
     if (hi->misc[0] & HANDLE_SERV_STAT_SYNCING) {
         mem_Write(hi->misc_ptr[0], arm11_ServiceBufferAddress() + 0x80, 0x80); //todo 
         *locked = 0;
+        return 0;
     }
     else {
         *locked = 1;
+        return 0;
     }
 }

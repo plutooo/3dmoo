@@ -88,6 +88,12 @@ u32 svcGetThreadId();
 u32 svcCreateThread();
 void threads_Reschedule();
 
+#ifdef MODULE_SUPPORT
+void ModuleSupport_ThreadsInit(u32 modulenum);
+void ModuleSupport_MemInit(u32 modulenum);
+void ModuleSupport_SwapProcessMem(u32 newproc);
+void ModuleSupport_SwapProcessThreads(u32 newproc);
+#endif
 #define MAX_THREADS 32
 
 #endif

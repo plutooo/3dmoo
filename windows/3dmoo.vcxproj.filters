@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <Filter Include="Source Files">
@@ -363,11 +363,11 @@
     <ClCompile Include="..\src\http\HTTPClientAuth.c">
       <Filter>Source Files\httpap</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\gdbstub\gdbstub.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\services\ipc_decoder.c">
       <Filter>Source Files\services</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\gdb\gdbstub.c">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -450,9 +450,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\inc\3dsx.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\inc\crypto\nin_public_crypto.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -58,7 +58,7 @@ void ModuleSupport_ThreadsInit(u32 modulenum)
         *(threadsproc + i) = (thread *)malloc(sizeof(thread)*(MAX_THREADS));
         memset(*(threadsproc + i), 0, sizeof(thread)*(MAX_THREADS));
     }
-    num_threadsproc = (thread **)malloc(sizeof(u32*)*(modulenum + 1));
+    num_threadsproc = (u32 *)malloc(sizeof(u32)*(modulenum + 1));
     memset(num_threadsproc, 0, sizeof(u32*)*(modulenum + 1));
 }
 void ModuleSupport_SwapProcessThreads(u32 newproc)
@@ -293,8 +293,8 @@ void threads_Execute()
                 line = 0;
             }
         }
+        s.NumInstrs += 11172; //should be less but we have to debug stuff and that makes if faster (normal ~1000)
         last_one = s.NumInstrs - diff;//the cycels we have not used
-        last_one -= 11172; //should be less but we have to debug stuff and that makes if faster (normal ~1000)
         if (!threads_IsThreadActive(t)) {
             THREADDEBUG("Skipping thread %d..\n", t);
             continue;

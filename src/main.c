@@ -106,8 +106,8 @@ int main(int argc, char* argv[])
     setlinebuf(stdout);
     setlinebuf(stderr);
 #else
-    char outBuf[4096];
-    char errBuf[4096];
+    //char outBuf[4096];
+    //char errBuf[4096];
 
     //setvbuf(stdout, outBuf, _IOLBF, sizeof(outBuf));
     //setvbuf(stderr, errBuf, _IOLBF, sizeof(errBuf));
@@ -182,7 +182,7 @@ int main(int argc, char* argv[])
             modulenum = atoi(argv[i]);
             modulenames = malloc(sizeof(char*)*modulenum);
             i++;
-            for (int j = 0; j < modulenum; j++) {
+            for (u32 j = 0; j < modulenum; j++) {
                 *(modulenames + j) = malloc(strlen(argv[i]));
                 strcpy(*(modulenames + j), argv[i]);
                 i++;
@@ -194,7 +194,7 @@ int main(int argc, char* argv[])
             overdrivnum = atoi(argv[i]);
             overdrivnames = malloc(sizeof(char*)*modulenum);
             i++;
-            for (int j = 0; j < modulenum; j++) {
+            for (u32 j = 0; j < modulenum; j++) {
                 *(overdrivnames + j) = malloc(strlen(argv[i]));
                 strcpy(*(overdrivnames + j), argv[i]);
                 i++;
@@ -225,7 +225,7 @@ int main(int argc, char* argv[])
     arm11_Init();
 
 #ifdef MODULE_SUPPORT
-    int i;
+    u32 i;
 
     for (i = 0; i<modulenum; i++) {
         u32 handzwei = handle_New(HANDLE_TYPE_PROCESS, 0);
@@ -305,7 +305,7 @@ int main(int argc, char* argv[])
     // Execute.
     while (running) {
 #ifdef MODULE_SUPPORT
-        for (int i = 0; i < modulenum + 1; i++)
+        for (u32 i = 0; i < modulenum + 1; i++)
         {
             DEBUG("process:%d\n",i);
             ModuleSupport_SwapProcessMem(i);

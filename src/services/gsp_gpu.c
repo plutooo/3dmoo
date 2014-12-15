@@ -527,9 +527,17 @@ SERVICE_CMD(0x80082) // FlushDataCache
 
 SERVICE_CMD(0xB0040) // SetLcdForceBlack
 {
-    GPUDEBUG("SetLcdForceBlack %02x --todo--\n", mem_Read8(arm11_ServiceBufferAddress() + 0x84));
-    unsigned char* buffer = get_pymembuffer(0x18000000);
-    //memset(buffer, 0, 0x46500 * 6); //no this is todo
+    u8 flag = mem_Read8(arm11_ServiceBufferAddress() + 0x84);
+    GPUDEBUG("SetLcdForceBlack %02x\n", flag);
+
+    if (flag == 0)
+        gpu_WriteReg32(0x202204, 0);
+    else
+        gpu_WriteReg32(0x202204, 0x1000000);
+    if (flag == 0)
+        gpu_WriteReg32(0x1ed02a04, 0);
+    else
+        gpu_WriteReg32(0x1ed02a04, 0x1000000);
 
     RESP(1, 0);
     return 0;

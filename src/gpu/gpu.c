@@ -123,6 +123,48 @@ u32 VSFloatUniformSetuptembuffer[4];
 
 #define VertexShaderState_INVALID_ADDRESS 0xFFFFFFFF
 
+#define STACK_MAX 64
+typedef struct Stack {
+    u32     data[STACK_MAX];
+    int     size;
+} aStack;
+
+void Stack_Init(struct Stack *S)
+{
+    S->size = 0;
+}
+
+bool Stack_Empty(struct Stack *S)
+{
+    return S->size <= 0;
+}
+
+int Stack_Top(struct Stack *S)
+{
+    if(S->size == 0) {
+        fprintf(stderr, "Error: stack empty\n");
+        return -1;
+    }
+
+    return S->data[S->size - 1];
+}
+
+void Stack_Push(struct Stack *S, u32 d)
+{
+    if(S->size < STACK_MAX)
+        S->data[S->size++] = d;
+    else
+        fprintf(stderr, "Error: stack full\n");
+}
+
+void Stack_Pop(struct Stack *S)
+{
+    if(S->size == 0)
+        fprintf(stderr, "Error: stack empty\n");
+    else
+        S->size--;
+}
+
 struct VertexShaderState {
     u32* program_counter;
     u32* program_counter_end;
@@ -152,8 +194,11 @@ struct VertexShaderState {
 
     bool status_registers[2];
 
-    u32* call_stack_pointer; // TODO: What is the maximal call stack depth?
-    u32 call_stack[16];
+    /*u32* call_stack_pointer; // TODO: What is the maximal call stack depth?
+    u32 call_stack[16];*/
+
+    struct Stack call_stack;
+    struct Stack call_end_stack;
 };
 
 struct vec4 const_vectors[96];
@@ -314,11 +359,30 @@ static bool ShaderCMP(float a, float b, u32 mode)
     return false;
 }
 
-//#define printfunc
+#define printfunc
+
+void call(struct VertexShaderState* state, u32 offset, u32 num_instruction, u32 return_offset)
+{
+    state->program_counter = &GPUshadercodebuffer[offset] - 1; // -1 to make sure when incrementing the PC we end up at the correct offset
+    Stack_Push(&state->call_stack, offset + num_instruction);
+    Stack_Push(&state->call_end_stack, return_offset);
+}
 
 void ProcessShaderCode(struct VertexShaderState* state)
 {
     while (true) {
+        if(!Stack_Empty(&state->call_stack)) {
+            if((state->program_counter - &GPUshadercodebuffer[0]) == Stack_Top(&state->call_stack)) {
+                state->program_counter = &GPUshadercodebuffer[Stack_Top(&state->call_end_stack)];
+
+                Stack_Pop(&state->call_stack);
+                Stack_Pop(&state->call_end_stack);
+
+                // TODO: Is "trying again" accurate to hardware?
+                continue;
+            }
+        }
+
         bool increment_pc = true;
         u32 instr = *(u32*)state->program_counter;
 
@@ -516,39 +580,44 @@ void ProcessShaderCode(struct VertexShaderState* state)
             break;
         }
 
-        case SHDR_RET:
+        case SHDR_RET: //Really just a NOP
 #ifdef printfunc
             DEBUG("RET\n");
 #endif
-            state->call_stack_pointer--;
+            /*state->call_stack_pointer--;
             if (*state->call_stack_pointer == VertexShaderState_INVALID_ADDRESS) {
                 return;
             } else {
                 state->program_counter = &GPUshadercodebuffer[*state->call_stack_pointer];
             }
-
+            */
             break;
 
         case SHDR_CALL:
+        {
 #ifdef printfunc
             DEBUG("CALL %08x\n",instr_flow_control_offset_words(instr));
 #endif
+            u32 addrv = (instr >> 8) & 0x3FFC;
+            u32 boolv = (instr >> 22) & 0xF;
+            u32 retv = instr & 0x3FF;
+
             increment_pc = false;
 
             //_dbg_assert_(GPU, state.call_stack_pointer - state.call_stack < sizeof(state.call_stack)); //todo
 
-            *state->call_stack_pointer = ((u32)(uintptr_t)state->program_counter - (u32)(uintptr_t)(&GPUshadercodebuffer[0])) / 4;
-            state->call_stack_pointer++;
-            // TODO: Does this offset refer to the beginning of shader memory?
-            state->program_counter = &GPUshadercodebuffer[instr_flow_control_offset_words(instr)];
-            break;
+            //*state->call_stack_pointer = ((u32)(uintptr_t)state->program_counter - (u32)(uintptr_t)(&GPUshadercodebuffer[0])) / 4;
+            //state->call_stack_pointer++;
 
+            call(state, addrv / 4, retv, ((u32)(uintptr_t)(state->program_counter + 1) - (u32)(uintptr_t)(&GPUshadercodebuffer[0])) / 4);
+            break;
+        }
         case SHDR_FLS:
 #ifdef printfunc
             DEBUG("FLS\n");
 #endif
             // TODO: Do whatever needs to be done here?
-            break;
+            return;
         case SHDR_CMP:
         case SHDR_CMP2: {
 #ifdef printfunc
@@ -572,24 +641,32 @@ void ProcessShaderCode(struct VertexShaderState* state)
 #ifdef printfunc
             DEBUG("IFB %02X (%s)\n", boolv, condition?"true":"false");
 #endif
-
             //If condition is false skip to else case
-            if (!condition) {
+            /*if (!condition) {
                 increment_pc = false;
                 state->program_counter = &GPUshadercodebuffer[addrv/4];
                 break;
-            }
+            }*/
 
+            if(condition)
+            {
+                u32 binary_offset = ((u32)(uintptr_t)(state->program_counter) - (u32)(uintptr_t)(&GPUshadercodebuffer[0])) / 4;
+                call(state, binary_offset + 1, (addrv / 4) - (binary_offset - 1), (addrv / 4)+retv);
+            }
+            else
+            {
+                call(state, addrv / 4, retv, (addrv / 4) + retv);
+            }
             //Store return address on stack... This is generally used
-            *state->call_stack_pointer = (addrv / 4) + retv;
+            /**state->call_stack_pointer = (addrv / 4) + retv;
             state->call_stack_pointer++;
 
             //u32 *next_pc = &GPUshadercodebuffer[(addrv / 4) + retv];
             state->program_counter_end = &GPUshadercodebuffer[addrv / 4];
             state->program_counter++;
-            ProcessShaderCode(state);
+            ProcessShaderCode(state);*/
 
-            increment_pc = false;
+            //increment_pc = false;
             //state->program_counter = next_pc;
             break;
         }
@@ -627,22 +704,33 @@ void ProcessShaderCode(struct VertexShaderState* state)
 #endif
 
             //If condition is false skip to else case
-            if (!condition) {
+            /*if (!condition) {
                 increment_pc = false;
                 state->program_counter = &GPUshadercodebuffer[addrv / 4];
                 break;
+            }*/
+
+
+            if(condition)
+            {
+                u32 binary_offset = ((u32)(uintptr_t)(state->program_counter) - (u32)(uintptr_t)(&GPUshadercodebuffer[0])) / 4;
+                call(state, binary_offset + 1, (addrv / 4) - (binary_offset - 1), (addrv / 4) + retv);
+            }
+            else
+            {
+                call(state, addrv / 4, retv, (addrv / 4) + retv);
             }
 
             //Store return address on stack... This is generally used
-            *state->call_stack_pointer = (addrv / 4) + retv;
+            /**state->call_stack_pointer = (addrv / 4) + retv;
             state->call_stack_pointer++;
 
             //u32 *next_pc = &GPUshadercodebuffer[(addrv / 4) + retv];
             state->program_counter_end = &GPUshadercodebuffer[addrv / 4];
             state->program_counter++;
-            ProcessShaderCode(state);
+            ProcessShaderCode(state);*/
 
-            increment_pc = false;
+            //increment_pc = false;
             //state->program_counter = next_pc;
             break;
         }
@@ -730,10 +818,10 @@ void ProcessShaderCode(struct VertexShaderState* state)
         if (increment_pc)
             state->program_counter++;
 
-        if (state->program_counter == state->program_counter_end) {
+        /*if (state->program_counter == state->program_counter_end) {
             state->program_counter_end = 0;
             break;
-        }
+        }*/
     }
 }
 
@@ -777,15 +865,18 @@ void RunShader(struct vec4 input[17], int num_attributes, struct OutputVertex *r
     state.status_registers[0] = false;
     state.status_registers[1] = false;
     int k;
-    for (k = 0; k < 16; k++)state.call_stack[k] = VertexShaderState_INVALID_ADDRESS;
-    state.call_stack_pointer = &state.call_stack[1];
+    /*for (k = 0; k < 16; k++)state.call_stack[k] = VertexShaderState_INVALID_ADDRESS;
+    state.call_stack_pointer = &state.call_stack[1];*/
+    Stack_Init(&state.call_stack);
+    Stack_Init(&state.call_end_stack);
+    Stack_Push(&state.call_stack, VertexShaderState_INVALID_ADDRESS);
+    Stack_Push(&state.call_end_stack, VertexShaderState_INVALID_ADDRESS);
 
     for (int i = 0; i < 16; i++) {
         for (int j = 0; j < 4; j++)state.temporary_registers[i].v[j] = (0.f);
     }
     ret->tc0.v[0] = 0.f;
     ret->tc0.v[1] = 0.f;
-
 
     ProcessShaderCode(&state);
 

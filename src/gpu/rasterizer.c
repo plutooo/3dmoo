@@ -412,6 +412,8 @@ void rasterizer_ProcessTriangle(const struct OutputVertex *v0,
                         row_stride = (GPU_Regs[TEXTURCONFIG2SIZE] >> 16) * 3;
                         break;
                     }
+                    
+                    //TODO: Fix this up so it works correctly.
 
                     int texel_index_within_tile = 0;
                     for (int block_size_index = 0; block_size_index < 3; ++block_size_index) {
@@ -431,6 +433,10 @@ void rasterizer_ProcessTriangle(const struct OutputVertex *v0,
                     texture_color[i].v[1] = source_ptr[1];
                     texture_color[i].v[2] = source_ptr[0];
                     texture_color[i].v[3] = 0xFF;
+
+                    /*FILE *f = fopen("test.bin", "wb");
+                    fwrite(texture_data, 1, 0x400000, f);
+                    fclose(f);*/
                 }
             }
             struct clov4 combiner_output;

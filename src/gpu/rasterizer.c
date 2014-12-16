@@ -1,4 +1,5 @@
 /*
+* Copyright (C) 2014 - Tony Wasserka.
 * Copyright (C) 2014 - plutoo
 * Copyright (C) 2014 - ichfly
 * Copyright (C) 2014 - Normmatt
@@ -296,6 +297,265 @@ static u8 GetAlphaModifier(u32 factor, u8 value)
         return 0;
     }
 }
+
+typedef enum{
+    RGBA8 = 0,
+    RGB8 = 1,
+    RGBA5551 = 2,
+    RGB565 = 3,
+    RGBA4 = 4,
+    IA8 = 5,
+
+    I8 = 7,
+    A8 = 8,
+    IA4 = 9,
+
+    A4 = 11,
+    // TODO: Support for the other formats is not implemented, yet.
+    // Seems like they are luminance formats and compressed textures.
+} TextureFormat;
+
+static unsigned NibblesPerPixel(TextureFormat format) {
+    switch(format) {
+        case RGBA8:
+            return 8;
+
+        case RGB8:
+            return 6;
+
+        case RGBA5551:
+        case RGB565:
+        case RGBA4:
+        case IA8:
+            return 4;
+
+        case A4:
+            return 1;
+
+        case I8:
+        case A8:
+        case IA4:
+        default:  // placeholder for yet unknown formats
+            return 2;
+    }
+}
+const struct clov4 LookupTexture(const u8* source, int x, int y, const TextureFormat format, int stride, bool disable_alpha) {
+
+    // Images are split into 8x8 tiles. Each tile is composed of four 4x4 subtiles each
+    // of which is composed of four 2x2 subtiles each of which is composed of four texels.
+    // Each structure is embedded into the next-bigger one in a diagonal pattern, e.g.
+    // texels are laid out in a 2x2 subtile like this:
+    // 2 3
+    // 0 1
+    //
+    // The full 8x8 tile has the texels arranged like this:
+    //
+    // 42 43 46 47 58 59 62 63
+    // 40 41 44 45 56 57 60 61
+    // 34 35 38 39 50 51 54 55
+    // 32 33 36 37 48 49 52 53
+    // 10 11 14 15 26 27 30 31
+    // 08 09 12 13 24 25 28 29
+    // 02 03 06 07 18 19 22 23
+    // 00 01 04 05 16 17 20 21
+
+    // TODO(neobrain): Not sure if this swizzling pattern is used for all textures.
+    // To be flexible in case different but similar patterns are used, we keep this
+    // somewhat inefficient code around for now.
+    int texel_index_within_tile = 0;
+    for(int block_size_index = 0; block_size_index < 3; ++block_size_index) {
+        int sub_tile_width = 1 << block_size_index;
+        int sub_tile_height = 1 << block_size_index;
+
+        int sub_tile_index = (x & sub_tile_width) << block_size_index;
+        sub_tile_index += 2 * ((y & sub_tile_height) << block_size_index);
+        texel_index_within_tile += sub_tile_index;
+    }
+
+    const int block_width = 8;
+    const int block_height = 8;
+
+    int coarse_x = (x / block_width) * block_width;
+    int coarse_y = (y / block_height) * block_height;
+
+    struct clov4 ret;
+
+    switch(format) {
+        case RGBA8:
+        {
+            const u8* source_ptr = source + coarse_x * block_height * 4 + coarse_y * stride + texel_index_within_tile * 4;
+            ret.v[0] = source_ptr[3];
+            ret.v[1] = source_ptr[2];
+            ret.v[2] = source_ptr[1];
+            ret.v[3] = disable_alpha ? 255 : source_ptr[0];
+            break;
+        }
+
+        case RGB8:
+        {
+            const u8* source_ptr = source + coarse_x * block_height * 3 + coarse_y * stride + texel_index_within_tile * 3;
+            ret.v[0] = source_ptr[2];
+            ret.v[1] = source_ptr[1];
+            ret.v[2] = source_ptr[0];
+            ret.v[3] = 255;
+            break;
+        }
+
+        case RGBA5551:
+        {
+            const u16 source_ptr = *(const u16*)(source + coarse_x * block_height * 2 + coarse_y * stride + texel_index_within_tile * 2);
+            u8 r = (source_ptr >> 11) & 0x1F;
+            u8 g = ((source_ptr) >> 6) & 0x1F;
+            u8 b = (source_ptr >> 1) & 0x1F;
+            u8 a = source_ptr & 1;
+
+            ret.v[0] = (r << 3) | (r >> 2);
+            ret.v[1] = (g << 3) | (g >> 2);
+            ret.v[2] = (b << 3) | (b >> 2);
+            ret.v[3] = disable_alpha ? 255 : (a * 255);
+            break;
+        }
+
+        case RGB565:
+        {
+            const u16 source_ptr = *(const u16*)(source + coarse_x * block_height * 2 + coarse_y * stride + texel_index_within_tile * 2);
+            u8 r = (source_ptr >> 11) & 0x1F;
+            u8 g = ((source_ptr) >> 5) & 0x3F;
+            u8 b = (source_ptr)& 0x1F;
+            ret.v[0] = (r << 3) | (r >> 2);
+            ret.v[1] = (g << 2) | (g >> 4);
+            ret.v[2] = (b << 3) | (b >> 2);
+            ret.v[3] = 255;
+            break;
+        }
+
+        case RGBA4:
+        {
+            const u8* source_ptr = source + coarse_x * block_height * 2 + coarse_y * stride + texel_index_within_tile * 2;
+            u8 r = source_ptr[1] >> 4;
+            u8 g = source_ptr[1] & 0xFF;
+            u8 b = source_ptr[0] >> 4;
+            u8 a = source_ptr[0] & 0xFF;
+            r = (r << 4) | r;
+            g = (g << 4) | g;
+            b = (b << 4) | b;
+            a = (a << 4) | a;
+
+            ret.v[0] = r;
+            ret.v[1] = g;
+            ret.v[2] = b;
+            ret.v[3] = disable_alpha ? 255 : a;
+            break;
+        }
+
+        case IA8:
+        {
+            const u8* source_ptr = source + coarse_x * block_height * 2 + coarse_y * stride + texel_index_within_tile * 2;
+
+            // TODO: Better control this...
+            if(disable_alpha) {
+                ret.v[0] = *source_ptr;
+                ret.v[1] = *(source_ptr + 1);
+                ret.v[2] = 0;
+                ret.v[3] = 255;
+            }
+            else {
+                ret.v[0] = *source_ptr;
+                ret.v[1] = *source_ptr;
+                ret.v[2] = *source_ptr;
+                ret.v[3] = *(source_ptr + 1);
+            }
+            break;
+        }
+
+        case I8:
+        {
+            const u8* source_ptr = source + coarse_x * block_height + coarse_y * stride + texel_index_within_tile;
+
+            // TODO: Better control this...
+            ret.v[0] = *source_ptr;
+            ret.v[1] = *source_ptr;
+            ret.v[2] = *source_ptr;
+            ret.v[3] = 255;
+            break;
+        }
+
+        case A8:
+        {
+            const u8* source_ptr = source + coarse_x * block_height + coarse_y * stride + texel_index_within_tile;
+
+            // TODO: Better control this...
+            if(disable_alpha) {
+                ret.v[0] = *source_ptr;
+                ret.v[1] = *source_ptr;
+                ret.v[2] = *source_ptr;
+                ret.v[3] = 255;
+            }
+            else {
+                ret.v[0] = 0;
+                ret.v[1] = 0;
+                ret.v[2] = 0;
+                ret.v[3] = *source_ptr;
+            }
+            break;
+        }
+
+        case IA4:
+        {
+            const u8* source_ptr = source + coarse_x * block_height / 2 + coarse_y * stride + texel_index_within_tile / 2;
+
+            // TODO: Order?
+            u8 i = (*source_ptr) & 0xF;
+            u8 a = ((*source_ptr) & 0xF0) >> 4;
+            a |= a << 4;
+            i |= i << 4;
+
+            // TODO: Better control this...
+            if(disable_alpha) {
+                ret.v[0] = i;
+                ret.v[1] = a;
+                ret.v[2] = 0;
+                ret.v[3] = 255;
+            }
+            else {
+                ret.v[0] = i;
+                ret.v[1] = i;
+                ret.v[2] = i;
+                ret.v[3] = a;
+            }
+            break;
+        }
+
+        case A4:
+        {
+            const u8* source_ptr = source + coarse_x * block_height / 2 + coarse_y * stride + texel_index_within_tile / 2;
+
+            // TODO: Order?
+            u8 a = (coarse_x % 2) ? ((*source_ptr) & 0xF) : (((*source_ptr) & 0xF0) >> 4);
+            a |= a << 4;
+
+            // TODO: Better control this...
+            if(disable_alpha) {
+                ret.v[0] = *source_ptr;
+                ret.v[1] = *source_ptr;
+                ret.v[2] = *source_ptr;
+                ret.v[3] = 255;
+            }
+            else {
+                ret.v[0] = 0;
+                ret.v[1] = 0;
+                ret.v[2] = 0;
+                ret.v[3] = *source_ptr;
+            }
+        }
+
+        default:
+            DEBUG("Unknown texture format: %x", (u32)format);
+            break;
+    }
+
+    return ret;
+}
 void rasterizer_ProcessTriangle(const struct OutputVertex *v0,
                                 const struct OutputVertex * v1,
                                 const struct OutputVertex * v2)
@@ -395,27 +655,31 @@ void rasterizer_ProcessTriangle(const struct OutputVertex *v0,
                     int s;
                     int t;
                     int row_stride;
+                    int format;
                     switch (i) {
                     case 0:
                         s = (int)(u * (GPU_Regs[TEXTURCONFIG0SIZE] >> 16));
                         t = (int)(v * (GPU_Regs[TEXTURCONFIG0SIZE] & 0xFFFF));
-                        row_stride = (GPU_Regs[TEXTURCONFIG0SIZE] >> 16) * 3;
+                        row_stride = NibblesPerPixel(format) * (GPU_Regs[TEXTURCONFIG0SIZE] >> 16) / 2;
+                        format = GPU_Regs[TEXTURCONFIG0TYPE] & 0xF;
                         break;
                     case 1:
                         s = (int)(u * (GPU_Regs[TEXTURCONFIG1SIZE] >> 16));
                         t = (int)(v * (GPU_Regs[TEXTURCONFIG1SIZE] & 0xFFFF));
-                        row_stride = (GPU_Regs[TEXTURCONFIG1SIZE] >> 16) * 3;
+                        row_stride = NibblesPerPixel(format) * (GPU_Regs[TEXTURCONFIG1SIZE] >> 16) / 2;
+                        format = GPU_Regs[TEXTURCONFIG1TYPE] & 0xF;
                         break;
                     case 2:
                         s = (int)(u * (GPU_Regs[TEXTURCONFIG2SIZE] >> 16));
                         t = (int)(v * (GPU_Regs[TEXTURCONFIG2SIZE] & 0xFFFF));
-                        row_stride = (GPU_Regs[TEXTURCONFIG2SIZE] >> 16) * 3;
+                        row_stride = NibblesPerPixel(format) * (GPU_Regs[TEXTURCONFIG2SIZE] >> 16) / 2;
+                        format = GPU_Regs[TEXTURCONFIG2TYPE] & 0xF;
                         break;
                     }
                     
                     //TODO: Fix this up so it works correctly.
 
-                    int texel_index_within_tile = 0;
+                    /*int texel_index_within_tile = 0;
                     for (int block_size_index = 0; block_size_index < 3; ++block_size_index) {
                         int sub_tile_width = 1 << block_size_index;
                         int sub_tile_height = 1 << block_size_index;
@@ -432,7 +696,13 @@ void rasterizer_ProcessTriangle(const struct OutputVertex *v0,
                     texture_color[i].v[0] = source_ptr[2];
                     texture_color[i].v[1] = source_ptr[1];
                     texture_color[i].v[2] = source_ptr[0];
-                    texture_color[i].v[3] = 0xFF;
+                    texture_color[i].v[3] = 0xFF;*/
+
+                    struct clov4 temp = LookupTexture(texture_data, s, t, format, row_stride, false);
+                    texture_color[i].v[0] = temp.v[0];
+                    texture_color[i].v[1] = temp.v[1];
+                    texture_color[i].v[2] = temp.v[2];
+                    texture_color[i].v[3] = temp.v[3];
 
                     /*FILE *f = fopen("test.bin", "wb");
                     fwrite(texture_data, 1, 0x400000, f);

@@ -166,44 +166,31 @@ void gsp_ExecuteCommandFromSharedMem()
 
                             case 0: //RGBA8
 
-                                r = *inaddr;
-                                inaddr++;
-                                g = *inaddr;
-                                inaddr++;
-                                b = *inaddr;
-                                inaddr++;
-                                a = *inaddr;
-                                inaddr++;
+                                r = *inaddr++;
+                                g = *inaddr++;
+                                b = *inaddr++;
+                                a = *inaddr++;
                                 break;
                             case 0x100: //RGB8
-                                r = *inaddr;
-                                inaddr++;
-                                g = *inaddr;
-                                inaddr++;
-                                b = *inaddr;
-                                inaddr++;
+                                r = *inaddr++;
+                                g = *inaddr++;
+                                b = *inaddr++;
                                 a = 0xFF;
                                 break;
                             case 0x200: { //RGB565
-                                u8 reg1 = *inaddr;
-                                inaddr++;
-                                u8 reg2 = *inaddr;
-                                inaddr++;
-                                r = (reg1&0x1F)<<3;
-                                g = (((reg1 & 0xE0) >> 5) + ((reg2 & 0x7) << 3)) << 2;
-                                b = ((reg2 & 0xF8) >> 3) << 3;
+                                u16 pixel = *inaddr++ + (*inaddr++ << 8);
+                                r = (pixel & 0x1F) << 3;
+                                g = ((pixel >> 5) & 0x3F) << 2;
+                                b = ((pixel >> 11) & 0x1F) << 3;
                                 a = 0xFF;
                             }
                             break;
                             case 0x300: { //RGB5A1
-                                u8 reg1 = *inaddr;
-                                inaddr++;
-                                u8 reg2 = *inaddr;
-                                inaddr++;
-                                r = (reg1 & 0x1F) << 3;
-                                g = (((reg1 & 0xE0) >> 5) + ((reg2 & 0x3) << 3)) << 3;
-                                b = ((reg2 & 0x7C) >> 3) << 3;
-                                if (reg2)a = 0xFF;
+                                u16 pixel = *inaddr++ + (*inaddr++ << 8);
+                                b = ((pixel >> 11) & 0x1F) << 3;
+                                g = ((pixel >> 6) & 0x1F) << 3;
+                                r = ((pixel >> 1) & 0x1F) << 3;
+                                a = ((pixel >> 0) & 1) ? 0xFF : 0;
                             }
                             break;
                             case 0x400: { //RGBA4
@@ -226,56 +213,40 @@ void gsp_ExecuteCommandFromSharedMem()
                             switch (flags & 0x7000) { //input format
 
                             case 0: //RGBA8
-
-                                *outaddr = r;
-                                outaddr++;
-                                *outaddr = g;
-                                outaddr++;
-                                *outaddr = b;
-                                outaddr++;
-                                *outaddr = a;
-                                outaddr++;
+                                *outaddr++ = r;
+                                *outaddr++ = g;
+                                *outaddr++ = b;
+                                *outaddr++ = a;
                                 break;
                             case 0x1000: //RGB8
                                 //if (a)
                             {
-                                *outaddr = r;
-                                outaddr++;
-                                *outaddr = g;
-                                outaddr++;
-                                *outaddr = b;
-                                outaddr++;
+                                *outaddr++ = r;
+                                *outaddr++ = g;
+                                *outaddr++ = b;
                             }
                                 /*else //this is somethimes used but sometimes not
                                 {
-                                    *outaddr = 0;
-                                    outaddr++;
-                                    *outaddr = 0;
-                                    outaddr++;
-                                    *outaddr = 0;
-                                    outaddr++;
+                                    *outaddr++ = 0;
+                                    *outaddr++ = 0;
+                                    *outaddr++ = 0;
                                 }*/
                             break;
                             case 0x2000: { //RGB565
                                 u16 result = (r >> 3) | ((g >> 2) << 5) | ((b >> 3) << 11);
-                                *outaddr = result & 0xFF;
-                                outaddr++;
-                                *outaddr = (result >> 8) & 0xFF;
-                                outaddr++;
+                                *outaddr++ = result & 0xFF;
+                                *outaddr++ = (result >> 8) & 0xFF;
                             }
                             break;
                             case 0x3000: //RGB5A1
-                                *outaddr = (r >> 3) | (((g >> 3) << 5) & 0xE0);
-                                outaddr++;
+                                *outaddr++ = (r >> 3) | (((g >> 3) << 5) & 0xE0);
                                 *outaddr = (u8)((b >> 3) << 3) | ((g >> 3) & 0x7);
                                 if (a) *outaddr |= 0x80;
                                 outaddr++;
                                 break;
                             case 0x4000: //RGBA4
-                                *outaddr = (r >> 4) | (g & 0xF0);
-                                outaddr++;
-                                *outaddr = (b >> 4) | (a & 0xF0);
-                                outaddr++;
+                                *outaddr++ = (r >> 4) | (g & 0xF0);
+                                *outaddr++ = (b >> 4) | (a & 0xF0);
                                 break;
                             default:
                                 GPUDEBUG("error unknow output format\n");

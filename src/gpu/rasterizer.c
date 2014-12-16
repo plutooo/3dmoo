@@ -299,6 +299,34 @@ static u8 GetAlphaModifier(u32 factor, u8 value)
 }
 
 typedef enum{
+    ClampToEdge = 0,
+    Repeat = 2,
+} WrapMode;
+static int GetWrappedTexCoord(WrapMode wrap, int val, int size)
+{
+#define MAX(x, y) (((x) > (y)) ? (x) : (y))
+#define MIN(x, y) (((x) < (y)) ? (x) : (y))
+    switch(wrap)
+    {
+        case ClampToEdge:
+            val = MAX(val, 0);
+            val = MIN(val, size - 1);
+            break;
+        case Repeat:
+            val %= size;
+            break;
+        default:
+            DEBUG("Unknown wrap format %08X", wrap);
+            val = 0;
+            break;
+    }
+
+    return val;
+#undef MAX
+#undef MIN
+}
+
+typedef enum{
     RGBA8 = 0,
     RGB8 = 1,
     RGBA5551 = 2,
@@ -556,6 +584,7 @@ const struct clov4 LookupTexture(const u8* source, int x, int y, const TextureFo
 
     return ret;
 }
+
 void rasterizer_ProcessTriangle(const struct OutputVertex *v0,
                                 const struct OutputVertex * v1,
                                 const struct OutputVertex * v2)
@@ -656,23 +685,45 @@ void rasterizer_ProcessTriangle(const struct OutputVertex *v0,
                     int t;
                     int row_stride;
                     int format;
+                    int height;
+                    int width;
+                    int wrap_s;
+                    int wrap_t;
                     switch (i) {
                     case 0:
-                        s = (int)(u * (GPU_Regs[TEXTURCONFIG0SIZE] >> 16));
+                        height = (GPU_Regs[TEXTURCONFIG0SIZE] & 0xFFFF);
+                        width = (GPU_Regs[TEXTURCONFIG0SIZE] >> 16);
+                        wrap_s = (GPU_Regs[TEXTURCONFIG0SIZE] >> 8) & 3;
+                        wrap_t = (GPU_Regs[TEXTURCONFIG0SIZE] >> 11) & 3;
+                        s = (int)(u * width);
+                        s = GetWrappedTexCoord((WrapMode)wrap_s, s, width);
                         t = (int)(v * (GPU_Regs[TEXTURCONFIG0SIZE] & 0xFFFF));
-                        row_stride = NibblesPerPixel(format) * (GPU_Regs[TEXTURCONFIG0SIZE] >> 16) / 2;
+                        t = GetWrappedTexCoord((WrapMode)wrap_t, t, height);
+                        row_stride = NibblesPerPixel(format) * width / 2;
                         format = GPU_Regs[TEXTURCONFIG0TYPE] & 0xF;
                         break;
                     case 1:
-                        s = (int)(u * (GPU_Regs[TEXTURCONFIG1SIZE] >> 16));
+                        height = (GPU_Regs[TEXTURCONFIG1SIZE] & 0xFFFF);
+                        width = (GPU_Regs[TEXTURCONFIG1SIZE] >> 16);
+                        wrap_s = (GPU_Regs[TEXTURCONFIG1SIZE] >> 8) & 3;
+                        wrap_t = (GPU_Regs[TEXTURCONFIG1SIZE] >> 11) & 3;
+                        s = (int)(u * width);
+                        s = GetWrappedTexCoord((WrapMode)wrap_s, s, width);
                         t = (int)(v * (GPU_Regs[TEXTURCONFIG1SIZE] & 0xFFFF));
-                        row_stride = NibblesPerPixel(format) * (GPU_Regs[TEXTURCONFIG1SIZE] >> 16) / 2;
+                        t = GetWrappedTexCoord((WrapMode)wrap_t, t, height);
+                        row_stride = NibblesPerPixel(format) * width / 2;
                         format = GPU_Regs[TEXTURCONFIG1TYPE] & 0xF;
                         break;
                     case 2:
-                        s = (int)(u * (GPU_Regs[TEXTURCONFIG2SIZE] >> 16));
+                        height = (GPU_Regs[TEXTURCONFIG2SIZE] & 0xFFFF);
+                        width = (GPU_Regs[TEXTURCONFIG2SIZE] >> 16);
+                        wrap_s = (GPU_Regs[TEXTURCONFIG2SIZE] >> 8) & 3;
+                        wrap_t = (GPU_Regs[TEXTURCONFIG2SIZE] >> 11) & 3;
+                        s = (int)(u * width);
+                        s = GetWrappedTexCoord((WrapMode)wrap_s, s, width);
                         t = (int)(v * (GPU_Regs[TEXTURCONFIG2SIZE] & 0xFFFF));
-                        row_stride = NibblesPerPixel(format) * (GPU_Regs[TEXTURCONFIG2SIZE] >> 16) / 2;
+                        t = GetWrappedTexCoord((WrapMode)wrap_t, t, height);
+                        row_stride = NibblesPerPixel(format) * width / 2;
                         format = GPU_Regs[TEXTURCONFIG2TYPE] & 0xF;
                         break;
                     }

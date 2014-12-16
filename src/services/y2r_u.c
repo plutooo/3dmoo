@@ -42,9 +42,73 @@ SERVICE_CMD(0x000F0000)   // ???
     return 0;
 }
 
+SERVICE_CMD(0x00010040)   // ???
+{
+    DEBUG("Unknown_10040 --todo-- %08x %08x %08x\n", CMD(1), CMD(2), CMD(3));
+
+    RESP(1, 0); // Result
+    return 0;
+}
+
+SERVICE_CMD(0x0001a0040)   // ???
+{
+    DEBUG("Unknown_1a0040 --todo-- %08x %08x %08x\n", CMD(1), CMD(2), CMD(3));
+
+    RESP(1, 0); // Result
+    return 0;
+}
+
+SERVICE_CMD(0x0001c0040)   // ???
+{
+    DEBUG("Unknown_1c0040 --todo-- %08x %08x %08x\n", CMD(1), CMD(2), CMD(3));
+
+    RESP(1, 0); // Result
+    return 0;
+}
+
+SERVICE_CMD(0x00200040)   // ???
+{
+    DEBUG("Unknown_200040 --todo-- %08x %08x %08x\n", CMD(1), CMD(2), CMD(3));
+
+    RESP(1, 0); // Result
+    return 0;
+}
+
+SERVICE_CMD(0x00220040)   // ???
+{
+    DEBUG("Unknown_220040 --todo-- %08x %08x %08x\n", CMD(1), CMD(2), CMD(3));
+
+    RESP(1, 0); // Result
+    return 0;
+}
+
 SERVICE_CMD(0x002B0000)   // ???
 {
     DEBUG("Unknown_2B0000 --todo-- %08x %08x %08x\n", CMD(1), CMD(2), CMD(3));
+
+    RESP(1, 0); // Result
+    return 0;
+}
+
+SERVICE_CMD(0x00030040)   // ???
+{
+    DEBUG("Unknown_30040 --todo-- %08x %08x %08x\n", CMD(1), CMD(2), CMD(3));
+
+    RESP(1, 0); // Result
+    return 0;
+}
+
+SERVICE_CMD(0x00050040)   // ???
+{
+    DEBUG("Unknown_50040 --todo-- %08x %08x %08x\n", CMD(1), CMD(2), CMD(3));
+
+    RESP(1, 0); // Result
+    return 0;
+}
+
+SERVICE_CMD(0x00070040)   // ???
+{
+    DEBUG("Unknown_70040 --todo-- %08x %08x %08x\n", CMD(1), CMD(2), CMD(3));
 
     RESP(1, 0); // Result
     return 0;

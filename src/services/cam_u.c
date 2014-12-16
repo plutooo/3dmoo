@@ -24,27 +24,108 @@
 
 SERVICE_START(cam_u);
 
-SERVICE_CMD(0x390000) //uk39
+SERVICE_CMD(0x50040)   //unk5
 {
-    DEBUG("unk39\n");
+    DEBUG("unk5 %08x\n", CMD(1));
     RESP(1, 0); // Result
     return 0;
 }
-SERVICE_CMD(0x80040)   //uk8
-{
-    DEBUG("unk8 %08x\n",CMD(1));
-    RESP(1, 0); // Result
-    return 0;
-}
-SERVICE_CMD(0x60040)   //uk6
+
+SERVICE_CMD(0x60040)   //unk6
 {
     DEBUG("unk6 %08x\n", CMD(1));
     RESP(1, 0); // Result
     return 0;
 }
-SERVICE_CMD(0x50040)   //uk5
+
+SERVICE_CMD(0x80040)   //unk8
 {
-    DEBUG("unk5 %08x\n", CMD(1));
+    DEBUG("unk8 %08x\n", CMD(1));
+    RESP(1, 0); // Result
+    return 0;
+}
+
+SERVICE_CMD(0x90100)   //unk9
+{
+    DEBUG("unk9 %08x\n", CMD(1));
+    RESP(1, 0); // Result
+    return 0;
+}
+
+SERVICE_CMD(0xa0080)   //unkA
+{
+    DEBUG("unkA %08x\n", CMD(1));
+    RESP(1, 0); // Result
+    return 0;
+}
+
+SERVICE_CMD(0xe0080)   //unkE
+{
+    DEBUG("unkE %08x\n", CMD(1));
+    RESP(1, 0); // Result
+    return 0;
+}
+
+
+SERVICE_CMD(0x180080)   //unk18
+{
+    DEBUG("unk18 %08x\n", CMD(1));
+    RESP(1, 0); // Result
+    return 0;
+}
+
+SERVICE_CMD(0x190080)   //unk19
+{
+    DEBUG("unk19 %08x\n", CMD(1));
+    RESP(1, 0); // Result
+    return 0;
+}
+
+SERVICE_CMD(0x1B0080)   //unk1B
+{
+    DEBUG("unk1B %08x\n", CMD(1));
+    RESP(1, 0); // Result
+    return 0;
+}
+
+SERVICE_CMD(0x1F00C0)   //unk1F
+{
+    DEBUG("unk1F %08x\n", CMD(1));
+    RESP(1, 0); // Result
+    return 0;
+}
+
+SERVICE_CMD(0x200080)   //unk20
+{
+    DEBUG("unk20 %08x\n", CMD(1));
+    RESP(1, 0); // Result
+    return 0;
+}
+
+SERVICE_CMD(0x2B0000)   //unk2B
+{
+    DEBUG("unk2B %08x\n", CMD(1));
+    RESP(1, 0); // Result
+    return 0;
+}
+
+SERVICE_CMD(0x360000) //unk36
+{
+    DEBUG("unk36\n");
+    RESP(1, 0); // Result
+    return 0;
+}
+
+SERVICE_CMD(0x390000) //unk39
+{
+    DEBUG("unk39\n");
+    RESP(1, 0); // Result
+    return 0;
+}
+
+SERVICE_CMD(0x3A0000) //unk3A
+{
+    DEBUG("unk3A\n");
     RESP(1, 0); // Result
     return 0;
 }

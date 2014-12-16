@@ -6324,7 +6324,7 @@ L_stm_s_takeabort:
                 }
                 // SMUSD
                 else if ((instr & 0xf0d0) == 0xf050) {
-                    state->Reg[rd_idx] = (rn_lo * rm_lo) + (rn_hi * rm_hi);
+                    state->Reg[rd_idx] = (rn_lo * rm_lo) - (rn_hi * rm_hi);
                 }
                 // SMLAD
                 else {

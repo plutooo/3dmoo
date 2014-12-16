@@ -75,7 +75,8 @@ u32 svcCreatePort();
 u32 svcAcceptSession();
 
 //syscalls/timer.c
-u32 svccreatetimer();
+u32 svcCreateTimer();
+u32 svcSetTimer();
 
 //syscalls/resource_limit.c
 u32 svcGetResourceLimitCurrentValues();

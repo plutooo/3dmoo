@@ -45,6 +45,7 @@
 #define HANDLE_TYPE_HTTPCont                16
 #define HANDLE_TYPE_SERVICE_UNMOUNTED       17
 #define HANDLE_TYPE_SERVICE_SERVER          18
+#define HANDLE_TYPE_TIMER                   19
 
 
 #define PORT_TYPE_SRV         0
@@ -206,6 +207,8 @@ u32 svc_unmountSyncRequest(handleinfo* h, bool *locked);
 u32 svc_serverSyncRequest(handleinfo* h, bool *locked);
 u32 svc_serverWaitSynchronization(handleinfo* h, bool *locked);
 
+u32 timer_WaitSynchronization(handleinfo* h, bool *locked);
+
 static struct {
     const char* name;
     u32(*fnSyncRequest)(handleinfo* h, bool *locked);
@@ -326,5 +329,11 @@ static struct {
         &svc_serverSyncRequest,
         NULL,
         &svc_serverWaitSynchronization
+    },
+    {
+        "timer",
+        NULL,
+        NULL,
+        &timer_WaitSynchronization
     }
 };

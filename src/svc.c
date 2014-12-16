@@ -205,7 +205,10 @@ void svc_Execute(ARMul_State * state, u8 num)
         arm11_SetR(0, svcClearEvent());
         return;
     case 0x1A:
-        arm11_SetR(0, svccreatetimer());
+        arm11_SetR(0, svcCreateTimer());
+        return;
+    case 0x1B:
+        arm11_SetR(0, svcSetTimer());
         return;
     case 0x1E:
         arm11_SetR(0, svcCreateMemoryBlock());
@@ -310,7 +313,7 @@ void svc_Execute(ARMul_State * state, u8 num)
 
     default:
         //Lets not error yet
-        ERROR("Syscall not implemented.\n");
+        ERROR("Syscall (%02X) not implemented.\n", num);
         arm11_SetR(0, -1);
         break;
 

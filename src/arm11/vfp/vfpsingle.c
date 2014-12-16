@@ -1136,7 +1136,9 @@ static u32 vfp_single_fsub(ARMul_State* state, int sd, int sn, s32 m, u32 fpscr)
     /*
      * Subtraction is addition with one sign inverted.
      */
-    return vfp_single_fadd(state, sd, sn, vfp_single_packed_negate(m), fpscr);
+    if(m != 0x7fc00000) //Only negate if m isn't NaN
+        m = vfp_single_packed_negate(m);
+    return vfp_single_fadd(state, sd, sn, m, fpscr);
 }
 
 /*

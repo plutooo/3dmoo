@@ -6314,8 +6314,9 @@ L_stm_s_takeabort:
                 u32 rm_val = state->Reg[rm_idx];
                 const u32 rn_val = state->Reg[rn_idx];
 
-                if (do_swap)
+                if (do_swap) {
                     rm_val = (((rm_val & 0xFFFF) << 16) | (rm_val >> 16));
+                }
 
                 const s16 rm_lo = (rm_val & 0xFFFF);
                 const s16 rm_hi = ((rm_val >> 16) & 0xFFFF);

@@ -497,6 +497,7 @@ archive* sdmc_OpenArchive(file_path path)
     arch->fnFileExists = &sdmc_FileExists;
     arch->fnOpenFile = &sdmc_OpenFile;
     arch->fnDeinitialize = &sdmc_Deinitialize;
+    arch->result = 0;
 
     u8 buf[8];
 

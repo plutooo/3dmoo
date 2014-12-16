@@ -685,16 +685,16 @@ void rasterizer_ProcessTriangle(const struct OutputVertex *v0,
             for (int i = 0; i < 3; ++i) {
                 if (GPU_Regs[TEXTURINGSETINGS80] & (0x1<<i)) {
                     // TODO: This is currently hardcoded for RGB8
-                    u32* texture_data;
+                    u8* texture_data;
                     switch (i) {
                     case 0:
-                        texture_data = (u32*)(get_pymembuffer(GPU_Regs[TEXTURCONFIG0ADDR] << 3));
+                        texture_data = (u8*)(get_pymembuffer(GPU_Regs[TEXTURCONFIG0ADDR] << 3));
                         break;
                     case 1:
-                        texture_data = (u32*)(get_pymembuffer(GPU_Regs[TEXTURCONFIG1ADDR] << 3));
+                        texture_data = (u8*)(get_pymembuffer(GPU_Regs[TEXTURCONFIG1ADDR] << 3));
                         break;
                     case 2:
-                        texture_data = (u32*)(get_pymembuffer(GPU_Regs[TEXTURCONFIG2ADDR] << 3));
+                        texture_data = (u8*)(get_pymembuffer(GPU_Regs[TEXTURCONFIG2ADDR] << 3));
                         break;
                     }
 

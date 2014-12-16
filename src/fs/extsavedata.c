@@ -255,5 +255,7 @@ archive* extsavedata_OpenArchive(file_path path)
     snprintf(arch->type_specific.sysdata.path,
              sizeof(arch->type_specific.sysdata.path),
              "");
+
+    arch->result = 0;
     return arch;
 }

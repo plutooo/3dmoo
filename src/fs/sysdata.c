@@ -351,6 +351,7 @@ archive* sysdata_OpenArchive(file_path path)
     arch->fnFileExists   = &sysdata_FileExists;
     arch->fnOpenFile     = &sysdata_OpenFile;
     arch->fnDeinitialize = &sysdata_Deinitialize;
+    arch->result = 0;
 
     u8 buf[8];
 

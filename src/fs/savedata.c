@@ -26,6 +26,7 @@
 #include "mem.h"
 #include "handles.h"
 #include "fs.h"
+#include "loader.h"
 
 #ifdef _WIN32
 #include <direct.h>
@@ -230,8 +231,8 @@ static u32 savedata_OpenDir(archive* self, file_path path)
     dir->fnRead = &savedata_ReadDir;
 
     char tmp[256];
-    snprintf(dir->path, 256, "savedata/%s",
-             fs_PathToString(path.type, path.ptr, path.size, tmp, 256));
+    snprintf(dir->path, 256, "savedata/%s/%s",
+             loader_h.productcode, fs_PathToString(path.type, path.ptr, path.size, tmp, 256));
 
     dir->dir = opendir(dir->path);
 
@@ -253,8 +254,8 @@ static bool savedata_FileExists(archive* self, file_path path)
     struct stat st;
 
     // Generate path on host file system
-    snprintf(p, 256, "savedata/%s",
-             fs_PathToString(path.type, path.ptr, path.size, tmp, 256));
+    snprintf(p, 256, "savedata/%s/%s",
+             loader_h.productcode, fs_PathToString(path.type, path.ptr, path.size, tmp, 256));
 
     if(!fs_IsSafePath(p)) {
         ERROR("Got unsafe path.\n");
@@ -269,8 +270,8 @@ static u32 savedata_OpenFile(archive* self, file_path path, u32 flags, u32 attr)
     char p[256], tmp[256];
 
     // Generate path on host file system
-    snprintf(p, 256, "savedata/%s",
-             fs_PathToString(path.type, path.ptr, path.size, tmp, 256));
+    snprintf(p, 256, "savedata/%s/%s",
+             loader_h.productcode, fs_PathToString(path.type, path.ptr, path.size, tmp, 256));
 
     if(!fs_IsSafePath(p)) {
         ERROR("Got unsafe path.\n");
@@ -342,8 +343,8 @@ int savedata_CreateDir(archive* self, file_path path)
     char p[256], tmp[256];
 
     // Generate path on host file system
-    snprintf(p, 256, "savedata/%s",
-             fs_PathToString(path.type, path.ptr, path.size, tmp, 256));
+    snprintf(p, 256, "savedata/%s/%s",
+             loader_h.productcode, fs_PathToString(path.type, path.ptr, path.size, tmp, 256));
 
     if (!fs_IsSafePath(p)) {
         ERROR("Got unsafe path.\n");
@@ -361,8 +362,8 @@ int savedata_DeleteDir(archive* self, file_path path)
 	char p[256], tmp[256];
 
 	// Generate path on host file system
-	snprintf(p, 256, "savedata/%s",
-		fs_PathToString(path.type, path.ptr, path.size, tmp, 256));
+	snprintf(p, 256, "savedata/%s/%s",
+             loader_h.productcode, fs_PathToString(path.type, path.ptr, path.size, tmp, 256));
 
 	if (!fs_IsSafePath(p)) {
 		ERROR("Got unsafe path.\n");
@@ -379,6 +380,25 @@ static void savedata_Deinitialize(archive* self)
 {
     // Free yourself
     free(self);
+}
+
+static u32 savedata_GetResult()
+{
+    char p[256];
+    struct stat st;
+
+    // Generate path on host file system
+    snprintf(p, 256, "savedata/%s", loader_h.productcode);
+
+    if(!fs_IsSafePath(p)) {
+        ERROR("Got unsafe path.\n");
+        return false;
+    }
+
+    if(stat(p, &st) == 0)
+        return 0;
+    else
+        return 0xc8a04554; //Not formatted?
 }
 
 archive* savedata_OpenArchive(file_path path)
@@ -401,8 +421,11 @@ archive* savedata_OpenArchive(file_path path)
 	arch->fnRenameDir = NULL;
     arch->fnDeinitialize = &savedata_Deinitialize;
 
+    arch->result = savedata_GetResult();
+
     snprintf(arch->type_specific.sysdata.path,
              sizeof(arch->type_specific.sysdata.path),
              "");
+
     return arch;
 }

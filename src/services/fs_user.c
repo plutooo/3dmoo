@@ -3,6 +3,7 @@
 #include "fs.h"
 #include "mem.h"
 #include "config.h"
+#include "loader.h"
 
 #include "service_macros.h"
 
@@ -425,7 +426,7 @@ SERVICE_CMD(0x080201C2)   // OpenFile
         if(file_handle == 0) {
             ERROR("OpenFile has failed.\n");
             arm11_Dump();
-            RESP(1, -1);
+            RESP(1, 0xc8804464);
             return 0;
         }
     } else {
@@ -667,7 +668,7 @@ SERVICE_CMD(0x080C00C2)   // OpenArchive
 
     u32 arch_handle = handle_New(HANDLE_TYPE_ARCHIVE, (uintptr_t) arch);
 
-    RESP(1, 0); // Result
+    RESP(1, arch->result); // Result
     RESP(2, 0xdeadc0de); // Arch handle lo (not used)
     RESP(3, arch_handle);  // Arch handle hi
     return 0;
@@ -802,6 +803,15 @@ SERVICE_CMD(0x084500c2)   // GetFormatInfo
 SERVICE_CMD(0x084c0242)   // FormatSaveData
 {
 	DEBUG("FormatSaveData %08x %08x %08x %08x %08x %08x %08x %08x --todo--\n", CMD(1), CMD(2), CMD(3), CMD(4), CMD(5), CMD(6), CMD(7), CMD(8));
+
+    char p[256];
+    snprintf(p, 256, "savedata/%s", loader_h.productcode);
+
+#ifdef _MSC_VER 
+    return _mkdir(p);
+#else
+    return mkdir(p, 0777);
+#endif
 
 	RESP(1, 0);
 	return 0;

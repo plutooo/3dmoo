@@ -73,6 +73,8 @@ struct _archive {
         } sysdata;
 
     } type_specific;
+
+    u32 result;
 };
 
 typedef struct _dir_type dir_type;

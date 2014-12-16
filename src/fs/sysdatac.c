@@ -264,6 +264,7 @@ archive* SaveDatacheck_OpenArchive(file_path path)
     arch->fnFileExists = &SaveDatacheck_FileExists;
     arch->fnOpenFile = &SaveDatacheck_OpenFile;
     arch->fnDeinitialize = &SaveDatacheck_Deinitialize;
+    arch->result = 0;
 
     u8 buf[0x10];
 

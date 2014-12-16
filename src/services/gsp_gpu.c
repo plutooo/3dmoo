@@ -523,6 +523,14 @@ SERVICE_CMD(0xC0000) // TriggerCmdReqQueue
     return 0;
 }
 
+SERVICE_CMD(0x00100040) // SetAxiConfigQoSMode
+{
+    GPUDEBUG("SetAxiConfigQoSMode\n");
+
+    RESP(1, 0);
+    return 0;
+}
+
 SERVICE_CMD(0x130042) // RegisterInterruptRelayQueue
 {
     GPUDEBUG("RegisterInterruptRelayQueue %08x %08x\n",

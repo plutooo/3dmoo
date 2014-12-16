@@ -294,6 +294,7 @@ archive* sharedextd_OpenArchive(file_path path)
     arch->fnFileExists   = &sharedextd_FileExists;
     arch->fnOpenFile     = &sharedextd_OpenFile;
     arch->fnDeinitialize = &sharedextd_Deinitialize;
+    arch->result = 0;
 
     u8 buf[12];
 

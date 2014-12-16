@@ -333,12 +333,14 @@ typedef enum{
     RGB565 = 3,
     RGBA4 = 4,
     IA8 = 5,
-
+    HILO8 = 6,
     I8 = 7,
     A8 = 8,
     IA4 = 9,
-
+    I4 = 10,
     A4 = 11,
+    ETC1 = 12,
+    ETC1A4 = 13,
     // TODO: Support for the other formats is not implemented, yet.
     // Seems like they are luminance formats and compressed textures.
 } TextureFormat;
@@ -554,6 +556,21 @@ const struct clov4 LookupTexture(const u8* source, int x, int y, const TextureFo
             break;
         }
 
+        case I4:
+        {
+            const u8* source_ptr = source + coarse_x * block_height / 2 + coarse_y * stride + texel_index_within_tile / 2;
+
+            // TODO: Order?
+            u8 i = (coarse_x % 2) ? ((*source_ptr) & 0xF) : (((*source_ptr) & 0xF0) >> 4);
+            i |= i << 4;
+
+            ret.v[0] = i;
+            ret.v[1] = i;
+            ret.v[2] = i;
+            ret.v[3] = 255;
+            break;
+        }
+
         case A4:
         {
             const u8* source_ptr = source + coarse_x * block_height / 2 + coarse_y * stride + texel_index_within_tile / 2;
@@ -564,21 +581,21 @@ const struct clov4 LookupTexture(const u8* source, int x, int y, const TextureFo
 
             // TODO: Better control this...
             if(disable_alpha) {
-                ret.v[0] = *source_ptr;
-                ret.v[1] = *source_ptr;
-                ret.v[2] = *source_ptr;
+                ret.v[0] = a;
+                ret.v[1] = a;
+                ret.v[2] = a;
                 ret.v[3] = 255;
             }
             else {
                 ret.v[0] = 0;
                 ret.v[1] = 0;
                 ret.v[2] = 0;
-                ret.v[3] = *source_ptr;
+                ret.v[3] = a;
             }
         }
 
         default:
-            DEBUG("Unknown texture format: %x", (u32)format);
+            DEBUG("Unknown texture format: 0x%08X\n", (u32)format);
             break;
     }
 

@@ -131,7 +131,7 @@ static archive romfs = {
     .fnDeleteDir    = NULL,
     .fnDeleteFile   = NULL,
     .fnRenameDir    = NULL,
-    .fnRenameFile   = NULL
+    .fnRenameFile   = NULL,
     .result = 0
 };
 

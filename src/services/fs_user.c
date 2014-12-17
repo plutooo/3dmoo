@@ -423,7 +423,7 @@ SERVICE_CMD(0x080201C2)   // OpenFile
 
         if(file_handle == 0) {
             ERROR("OpenFile has failed.\n");
-            arm11_Dump();
+            //arm11_Dump();
             RESP(1, 0xc8804464);
             return 0;
         }
@@ -473,7 +473,7 @@ SERVICE_CMD(0x080b0102) //OpenDirectory
 
         if (file_handle == 0) {
             ERROR("Dir has failed.\n");
-            RESP(1, -1);
+            RESP(1, 0xc8804464);
             return 0;
         }
     } else {
@@ -540,7 +540,7 @@ SERVICE_CMD(0x08030204)   // OpenFileDirectly
                 RESP(3, file_handle); // File handle
             } else {
                 ERROR("OpenFile not implemented for %x\n", arch_id);
-                RESP(1, -1);
+                RESP(1, 0xc8804464);
             }
 
             if(arch->fnDeinitialize != NULL)
@@ -714,7 +714,16 @@ SERVICE_CMD(0x080E0080)   // CloseArchive
 
 SERVICE_CMD(0x080F0180)   // FormatThisUserSaveData
 {
-    DEBUG("FormatThisUserSaveData\n");
+    DEBUG("FormatThisUserSaveData %08x %08x %08x %08x %08x %08x %08x %08x --todo--\n", CMD(1), CMD(2), CMD(3), CMD(4), CMD(5), CMD(6), CMD(7), CMD(8));
+
+    char p[256];
+    snprintf(p, 256, "savedata/%s", loader_h.productcode);
+
+#ifdef _MSC_VER 
+    return _mkdir(p);
+#else
+    return mkdir(p, 0777);
+#endif
 
     RESP(1, 0);
     return 0;

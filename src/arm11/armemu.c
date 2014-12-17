@@ -6286,7 +6286,7 @@ L_stm_s_takeabort:
                     if(DEST & 0x8000)
                         DEST |= 0xffff0000;
                     //printf("Unhandled v6 insn: revsh\n");
-                    return 0;
+                    return 1;
                 }
 				default:
 					break;

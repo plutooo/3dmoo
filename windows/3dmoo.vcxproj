@@ -375,6 +375,7 @@
     <ClInclude Include="..\src\arm11\arm_regformat.h" />
     <ClInclude Include="..\src\arm11\vfp\asm_vfp.h" />
     <ClInclude Include="..\src\arm11\vfp\vfp.h" />
+    <ClInclude Include="..\src\arm11\vfp\vfpdouble.h" />
     <ClInclude Include="..\src\arm11\vfp\vfp_helper.h" />
     <ClInclude Include="..\src\services\service_macros.h" />
   </ItemGroup>

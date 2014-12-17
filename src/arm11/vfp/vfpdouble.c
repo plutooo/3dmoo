@@ -53,6 +53,8 @@
 
 #include "vfp_helper.h"
 #include "asm_vfp.h"
+#include "vfpdouble.h"
+
 
 static struct vfp_double vfp_double_default_qnan = {
     .exponent	= 2047,

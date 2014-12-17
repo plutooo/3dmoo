@@ -31,6 +31,144 @@ size_t APTs_sharedfontsize = 0;
 
 SERVICE_START(apt_a);
 
+SERVICE_CMD(0x30040)
+{
+    u32 unk = CMD(1);
+    DEBUG("Enable?, unk=%08x\n", unk);
+
+    RESP(1, 0); // Result
+    return 0;
+}
+
+SERVICE_CMD(0xd0080)
+{
+    u32 appID = CMD(1);
+    u32 bufSize = CMD(2);
+    DEBUG("ReceiveParameter, appID=%08x, bufSize=%08x\n", appID, bufSize);
+
+    RESP(1, 0); // Result
+    RESP(2, 0); // AppId of triggering process
+    RESP(3, 1); // Signal type (1=app just started, 0xb=returning to app, 0xc=exiting app)
+    RESP(4, 0x10);
+    RESP(5, 0); // Some handle
+    RESP(6, 0); // (bufSize<<14) | 2
+    RESP(7, 0); // bufPtr
+
+    return 0;
+}
+
+SERVICE_CMD(0xe0080)
+{
+    u32 appID = CMD(1);
+    u32 bufSize = CMD(2);
+    DEBUG("GlanceParameter, appID=%08x, bufSize=%08x\n", appID, bufSize);
+
+    RESP(1, 0); // Result
+    RESP(2, 0); // AppId of triggering process
+    RESP(3, 1); // Signal type (1=app just started, 0xb=returning to app, 0xc=exiting app)
+    RESP(4, 0x10);
+    RESP(5, 0); // Some handle
+    RESP(6, 0); // (bufSize<<14) | 2
+    RESP(7, 0); // bufPtr
+
+    return 0;
+}
+
+SERVICE_CMD(0x430040)
+{
+    u32 app_id = CMD(1);
+    DEBUG("NotifyToWait?, app_id=%08x\n", app_id);
+    handleinfo* hi = handle_Get(event_handles[1]); //unlock
+    if(hi != NULL) hi->locked = false;
+
+    RESP(1, 0); // Result
+    return 0;
+}
+
+SERVICE_CMD(0x440000)
+{
+    DEBUG("GetSharedFont\n");
+
+    // Load shared binary from sys/shared_font.bin
+    if(APTs_sharedfont == NULL) {
+        FILE* fd = fopen("sys/shared_font.bin", "rb");
+
+        if(fd == NULL) {
+            ERROR("No shared font available. Please put one in: sys/shared_font.bin\n");
+            RESP(1, -1);
+            return 0;
+        }
+
+        // Get file size
+        fseek(fd, 0, SEEK_END);
+        APTs_sharedfontsize = ftell(fd);
+        fseek(fd, 0, SEEK_SET);
+
+        // Allocate buffer for font
+        APTs_sharedfont = malloc(APTs_sharedfontsize + 4);
+
+        if(APTs_sharedfont == NULL) {
+            ERROR("malloc() failed trying to read shared font.\n");
+            fclose(fd);
+            RESP(1, -1);
+            return 0;
+        }
+
+        // Read it
+        if(fread(APTs_sharedfont, APTs_sharedfontsize, 1, fd) != 1) {
+            ERROR("fread() failed trying to read shared font.\n");
+            fclose(fd);
+            free(APTs_sharedfont);
+            APTs_sharedfont = NULL;
+            RESP(1, -1);
+            return 0;
+        }
+
+        /*APTs_sharedfont[3] = 0x2;
+        APTs_sharedfont[2] = 0x0;
+        APTs_sharedfont[1] = 0x0;
+        APTs_sharedfont[0] = 0x0; */
+
+        fclose(fd);
+    }
+
+    RESP(1, 0); // Result
+    RESP(2, 0x18000000); // mem addr
+
+    // Handle for shared memory
+    RESP(4, handle_New(HANDLE_TYPE_SHAREDMEM, MEM_TYPE_APT_S_SHARED_FONT));
+    return 0;
+}
+
+SERVICE_CMD(0x4b00c2)   //AppletUtility
+{
+    u32 unk = CMD(1);
+    u32 pointeresize = CMD(2);
+    u32 pointerzsize = CMD(3);
+    u32 pointere = CMD(5);
+    u32 pointerz = EXTENDED_CMD(1);
+    u8* data = (u8*)malloc(pointeresize + 1);
+    u32 i;
+
+    DEBUG("AppletUtility %08x (%08x %08x,%08x %08x)\n", unk, pointere, pointeresize, pointerz, pointerzsize);
+
+    // Dump data.
+    mem_Read(data, pointere, pointeresize);
+
+    for(i = 0; i < pointeresize; i++) {
+        if(i % 16 == 0)
+            printf("\n");
+
+        printf("%02x ", data[i]);
+    }
+    printf("\n");
+
+    free(data);
+
+    RESP(1, 0); // Worked
+    return 0;
+}
+
 SERVICE_END();
 
 

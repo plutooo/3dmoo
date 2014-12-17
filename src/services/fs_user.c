@@ -377,8 +377,6 @@ SERVICE_CMD(0x080A0244)   // RenameDirectory
     RESP(1, 0); // Result
     return 0;
 }
-
-
 SERVICE_CMD(0x080201C2)   // OpenFile
 {
     u32 transaction       = CMD(1);
@@ -700,6 +698,14 @@ SERVICE_CMD(0x080E0080)   // CloseArchive
     }
 
     RESP(1, rc);
+    return 0;
+}
+
+SERVICE_CMD(0x080F0180)   // FormatThisUserSaveData
+{
+    DEBUG("FormatThisUserSaveData\n");
+
+    RESP(1, 0);
     return 0;
 }
 

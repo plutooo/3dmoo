@@ -6142,9 +6142,11 @@ L_stm_s_takeabort:
 					break;
 
 				case 0xf3:
+                    //REV
 					DEST = ((RHS & 0xFF) << 24) | ((RHS & 0xFF00)) << 8 | ((RHS & 0xFF0000) >> 8) | ((RHS & 0xFF000000) >> 24);
 					return 1;
 				case 0xfb:
+                    //REV16
 					DEST = ((RHS & 0xFF) << 8) | ((RHS & 0xFF00)) >> 8 | ((RHS & 0xFF0000) << 8) | ((RHS & 0xFF000000) >> 8);
 					return 1;
 				default:
@@ -6271,9 +6273,15 @@ L_stm_s_takeabort:
 					ror = 24;
 					break;
 
-				case 0xfb:
-					printf("Unhandled v6 insn: revsh\n");
-					return 0;
+                case 0xfb:
+                {
+                    //REVSH
+                    DEST = ((RHS & 0xFF) << 8) | ((RHS & 0xFF00) >> 8);
+                    if(DEST & 0x8000)
+                        DEST |= 0xffff0000;
+                    //printf("Unhandled v6 insn: revsh\n");
+                    return 0;
+                }
 				default:
 					break;
 			}

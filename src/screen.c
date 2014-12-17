@@ -26,9 +26,6 @@ SDL_Renderer *renderer = NULL;
 SDL_Texture *bitmapTex = NULL;
 SDL_Surface *bitmapSurface = NULL;
 
-u32 topScreenFormat;
-u32 bottomScreenFormat;
-
 void screen_Init()
 {
     SDL_Init(SDL_INIT_EVERYTHING);
@@ -167,7 +164,7 @@ void screen_RenderFramebuffer(u8 *bitmapPixels, u8* buffer, u32 format, u32 widt
             break;
         }
         default:
-            ERROR("Unknown top screen format %08X", topScreenFormat & 7);
+            ERROR("Unknown screen format %08X", format & 7);
             break;
     }
 }
@@ -177,6 +174,9 @@ void screen_RenderGPU()
     u32 addr = 0;
     u8* buffer = 0;
     int updateSurface = 0;
+
+    u32 topScreenFormat = gpu_ReadReg32(frameformattop);
+    u32 bottomScreenFormat = gpu_ReadReg32(frameformatbot);
 
     //Top Screen
     u32 lcdColorFillMain = gpu_ReadReg32(LCDCOLORFILLMAIN);
@@ -192,7 +192,7 @@ void screen_RenderGPU()
         rect.h = 240;
         SDL_FillRect(bitmapSurface, &rect, SDL_MapRGB(bitmapSurface->format, r, g, b));
     } else {
-        u32 addr = ((gpu_ReadReg32(frameselectoben) & 0x1) == 0) ? gpu_ReadReg32(RGBuponeleft) : gpu_ReadReg32(RGBuptwoleft);
+        u32 addr = ((gpu_ReadReg32(frameselecttop) & 0x1) == 0) ? gpu_ReadReg32(RGBuponeleft) : gpu_ReadReg32(RGBuptwoleft);
 
         u8* buffer = get_pymembuffer(addr);
 

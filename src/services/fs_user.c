@@ -7,6 +7,10 @@
 
 #include "service_macros.h"
 
+#ifdef _WIN32
+#include <direct.h>
+#endif
+
 /* _____ File Server Service _____ */
 
 static u32 priority;

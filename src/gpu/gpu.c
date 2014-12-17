@@ -47,7 +47,7 @@ void gpu_Init()
     memset(GSPsharedbuff, 0, GSPsharebuffsize);
     memset(GPUshadercodebuffer, 0, 0xFFFF*4);
 
-    gpu_WriteReg32(frameselectoben, 0);
+    gpu_WriteReg32(frameselecttop, 0);
     gpu_WriteReg32(RGBuponeleft, 0x18000000);
     gpu_WriteReg32(RGBuptwoleft, 0x18000000 + 0x46500 * 1);
     gpu_WriteReg32(RGBuponeright, 0x18000000 + 0x46500 * 2);
@@ -1169,36 +1169,43 @@ void runGPU_Commands(u8* buffer, u32 sizea)
     }
 }
 
-extern u32 topScreenFormat;
-extern u32 bottomScreenFormat;
-
 void updateFramebufferaddr(u32 addr,bool bot)
 {
-    //we use the last in buffer with flag set
     if (!bot) {
-        if ((mem_Read32(addr) & 0x1) == 0)
+        if (mem_Read32(addr) == 0)
             gpu_WriteReg32(RGBuponeleft, convertvirtualtopys(mem_Read32(addr + 4)));
         else
             gpu_WriteReg32(RGBuptwoleft, convertvirtualtopys(mem_Read32(addr + 4)));
-        gpu_WriteReg32(frameselectoben, mem_Read32(addr + 0x14));
-        u32 u90 = mem_Read32(addr + 0xC);
-        u32 format = mem_Read32(addr + 0x10);
-        int i = 0;
 
-        topScreenFormat = format;
-        //the rest is todo
+        if (mem_Read32(addr + 8) == 0)
+        {
+            if (mem_Read32(addr) == 0)
+                gpu_WriteReg32(RGBuponeright, convertvirtualtopys(mem_Read32(addr + 4)));
+            else
+                gpu_WriteReg32(RGBuptworight, convertvirtualtopys(mem_Read32(addr + 4)));
+        }
+        else
+        {
+            if (mem_Read32(addr) == 0)
+                gpu_WriteReg32(RGBuponeright, convertvirtualtopys(mem_Read32(addr + 8)));
+            else
+                gpu_WriteReg32(RGBuptworight, convertvirtualtopys(mem_Read32(addr + 8)));
+        }
+
+        gpu_WriteReg32(framestridetop, mem_Read32(addr + 0xC));
+
+        gpu_WriteReg32(frameformattop, (mem_Read32(addr + 0x10) & 0xFFFF) | (gpu_ReadReg32(frameformatbot)&~0xFFFF));
+        gpu_WriteReg32(frameselecttop, mem_Read32(addr + 0x14) & 0xFF);
     } else {
-        if ((mem_Read32(addr)& 0x1) == 0)
+        if (mem_Read32(addr) == 0)
             gpu_WriteReg32(RGBdownoneleft, convertvirtualtopys(mem_Read32(addr + 4)));
         else
             gpu_WriteReg32(RGBdowntwoleft, convertvirtualtopys(mem_Read32(addr + 4)));
-        gpu_WriteReg32(frameselectbot, mem_Read32(addr + 0x14));
-        //the rest is todo
 
-        u32 u90 = mem_Read32(addr + 0xC);
-        u32 format = mem_Read32(addr + 0x10);
+        gpu_WriteReg32(framestridebot, mem_Read32(addr + 0xC));
 
-        bottomScreenFormat = format;
+        gpu_WriteReg32(frameformatbot, (mem_Read32(addr + 0x10) & 0xFFFF) | (gpu_ReadReg32(frameformatbot)&~0xFFFF));
+        gpu_WriteReg32(frameselectbot, mem_Read32(addr + 0x14) & 0xFF);
     }
     return;
 }
@@ -1215,16 +1222,30 @@ void updateFramebuffer()
                 baseaddrtop += 0x20; //get the other
             else
                 baseaddrtop += 0x4;
-            if ((*(u32*)(baseaddrtop)& 0x1) == 0)
+            if (*(u32*)(baseaddrtop) == 0)
                 gpu_WriteReg32(RGBuponeleft, convertvirtualtopys(*(u32*)(baseaddrtop + 4)));
             else
                 gpu_WriteReg32(RGBuptwoleft, convertvirtualtopys(*(u32*)(baseaddrtop + 4)));
-            gpu_WriteReg32(frameselectoben, *(u32*)(baseaddrtop + 0x14));
-            u32 u90 =*(u32*)(baseaddrtop + 0xC);
-            u32 format = *(u32*)(baseaddrtop + 0x10);
-            int j = 0;
-            //the rest is todo
-            topScreenFormat = format;
+
+            if (*(u32*)(baseaddrtop + 8) == 0)
+            {
+                if (*(u32*)(baseaddrtop) == 0)
+                    gpu_WriteReg32(RGBuponeright, convertvirtualtopys(*(u32*)(baseaddrtop + 4)));
+                else
+                    gpu_WriteReg32(RGBuptworight, convertvirtualtopys(*(u32*)(baseaddrtop + 4)));
+            }
+            else
+            {
+                if (*(u32*)(baseaddrtop) == 0)
+                    gpu_WriteReg32(RGBuponeright, convertvirtualtopys(*(u32*)(baseaddrtop + 8)));
+                else
+                    gpu_WriteReg32(RGBuptworight, convertvirtualtopys(*(u32*)(baseaddrtop + 8)));
+            }
+
+            gpu_WriteReg32(framestridetop, *(u32*)(baseaddrtop + 0xC));
+
+            gpu_WriteReg32(frameformattop, (*(u32*)(baseaddrtop + 0x10) & 0xFFFF) | (gpu_ReadReg32(frameformatbot)&~0xFFFF));
+            gpu_WriteReg32(frameselecttop, *(u32*)(baseaddrtop + 0x14) & 0xFF);
         }
         u8 *baseaddrbot = (u8*)(GSPsharedbuff + 0x240 + i * 0x80); //bot
         if (*(u8*)(baseaddrbot + 1)) {
@@ -1234,17 +1255,15 @@ void updateFramebuffer()
             else
                 baseaddrbot += 0x4;
 
-            u32 newAdr = convertvirtualtopys(*(u32*)(baseaddrbot + 4));
-            if ((*(u32*)(baseaddrbot) &0x1) == 0)
-                gpu_WriteReg32(RGBdownoneleft, newAdr);
+            if (*(u32*)(baseaddrbot) == 0)
+                gpu_WriteReg32(RGBdownoneleft, convertvirtualtopys(*(u32*)(baseaddrbot + 4)));
             else
-                gpu_WriteReg32(RGBdowntwoleft, newAdr);
-            gpu_WriteReg32(frameselectbot, *(u32*)(baseaddrbot + 0x14)); //todo
-            //the rest is todo
+                gpu_WriteReg32(RGBdowntwoleft, convertvirtualtopys(*(u32*)(baseaddrbot + 4)));
 
-            u32 u90 = *(u32*)(baseaddrbot + 0xC);
-            u32 format = *(u32*)(baseaddrbot + 0x10);
-            bottomScreenFormat = format;
+            gpu_WriteReg32(framestridebot, *(u32*)(baseaddrbot + 0xC));
+
+            gpu_WriteReg32(frameformatbot, (*(u32*)(baseaddrbot + 0x10) & 0xFFFF) | (gpu_ReadReg32(frameformatbot)&~0xFFFF));
+            gpu_WriteReg32(frameselectbot, *(u32*)(baseaddrbot + 0x14) & 0xFF);
         }
     }
 

@@ -1222,30 +1222,30 @@ void updateFramebuffer()
                 baseaddrtop += 0x20; //get the other
             else
                 baseaddrtop += 0x4;
-            if (mem_Read32(baseaddrtop) == 0)
-                gpu_WriteReg32(RGBuponeleft, convertvirtualtopys(mem_Read32(baseaddrtop + 4)));
+            if (*(u32*)(baseaddrtop) == 0)
+                gpu_WriteReg32(RGBuponeleft, convertvirtualtopys(*(u32*)(baseaddrtop + 4)));
             else
-                gpu_WriteReg32(RGBuptwoleft, convertvirtualtopys(mem_Read32(baseaddrtop + 4)));
+                gpu_WriteReg32(RGBuptwoleft, convertvirtualtopys(*(u32*)(baseaddrtop + 4)));
 
-            if (mem_Read32(baseaddrtop + 8) == 0)
+            if (*(u32*)(baseaddrtop + 8) == 0)
             {
-                if (mem_Read32(baseaddrtop) == 0)
-                    gpu_WriteReg32(RGBuponeright, convertvirtualtopys(mem_Read32(baseaddrtop + 4)));
+                if (*(u32*)(baseaddrtop) == 0)
+                    gpu_WriteReg32(RGBuponeright, convertvirtualtopys(*(u32*)(baseaddrtop + 4)));
                 else
-                    gpu_WriteReg32(RGBuptworight, convertvirtualtopys(mem_Read32(baseaddrtop + 4)));
+                    gpu_WriteReg32(RGBuptworight, convertvirtualtopys(*(u32*)(baseaddrtop + 4)));
             }
             else
             {
-                if (mem_Read32(baseaddrtop) == 0)
-                    gpu_WriteReg32(RGBuponeright, convertvirtualtopys(mem_Read32(baseaddrtop + 8)));
+                if (*(u32*)(baseaddrtop) == 0)
+                    gpu_WriteReg32(RGBuponeright, convertvirtualtopys(*(u32*)(baseaddrtop + 8)));
                 else
-                    gpu_WriteReg32(RGBuptworight, convertvirtualtopys(mem_Read32(baseaddrtop + 8)));
+                    gpu_WriteReg32(RGBuptworight, convertvirtualtopys(*(u32*)(baseaddrtop + 8)));
             }
 
-            gpu_WriteReg32(framestridetop, mem_Read32(baseaddrtop + 0xC));
+            gpu_WriteReg32(framestridetop, *(u32*)(baseaddrtop + 0xC));
 
-            gpu_WriteReg32(frameformattop, (mem_Read32(baseaddrtop + 0x10) & 0xFFFF) | (gpu_ReadReg32(frameformatbot)&~0xFFFF));
-            gpu_WriteReg32(frameselecttop, mem_Read32(baseaddrtop + 0x14) & 0xFF);
+            gpu_WriteReg32(frameformattop, (*(u32*)(baseaddrtop + 0x10) & 0xFFFF) | (gpu_ReadReg32(frameformatbot)&~0xFFFF));
+            gpu_WriteReg32(frameselecttop, *(u32*)(baseaddrtop + 0x14) & 0xFF);
         }
         u8 *baseaddrbot = (u8*)(GSPsharedbuff + 0x240 + i * 0x80); //bot
         if (*(u8*)(baseaddrbot + 1)) {
@@ -1255,15 +1255,15 @@ void updateFramebuffer()
             else
                 baseaddrbot += 0x4;
 
-            if (mem_Read32(baseaddrbot) == 0)
-                gpu_WriteReg32(RGBdownoneleft, convertvirtualtopys(mem_Read32(baseaddrbot + 4)));
+            if (*(u32*)(baseaddrbot) == 0)
+                gpu_WriteReg32(RGBdownoneleft, convertvirtualtopys(*(u32*)(baseaddrbot + 4)));
             else
-                gpu_WriteReg32(RGBdowntwoleft, convertvirtualtopys(mem_Read32(baseaddrbot + 4)));
+                gpu_WriteReg32(RGBdowntwoleft, convertvirtualtopys(*(u32*)(baseaddrbot + 4)));
 
-            gpu_WriteReg32(framestridebot, mem_Read32(baseaddrbot + 0xC));
+            gpu_WriteReg32(framestridebot, *(u32*)(baseaddrbot + 0xC));
 
-            gpu_WriteReg32(frameformatbot, (mem_Read32(baseaddrbot + 0x10) & 0xFFFF) | (gpu_ReadReg32(frameformatbot)&~0xFFFF));
-            gpu_WriteReg32(frameselectbot, mem_Read32(baseaddrbot + 0x14) & 0xFF);
+            gpu_WriteReg32(frameformatbot, (*(u32*)(baseaddrbot + 0x10) & 0xFFFF) | (gpu_ReadReg32(frameformatbot)&~0xFFFF));
+            gpu_WriteReg32(frameselectbot, *(u32*)(baseaddrbot + 0x14) & 0xFF);
         }
     }
 

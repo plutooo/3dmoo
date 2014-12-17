@@ -600,11 +600,10 @@ SERVICE_CMD(0x08080202)   // CreateFile
     u32 file_handle = 0;
 
     if (arch != NULL && arch->fnFileExists != NULL) {
-        if (arch->fnFileExists(arch,
+        if(arch->fnFileExists(arch,
             (file_path) {
             file_lowpath_type, file_lowpath_sz, file_lowpath_ptr
-        },
-        flags, attr)) {
+        })) {
 
             RESP(1, 0x82044BE); // There is already a file or directory in the requested location
             return 0;

@@ -6154,7 +6154,7 @@ L_stm_s_takeabort:
 			if (ror == -1)
 				break;
 
-			Rm = ((state->Reg[BITS(0, 3)] >> ror) & 0xFFFF);
+            Rm = ((state->Reg[BITS(0, 3)] >> ror) & 0xFFFF) | ((state->Reg[BITS(0, 3)] << (32 - ror)) & 0xFFFF) & 0xFFFF;
 			if (Rm & 0x8000)
 				Rm |= 0xffff0000;
 

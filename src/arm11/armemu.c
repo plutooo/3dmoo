@@ -6110,7 +6110,7 @@ L_stm_s_takeabort:
 				break;
 			}
 
-			Rm = ((state->Reg[BITS(0, 3)] >> ror) & 0xFF);
+			Rm = ((state->Reg[BITS(0, 3)] >> ror) & 0xFF) | ((state->Reg[BITS(0, 3)] << (32 - ror)) & 0xFF) & 0xFF;
 			if (Rm & 0x80)
 				Rm |= 0xffffff00;
 
@@ -6119,7 +6119,7 @@ L_stm_s_takeabort:
 				state->Reg[BITS(12, 15)] = Rm;
 			else
 				/* SXTAB */
-				state->Reg[BITS(12, 15)] += Rm;
+                state->Reg[BITS(12, 15)] = state->Reg[BITS(16, 19)] + Rm;
 
 			return 1;
 		}

@@ -63,7 +63,16 @@ void gsp_ExecuteCommandFromSharedMem()
                     continue;
                 }
 
-                mem_Read(&VRAMbuff[dest - 0x1F000000], src, size);
+                if((src - 0x1f000000 > 0x600000 || src + size - 0x1f000000 > 0x600000))
+                {
+                    mem_Read(&VRAMbuff[dest - 0x1F000000], src, size);
+                }
+                else
+                {
+                    //Can safely assume this is a copy from VRAM to VRAM
+                    memcpy(&VRAMbuff[dest - 0x1F000000], &VRAMbuff[src - 0x1F000000], size);
+                }
+
                 gpu_SendInterruptToAll(6);
                 break;
             }
@@ -165,7 +174,6 @@ void gsp_ExecuteCommandFromSharedMem()
                             switch (flags & 0x700) { //input format
 
                             case 0: //RGBA8
-
                                 r = *inaddr++;
                                 g = *inaddr++;
                                 b = *inaddr++;

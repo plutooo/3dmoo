@@ -3167,12 +3167,18 @@ mainswitch:
                         state->Reg[idest] = (state->Reg[rfis] & 0xFFFF) | ((state->Reg[rlast] << ishi) & 0xFFFF0000);
                         break;
                     } else if ((instr & 0x70) == 0x50) { //pkhtb
-                        u8 idest = BITS(12, 15);
-                        u8 rfis = BITS(16, 19);
-                        u8 rlast = BITS(0, 3);
-                        u8 ishi = BITS(7, 11);
-                        if (ishi == 0)ishi = 0x20;
-                        state->Reg[idest] = (((int)(state->Reg[rlast]) >> (int)(ishi))& 0xFFFF) | ((state->Reg[rfis]) & 0xFFFF0000);
+                        u8 rd = BITS(12, 15);
+                        u8 rn = BITS(16, 19);
+                        u8 rm = BITS(0, 3);
+                        u8 imm5 = BITS(7, 11);
+
+                        ARMword val;
+                        if(imm5 >= 32)
+                            val = ((ARMword)(state->Reg[rm] >> 31L));
+                        else
+                            val = ((ARMword)(state->Reg[rm] >> imm5));
+
+                        state->Reg[rd] = (val & 0xFFFF) | ((state->Reg[rn]) & 0xFFFF0000);
                         break;
                     } else if (BIT (4)) {
 #ifdef MODE32

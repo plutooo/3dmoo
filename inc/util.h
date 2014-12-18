@@ -77,7 +77,7 @@ static int _wincolors[] = {
 };
 #endif
 
-static set_color(int color)
+static int set_color(int color)
 {
 #ifdef _WIN32
     CONSOLE_SCREEN_BUFFER_INFO csbiInfo;

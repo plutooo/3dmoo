@@ -56,7 +56,7 @@ static u32 savedatafile_Read(file_type* self, u32 ptr, u32 sz, u64 off, u32* rea
     }
 
     u32 read = fread(b, 1, sz, fd);
-    if(read == 0) {
+    if(read != sz) {
         ERROR("fread failed\n");
         free(b);
         return -1;
@@ -102,7 +102,7 @@ static u32 savedatafile_Write(file_type* self, u32 ptr, u32 sz, u64 off, u32 flu
     }
 
     u32 written = fwrite(b, 1, sz, fd);
-    if (written == 0) {
+    if (written != sz) {
         ERROR("fwrite failed\n");
         free(b);
         return -1;

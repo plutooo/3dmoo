@@ -63,7 +63,7 @@ static u32 sdmcfile_Write(file_type* self, u32 ptr, u32 sz, u64 off, u32 flush_f
     }
 
     u32 write = fwrite(b, 1, sz, fd);
-    if (write == 0) {
+    if(write != sz) {
         ERROR("fwrite failed\n");
         free(b);
         return -1;
@@ -105,7 +105,7 @@ static u32 sdmcfile_Read(file_type* self, u32 ptr, u32 sz, u64 off, u32* read_ou
     }
 
     u32 read = fread(b, 1, sz, fd);
-    if(read == 0) {
+    if(read != sz) {
         ERROR("fread failed\n");
         free(b);
         return -1;

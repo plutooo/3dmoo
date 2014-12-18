@@ -97,12 +97,21 @@ static void DrawPixel(int x, int y, const struct clov4* color)
     color->v[2] = (numb & 0xF00) >> 0x4;
 #endif
 
+    u32 inputdim = GPU_Regs[Framebuffer_FORMAT11E];
+    u32 outy = (inputdim & 0xFFF);
+    u32 outx = ((inputdim >> 0x10) & 0xFFF);
+
+    //TODO: workout why this seems required for ctrulib gpu demo (outy=480)
+    if(outy > 240) outy = 240;
+
+    //DEBUG("x=%d,y=%d,outx=%d,outy=%d,format=%d,inputdim=%08X\n", x, y, outx, outy, (GPU_Regs[BUFFERFORMAT] & 0x7000) >> 12, inputdim);
+
     u8* outaddr;
     // Assuming RGB8 format until actual framebuffer format handling is implemented
     switch (GPU_Regs[BUFFERFORMAT] & 0x7000) { //input format
 
     case 0: //RGBA8
-        outaddr = color_buffer + x * 4 + y * (GPU_Regs[Framebuffer_FORMAT11E] & 0xFFF)* 4; //check if that is correct
+        outaddr = color_buffer + x * 4 + y * (outy)* 4; //check if that is correct
         *outaddr = color->v[2];
         outaddr++;
         *outaddr = color->v[1];
@@ -113,9 +122,7 @@ static void DrawPixel(int x, int y, const struct clov4* color)
         outaddr++;
         break;
     case 0x1000: //RGB8
-
-        outaddr = color_buffer + x * 3 + y * (GPU_Regs[Framebuffer_FORMAT11E] & 0xFFF) * 3; //check if that is correct
-
+        outaddr = color_buffer + x * 3 + y * (outy)* 3; //check if that is correct
         *outaddr = color->v[0];
         outaddr++;
         *outaddr = color->v[1];
@@ -124,24 +131,24 @@ static void DrawPixel(int x, int y, const struct clov4* color)
         outaddr++;
         break;
     case 0x2000: { //RGB565
-        DEBUG("error unknow output format\n");
+        DEBUG("error unknown output format %04X\n", GPU_Regs[BUFFERFORMAT] & 0x7000);
     }
     break;
     case 0x3000: //RGB5A1
-        outaddr = color_buffer + x * 2 + y * (GPU_Regs[Framebuffer_FORMAT11E] & 0xFFF)* 2; //check if that is correct
+        outaddr = color_buffer + x * 2 + y * (outy)* 2; //check if that is correct
         *outaddr = (color->v[0] >> 3) | (((color->v[1] >> 3) << 5) & 0xE0);
         outaddr++;
         *outaddr = (u8)((color->v[2] >> 3) << 3) | ((color->v[1] >> 3) & 0x7);
         if (color->v[3]) *outaddr |= 0x80;
         break;
     case 0x4000: //RGBA4
-        outaddr = color_buffer + x * 2 + y * (GPU_Regs[Framebuffer_FORMAT11E] & 0xFFF)* 2; //check if that is correct
+        outaddr = color_buffer + x * 2 + y * (outy)* 2; //check if that is correct
         *outaddr = (color->v[0] >> 4) | (color->v[1] & 0xF0);
         outaddr++;
         *outaddr = (color->v[2] >> 4) | (color->v[3] & 0xF0);
         break;
     default:
-        DEBUG("error unknow output format\n");
+        DEBUG("error unknown output format %04X\n", GPU_Regs[BUFFERFORMAT] & 0x7000);
         break;
     }
 
@@ -369,8 +376,8 @@ static unsigned NibblesPerPixel(TextureFormat format) {
             return 2;
     }
 }
-const struct clov4 LookupTexture(const u8* source, int x, int y, const TextureFormat format, int stride, bool disable_alpha) {
-
+const struct clov4 LookupTexture(const u8* source, int x, int y, const TextureFormat format, int stride, int width, int height, bool disable_alpha)
+{
     // Images are split into 8x8 tiles. Each tile is composed of four 4x4 subtiles each
     // of which is composed of four 2x2 subtiles each of which is composed of four texels.
     // Each structure is embedded into the next-bigger one in a diagonal pattern, e.g.
@@ -684,7 +691,6 @@ void rasterizer_ProcessTriangle(const struct OutputVertex *v0,
             float v = GetInterpolatedAttribute(v0->tc0.v[1], v1->tc0.v[1], v2->tc0.v[1], v0, v1, v2, (float)w0, (float)w1, (float)w2);
             for (int i = 0; i < 3; ++i) {
                 if (GPU_Regs[TEXTURINGSETINGS80] & (0x1<<i)) {
-                    // TODO: This is currently hardcoded for RGB8
                     u8* texture_data;
                     switch (i) {
                     case 0:
@@ -710,8 +716,8 @@ void rasterizer_ProcessTriangle(const struct OutputVertex *v0,
                     case 0:
                         height = (GPU_Regs[TEXTURCONFIG0SIZE] & 0xFFFF);
                         width = (GPU_Regs[TEXTURCONFIG0SIZE] >> 16);
-                        wrap_s = (GPU_Regs[TEXTURCONFIG0SIZE] >> 8) & 3;
-                        wrap_t = (GPU_Regs[TEXTURCONFIG0SIZE] >> 11) & 3;
+                        wrap_s = (GPU_Regs[TEXTURCONFIG0SIZE] >> 8) & 7;
+                        wrap_t = (GPU_Regs[TEXTURCONFIG0SIZE] >> 11) & 7;
                         s = (int)(u * width);
                         s = GetWrappedTexCoord((WrapMode)wrap_s, s, width);
                         t = (int)(v * (GPU_Regs[TEXTURCONFIG0SIZE] & 0xFFFF));
@@ -722,8 +728,8 @@ void rasterizer_ProcessTriangle(const struct OutputVertex *v0,
                     case 1:
                         height = (GPU_Regs[TEXTURCONFIG1SIZE] & 0xFFFF);
                         width = (GPU_Regs[TEXTURCONFIG1SIZE] >> 16);
-                        wrap_s = (GPU_Regs[TEXTURCONFIG1SIZE] >> 8) & 3;
-                        wrap_t = (GPU_Regs[TEXTURCONFIG1SIZE] >> 11) & 3;
+                        wrap_s = (GPU_Regs[TEXTURCONFIG1SIZE] >> 8) & 7;
+                        wrap_t = (GPU_Regs[TEXTURCONFIG1SIZE] >> 11) & 7;
                         s = (int)(u * width);
                         s = GetWrappedTexCoord((WrapMode)wrap_s, s, width);
                         t = (int)(v * (GPU_Regs[TEXTURCONFIG1SIZE] & 0xFFFF));
@@ -734,8 +740,8 @@ void rasterizer_ProcessTriangle(const struct OutputVertex *v0,
                     case 2:
                         height = (GPU_Regs[TEXTURCONFIG2SIZE] & 0xFFFF);
                         width = (GPU_Regs[TEXTURCONFIG2SIZE] >> 16);
-                        wrap_s = (GPU_Regs[TEXTURCONFIG2SIZE] >> 8) & 3;
-                        wrap_t = (GPU_Regs[TEXTURCONFIG2SIZE] >> 11) & 3;
+                        wrap_s = (GPU_Regs[TEXTURCONFIG2SIZE] >> 8) & 7;
+                        wrap_t = (GPU_Regs[TEXTURCONFIG2SIZE] >> 11) & 7;
                         s = (int)(u * width);
                         s = GetWrappedTexCoord((WrapMode)wrap_s, s, width);
                         t = (int)(v * (GPU_Regs[TEXTURCONFIG2SIZE] & 0xFFFF));
@@ -766,7 +772,7 @@ void rasterizer_ProcessTriangle(const struct OutputVertex *v0,
                     texture_color[i].v[2] = source_ptr[0];
                     texture_color[i].v[3] = 0xFF;*/
 
-                    struct clov4 temp = LookupTexture(texture_data, s, t, format, row_stride, false);
+                    struct clov4 temp = LookupTexture(texture_data, s, t, format, row_stride, width, height, false);
                     texture_color[i].v[0] = temp.v[0];
                     texture_color[i].v[1] = temp.v[1];
                     texture_color[i].v[2] = temp.v[2];
@@ -817,18 +823,18 @@ void rasterizer_ProcessTriangle(const struct OutputVertex *v0,
                 for (int j = 0; j < 3; j++) {
                     switch ((GPU_Regs[regnumaddr] >> (j * 4))&0xF) {
                     case 0://PrimaryColor
-                        memcpy(&color_result[j], &primary_color, sizeof(struct clov4/*3*/));
+                        memcpy(&color_result[j], &primary_color, sizeof(struct clov4));
                         break;
                     //case 1://PrimaryFragmentColor:
                     //case 2://SecondaryFragmentColor:
                     case 3: //Texture0
-                        memcpy(&color_result[j], &texture_color[0], sizeof(struct clov4/*3*/));
+                        memcpy(&color_result[j], &texture_color[0], sizeof(struct clov4));
                         break;
                     case 4: //Texture1
-                        memcpy(&color_result[j], &texture_color[1], sizeof(struct clov4/*3*/));
+                        memcpy(&color_result[j], &texture_color[1], sizeof(struct clov4));
                         break;
                     case 5: //Texture2
-                        memcpy(&color_result[j], &texture_color[2], sizeof(struct clov4/*3*/));
+                        memcpy(&color_result[j], &texture_color[2], sizeof(struct clov4));
                         break;
                     //case 6://Texture 3 (proctex):
                     case 0xD://PreviousBuffer:
@@ -846,7 +852,7 @@ void rasterizer_ProcessTriangle(const struct OutputVertex *v0,
                         color_result[j].v[3] = (GPU_Regs[regnumaddr + 3] >> 24) & 0xFF;
                         break;
                     case 0xF://Previous
-                        memcpy(&color_result[j], &combiner_output, sizeof(struct clov4/*3*/));
+                        memcpy(&color_result[j], &combiner_output, sizeof(struct clov4));
                         break;
                     default:
                         GPUDEBUG("Unknown color combiner source %d\n", (int)(GPU_Regs[regnumaddr] >> (j * 4)) & 0xF);
@@ -911,7 +917,7 @@ void rasterizer_ProcessTriangle(const struct OutputVertex *v0,
             combiner_output.v[2] = 0x0;
             combiner_output.v[3] = 0x0;*/
 
-            DrawPixel(x >> 4, y >> 4, &combiner_output);
+            DrawPixel((x >> 4), (y >> 4), &combiner_output);
         }
     }
 }

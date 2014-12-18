@@ -43,9 +43,9 @@
 #define LCDCOLORFILLMAIN 0x202204
 #define LCDCOLORFILLSUB 0x202A04
 
-#define framestridetop 0x400590
-#define frameformattop 0x400570
-#define frameselecttop 0x400578
+#define framestridetop 0x400490
+#define frameformattop 0x400470
+#define frameselecttop 0x400478
 #define RGBuponeleft 0x400468
 #define RGBuptwoleft 0x40046C
 #define RGBuponeright 0x400494

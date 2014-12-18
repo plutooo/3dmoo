@@ -866,8 +866,8 @@ void RunShader(struct vec4 input[17], int num_attributes, struct OutputVertex *r
 
     state.status_registers[0] = false;
     state.status_registers[1] = false;
-    int k;
-    /*for (k = 0; k < 16; k++)state.call_stack[k] = VertexShaderState_INVALID_ADDRESS;
+    /*int k;
+    for (k = 0; k < 16; k++)state.call_stack[k] = VertexShaderState_INVALID_ADDRESS;
     state.call_stack_pointer = &state.call_stack[1];*/
     Stack_Init(&state.call_stack);
     Stack_Init(&state.call_end_stack);

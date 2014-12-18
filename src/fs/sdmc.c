@@ -31,7 +31,11 @@
 
 #ifdef _WIN32
 #include <direct.h>
+#include <io.h>
+#else
+#include <unistd.h>
 #endif
+
 
 /* ____ File implementation ____ */
 
@@ -180,6 +184,58 @@ static bool sdmc_FileExists(archive* self, file_path path)
     }
 
     return stat(p, &st) == 0;
+}
+
+static u32 sdmc_CreateFile(archive* self, file_path path, u32 size)
+{
+    char *p = malloc(256);
+
+    char tmp[256];
+
+    // Generate path on host file system
+    if (config_has_sdmc) {
+        snprintf(p, 256, "%s/%s", config_sdmc_path,
+            fs_PathToString(path.type, path.ptr, path.size, tmp, 256));
+    } else {
+        snprintf(p, 256, "sdmc/%s",
+            fs_PathToString(path.type, path.ptr, path.size, tmp, 256));
+    }
+
+    if (!fs_IsSafePath(p)) {
+        ERROR("Got unsafe path.\n");
+        free(p);
+        return 0;
+    }
+
+    int result;
+
+#ifdef _WIN32
+
+#define open _open
+#define close _close
+#define ftruncate _chsize
+
+#define O_EXCL    _O_EXCL
+#define O_WRONLY  _O_WRONLY
+
+#endif
+
+    int fd = open(p, O_CREAT | O_EXCL | O_WRONLY, S_IRUSR | S_IWUSR);
+
+    if (fd == -1)
+    {
+        result = errno;
+        if (result == EEXIST) result = 0x82044BE;
+    } else {
+        result = ftruncate(fd, size);
+        if (result != 0) result = errno;
+    }
+
+    close(fd);
+
+    if (result == ENOSPC) result = 0x86044D2;
+    free(p);
+    return result;
 }
 
 static u32 sdmc_OpenFile(archive* self, file_path path, u32 flags, u32 attr)
@@ -468,7 +524,7 @@ int sdmc_DeleteDir(archive* self, file_path path)
 #ifdef _MSC_VER 
     return _rmdir(p);
 #else
-    return rmdir(p, 0777);
+    return rmdir(p);
 #endif
 }
 
@@ -496,7 +552,7 @@ archive* sdmc_OpenArchive(file_path path)
     arch->fnOpenDir = &sdmc_OpenDir;
     arch->fnFileExists = &sdmc_FileExists;
     arch->fnOpenFile = &sdmc_OpenFile;
-    arch->fnCreateFile = NULL;
+    arch->fnCreateFile = &sdmc_CreateFile;
     arch->fnDeinitialize = &sdmc_Deinitialize;
     arch->result = 0;
 

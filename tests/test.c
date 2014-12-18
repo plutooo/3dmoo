@@ -11,6 +11,17 @@
         fprintf(stderr, __VA_ARGS__);                    \
         exit(1);                                         \
     }
+
+#ifdef GDB_STUB
+#include "armemu.h"
+#include "armdefs.h"
+
+#include "gdb/gdbstub.h"
+#include "gdb/gdbstubchelper.h"
+
+struct armcpu_memory_iface *gdb_memio;
+
+#endif
     
 char *codepath = NULL; //???
 int noscreen = 1;

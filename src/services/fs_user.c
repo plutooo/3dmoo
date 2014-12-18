@@ -601,40 +601,22 @@ SERVICE_CMD(0x08080202)   // CreateFile
     }
 
     archive* arch = (archive*)arch_hi->subtype;
-    u32 file_handle = 0;
+    u32 result = 0;
 
-    if (arch != NULL && arch->fnFileExists != NULL) {
-        if(arch->fnFileExists(arch,
+    if (arch != NULL && arch->fnCreateFile != NULL) {
+        result = arch->fnCreateFile(arch,
             (file_path) {
             file_lowpath_type, file_lowpath_sz, file_lowpath_ptr
-        })) {
-
-            RESP(1, 0x82044BE); // There is already a file or directory in the requested location
-            return 0;
-        }
-    }
-
-    // Call OpenFile
-    if (arch != NULL && arch->fnOpenFile != NULL) {
-        file_handle = arch->fnOpenFile(arch,
-        (file_path) {
-            file_lowpath_type, file_lowpath_sz, file_lowpath_ptr
         },
-        flags, attr);
+        size);
 
-        if (file_handle == 0) {
-            ERROR("CreateFile has failed.\n");
-            RESP(1, -1);
+            RESP(1, result);
             return 0;
-        }
-    } else {
-        ERROR("Archive has not implemented CreateFile/OpenFile.\n");
-        RESP(1, -1);
-        return 0;
     }
 
-    RESP(1, 0); // Result
-    RESP(3, file_handle); // File handle
+    ERROR("Archive has not implemented CreateFile.\n");
+
+    RESP(1, -1);
     return 0;
 }
 

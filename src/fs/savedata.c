@@ -415,7 +415,8 @@ archive* savedata_OpenArchive(file_path path)
     arch->fnOpenDir = &savedata_OpenDir;
     arch->fnFileExists = &savedata_FileExists;
     arch->fnOpenFile = &savedata_OpenFile;
-	arch->fnDeleteFile = &savedata_DeleteDir;
+    arch->fnCreateFile = NULL;
+    arch->fnDeleteFile = &savedata_DeleteDir;
 	arch->fnDeleteDir = NULL;
 	arch->fnRenameFile = NULL;
 	arch->fnRenameDir = NULL;

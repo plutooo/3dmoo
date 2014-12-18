@@ -350,6 +350,7 @@ archive* sysdata_OpenArchive(file_path path)
     arch->fnOpenDir      = NULL;
     arch->fnFileExists   = &sysdata_FileExists;
     arch->fnOpenFile     = &sysdata_OpenFile;
+    arch->fnCreateFile   = NULL;
     arch->fnDeinitialize = &sysdata_Deinitialize;
     arch->result = 0;
 

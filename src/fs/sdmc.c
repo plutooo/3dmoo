@@ -496,6 +496,7 @@ archive* sdmc_OpenArchive(file_path path)
     arch->fnOpenDir = &sdmc_OpenDir;
     arch->fnFileExists = &sdmc_FileExists;
     arch->fnOpenFile = &sdmc_OpenFile;
+    arch->fnCreateFile = NULL;
     arch->fnDeinitialize = &sdmc_Deinitialize;
     arch->result = 0;
 

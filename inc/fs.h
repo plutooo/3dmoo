@@ -55,6 +55,7 @@ typedef struct _archive archive;
 struct _archive {
     int(*fnRenameFile)(archive* self, file_path srcpath, file_path dstpath);
     int(*fnDeleteFile)(archive* self, file_path path);
+    u32(*fnCreateFile)(archive* self, file_path path, u32 filesize);
     int(*fnRenameDir)(archive* self, file_path srcpath, file_path dstpath);
     int(*fnDeleteDir)(archive* self, file_path path);
     int(*fnCreateDir)(archive* self, file_path path);

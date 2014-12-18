@@ -263,6 +263,7 @@ archive* SaveDatacheck_OpenArchive(file_path path)
     arch->fnOpenDir = NULL;
     arch->fnFileExists = &SaveDatacheck_FileExists;
     arch->fnOpenFile = &SaveDatacheck_OpenFile;
+    arch->fnCreateFile = NULL;
     arch->fnDeinitialize = &SaveDatacheck_Deinitialize;
     arch->result = 0;
 

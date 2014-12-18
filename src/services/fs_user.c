@@ -847,6 +847,22 @@ SERVICE_CMD(0x084c0242)   // FormatSaveData
 	return 0;
 }
 
+SERVICE_CMD(0x08300182)   // CreateExtSaveData
+{
+    DEBUG("CreateExtSaveData %08x %08x %08x %08x %08x %08x %08x %08x --todo--\n", CMD(1), CMD(2), CMD(3), CMD(4), CMD(5), CMD(6), CMD(7), CMD(8));
+
+    RESP(1, 0);
+    return 0;
+}
+
+SERVICE_CMD(0x08350080)   // DeleteExtSaveData
+{
+    DEBUG("DeleteExtSaveData %08x %08x %08x %08x %08x %08x %08x %08x --todo--\n", CMD(1), CMD(2), CMD(3), CMD(4), CMD(5), CMD(6), CMD(7), CMD(8));
+
+    RESP(1, 0);
+    return 0;
+}
+
 SERVICE_END();
 
 

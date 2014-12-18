@@ -173,6 +173,11 @@ static archive_type archive_types[] =  {
         sdmc_OpenArchive
     },
     {
+        "SDMC - Write only",
+        0xA,
+        sdmc_OpenArchive
+    },
+    {
         "SaveDatacheck",
         0x2345678A,
         SaveDatacheck_OpenArchive

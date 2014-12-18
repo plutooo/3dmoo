@@ -80,7 +80,7 @@ u32 pix_dev_SyncRequest();
 u32 ir_rst_SyncRequest();
 u32 ptm_play_SyncRequest();
 u32 cam_u_SyncRequest();
-
+u32 ldr_ro_SyncRequest();
 
 static size_t _strnlen(const char* p, size_t n)
 {
@@ -442,6 +442,12 @@ static struct {
         SERVICE_TYPE_CAM_U,
         0,
         &cam_u_SyncRequest
+    },
+    {
+        "ldr:ro",
+        SERVICE_TYPE_LDR_RO,
+        0,
+        &ldr_ro_SyncRequest
     }
 };
 

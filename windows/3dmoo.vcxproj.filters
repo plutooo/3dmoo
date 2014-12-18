@@ -369,6 +369,9 @@
     <ClCompile Include="..\src\gdb\gdbstub.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\services\ldr_ro.c">
+      <Filter>Source Files\services</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\inc\handles.h">

@@ -104,8 +104,11 @@ SERVICE_CMD(0x200080)   //unk20
 
 SERVICE_CMD(0x2B0000)   //unk2B
 {
-    DEBUG("unk2B %08x\n", CMD(1));
+    DEBUG("Unknown_2B0000 --todo-- %08x %08x %08x\n", CMD(1), CMD(2), CMD(3));
     RESP(1, 0); // Result
+
+    for(int i = 2; i < 18; i++)
+        RESP(i, 0); // calibration data?
     return 0;
 }
 
@@ -118,7 +121,7 @@ SERVICE_CMD(0x360000) //unk36
 
 SERVICE_CMD(0x390000) //unk39
 {
-    DEBUG("unk39\n");
+    DEBUG("Init? --todo-- %08x %08x %08x\n", CMD(1), CMD(2), CMD(3));
     RESP(1, 0); // Result
     return 0;
 }

@@ -84,7 +84,7 @@ SERVICE_CMD(0x00220040)   // ???
 
 SERVICE_CMD(0x002B0000)   // ???
 {
-    DEBUG("Unknown_2B0000 --todo-- %08x %08x %08x\n", CMD(1), CMD(2), CMD(3));
+    DEBUG("Init?_2B0000 --todo-- %08x %08x %08x\n", CMD(1), CMD(2), CMD(3));
 
     RESP(1, 0); // Result
     return 0;

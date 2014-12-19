@@ -32,7 +32,7 @@ SERVICE_CMD(0x00020000)   // SecureInfoGetRegion this is mirrored in all cfg cha
     DEBUG("SecureInfoGetRegion\n");
 
     RESP(1, 0); // Result
-    RESP(2, 1); // 1 = USA 2=Europe
+    RESP(2, 2); // 1 = USA 2=Europe
     return 0;
 }
 
@@ -54,7 +54,7 @@ SERVICE_CMD(0x00040000)
 
     RESP(2, 0); // return byte
 
-    RESP(1, 1); // Result is Canada or USA
+    RESP(1, 0); // Result is Canada or USA
     return 0;
 }
 SERVICE_CMD(0x08010082)   // GetConfigInfoBlk4

@@ -39,6 +39,12 @@ u32 Read32(uint8_t p[4])
     return temp;
 }
 
+static const u8 stereo_camera_settings[32] =
+{
+    0x00, 0x00, 0x78, 0x42, 0x00, 0x80, 0x90, 0x43, 0x9A, 0x99, 0x99, 0x42, 0xEC, 0x51, 0x38, 0x42,
+    0x00, 0x00, 0x20, 0x41, 0x00, 0x00, 0xA0, 0x40, 0xEC, 0x51, 0x5E, 0x42, 0x5C, 0x8F, 0xAC, 0x41,
+};
+
 u32 getconfigfromNAND(u32 size, u32 id, u32 pointer,u32 filter)
 {
     if (config_usesys) {
@@ -85,6 +91,9 @@ u32 getconfigfromNAND(u32 size, u32 id, u32 pointer,u32 filter)
         fclose(fd);
     } else {
         switch (id) {
+        case 0x00050005: //Stereo camera settings?
+            mem_Write(stereo_camera_settings, pointer, sizeof(stereo_camera_settings));
+            break;
         case 0x00070001:// Sound Mode?
             mem_Write8(pointer, 0);
             break;
@@ -126,7 +135,7 @@ SERVICE_CMD(0x00020000)   // SecureInfoGetRegion
     DEBUG("SecureInfoGetRegion\n");
 
     RESP(1, 0); // Result
-    RESP(2, 1); // 2=EUROPE 1=USA
+    RESP(2, 2); // 2=EUROPE 1=USA
     return 0;
 }
 
@@ -145,7 +154,7 @@ SERVICE_CMD(0x00040000)   // GetRegionCanadaUSA
     DEBUG("GetRegionCanadaUSA\n");
 
     RESP(1, 0); // Result
-    RESP(2, 1); // USA
+    RESP(2, 0); // USA
     return 0;
 }
 
@@ -154,7 +163,7 @@ SERVICE_CMD(0x00050000)   // GetSystemModel
     DEBUG("GetSystemModel\n");
 
     RESP(1, 0); // Result
-    RESP(2, 0); // 0=3DS, 1=3DSXL, 3=2DS
+    RESP(2, 3); // 0=3DS, 1=3DSXL, 3=2DS
     return 0;
 }
 

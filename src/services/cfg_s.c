@@ -74,7 +74,7 @@ SERVICE_CMD(0x00020000)   // SecureInfoGetRegion this is mirrored in all cfg cha
     DEBUG("SecureInfoGetRegion\n");
 
     RESP(1, 0); // Result
-    RESP(2, 1); // 1 = USA 2=Europe
+    RESP(2, 2); // 1 = USA 2=Europe
     return 0;
 }
 
@@ -83,7 +83,7 @@ SERVICE_CMD(0x00050000)   // GetSystemModel
     DEBUG("GetSystemModel\n");
 
     RESP(1, 0); // Result
-    RESP(2, 0); // 0=3DS, 1=3DSXL, 3=2DS
+    RESP(2, 3); // 0=3DS, 1=3DSXL, 3=2DS
     return 0;
 }
 

@@ -229,9 +229,9 @@ static u32 sdmc_CreateFile(archive* self, file_path path, u32 size)
     } else {
         result = ftruncate(fd, size);
         if (result != 0) result = errno;
+        close(fd);
     }
 
-    close(fd);
 
     if (result == ENOSPC) result = 0x86044D2;
     free(p);

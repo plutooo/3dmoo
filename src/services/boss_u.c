@@ -39,4 +39,20 @@ SERVICE_CMD(0x00010082)   //???
 	return 0;
 }
 
+SERVICE_CMD(0x00100102)   // ???
+{
+    DEBUG("???_100102 %08x %08x %08x %08x %08x %08x %08x %08x --todo--\n", CMD(1), CMD(2), CMD(3), CMD(4), CMD(5), CMD(6), CMD(7), CMD(8));
+
+    RESP(1, 0);
+    return 0;
+}
+
+SERVICE_CMD(0x002700c2)   // ???
+{
+    DEBUG("???_2700c2 %08x %08x %08x %08x %08x %08x %08x %08x --todo--\n", CMD(1), CMD(2), CMD(3), CMD(4), CMD(5), CMD(6), CMD(7), CMD(8));
+
+    RESP(1, 0);
+    return 0;
+}
+
 SERVICE_END();

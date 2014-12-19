@@ -45,4 +45,21 @@ SERVICE_CMD(0x300004) //RegisterDisconnectEvent
 	return 0;
 }
 
+SERVICE_CMD(0x3e0042) //IsConnected
+{
+    DEBUG("IsConnected\n");
+
+    RESP(1, 0); // Result
+    RESP(2, 0); // 0=Not Connected
+    return 0;
+}
+
+SERVICE_CMD(0x400042) //SetClientVersion
+{
+    DEBUG("SetClientVersion\n");
+
+    RESP(1, 0); // Result
+    return 0;
+}
+
 SERVICE_END();

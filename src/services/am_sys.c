@@ -24,4 +24,12 @@
 
 SERVICE_START(am_sys);
 
+SERVICE_CMD(0x000A0000)   //GetDeviceID
+{
+    DEBUG("GetDeviceID --STUB--");
+    RESP(3, 6); //Result code 
+    RESP(2, 4); //4 = 3DS? unknown
+    RESP(1, 0x12345678); //DeviceID
+    return 0;
+}
 SERVICE_END();

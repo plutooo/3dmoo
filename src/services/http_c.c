@@ -219,5 +219,14 @@ SERVICE_CMD(0x00030040)
     return 0;
 }
 
+SERVICE_CMD(0x002D0000)
+{
+    DEBUG("unk2D --stub-- %08x\n");
+
+    RESP(2, 0); // unk
+    RESP(1, 0); // Result
+    return 0;
+}
+
 #endif
 SERVICE_END();

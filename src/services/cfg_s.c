@@ -71,6 +71,19 @@ SERVICE_CMD(0x04010082)   // GetConfigInfoBlk8
     return 0;
 }
 
+SERVICE_CMD(0x04080042)   // SecureInfoGetSerialNo
+{
+    u32 size = CMD(1);
+    u32 pointer = CMD(3);
+
+    DEBUG("SecureInfoGetSerialNo %08x %08x --stub--\n", size, pointer);
+
+    mem_Write("CW12345678\0\0\0\0\0\0\0\0", pointer, 0xF);
+
+    RESP(1, 0); // Result
+    return 0;
+}
+
 SERVICE_CMD(0x00020000)   // SecureInfoGetRegion this is mirrored in all cfg change all if you change this
 {
     DEBUG("SecureInfoGetRegion\n");

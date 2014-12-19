@@ -51,7 +51,7 @@ u32 getconfigfromNAND(u32 size, u32 id, u32 pointer,u32 filter)
 {
     if (config_usesys) {
         char p[0x200];
-        snprintf(p, 256, "%s/0001001700000000/config", config_sysdataoutpath);
+        snprintf(p, 256, "%s/00010017/config", config_sysdataoutpath);
         FILE* fd = fopen(p, "rb");
         u16 numb;
         u16 unk;

@@ -542,10 +542,17 @@ SERVICE_CMD(0x00080102) //recvfrom
     return 0;
 
 }
-SERVICE_CMD(0x001A00C0)   //GetNetworkOpt
+SERVICE_CMD(0x001A00C0)   //ShutdownSockets
+{
+    DEBUG("ShutdownSockets");
+    RESP(1, 0); //result code
+    return 0;
+}
+
+SERVICE_CMD(0x00190000)   //GetNetworkOpt
 {
     DEBUG("GetNetworkOpt %08x %08x %08x --STUB--", CMD(1), CMD(2), CMD(3));
-    RESP(3, 0); //Output optlen 
+    RESP(3, 6); //Output optlen 
     RESP(2, 0); //POSIX
     RESP(1, 0); //result code
     return 0;

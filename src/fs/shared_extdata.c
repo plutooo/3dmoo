@@ -119,6 +119,55 @@ static u64 sharedextdfile_GetSize(file_type* self)
     return self->type_specific.sharedextd.sz;
 }
 
+static u32 sharedextdfile_CreateFile(archive* self, file_path path, u32 size)
+{
+    char *p = malloc(256);
+
+    char tmp[256];
+
+    // Generate path on host file system
+    snprintf(p, 256, "sys/shared/%s/%s",
+        self->type_specific.sharedextd.path,
+        fs_PathToString(path.type, path.ptr, path.size, tmp, 256));
+
+    if (!fs_IsSafePath(p)) {
+        ERROR("Got unsafe path.\n");
+        free(p);
+        return 0;
+    }
+
+    int result;
+
+#ifdef _WIN32
+
+#define open _open
+#define close _close
+#define ftruncate _chsize
+
+#define O_EXCL    _O_EXCL
+#define O_WRONLY  _O_WRONLY
+
+#endif
+
+    int fd = open(p, O_CREAT | O_EXCL | O_WRONLY, S_IRUSR | S_IWUSR);
+
+    if (fd == -1)
+    {
+        result = errno;
+        if (result == EEXIST) result = 0x82044BE;
+    }
+    else {
+        result = ftruncate(fd, size);
+        if (result != 0) result = errno;
+        close(fd);
+    }
+
+
+    if (result == ENOSPC) result = 0x86044D2;
+    free(p);
+    return result;
+}
+
 static u32 sharedextdfile_Close(file_type* self)
 {
     // Close file and free yourself
@@ -395,6 +444,7 @@ archive* sharedextd_OpenArchive(file_path path)
     }
 
     // Setup function pointers
+    arch->fnCreateFile   = &sharedextdfile_CreateFile;
     arch->fnRenameFile   = NULL;
     arch->fnDeleteFile   = &sharedextd_DeleteFile;
     arch->fnCreateDir    = NULL;
@@ -423,14 +473,15 @@ archive* sharedextd_OpenArchive(file_path path)
     char p[256];
 
     // Generate path on host file system
-    snprintf(p, 256, "sys/shared/%s",
+    snprintf(p, 256, "sys/shared/%s/",
         arch->type_specific.sharedextd.path);
 
-    access(p, 0);
-    if (ENOENT == errno)
+    DIR* dir = opendir(p);
+    if (dir == NULL)
     {
         //sharedextdfile_Close(arch);
         return NULL;
     }
+    closedir(dir);
     return arch;
 }

@@ -33,6 +33,7 @@ SERVICE_CMD(0x000A0000)   //GetDeviceID
     RESP(1, 0); //result
     return 0;
 }
+
 SERVICE_CMD(0x00140040)   //FinishInstallToMedia
 {
     DEBUG("FinishInstallToMedia %02x --STUB--",CMD(1));
@@ -52,6 +53,56 @@ SERVICE_CMD(0x00180080)   //unk
 {
     DEBUG("unk18 %02x %02x --STUB--", CMD(1), CMD(2));
     RESP(1, 0); //result
+    return 0;
+}
+
+SERVICE_CMD(0x00080000)   // TitleIDListGetTotal3
+{
+    DEBUG("TitleIDListGetTotal3 - STUBBED -\n");
+    RESP(2, 0); // we have 0 Total titles
+    RESP(1, 0);
+    return 0;
+}
+SERVICE_CMD(0x00090082)   // GetTitleIDList3
+{
+    DEBUG("TitleIDListGetTotal3 - STUBBED -\n");
+    RESP(2, 0); // we have 0 titles on that medium
+    RESP(1, 0);
+    return 0;
+}
+SERVICE_CMD(0x00010040)   //TitleIDListGetTotal
+{
+    DEBUG("TitleIDListGetTotal (%08x) - STUBBED -\n", CMD(1));
+    RESP(2, 0); // we have 0 titles on that medium
+    RESP(1, 0); // we have 0 titles on that medium
+    return 0;
+}
+SERVICE_CMD(0x00020082)   //GetTitleIDList
+{
+    DEBUG("GetTitleIDList (%08x %08x %08x) - STUBBED -\n", CMD(1), CMD(2), CMD(4));
+    RESP(1, 0); // we have 0 titles on that medium
+    return 0;
+}
+
+SERVICE_CMD(0x000B0040)   //unk
+{
+    DEBUG("unk B (%08x) - STUBBED -\n", CMD(1));
+    RESP(1, 0);
+    return 0;
+}
+SERVICE_CMD(0x00130040)   // ??
+{
+    DEBUG("??_00130040 - STUBBED -\n");
+    RESP(1, 0);
+    return 0;
+}
+
+SERVICE_CMD(0x00230080)   // TitleIDListGetTotal2
+{
+    DEBUG("TitleIDListGetTotal2 --todo-- %08x %08x %08x\n", CMD(1), CMD(2), CMD(3));
+
+    RESP(2, 0); // Total titles
+    RESP(1, 0); // Result
     return 0;
 }
 

@@ -11,7 +11,7 @@ install:
  - sudo apt-get install libsdl2-dev
 
 script:
-  - make
+  - make 3dmoo
 
 notifications:
   email: false

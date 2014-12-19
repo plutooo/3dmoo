@@ -37,7 +37,7 @@
 #include	<unistd.h>
 #include	<errno.h>
 #include	<pthread.h>
-#include	<stdlib.h>
+#include 	<stdlib.h>
 #include	<stdio.h>
 #include	<string.h>
 #include	<ctype.h>
@@ -51,6 +51,7 @@
 #include	<sys/ioctl.h>
 #include	<errno.h>
 #include	<stdarg.h>
+#include	<sys/select.h>
 
 #define		SOCKET_ERROR			-1
 

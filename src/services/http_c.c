@@ -60,6 +60,7 @@ SERVICE_CMD(0x00020082)
     }
     h->misc_ptr[0] = NULL;
     h->misc_ptr[1] = NULL;
+    h->misc_ptr[2] = NULL;
 
     u8* b = malloc(size + 1);
     if (b == NULL) {
@@ -114,7 +115,15 @@ SERVICE_CMD(0x00090040)
         RESP(1, 0xFFFFFFFF); // Result
         return 0;
     }
-
+    int i;
+    for (i = 0; i < h->misc[2]; i++)
+    {
+        if (HTTPClientAddRequestHeaders(pHTTP, *((char**)(h->misc_ptr[2]) + i * 2), *((char**)(h->misc_ptr[2]) + i * 2 + 1), true))
+        {
+            RESP(1, 0xFFFFFFFF); // Result
+            return 0;
+        }
+    }
     // Send a request for the home page
     if(HTTPClientSendRequest(pHTTP, h->misc_ptr[0], NULL, 0, FALSE, 0, 0) != HTTP_CLIENT_SUCCESS) {
         RESP(1, 0xFFFFFFFF); // Result
@@ -128,6 +137,10 @@ SERVICE_CMD(0x00090040)
     h->misc[1] = 0;
 
     h->misc_ptr[1] = NULL;
+
+    h->misc[2] = 0;
+
+    h->misc_ptr[2] = NULL;
 
     int nSize = HTTP_CLIENT_BUFFER_SIZE;
 
@@ -246,8 +259,74 @@ SERVICE_CMD(0x00330040)
 }
 SERVICE_CMD(0x000E0040) //SetProxyDefault
 {
-    DEBUG("SetProxyDefault %08X\n", CMD(1));
+    DEBUG("SetProxyDefault %08X --stub--\n", CMD(1));
 
+    RESP(1, 0); // Result
+    return 0;
+}
+SERVICE_CMD(0x001100C4) //AddRequestHeader
+{
+    DEBUG("AddRequestHeader %08X %08X %08X %08X %08X\n", CMD(1), CMD(2), CMD(3),CMD(5),CMD(7));
+
+    //HTTPClientAddRequestHeaders
+
+    handleinfo* h = handle_Get(CMD(1));
+    if (h == NULL) {
+        DEBUG("failed to get newly created Handle\n");
+        PAUSE();
+        return -1;
+    }
+
+    u32 size1 = CMD(2);
+    u32 size2 = CMD(3);
+
+    u8* a = malloc(size1 + 1);
+    if (a == NULL) {
+        ERROR("Not enough mem.\n");
+        return -1;
+    }
+    memset(a, 0, size1 + 1);
+    if (mem_Read(a, CMD(5), size1) != 0) {
+        ERROR("mem_Read failed.\n");
+        free(a);
+        return -1;
+    }
+
+    u8* b = malloc(size2 + 1);
+    if (b == NULL) {
+        ERROR("Not enough mem.\n");
+         return -1;
+    }
+    memset(b, 0, size2 + 1);
+    if (mem_Read(b, CMD(7), size2) != 0) {
+        ERROR("mem_Read failed.\n");
+        free(b);
+        return -1;
+    }
+
+
+    h->misc_ptr[2] = (char*)realloc(h->misc_ptr[2], sizeof(char*) * 2 * (h->misc[2] + 1));
+    *((char**)(h->misc_ptr[2]) + h->misc[2] * 2) = a;
+    *((char**)(h->misc_ptr[2]) + h->misc[2] * 2 + 1) = b;
+    h->misc[2]++;
+
+    DEBUG("name %s val %s\n", a,b);
+
+    RESP(1, 0); // Result
+    return 0;
+}
+SERVICE_CMD(0x00260080)
+{
+    DEBUG("unk26 --stub-- %08X %08X\n", CMD(1), CMD(2));
+
+    RESP(1, 0); // Result
+    return 0;
+}
+SERVICE_CMD(0x002a0040)
+{
+    DEBUG("unk 2a --stub-- %08X %08X\n", CMD(1));
+
+    RESP(2, 0); // unk u32
     RESP(1, 0); // Result
     return 0;
 }

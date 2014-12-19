@@ -415,9 +415,22 @@ archive* sharedextd_OpenArchive(file_path path)
     }
 
     snprintf(arch->type_specific.sharedextd.path,
-             sizeof(arch->type_specific.sharedextd.path),
-             "%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x",
-             buf[0], buf[1], buf[2], buf[3], buf[ 4], buf[ 5],
-             buf[6], buf[7], buf[8], buf[9], buf[10], buf[11]);
+        sizeof(arch->type_specific.sharedextd.path),
+        "%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x",
+        buf[0], buf[1], buf[2], buf[3], buf[4], buf[5],
+        buf[6], buf[7], buf[8], buf[9], buf[10], buf[11]);
+
+    char p[256];
+
+    // Generate path on host file system
+    snprintf(p, 256, "sys/shared/%s",
+        arch->type_specific.sharedextd.path);
+
+    access(p, 0);
+    if (ENOENT == errno)
+    {
+        //sharedextdfile_Close(arch);
+        return NULL;
+    }
     return arch;
 }

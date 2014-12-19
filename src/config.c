@@ -6,4 +6,6 @@ bool config_sdmcwriteable = false;
 bool config_slotone = false;
 bool config_usesys = false;
 bool config_nand_cfg_save = false;
+u32  config_region = 2; //EUROPE
+
 char config_sysdataoutpath[0x200]; //0x200 is MAX file path

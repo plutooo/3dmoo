@@ -22,6 +22,8 @@
 #include "mem.h"
 #include "arm11.h"
 
+#include "config.h"
+
 #include "service_macros.h"
 
 #include "config.h"
@@ -135,7 +137,7 @@ SERVICE_CMD(0x00020000)   // SecureInfoGetRegion
     DEBUG("SecureInfoGetRegion\n");
 
     RESP(1, 0); // Result
-    RESP(2, 2); // 2=EUROPE 1=USA
+    RESP(2, config_region); // 2=EUROPE 1=USA
     return 0;
 }
 

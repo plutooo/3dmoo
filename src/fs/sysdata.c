@@ -368,7 +368,7 @@ archive* sysdata_OpenArchive(file_path path)
     snprintf(arch->type_specific.sysdata.path,
              sizeof(arch->type_specific.sysdata.path),
              "%02x%02x%02x%02x",
-             buf[3], buf[2], buf[1], buf[0]);
+             buf[7], buf[6], buf[5], buf[4]);
 
     printf("%s\n", arch->type_specific.sysdata.path);
     return arch;

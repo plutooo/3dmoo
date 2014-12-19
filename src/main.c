@@ -147,6 +147,8 @@ int main(int argc, char* argv[])
         else if ((strcmp(argv[i], "-sdwrite") == 0))config_sdmcwriteable = true;
         else if ((strcmp(argv[i], "-slotone") == 0))config_slotone = true;
         else if ((strcmp(argv[i], "-configsave") == 0))config_nand_cfg_save = true;
+        else if ((strcmp(argv[i], "-region=EU") == 0))config_region = 2;
+        else if ((strcmp(argv[i], "-region=USA") == 0))config_region = 1;
 
 #ifdef GDB_STUB
         if ((strcmp(argv[i], "-gdbport") == 0)) {

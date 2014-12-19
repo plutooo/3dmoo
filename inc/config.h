@@ -5,3 +5,4 @@ extern bool config_slotone;
 extern bool config_usesys;
 extern bool config_nand_cfg_save;
 extern char config_sysdataoutpath[0x200];
+extern u32 config_region;

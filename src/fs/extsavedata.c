@@ -30,6 +30,9 @@
 
 #ifdef _WIN32
 #include <direct.h>
+#include <io.h>
+#else
+#include <unistd.h>
 #endif
 
 /* ____ Extended Save Data implementation ____ */
@@ -165,6 +168,54 @@ static bool extsavedata_FileExists(archive* self, file_path path)
     }
 
     return stat(p, &st) == 0;
+}
+
+static u32 extsavedata_CreateFile(archive* self, file_path path, u32 size)
+{
+    char *p = malloc(256);
+
+    char tmp[256];
+
+    // Generate path on host file system
+    snprintf(p, 256, "extsavedata/%s/%s",
+             loader_h.productcode, fs_PathToString(path.type, path.ptr, path.size, tmp, 256));
+
+    if(!fs_IsSafePath(p)) {
+        ERROR("Got unsafe path.\n");
+        free(p);
+        return 0;
+    }
+
+    int result;
+
+#ifdef _WIN32
+
+#define open _open
+#define close _close
+#define ftruncate _chsize
+
+#define O_EXCL    _O_EXCL
+#define O_WRONLY  _O_WRONLY
+
+#endif
+
+    int fd = open(p, O_CREAT | O_EXCL | O_WRONLY, S_IRUSR | S_IWUSR);
+
+    if(fd == -1)
+    {
+        result = errno;
+        if(result == EEXIST) result = 0x82044BE;
+    }
+    else {
+        result = ftruncate(fd, size);
+        if(result != 0) result = errno;
+    }
+
+    close(fd);
+
+    if(result == ENOSPC) result = 0x86044D2;
+    free(p);
+    return result;
 }
 
 static u32 extsavedata_OpenFile(archive* self, file_path path, u32 flags, u32 attr)
@@ -415,8 +466,8 @@ archive* extsavedata_OpenArchive(file_path path)
     arch->fnOpenDir = &extsavedata_OpenDir;
     arch->fnDeleteDir = NULL;
     arch->fnRenameDir = NULL;
-
     arch->fnFileExists = &extsavedata_FileExists;
+    arch->fnCreateFile = &extsavedata_CreateFile;
     arch->fnOpenFile = &extsavedata_OpenFile;
     arch->fnRenameFile = NULL;
     arch->fnDeleteFile = &extsavedata_DeleteDir;

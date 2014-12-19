@@ -47,61 +47,58 @@ void IPC_debugprint(u32 addr)
              {
              case 0:
                  DEBUG("send and close KHandle %08X\n", mem_Read32(addr + 4));
-                 addr += 8;
+                 addr += 4;
                  i++;
                  break;
              case 0x10:
                  DEBUG("send KHandle duplicate %08X\n", mem_Read32(addr + 4));
-                 addr += 8;
+                 addr += 4;
                  i++;
                  break;
              case 0x20:
                  DEBUG("send ProcessID\n");
-                 addr += 8;
+                 addr += 4;
                  i++;
                  break;
              default:
                  DEBUG("unknown desc %08X %08X\n", desc, mem_Read32(addr + 4));
-                 addr += 8;
+                 addr += 4;
                  i++;
                  break;
              }
              break;
          case 0x2:
              DEBUG("copy EXTENDED_CMD size %08X id %01X ptr %08X\n", (desc >> 14), (desc >> 10)&0xF, mem_Read32(addr + 4));
-             addr += 8;
+             addr += 4;
              i++;
              break;
          case 0x4:
              DEBUG("PXI I/O (size %08X)\n", (desc >> 4));
-             addr += 4;
              break;
          case 0x6:
              DEBUG("nothing %08X\n", desc);
-             addr += 4;
              break;
          case 0x8:
              DEBUG("kernelpanic %08X\n", desc);
-             addr += 4;
              break;
          case 0xA:
              DEBUG("Readonly (size %08X) (ptr %08X)\n", (desc >> 4), mem_Read32(addr + 4));
-             addr += 8;
+             addr += 4;
              i++;
              break;
          case 0xC:
              DEBUG("Writeonly (size %08X) (ptr %08X)\n", (desc >> 4), mem_Read32(addr + 4));
-             addr += 8;
+             addr += 4;
              i++;
              break;
          case 0xE:
              DEBUG("RW (size %08X) (ptr %08X)\n", (desc >> 4), mem_Read32(addr + 4));
-             addr += 8;
+             addr += 4;
              i++;
              break;
          default:
              DEBUG("unknown desc %08X %08X\n", desc, mem_Read32(addr + 4));
-             addr += 8;
+             addr += 4;
              i++;
              break;
 

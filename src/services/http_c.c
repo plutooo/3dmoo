@@ -84,7 +84,7 @@ SERVICE_CMD(0x00020082)
 }
 SERVICE_CMD(0x80042)
 {
-    DEBUG("InitializeConnectionSession --stubed-- %08x\n", CMD(1));
+    DEBUG("InitializeConnectionSession %08x --stubed--\n", CMD(1));
     RESP(1, 0); // Result
     return 0;
 }
@@ -148,7 +148,7 @@ SERVICE_CMD(0x00090040)
 }
 SERVICE_CMD(0x220040)
 {
-    DEBUG("GetResponseStatusCode  %08x\n", CMD(1));
+    DEBUG("GetResponseStatusCode %08x\n", CMD(1));
 
     handleinfo* h = handle_Get(CMD(1));
     if (h == NULL) {
@@ -165,7 +165,7 @@ SERVICE_CMD(0x220040)
 }
 SERVICE_CMD(0x00060040)
 {
-    DEBUG("GetDownloadSizeState  %08x\n", CMD(1));
+    DEBUG("GetDownloadSizeState %08x\n", CMD(1));
 
     handleinfo* h = handle_Get(CMD(1));
     if (h == NULL) {
@@ -201,7 +201,7 @@ SERVICE_CMD(0x000B0082)
 
 SERVICE_CMD(0x00030040)
 {
-    DEBUG("CloseContext --stub-- %08x\n", CMD(1));
+    DEBUG("CloseContext %08x --stub--\n", CMD(1));
 
     handleinfo* h = handle_Get(CMD(1));
     if (h == NULL) {
@@ -221,9 +221,33 @@ SERVICE_CMD(0x00030040)
 
 SERVICE_CMD(0x002D0000)
 {
-    DEBUG("unk2D --stub-- %08x\n");
+    DEBUG("unk2D --stub--\n");
 
     RESP(2, 0); // unk
+    RESP(1, 0); // Result
+    return 0;
+}
+
+SERVICE_CMD(0x00300080)
+{
+    DEBUG("unk30 %08X %08X --stub--\n", CMD(1), CMD(2));
+
+    RESP(2, 0); // unk
+    RESP(1, 0); // Result
+    return 0;
+}
+SERVICE_CMD(0x00330040)
+{
+    DEBUG("unk33 %08X --stub--\n", CMD(1));
+
+    RESP(2, 0); // unk
+    RESP(1, 0); // Result
+    return 0;
+}
+SERVICE_CMD(0x000E0040) //SetProxyDefault
+{
+    DEBUG("SetProxyDefault %08X\n", CMD(1));
+
     RESP(1, 0); // Result
     return 0;
 }

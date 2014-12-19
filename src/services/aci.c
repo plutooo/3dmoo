@@ -26,6 +26,9 @@ SERVICE_START(ac_i);
 
 SERVICE_END();
 
+
+
+
 SERVICE_START(ac_u);
 
 SERVICE_CMD(0x10000) //CreateDefaultConfig
@@ -74,7 +77,7 @@ SERVICE_CMD(0x00270002)
 
 SERVICE_CMD(0x300004) //RegisterDisconnectEvent
 {
-    DEBUG("RegisterDisconnectEvent\n");
+    DEBUG("RegisterDisconnectEvent --todo--\n");
 
     RESP(1, 0); // Result
     return 0;
@@ -91,7 +94,43 @@ SERVICE_CMD(0x3e0042) //IsConnected
 
 SERVICE_CMD(0x400042) //SetClientVersion
 {
-    DEBUG("SetClientVersion\n");
+    DEBUG("SetClientVersion --todo--\n");
+
+    RESP(1, 0); // Result
+    return 0;
+}
+
+SERVICE_CMD(0x002D0082) //SetRequestEulaVersion
+{
+    DEBUG("SetRequestEulaVersion %08x %08x --todo--\n",CMD(1),CMD(2));
+
+    for (int i = 0; i < 0x200; i++)
+    {
+        printf("%02X ", mem_Read8(i + CMD(4)));
+    }
+
+    RESP(1, 0); // Result
+    return 0;
+}
+
+SERVICE_CMD(0x00040006) //ConnectAsync
+{
+    DEBUG("ConnectAsync %08x %08x --todo--\n", CMD(4), CMD(6));
+
+    for (int i = 0; i < 0x200; i++)
+    {
+        printf("%02X ", mem_Read8(i + CMD(6)));
+    }
+
+    handleinfo* hi = handle_Get(CMD(4));
+    hi->locked = false;
+
+    RESP(1, 0); // Result
+    return 0;
+}
+SERVICE_CMD(0x00050002) //GetConnectResult
+{
+    DEBUG("GetConnectResult --todo--\n");
 
     RESP(1, 0); // Result
     return 0;

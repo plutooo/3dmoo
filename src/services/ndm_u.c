@@ -26,6 +26,13 @@
 
 SERVICE_START(ndm_u);
 
+SERVICE_CMD(0x00010042)   //EnterExclusiveState
+{
+    DEBUG("EnterExclusiveState %08x\n", CMD(1));
+    RESP(1, 0); // Result
+    return 0;
+}
+
 SERVICE_CMD(0x60040)   //SuspendDaemons
 {
     DEBUG("SuspendDaemons %08x\n", CMD(1));

@@ -28,8 +28,10 @@
 
 #ifdef _WIN32
 #include <direct.h>
+#include <io.h>
+#else
+#include <unistd.h>
 #endif
-
 /* ____ File implementation ____ */
 
 static u32 sharedextdfile_Write(file_type* self, u32 ptr, u32 sz, u64 off, u32 flush_flags, u32* written_out)
@@ -265,7 +267,7 @@ int sharedextd_DeleteDir(archive* self, file_path path)
 #ifdef _MSC_VER 
     return _rmdir(p);
 #else
-    return rmdir(p, 0777);
+    return rmdir(p);
 #endif
 }
 

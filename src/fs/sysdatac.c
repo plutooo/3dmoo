@@ -30,6 +30,9 @@
 
 #ifdef _WIN32
 #include <direct.h>
+#include <io.h>
+#else
+#include <unistd.h>
 #endif
 
 
@@ -215,7 +218,7 @@ int SaveDatacheck_DeleteDir(archive* self, file_path path)
 #ifdef _MSC_VER 
     return _rmdir(p);
 #else
-    return rmdir(p, 0777);
+    return rmdir(p);
 #endif
 }
 

@@ -17,6 +17,9 @@
 */
 
 #include <sys/types.h>
+#ifdef __APPLE__
+#undef _POSIX_C_SOURCE
+#endif
 
 #ifdef _WIN32
 #include "dirent.h"

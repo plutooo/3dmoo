@@ -14,7 +14,7 @@ AC_PROG_CC
 AC_PROG_CXX
 
 dnl Check for SDL
-SDL2_VERSION=2.0.3
+SDL2_VERSION=2.0.0
 AM_PATH_SDL2($SDL2_VERSION,
           :,
           AC_MSG_ERROR([*** SDL version $SDL_VERSION not found!])

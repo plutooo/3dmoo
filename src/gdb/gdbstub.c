@@ -835,10 +835,13 @@ processPacket_gdb( SOCKET_TYPE sock, const uint8_t *packet,
       }
       if (strcmp("qC", (char*)packet) == 0)
       {
-          if (gdb_id_glob == -1)
-              sprintf((char*)out_ptr, "QC-1");
-          else
-              sprintf((char*)out_ptr, "QC%x", gdb_id_glob);
+          if(gdb_id_glob == -1)
+          {
+              //If initial handle isn't known then use current threads handle
+              gdb_id_glob = threads_GetCurrentThreadHandle();
+          }
+
+          sprintf((char*)out_ptr, "QC%x", gdb_id_glob);
           send_size = strlen((char*)out_ptr);
           break;
       }
@@ -1265,7 +1268,6 @@ processPacket_gdb( SOCKET_TYPE sock, const uint8_t *packet,
   {
       int i;
       int out_index = 0;
-
 
       uint32_t pc_value = stub->cpu_ctrl->read_reg(stub->cpu_ctrl->data, 15, gdb_id_glob);
       uint32_t cpsr_value = stub->cpu_ctrl->read_reg(stub->cpu_ctrl->data, 16, gdb_id_glob);

@@ -128,23 +128,15 @@ static u64 savedatafile_GetSize(file_type* self)
 static u32 savedatafile_SetSize(file_type* self, u64 sz)
 {
     FILE* fd = self->type_specific.sysdata.fd;
-    u64 current_size = self->type_specific.sysdata.sz;
 
 #ifdef _WIN32
-    if (sz >= current_size) {
-        if (fseek64(fd, sz, SEEK_SET) == -1) {
-            ERROR("fseek failed.\n");
-            return -1;
-        }
-    } else {
-        DEBUG("Truncating a file is unsupported.\n");
-    }
-#else
-    if(ftruncate(fileno(fd), current_size) == -1) {
+#define ftruncate _chsize_s
+#endif
+    self->type_specific.sysdata.sz = sz;
+    if(ftruncate(fileno(fd), sz) == -1) {
         ERROR("ftruncate failed.\n");
         return -1;
     }
-#endif
 
     return 0;
 }

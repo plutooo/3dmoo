@@ -65,15 +65,20 @@ u32 dsp_dsp_SyncRequest()
         u32 unk2 = mem_Read16(arm11_ServiceBufferAddress() + 0x8C);
         u32 buffer = mem_Read32(arm11_ServiceBufferAddress() + 0x94);
         DEBUG("LoadComponent %08X %08X %04X %04X\n", size, buffer, unk1, unk2);
+
+#ifdef DUMP_DSPFIRM
         FILE* out = fopen("dspfirm.bin", "wb");
         u8* outbuff = (u8*)malloc(size);
         mem_Read(outbuff, buffer, size);
         fwrite(outbuff, size, 1, out);
         fclose(out);
+#endif
 
         //DSP_LoadFirm(outbuff);
 
+#ifdef DUMP_DSPFIRM
         free(outbuff);
+#endif
         mem_Write32(arm11_ServiceBufferAddress() + 0x84, 0x0); //no error
         mem_Write32(arm11_ServiceBufferAddress() + 0x88, 0x1); //loaded
         return 0;

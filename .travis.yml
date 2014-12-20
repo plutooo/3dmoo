@@ -5,13 +5,15 @@ compiler:
 before_install:
  - lsb_release -a
  - sudo apt-add-repository --yes ppa:zoogie/sdl2-snapshots # libsdl2
+ - sudo add-apt-repository --yes ppa:terry.guo/gcc-arm-embedded # gnuarm
  - sudo apt-get update -qq
 
 install:
  - sudo apt-get install libsdl2-dev
+ - sudo apt-get install gcc-arm-none-eabi
 
 script:
-  - make 3dmoo
+  - make
 
 notifications:
   email: false

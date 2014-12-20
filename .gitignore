@@ -17,6 +17,13 @@ build/
 [Bb]in/
 [Oo]bj/
 
+3dmoo
+3dmoo.exe
+test
+test.exe
+
+tests/arm_instr.elf
+
 # Enable "build/" folder in the NuGet Packages folder since NuGet packages use it for MSBuild targets
 !packages/*/build/
 

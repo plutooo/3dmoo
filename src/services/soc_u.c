@@ -15,15 +15,22 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <stdint.h>
 
 #ifdef _WIN32
+
+// Target Vista or newer for inet_ntop
+
+#define WINVER 0x0600
+#define _WIN32_WINNT 0x0600
 
 #include <winsock2.h>
 #include <ws2tcpip.h>
 #include <BaseTsd.h>
 
+#ifndef __MINGW32__
 typedef SSIZE_T ssize_t;
+#endif
+
 static WSADATA wsaData;
 #define SOCKET_FAILED(s) ((s) == (SOCKET)NULL)
 
@@ -51,6 +58,8 @@ typedef int SOCKET;
 #define GET_ERRNO errno
 
 #endif
+
+#include <stdint.h>
 
 #include "util.h"
 #include "handles.h"

@@ -300,8 +300,16 @@ u32 extsavedata_ReadDir(dir_type* self, u32 ptr, u32 entrycount, u32* read_out)
     mem_Write8(ptr + 0x21A, 0x1); // Unknown
     mem_Write8(ptr + 0x21B, 0x0); // Unknown
 
+    struct stat st;
+
+    char path[256];
+    snprintf(path, sizeof(path), "%s/%s", self->path, ent->d_name);
+    if (stat(path,&st) != 0 ) {
+        ERROR("Failed to stat: %s\n", path);
+        return -1;
+    }
     // Is directory flag
-    if(ent->d_type == DT_DIR) {
+    if (S_ISDIR(st.st_mode)) {
         mem_Write8(ptr + 0x21C, 0x1);
 
         mem_Write8(ptr + 0x216, ' '); // 8.3 file extension
@@ -309,32 +317,21 @@ u32 extsavedata_ReadDir(dir_type* self, u32 ptr, u32 entrycount, u32* read_out)
         mem_Write8(ptr + 0x218, ' ');
     }
     else { // Is directory flag
-        mem_Write8(ptr + 0x21C, 0x0);
-    }
 
     // XXX: hidden flag @ 0x21D
     // XXX: archive flag @ 0x21E
     // XXX: readonly flag @ 0x21F
 
-    if(ent->d_type != DT_DIR) {
-        struct stat st;
+        mem_Write8(ptr + 0x21C, 0x0);
+        mem_Write32(ptr + 0x220, st.st_size);
 
-        char path[256];
-        snprintf(path, sizeof(path), "%s/%s", self->path, ent->d_name);
-
-        if(stat(path, &st) == 0) {
-            mem_Write32(ptr + 0x220, st.st_size);
 #if defined(ENV64BIT)
-            mem_Write32(ptr + 0x224, (st.st_size >> 32));
+        mem_Write32(ptr + 0x224, (st.st_size >> 32));
 #else
-            mem_Write32(ptr + 0x224, 0);
+        mem_Write32(ptr + 0x224, 0);
 #endif
-        }
-        else {
-            ERROR("Failed to stat: %s\n", path);
-            return -1;
-        }
     }
+
 
     *read_out = current;
     return 0;
@@ -378,7 +375,7 @@ int extsavedata_CreateDir(archive* self, file_path path)
         ERROR("Got unsafe path.\n");
         return 0;
     }
-#ifdef _MSC_VER 
+#ifdef _WIN32
     return _mkdir(p);
 #else
     return mkdir(p, 0777);
@@ -397,7 +394,7 @@ int extsavedata_DeleteDir(archive* self, file_path path)
         ERROR("Got unsafe path.\n");
         return 0;
     }
-#ifdef _MSC_VER 
+#ifdef _WIN32
     return _rmdir(p);
 #else
     return rmdir(p);

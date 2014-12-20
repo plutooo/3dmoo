@@ -705,7 +705,7 @@ SERVICE_CMD(0x080F0180)   // FormatThisUserSaveData
     char p[256];
     snprintf(p, 256, "savedata/%s", loader_h.productcode);
 
-#ifdef _MSC_VER 
+#ifdef _WIN32
     return _mkdir(p);
 #else
     return mkdir(p, 0777);
@@ -819,7 +819,7 @@ SERVICE_CMD(0x084c0242)   // FormatSaveData
     char p[256];
     snprintf(p, 256, "savedata/%s", loader_h.productcode);
 
-#ifdef _MSC_VER 
+#ifdef _WIN32
     return _mkdir(p);
 #else
     return mkdir(p, 0777);

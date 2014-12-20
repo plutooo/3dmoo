@@ -21,7 +21,7 @@
 #undef _POSIX_C_SOURCE
 #endif
 
-#ifdef _WIN32
+#ifdef _MSC_VER
 #include "dirent.h"
 #else
 #include <dirent.h>

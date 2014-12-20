@@ -227,7 +227,7 @@ int SaveDatacheck_CreateDir(archive* self, file_path path)
         ERROR("Got unsafe path.\n");
         return 0;
     }
-#ifdef _MSC_VER 
+#ifdef _WIN32
     return _mkdir(p);
 #else
     return mkdir(p, 0777);

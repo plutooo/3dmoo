@@ -290,7 +290,7 @@ int sysdata_DeleteDir(archive* self, file_path path)
         ERROR("Got unsafe path.\n");
         return 0;
     }
-#ifdef _MSC_VER 
+#ifdef _WIN32
     return _rmdir(p);
 #else
     return rmdir(p);
@@ -316,7 +316,7 @@ int sysdata_CreateDir(archive* self, file_path path)
         ERROR("Got unsafe path.\n");
         return 0;
     }
-#ifdef _MSC_VER 
+#ifdef _WIN32
     return _mkdir(p);
 #else
     return mkdir(p, 0777);

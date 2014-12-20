@@ -29,8 +29,10 @@
 
 // Kluge alert: redefining strncasecmp() as memicmp() for Windows.
 //
+#ifndef __MINGW32__
 #define		strncasecmp			memicmp
 #define		strcasecmp			stricmp
+#endif
 
 #else // Non Win32 : GCC Linux
 

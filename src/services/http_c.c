@@ -116,7 +116,7 @@ SERVICE_CMD(0x00090040)
         return 0;
     }
     int i;
-    for (i = 0; i < h->misc[2]; i++)
+    for (i = 0; i < (int)h->misc[2]; i++)
     {
         if (HTTPClientAddRequestHeaders(pHTTP, *((char**)(h->misc_ptr[2]) + i * 2), *((char**)(h->misc_ptr[2]) + i * 2 + 1), true))
         {

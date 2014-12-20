@@ -29,6 +29,13 @@
 #undef ERROR
 #endif
 
+#ifdef _WIN32
+#include <direct.h>
+#include <io.h>
+#else
+#include <unistd.h>
+#endif
+
 #include <stdint.h>
 #include <stdbool.h>
 #include <string.h>
@@ -119,7 +126,7 @@ static void color_restore(int old)
 #ifndef DISABLE_DEBUG
 #define DEBUG(...) do {                                 \
         int old = color_green();                        \
-        fprintf(stdout, "%s: ", __func__);              \
+        fprintf(stdout, "%s (line %d): ", __func__, __LINE__);              \
         color_restore(old);                             \
         fprintf(stdout, __VA_ARGS__);                   \
 } while (0)
@@ -169,12 +176,38 @@ static void color_restore(int old)
 #define ARRAY_SIZE(s) (sizeof(s)/sizeof((s)[0]))
 
 #ifdef _WIN32
+
+#ifndef snprintf
 #define snprintf sprintf_s
+#endif
+
+#ifndef fseek64
 #define fseek64 _fseeki64
+#endif
+
+#ifndef ftell64
 #define ftell64 _ftelli64
+#endif
+
+#ifndef ftruncate
+#define ftruncate _chsize_s
+#endif
+
+#define open _open
+#define close _close
+#define fileno _fileno
+
+#define O_EXCL    _O_EXCL
+#define O_WRONLY  _O_WRONLY
+
 #else
+#ifndef fseek64
 #define fseek64 fseeko
+#endif
+
+#ifndef ftell64
 #define ftell64 ftello
+#endif
 #endif
 
 

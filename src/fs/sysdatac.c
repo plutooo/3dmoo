@@ -28,14 +28,6 @@
 
 #include "config.h"
 
-#ifdef _WIN32
-#include <direct.h>
-#include <io.h>
-#else
-#include <unistd.h>
-#endif
-
-
 /* ____ File implementation ____ */
 
 static u32 SaveDatacheck_Read(file_type* self, u32 ptr, u32 sz, u64 off, u32* read_out)

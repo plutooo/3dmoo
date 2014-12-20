@@ -28,13 +28,6 @@
 #include "fs.h"
 #include "loader.h"
 
-#ifdef _WIN32
-#include <direct.h>
-#include <io.h>
-#else
-#include <unistd.h>
-#endif
-
 /* ____ Extended Save Data implementation ____ */
 
 static u32 extsavedatafile_Read(file_type* self, u32 ptr, u32 sz, u64 off, u32* read_out)
@@ -126,9 +119,6 @@ static u32 extsavedatafile_SetSize(file_type* self, u64 sz)
 {
     FILE* fd = self->type_specific.sysdata.fd;
 
-#ifdef _WIN32
-#define ftruncate _chsize_s
-#endif
     self->type_specific.sysdata.sz = sz;
     if(ftruncate(fileno(fd), sz) == -1) {
         ERROR("ftruncate failed.\n");
@@ -186,17 +176,6 @@ static u32 extsavedata_CreateFile(archive* self, file_path path, u32 size)
     }
 
     int result;
-
-#ifdef _WIN32
-
-#define open _open
-#define close _close
-#define ftruncate _chsize
-
-#define O_EXCL    _O_EXCL
-#define O_WRONLY  _O_WRONLY
-
-#endif
 
     int fd = open(p, O_CREAT | O_EXCL | O_WRONLY, S_IRUSR | S_IWUSR);
 

@@ -200,15 +200,14 @@ ro/*
 LINEmembuffer.bin
 
 # autotools files
-INSTALL
+Makefile
 Makefile.in
 aclocal.m4
-autom4te.cache/
-build-host/
-compile
+autom4te.cache
 config.guess
 config.sub
 config.log
+config.status
 configure
 depcomp
 install-sh

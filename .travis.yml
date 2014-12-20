@@ -13,6 +13,8 @@ install:
  - sudo apt-get install gcc-arm-embedded
 
 script:
+  - ./autogen.sh
+  - ./configure
   - make
 
 notifications:

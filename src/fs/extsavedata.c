@@ -127,6 +127,7 @@ static u32 extsavedatafile_SetSize(file_type* self, u64 sz)
     FILE* fd = self->type_specific.sysdata.fd;
     u64 current_size = self->type_specific.sysdata.sz;
 
+#ifdef _WIN32
     if (sz >= current_size) {
         if (fseek64(fd, sz, SEEK_SET) == -1) {
             ERROR("fseek failed.\n");
@@ -135,6 +136,12 @@ static u32 extsavedatafile_SetSize(file_type* self, u64 sz)
     } else {
         DEBUG("Truncating a file is unsupported.\n");
     }
+#else
+    if(ftruncate(fileno(fd), current_size) == -1) {
+        ERROR("ftruncate failed.\n");
+        return -1;
+    }
+#endif
 
     return 0;
 }

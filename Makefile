@@ -1,9 +1,15 @@
 ### 3dmoo Makefile ###
+PLATFORM	:=	$(shell uname -s)
+
+ifneq (,$(findstring MINGW32,$(PLATFORM)))
+MINGW_LIBS	:=	-lws2_32
+MINGW_LDFLAGS	:=	-mconsole
+endif
 
 CC      = gcc
 CFLAGS  = -c -g -std=c99 -Wno-format-zero-length -iquoteinc -iquotesrc/arm11 -iquotesrc/arm11/vfp `pkg-config sdl2 --cflags` -DMODET -DMODE32 -D_DEFAULT_SOURCE -D_BSD_SOURCE -D_POSIX_SOURCE -DGDB_STUB
-LIBS    = `pkg-config sdl2 --libs` -lm
-LDFLAGS =
+LIBS    = `pkg-config sdl2 --libs` -lm $(MINGW_LIBS)
+LDFLAGS = $(MINGW_LDFLAGS)
 
 SRC_FILES = src/mem.c src/screen.c src/handles.c src/loader.c src/utils.c src/svc.c src/config.c src/gdb/gdbstubchelper.c src/gdb/gdbstub.c
 

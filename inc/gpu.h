@@ -111,6 +111,8 @@ extern u32 GPU_Regs[0xFFFF];
 
 #define VSresttriangel 0x25f
 
+#define VS_INTUNIFORM_I0 0x2B1 //untill I3 in 0x284
+
 #define VSMainOffset 0x2BA
 #define VSInputRegisterMap 0x2BB
 // untill 0x2BC

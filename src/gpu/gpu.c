@@ -673,6 +673,74 @@ void ProcessShaderCode(struct VertexShaderState* state)
             call(state, addrv / 4, retv, ((u32)(uintptr_t)(state->program_counter + 1) - (u32)(uintptr_t)(&GPUshadercodebuffer[0])) / 4);
             break;
         }
+
+        case SHDR_CALLC:
+        {
+            u32 addrv = (instr >> 8) & 0x3FFC;
+            u32 retv = instr & 0x3FF;
+            u32 flagsv = (instr >> 22) & 0xF;
+
+
+            u32 mode = flagsv & 0x3;
+            bool status0 = flagsv & 0x4;
+            bool status1 = flagsv & 0x8;
+
+            bool condition = false;
+            switch (mode) {
+            case 0: //OR
+                if ((status0 == state->status_registers[0]) || (status1 == state->status_registers[1]))
+                    condition = true;
+                break;
+            case 1: //AND
+                if ((status0 == state->status_registers[0]) && (status1 == state->status_registers[1]))
+                    condition = true;
+                break;
+            case 2: //Y
+                if (status0 == state->status_registers[0])
+                    condition = true;
+                break;
+            case 3: //X
+                if (status1 == state->status_registers[1])
+                    condition = true;
+                break;
+            }
+
+#ifdef printfunc
+            DEBUG("CALLC %02X (%s)\n", flagsv, condition ? "true" : "false");
+#endif
+
+            if (condition)
+            {
+                increment_pc = false;
+                call(state, addrv / 4, retv, ((u32)(uintptr_t)(state->program_counter + 1) - (u32)(uintptr_t)(&GPUshadercodebuffer[0])) / 4);
+            }
+            break;
+        }
+        case SHDR_CALLB:
+        {
+
+            u32 addrv = (instr >> 8) & 0x3FFC;
+            u32 boolv = (instr >> 22) & 0xF;
+            u32 retv = instr & 0x3FF;
+
+
+            //_dbg_assert_(GPU, state.call_stack_pointer - state.call_stack < sizeof(state.call_stack)); //todo
+
+            //*state->call_stack_pointer = ((u32)(uintptr_t)state->program_counter - (u32)(uintptr_t)(&GPUshadercodebuffer[0])) / 4;
+            //state->call_stack_pointer++;
+
+#ifdef printfunc
+            DEBUG("CALLB %02X (%s)\n", boolv, state->boolean_registers[boolv] ? "true" : "false");
+#endif
+
+            if (state->boolean_registers[boolv])
+            {
+                increment_pc = false;
+                call(state, addrv / 4, retv, ((u32)(uintptr_t)(state->program_counter + 1) - (u32)(uintptr_t)(&GPUshadercodebuffer[0])) / 4);
+            }
+            break;
+        }
+
         case SHDR_FLS:
 #ifdef printfunc
             DEBUG("FLS\n");

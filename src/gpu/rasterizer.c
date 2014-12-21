@@ -73,17 +73,10 @@ static s32 orient2d(u16 vtx1x, u16  vtx1y, u16  vtx2x, u16  vtx2y, u16  vtx3x, u
     return vec1x*vec2y - vec1y*vec2x;
 }
 
-static u32 GetDepth(int x, int y) {
+static u32 GetDepth(int x, int y) 
+{
     u16* depth_buffer = (u16*)get_pymembuffer(GPU_Regs[DEPTHBUFFER_ADDRESS] << 3);
 
-    // Assuming 16-bit depth buffer format until actual format handling is implemented
-    return *(depth_buffer + x + y * (GPU_Regs[Framebuffer_FORMAT11E] & 0xFFF) / 2);
-}
-
-static u32 GetDepth(int x, int y) {
-    u16* depth_buffer = (u16*)get_pymembuffer(GPU_Regs[DEPTHBUFFER_ADDRESS] << 3);
-
-    // Assuming 16-bit depth buffer format until actual format handling is implemented
     return *(depth_buffer + x + y * (GPU_Regs[Framebuffer_FORMAT11E] & 0xFFF) / 2);
 }
 

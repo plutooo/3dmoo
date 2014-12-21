@@ -304,7 +304,31 @@ static void PrimitiveAssembly_SubmitVertex(struct OutputVertex* vtx)
 #define SHDR_JPB 0x2D
 #define SHDR_CMP 0x2E
 #define SHDR_CMP2 0x2F
-#define SHDR_MAD 0x38
+#define SHDR_MAD1 0x38
+#define SHDR_MAD2 0x39
+#define SHDR_MAD3 0x3A
+#define SHDR_MAD4 0x3B
+#define SHDR_MAD5 0x3C
+#define SHDR_MAD6 0x3D
+#define SHDR_MAD7 0x3E
+#define SHDR_MAD8 0x3F
+
+static u32 instr_mad_src1(u32 hex)
+{
+    return (hex >> 0x11) & 0x7F;
+}
+static u32 instr_mad_src2(u32 hex)
+{
+    return (hex >> 0xA) & 0x7F;
+}
+static u32 instr_mad_src3(u32 hex)
+{
+    return (hex >> 0x5) & 0x1F;
+}
+static u32 instr_mad_dest(u32 hex)
+{
+    return hex& 0x1F;
+}
 
 static u32 instr_common_src1(u32 hex)
 {
@@ -441,14 +465,20 @@ void ProcessShaderCode(struct VertexShaderState* state)
             src1_[(int)((swizzle >> 7) & 0x3)],
             src1_[(int)((swizzle >> 5) & 0x3)],
         };
-        const float src2[4] = {
+        float src2[4] = {
             src2_[(int)((swizzle >> 20) & 0x3)],
             src2_[(int)((swizzle >> 18) & 0x3)],
             src2_[(int)((swizzle >> 16) & 0x3)],
             src2_[(int)((swizzle >> 14) & 0x3)],
         };
 
-        if (swizzle&0x10) {
+        if (swizzle&(1 << 0xD)) {
+            src2[0] = src2[0] * (-1.f);
+            src2[1] = src2[1] * (-1.f);
+            src2[2] = src2[2] * (-1.f);
+            src2[3] = src2[3] * (-1.f);
+        }
+        if (swizzle & 0x10) {
             src1[0] = src1[0] * (-1.f);
             src1[1] = src1[1] * (-1.f);
             src1[2] = src1[2] * (-1.f);
@@ -856,6 +886,87 @@ void ProcessShaderCode(struct VertexShaderState* state)
             }
             else
                 loop(state, DST, NUM, ((u32)(uintptr_t)(state->program_counter + 1) - (u32)(uintptr_t)(&GPUshadercodebuffer[0])) / 4, ID);
+            break;
+        }
+        case SHDR_MAD1: //todo add swizzle for the other src
+        case SHDR_MAD2:
+        case SHDR_MAD3:
+        case SHDR_MAD4:
+        case SHDR_MAD5:
+        case SHDR_MAD6:
+        case SHDR_MAD7:
+        case SHDR_MAD8:
+        {
+#ifdef printfunc
+            DEBUG("MAD %02X %02X %02X %02X\n", instr_mad_dest(instr), instr_mad_src1(instr), instr_mad_src2(instr), instr_mad_src3(instr));
+#endif
+            //mad
+            u32 instr_common_src1v = instr_mad_src1(instr) + idx;
+            const float* src1_ = (instr_common_src1v < 0x10) ? state->input_register_table[instr_common_src1v]
+                : (instr_common_src1v < 0x20) ? &state->temporary_registers[instr_common_src1v - 0x10].v[0]
+                : (instr_common_src1v < 0x80) ? &const_vectors[instr_common_src1v - 0x20].v[0]
+                : (float*)0;
+
+            u32 instr_common_src2v = instr_mad_src2(instr);
+            const float* src2_ = (instr_common_src2v < 0x10) ? state->input_register_table[instr_common_src2v]
+                : &state->temporary_registers[instr_common_src2v - 0x10].v[0];
+            u32 instr_common_src3v = instr_mad_src3(instr);
+            const float* src3_ = (instr_common_src3v < 0x10) ? state->input_register_table[instr_common_src3v]
+                : &state->temporary_registers[instr_common_src3v - 0x10].v[0];
+
+            u32 instr_common_destv = instr_mad_dest(instr);
+            float* dest = (instr_common_destv < 8) ? state->output_register_table[4 * instr_common_destv]
+                : (instr_common_destv < 0x10) ? (float*)0
+                : (instr_common_destv < 0x20) ? &state->temporary_registers[instr_common_destv - 0x10].v[0]
+                : (float*)0;
+
+            float src1[4] = {
+                src1_[(int)((swizzle >> 11) & 0x3)],
+                src1_[(int)((swizzle >> 9) & 0x3)],
+                src1_[(int)((swizzle >> 7) & 0x3)],
+                src1_[(int)((swizzle >> 5) & 0x3)],
+            };
+            float src2[4] = {
+                src2_[(int)((swizzle >> 20) & 0x3)],
+                src2_[(int)((swizzle >> 18) & 0x3)],
+                src2_[(int)((swizzle >> 16) & 0x3)],
+                src2_[(int)((swizzle >> 14) & 0x3)],
+            };
+
+            float src3[4] = {
+                src3_[(int)((swizzle >> 29) & 0x3)],
+                src3_[(int)((swizzle >> 27) & 0x3)],
+                src3_[(int)((swizzle >> 25) & 0x3)],
+                src3_[(int)((swizzle >> 23) & 0x3)],
+            };
+
+            if (swizzle & 0x10) {
+                src1[0] = src1[0] * (-1.f);
+                src1[1] = src1[1] * (-1.f);
+                src1[2] = src1[2] * (-1.f);
+                src1[3] = src1[3] * (-1.f);
+            }
+            if (swizzle&(1 << 0xD)) {
+                src2[0] = src2[0] * (-1.f);
+                src2[1] = src2[1] * (-1.f);
+                src2[2] = src2[2] * (-1.f);
+                src2[3] = src2[3] * (-1.f);
+            }
+            if (swizzle&(1 << 0x17)) {
+                src3[0] = src3[0] * (-1.f);
+                src3[1] = src3[1] * (-1.f);
+                src3[2] = src3[2] * (-1.f);
+                src3[3] = src3[3] * (-1.f);
+            }
+
+
+            //DST[i] = SRC3[i] + SRC2[i]*SRC1[i]
+            for (int i = 0; i < 3; ++i) {
+                if (!swizzle_DestComponentEnabled(i, swizzle))
+                    continue;
+
+                dest[i] = src3[i] + src1[i] * src2[i];
+            }
             break;
         }
         default:

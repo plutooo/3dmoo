@@ -198,7 +198,8 @@ SERVICE_CMD(0x10040)   //GetLockHandle
 SERVICE_CMD(0x20080)
 {
     u32 app_id = CMD(1);
-    DEBUG("RegisterApp, app_id=%08x\n", app_id);
+    u32 flags = CMD(2);
+    DEBUG("RegisterApp, app_id=%08x flags=%08x\n", app_id, flags);
 
     // Init some event handles.
     event_handles[0] = handle_New(HANDLE_TYPE_EVENT, HANDLE_SUBEVENT_APTMENUEVENT);

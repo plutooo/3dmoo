@@ -129,7 +129,8 @@ void gsp_ExecuteCommandFromSharedMem()
                     }
                 }
                 if (addr2 - 0x1f000000 > 0x600000 || addrend2 - 0x1f000000 > 0x600000) {
-                    GPUDEBUG("SetMemoryFill into non VRAM not suported\r\n");
+                    if (addr2 && addrend2)
+                        GPUDEBUG("SetMemoryFill into non VRAM not suported\r\n");
                 } else {
                     u32 size = getsizeofwight((width >> 16) & 0xFFFF);
                     u32 k;

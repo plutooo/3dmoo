@@ -122,6 +122,12 @@ void Lerp(float factor, const struct OutputVertex *vtx, struct OutputVertex *cha
     change->tc0.v[0] = change->tc0.v[0] * factor + vtx->tc0.v[0] * ((1.0f) - factor);
     change->tc0.v[1] = change->tc0.v[1] * factor + vtx->tc0.v[1] * ((1.0f) - factor);
 
+    change->tc1.v[0] = change->tc1.v[0] * factor + vtx->tc1.v[0] * ((1.0f) - factor);
+    change->tc1.v[1] = change->tc1.v[1] * factor + vtx->tc1.v[1] * ((1.0f) - factor);
+
+    change->tc2.v[0] = change->tc2.v[0] * factor + vtx->tc2.v[0] * ((1.0f) - factor);
+    change->tc2.v[1] = change->tc2.v[1] * factor + vtx->tc2.v[1] * ((1.0f) - factor);
+
     change->screenpos.v[0] = change->screenpos.v[0] * factor + vtx->screenpos.v[0] * ((1.0f) - factor);
     change->screenpos.v[1] = change->screenpos.v[1] * factor + vtx->screenpos.v[1] * ((1.0f) - factor);
     change->screenpos.v[2] = change->screenpos.v[2] * factor + vtx->screenpos.v[2] * ((1.0f) - factor);
@@ -258,6 +264,9 @@ void Clipper_ProcessTriangle(struct OutputVertex *v0, struct OutputVertex *v1, s
                 vtx1->screenpos.v[0], vtx1->screenpos.v[1], vtx1->screenpos.v[2],
                 vtx2->screenpos.v[0], vtx2->screenpos.v[1], vtx2->screenpos.v[2]);
             rasterizer_ProcessTriangle(vtx0, vtx1, vtx2);
+
+            //HACK
+            //rasterizer_ProcessTriangle(vtx2, vtx1, vtx0);
         }
     }
 }

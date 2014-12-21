@@ -221,7 +221,7 @@ static u32 getattribute_register_map(u32 reg, u32 data1, u32 data2)
 
 static struct OutputVertex buffer[2];
 static int buffer_index = 0; // TODO: reset this on emulation restart
-
+static int strip_ready = 0;
 static void PrimitiveAssembly_SubmitVertex(struct OutputVertex* vtx)
 {
     u32 topology = (GPU_Regs[TriangleTopology] >> 8) & 0x3;
@@ -237,26 +237,22 @@ static void PrimitiveAssembly_SubmitVertex(struct OutputVertex* vtx)
         }
         break;
 
+    case 1://Strip
     case 2://Fan:
-        if (buffer_index == 2) {
-            buffer_index = 0;
-
+        if(strip_ready) {
+            // TODO: Should be "buffer[0], buffer[1], vtx" instead!
+            // Not quite sure why we need this order for things to show up properly.
+            // Maybe a bug in the rasterizer?
             Clipper_ProcessTriangle(&buffer[0], &buffer[1], vtx);
-
-            memcpy(&buffer[1], vtx, sizeof(struct OutputVertex));
-        } else {
-            memcpy(&buffer[buffer_index++], vtx, sizeof(struct OutputVertex));
         }
-        break;
-
-    case 1: //Strip
-        if (buffer_index < 2) {
-            //buffer[buffer_index++] = vtx;
-            memcpy(&buffer[buffer_index++], vtx, sizeof(struct OutputVertex));
-        } else {
-            Clipper_ProcessTriangle(&buffer[0], &buffer[1], vtx);
-            memcpy(&buffer[buffer_index&0x1], vtx, sizeof(struct OutputVertex));
-            buffer_index++;
+        memcpy(&buffer[buffer_index], vtx, sizeof(struct OutputVertex));
+        if(topology == 1) { //Strip
+            strip_ready |= (buffer_index == 1);
+            buffer_index = !buffer_index;
+        }
+        else if(topology == 2) { //Fan
+            buffer_index = 1;
+            strip_ready = 1;
         }
         break;
     default:

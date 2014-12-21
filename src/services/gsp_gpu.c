@@ -204,10 +204,10 @@ void gsp_ExecuteCommandFromSharedMem()
                                 switch(flags & 0x700) { //input format
 
                                     case 0: //RGBA8
-                                        r = *inaddr++;
-                                        g = *inaddr++;
-                                        b = *inaddr++;
                                         a = *inaddr++;
+                                        b = *inaddr++;
+                                        g = *inaddr++;
+                                        r = *inaddr++;
                                         break;
                                     case 0x100: //RGB8
                                         r = *inaddr++;
@@ -251,25 +251,16 @@ void gsp_ExecuteCommandFromSharedMem()
                                 switch(flags & 0x7000) { //output format
 
                                     case 0: //RGBA8
-                                        *outaddr++ = r;
-                                        *outaddr++ = g;
-                                        *outaddr++ = b;
                                         *outaddr++ = a;
+                                        *outaddr++ = b;
+                                        *outaddr++ = g;
+                                        *outaddr++ = r;
                                         break;
                                     case 0x1000: //RGB8
-                                        //if (a)
-                                    {
                                         *outaddr++ = r;
                                         *outaddr++ = g;
                                         *outaddr++ = b;
-                                    }
-                                    /*else //this is somethimes used but sometimes not
-                                    {
-                                    *outaddr++ = 0;
-                                    *outaddr++ = 0;
-                                    *outaddr++ = 0;
-                                    }*/
-                                    break;
+                                        break;
                                     case 0x2000: { //RGB565
                                         u16 result = (r >> 3) | ((g >> 2) << 5) | ((b >> 3) << 11);
                                         *outaddr++ = result & 0xFF;
@@ -529,7 +520,7 @@ SERVICE_CMD(0x50200) // SetBufferSwap
     }
 
     // TODO: Get rid of this:
-    updateFramebufferaddr(arm11_ServiceBufferAddress() + 0x88,
+    updateFramebufferaddr(CMD(2),
                           screen & 0x1);
 
     screen_RenderGPU(); //display new stuff

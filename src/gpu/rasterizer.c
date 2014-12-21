@@ -73,6 +73,20 @@ static s32 orient2d(u16 vtx1x, u16  vtx1y, u16  vtx2x, u16  vtx2y, u16  vtx3x, u
     return vec1x*vec2y - vec1y*vec2x;
 }
 
+static u32 GetDepth(int x, int y) {
+    u16* depth_buffer = (u16*)get_pymembuffer(GPU_Regs[DEPTHBUFFER_ADDRESS] << 3);
+
+    // Assuming 16-bit depth buffer format until actual format handling is implemented
+    return *(depth_buffer + x + y * (GPU_Regs[Framebuffer_FORMAT11E] & 0xFFF) / 2);
+}
+
+static u32 GetDepth(int x, int y) {
+    u16* depth_buffer = (u16*)get_pymembuffer(GPU_Regs[DEPTHBUFFER_ADDRESS] << 3);
+
+    // Assuming 16-bit depth buffer format until actual format handling is implemented
+    return *(depth_buffer + x + y * (GPU_Regs[Framebuffer_FORMAT11E] & 0xFFF) / 2);
+}
+
 static void SetDepth(int x, int y, u16 value)
 {
     u16* depth_buffer = (u16*)get_pymembuffer(GPU_Regs[DEPTHBUFFER_ADDRESS] << 3);
@@ -491,8 +505,8 @@ const struct clov4 LookupTexture(const u8* source, int x, int y, const TextureFo
 
             // TODO: Better control this...
             if(disable_alpha) {
-                ret.v[0] = *source_ptr;
-                ret.v[1] = *(source_ptr + 1);
+                ret.v[0] = *(source_ptr + 1);
+                ret.v[1] = *source_ptr;
                 ret.v[2] = 0;
                 ret.v[3] = 255;
             }
@@ -539,11 +553,11 @@ const struct clov4 LookupTexture(const u8* source, int x, int y, const TextureFo
 
         case IA4:
         {
-            const u8* source_ptr = source + coarse_x * block_height / 2 + coarse_y * stride + texel_index_within_tile / 2;
+            const u8* source_ptr = source + coarse_x * block_height + coarse_y * stride + texel_index_within_tile;
 
             // TODO: Order?
-            u8 i = (*source_ptr) & 0xF;
-            u8 a = ((*source_ptr) & 0xF0) >> 4;
+            u8 i = ((*source_ptr) & 0xF0) >> 4;
+            u8 a = (*source_ptr) & 0xF;
             a |= a << 4;
             i |= i << 4;
 
@@ -687,8 +701,14 @@ void rasterizer_ProcessTriangle(const struct OutputVertex *v0,
             };*/
             struct clov4 texture_color[4];
 
-            float u = GetInterpolatedAttribute(v0->tc0.v[0], v1->tc0.v[0], v2->tc0.v[0], v0, v1, v2, (float)w0, (float)w1, (float)w2);
-            float v = GetInterpolatedAttribute(v0->tc0.v[1], v1->tc0.v[1], v2->tc0.v[1], v0, v1, v2, (float)w0, (float)w1, (float)w2);
+            float u[3],v[3];
+            u[0] = GetInterpolatedAttribute(v0->tc0.v[0], v1->tc0.v[0], v2->tc0.v[0], v0, v1, v2, (float)w0, (float)w1, (float)w2);
+            v[0] = GetInterpolatedAttribute(v0->tc0.v[1], v1->tc0.v[1], v2->tc0.v[1], v0, v1, v2, (float)w0, (float)w1, (float)w2);
+            u[1] = GetInterpolatedAttribute(v0->tc1.v[0], v1->tc1.v[0], v2->tc1.v[0], v0, v1, v2, (float)w0, (float)w1, (float)w2);
+            v[1] = GetInterpolatedAttribute(v0->tc1.v[1], v1->tc1.v[1], v2->tc1.v[1], v0, v1, v2, (float)w0, (float)w1, (float)w2);
+            u[2] = GetInterpolatedAttribute(v0->tc2.v[0], v1->tc2.v[0], v2->tc2.v[0], v0, v1, v2, (float)w0, (float)w1, (float)w2);
+            v[2] = GetInterpolatedAttribute(v0->tc2.v[1], v1->tc2.v[1], v2->tc2.v[1], v0, v1, v2, (float)w0, (float)w1, (float)w2);
+
             for (int i = 0; i < 3; ++i) {
                 if (GPU_Regs[TEXTURINGSETINGS80] & (0x1<<i)) {
                     u8* texture_data;
@@ -716,11 +736,11 @@ void rasterizer_ProcessTriangle(const struct OutputVertex *v0,
                     case 0:
                         height = (GPU_Regs[TEXTURCONFIG0SIZE] & 0xFFFF);
                         width = (GPU_Regs[TEXTURCONFIG0SIZE] >> 16);
-                        wrap_s = (GPU_Regs[TEXTURCONFIG0SIZE] >> 8) & 7;
-                        wrap_t = (GPU_Regs[TEXTURCONFIG0SIZE] >> 11) & 7;
-                        s = (int)(u * width);
+                        wrap_s = (GPU_Regs[TEXTURCONFIG0SIZE] >> 8) & 3;
+                        wrap_t = (GPU_Regs[TEXTURCONFIG0SIZE] >> 11) & 3;
+                        s = (int)(u[i] * (width*1.0f));
                         s = GetWrappedTexCoord((WrapMode)wrap_s, s, width);
-                        t = (int)(v * (GPU_Regs[TEXTURCONFIG0SIZE] & 0xFFFF));
+                        t = (int)(v[i] * (height*1.0f));
                         t = GetWrappedTexCoord((WrapMode)wrap_t, t, height);
                         row_stride = NibblesPerPixel(format) * width / 2;
                         format = GPU_Regs[TEXTURCONFIG0TYPE] & 0xF;
@@ -728,11 +748,11 @@ void rasterizer_ProcessTriangle(const struct OutputVertex *v0,
                     case 1:
                         height = (GPU_Regs[TEXTURCONFIG1SIZE] & 0xFFFF);
                         width = (GPU_Regs[TEXTURCONFIG1SIZE] >> 16);
-                        wrap_s = (GPU_Regs[TEXTURCONFIG1SIZE] >> 8) & 7;
-                        wrap_t = (GPU_Regs[TEXTURCONFIG1SIZE] >> 11) & 7;
-                        s = (int)(u * width);
+                        wrap_s = (GPU_Regs[TEXTURCONFIG1SIZE] >> 8) & 3;
+                        wrap_t = (GPU_Regs[TEXTURCONFIG1SIZE] >> 11) & 3;
+                        s = (int)(u[i] * (width*1.0f));
                         s = GetWrappedTexCoord((WrapMode)wrap_s, s, width);
-                        t = (int)(v * (GPU_Regs[TEXTURCONFIG1SIZE] & 0xFFFF));
+                        t = (int)(v[i] * (height*1.0f));
                         t = GetWrappedTexCoord((WrapMode)wrap_t, t, height);
                         row_stride = NibblesPerPixel(format) * width / 2;
                         format = GPU_Regs[TEXTURCONFIG1TYPE] & 0xF;
@@ -740,17 +760,18 @@ void rasterizer_ProcessTriangle(const struct OutputVertex *v0,
                     case 2:
                         height = (GPU_Regs[TEXTURCONFIG2SIZE] & 0xFFFF);
                         width = (GPU_Regs[TEXTURCONFIG2SIZE] >> 16);
-                        wrap_s = (GPU_Regs[TEXTURCONFIG2SIZE] >> 8) & 7;
-                        wrap_t = (GPU_Regs[TEXTURCONFIG2SIZE] >> 11) & 7;
-                        s = (int)(u * width);
+                        wrap_s = (GPU_Regs[TEXTURCONFIG2SIZE] >> 8) & 3;
+                        wrap_t = (GPU_Regs[TEXTURCONFIG2SIZE] >> 11) & 3;
+                        s = (int)(u[i] * (width*1.0f));
                         s = GetWrappedTexCoord((WrapMode)wrap_s, s, width);
-                        t = (int)(v * (GPU_Regs[TEXTURCONFIG2SIZE] & 0xFFFF));
+                        t = (int)(v[i] * (height*1.0f));
                         t = GetWrappedTexCoord((WrapMode)wrap_t, t, height);
                         row_stride = NibblesPerPixel(format) * width / 2;
                         format = GPU_Regs[TEXTURCONFIG2TYPE] & 0xF;
                         break;
                     }
                     
+                    t = height - 1 - t;
                     //TODO: Fix this up so it works correctly.
 
                     /*int texel_index_within_tile = 0;

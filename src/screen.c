@@ -90,10 +90,10 @@ void screen_RenderFramebuffer(u8 *bitmapPixels, u8* buffer, u32 format, u32 widt
                     u8* row = (u8*)(bitmapPixels + ((239 - y) * 400 * 4) + ((x + xofs) * 4));
 
                     //RGBA8
-                    *(row + 0) = buffer[((x * 240 + y) * 4) + 0];
-                    *(row + 1) = buffer[((x * 240 + y) * 4) + 1];
-                    *(row + 2) = buffer[((x * 240 + y) * 4) + 2];
-                    *(row + 3) = buffer[((x * 240 + y) * 4) + 3];
+                    *(row + 3) = buffer[((x * 240 + y) * 4) + 0];
+                    *(row + 2) = buffer[((x * 240 + y) * 4) + 1];
+                    *(row + 1) = buffer[((x * 240 + y) * 4) + 2];
+                    *(row + 0) = buffer[((x * 240 + y) * 4) + 3];
                 }
             }
             break;
@@ -155,10 +155,10 @@ void screen_RenderFramebuffer(u8 *bitmapPixels, u8* buffer, u32 format, u32 widt
                     //RGBA4
                     u8 reg1 = buffer[((x * 240 + y) * 2) + 0];
                     u8 reg2 = buffer[((x * 240 + y) * 2) + 1];
-                    *(row + 0) = (reg1 & 0xF) << 4;
-                    *(row + 1) = reg1 & 0xF0;
-                    *(row + 2) = (reg2 & 0xF) << 4;
-                    *(row + 3) = reg2 & 0xF0;
+                    *(row + 3) = (reg1 & 0xF) << 4;
+                    *(row + 2) = reg1 & 0xF0;
+                    *(row + 1) = (reg2 & 0xF) << 4;
+                    *(row + 0) = reg2 & 0xF0;
                 }
             }
             break;

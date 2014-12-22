@@ -278,5 +278,6 @@ void screen_HandleEvent()
 }
 u32 svcsleep()
 {
+    DEBUG("sleep %08x %08x\n", arm11_R(1),arm11_R(0) );
     return 0;
 }

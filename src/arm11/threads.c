@@ -293,8 +293,8 @@ void threads_Execute()
                 line = 0;
             }
         }
-        s.NumInstrs += 11172; //should be less but we have to debug stuff and that makes if faster (normal ~1000)
         last_one = s.NumInstrs - diff;//the cycels we have not used
+        s.NumInstrs += 11172; //should be less but we have to debug stuff and that makes if faster (normal ~1000)
         if (!threads_IsThreadActive(t)) {
             THREADDEBUG("Skipping thread %d..\n", t);
             continue;

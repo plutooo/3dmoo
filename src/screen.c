@@ -82,7 +82,7 @@ void screen_RenderGPUaddr(u32 addr)
 
 void screen_RenderFramebuffer(u8 *bitmapPixels, u8* buffer, u32 format, u32 width, u32 xofs)
 {
-    DEBUG("format=%d\n", format & 7);
+    //DEBUG("format=%d\n", format & 7);
     Color color;
 
     switch(format & 7)

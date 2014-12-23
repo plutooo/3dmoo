@@ -22,10 +22,10 @@ typedef enum{
 
 //Stored as RGBA8
 struct Color{
-    int r;
-    int g;
-    int b;
-    int a;
+    u8 r;
+    u8 g;
+    u8 b;
+    u8 a;
 };
 
 typedef struct Color Color;

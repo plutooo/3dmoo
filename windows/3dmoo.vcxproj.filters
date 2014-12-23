@@ -372,6 +372,9 @@
     <ClCompile Include="..\src\services\ldr_ro.c">
       <Filter>Source Files\services</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\color.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\inc\handles.h">
@@ -456,6 +459,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\src\arm11\vfp\vfpdouble.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\inc\color.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

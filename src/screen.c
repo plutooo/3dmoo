@@ -19,6 +19,7 @@
 #include "util.h"
 #include "gpu.h"
 #include "hid_user.h"
+#include "color.h"
 #include <SDL.h>
 
 SDL_Window *win = NULL;
@@ -81,6 +82,9 @@ void screen_RenderGPUaddr(u32 addr)
 
 void screen_RenderFramebuffer(u8 *bitmapPixels, u8* buffer, u32 format, u32 width, u32 xofs)
 {
+    //DEBUG("format=%d\n", format & 7);
+    Color color;
+
     switch(format & 7)
     {
         case 0: //RGBA8
@@ -89,11 +93,10 @@ void screen_RenderFramebuffer(u8 *bitmapPixels, u8* buffer, u32 format, u32 widt
                 for (u32 x = 0; x < width; x++) {
                     u8* row = (u8*)(bitmapPixels + ((239 - y) * 400 * 4) + ((x + xofs) * 4));
 
-                    //RGBA8
-                    *(row + 3) = buffer[((x * 240 + y) * 4) + 0];
-                    *(row + 2) = buffer[((x * 240 + y) * 4) + 1];
-                    *(row + 1) = buffer[((x * 240 + y) * 4) + 2];
-                    *(row + 0) = buffer[((x * 240 + y) * 4) + 3];
+                    color_decode(&buffer[((x * 240 + y) * 4)], RGBA8, &color);
+
+                    u32 val = SDL_MapRGBA(bitmapSurface->format, color.r, color.g, color.b, color.a);
+                    *(u32*)row = val;
                 }
             }
             break;
@@ -104,11 +107,10 @@ void screen_RenderFramebuffer(u8 *bitmapPixels, u8* buffer, u32 format, u32 widt
                 for (u32 x = 0; x < width; x++) {
                     u8* row = (u8*)(bitmapPixels + ((239 - y) * 400 * 4) + ((x + xofs) * 4));
 
-                    //RGB8
-                    *(row + 0) = buffer[((x * 240 + y) * 3) + 0];
-                    *(row + 1) = buffer[((x * 240 + y) * 3) + 1];
-                    *(row + 2) = buffer[((x * 240 + y) * 3) + 2];
-                    *(row + 3) = 0xFF;
+                    color_decode(&buffer[((x * 240 + y) * 3)], RGB8, &color);
+
+                    u32 val = SDL_MapRGBA(bitmapSurface->format, color.r, color.g, color.b, color.a);
+                    *(u32*)row = val;
                 }
             }
             break;
@@ -120,12 +122,10 @@ void screen_RenderFramebuffer(u8 *bitmapPixels, u8* buffer, u32 format, u32 widt
                 for (u32 x = 0; x < width; x++) {
                     u8* row = (u8*)(bitmapPixels + ((239 - y) * 400 * 4) + ((x + xofs) * 4));
 
-                    //RGB565
-                    u16  pixel = buffer[((x * 240 + y) * 2) + 0] + (buffer[((x * 240 + y) * 2) + 1] << 8);
-                    *(row + 0) = (pixel & 0x1F) << 3;
-                    *(row + 1) = ((pixel >> 5) & 0x3F) << 2;
-                    *(row + 2) = ((pixel >> 11) & 0x1F) << 3;
-                    *(row + 3) = 0xFF;
+                    color_decode(&buffer[((x * 240 + y) * 2)], RGB565, &color);
+
+                    u32 val = SDL_MapRGBA(bitmapSurface->format, color.r, color.g, color.b, color.a);
+                    *(u32*)row = val;
                 }
             }
             break;
@@ -136,12 +136,10 @@ void screen_RenderFramebuffer(u8 *bitmapPixels, u8* buffer, u32 format, u32 widt
                 for (u32 x = 0; x < width; x++) {
                     u8* row = (u8*)(bitmapPixels + ((239 - y) * 400 * 4) + ((x + xofs) * 4));
 
-                    //RGB5A1
-                    u16  pixel = buffer[((x * 240 + y) * 2) + 0] + (buffer[((x * 240 + y) * 2) + 1] << 8);
-                    *(row + 2) = ((pixel >> 11) & 0x1F) << 3;
-                    *(row + 1) = ((pixel >> 6) & 0x1F) << 3;
-                    *(row + 0) = ((pixel >> 1) & 0x1F) << 3;
-                    *(row + 3) = ((pixel >> 0) & 1) ? 0xFF : 0;
+                    color_decode(&buffer[((x * 240 + y) * 2)], RGBA5551, &color);
+
+                    u32 val = SDL_MapRGBA(bitmapSurface->format, color.r, color.g, color.b, color.a);
+                    *(u32*)row = val;
                 }
             }
             break;
@@ -152,13 +150,10 @@ void screen_RenderFramebuffer(u8 *bitmapPixels, u8* buffer, u32 format, u32 widt
                 for (u32 x = 0; x < width; x++) {
                     u8* row = (u8*)(bitmapPixels + ((239 - y) * 400 * 4) + ((x + xofs) * 4));
 
-                    //RGBA4
-                    u8 reg1 = buffer[((x * 240 + y) * 2) + 0];
-                    u8 reg2 = buffer[((x * 240 + y) * 2) + 1];
-                    *(row + 3) = (reg1 & 0xF) << 4;
-                    *(row + 2) = reg1 & 0xF0;
-                    *(row + 1) = (reg2 & 0xF) << 4;
-                    *(row + 0) = reg2 & 0xF0;
+                    color_decode(&buffer[((x * 240 + y) * 2)], RGBA5551, &color);
+
+                    u32 val = SDL_MapRGBA(bitmapSurface->format, color.r, color.g, color.b, color.a);
+                    *(u32*)row = val;
                 }
             }
             break;

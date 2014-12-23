@@ -23,7 +23,7 @@
 #include "gpu.h"
 
 #include "screen.h"
-
+#include "color.h"
 #include "service_macros.h"
 
 
@@ -195,91 +195,69 @@ void gsp_ExecuteCommandFromSharedMem()
                     else
                     {
                         GPUDEBUG("converting %d to %d (width %d/%d, height %d/%d)\n", (flags & 0x700) >> 8, (flags & 0x7000) >> 12, relx, outx, rely, outy);
-                        for(u32 y = 0; y < rely; ++y) {
-                            for(u32 x = 0; x < relx; ++x) {
-                                u8 a = 0xFF;
-                                u8 r = 0xFF;
-                                u8 g = 0xFF;
-                                u8 b = 0xFF;
-
+                        Color color;
+                        
+                        for(u32 y = 0; y < rely; ++y)
+                        {
+                            for(u32 x = 0; x < relx; ++x) 
+                            {
                                 switch(flags & 0x700) { //input format
 
                                     case 0: //RGBA8
-                                        a = *inaddr++;
-                                        b = *inaddr++;
-                                        g = *inaddr++;
-                                        r = *inaddr++;
+                                        color_decode(inaddr, RGBA8, &color);
+                                        inaddr += 4;
                                         break;
                                     case 0x100: //RGB8
-                                        r = *inaddr++;
-                                        g = *inaddr++;
-                                        b = *inaddr++;
-                                        a = 0xFF;
+                                        color_decode(inaddr, RGB8, &color);
+                                        inaddr += 3;
                                         break;
-                                    case 0x200: { //RGB565
-                                        u16 pixel = *inaddr++ + (*inaddr++ << 8);
-                                        r = (pixel & 0x1F) << 3;
-                                        g = ((pixel >> 5) & 0x3F) << 2;
-                                        b = ((pixel >> 11) & 0x1F) << 3;
-                                        a = 0xFF;
-                                    }
-                                                break;
-                                    case 0x300: { //RGB5A1
-                                        u16 pixel = *inaddr++ + (*inaddr++ << 8);
-                                        b = ((pixel >> 11) & 0x1F) << 3;
-                                        g = ((pixel >> 6) & 0x1F) << 3;
-                                        r = ((pixel >> 1) & 0x1F) << 3;
-                                        a = ((pixel >> 0) & 1) ? 0xFF : 0;
-                                    }
-                                                break;
-                                    case 0x400: { //RGBA4
-                                        u8 reg1 = *inaddr;
-                                        inaddr++;
-                                        u8 reg2 = *inaddr;
-                                        inaddr++;
-                                        r = (reg1 & 0xF) << 4;
-                                        g = reg1 & 0xF0;
-                                        b = (reg2 & 0xF) << 4;
-                                        a = reg2 & 0xF0;
+                                    case 0x200: //RGB565
+                                        color_decode(inaddr, RGB565, &color);
+                                        inaddr += 2;
                                         break;
-                                    }
+                                    case 0x300: //RGB5A1
+                                        color_decode(inaddr, RGBA5551, &color);
+                                        inaddr += 2;
+                                        break;
+                                    case 0x400: //RGBA4
+                                        color_decode(inaddr, RGBA4, &color);
+                                        inaddr += 2;
+                                        break;
                                     default:
-                                        GPUDEBUG("error unknow input format\n");
+                                        GPUDEBUG("error unknown input format %04X\n", flags & 0x700);
                                         break;
                                 }
                                 //write it back
 
+                                if(x >= outx) 
+                                    continue;
+                                if(y >= outy)
+                                    continue;
+
                                 switch(flags & 0x7000) { //output format
 
                                     case 0: //RGBA8
-                                        *outaddr++ = a;
-                                        *outaddr++ = b;
-                                        *outaddr++ = g;
-                                        *outaddr++ = r;
+                                        color_encode(&color, RGBA8, outaddr);
+                                        outaddr += 4;
                                         break;
                                     case 0x1000: //RGB8
-                                        *outaddr++ = r;
-                                        *outaddr++ = g;
-                                        *outaddr++ = b;
+                                        color_encode(&color, RGB8, outaddr);
+                                        outaddr += 3;
                                         break;
-                                    case 0x2000: { //RGB565
-                                        u16 result = (r >> 3) | ((g >> 2) << 5) | ((b >> 3) << 11);
-                                        *outaddr++ = result & 0xFF;
-                                        *outaddr++ = (result >> 8) & 0xFF;
-                                    }
-                                                 break;
+                                    case 0x2000: //RGB565
+                                        color_encode(&color, RGB565, outaddr);
+                                        outaddr += 2;
+                                        break;
                                     case 0x3000: //RGB5A1
-                                        *outaddr++ = (r >> 3) | (((g >> 3) << 5) & 0xE0);
-                                        *outaddr = (u8)((b >> 3) << 3) | ((g >> 3) & 0x7);
-                                        if(a) *outaddr |= 0x80;
-                                        outaddr++;
+                                        color_encode(&color, RGBA5551, outaddr);
+                                        outaddr += 2;
                                         break;
                                     case 0x4000: //RGBA4
-                                        *outaddr++ = (r >> 4) | (g & 0xF0);
-                                        *outaddr++ = (b >> 4) | (a & 0xF0);
+                                        color_encode(&color, RGBA4, outaddr);
+                                        outaddr += 2;
                                         break;
                                     default:
-                                        GPUDEBUG("error unknow output format\n");
+                                        GPUDEBUG("error unknown output format %04X\n", flags & 0x7000);
                                         break;
                                 }
 
@@ -640,7 +618,7 @@ void gpu_SendInterruptToAll(u32 ID)
         *(u8*)(GSPsharedbuff + i * 0x40 + 0xC + next) = ID;
     }
 
-    //if (ID == 4)
+    if (ID == 4)
     {
         extern int noscreen;
         if (!noscreen) {

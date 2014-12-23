@@ -24,6 +24,7 @@
 #include "handles.h"
 #include "mem.h"
 #include "gpu.h"
+#include "color.h"
 
 //#define testtriang
 
@@ -111,7 +112,13 @@ static void DrawPixel(int x, int y, const struct clov4* color)
     //TODO: workout why this seems required for ctrulib gpu demo (outy=480)
     if(outy > 240) outy = 240;
 
-    //DEBUG("x=%d,y=%d,outx=%d,outy=%d,format=%d,inputdim=%08X\n", x, y, outx, outy, (GPU_Regs[BUFFERFORMAT] & 0x7000) >> 12, inputdim);
+    //DEBUG("x=%d,y=%d,outx=%d,outy=%d,format=%d,inputdim=%08X,bufferformat=%08X\n", x, y, outx, outy, (GPU_Regs[BUFFERFORMAT] & 0x7000) >> 12, inputdim, GPU_Regs[BUFFERFORMAT]);
+
+    Color ncolor;
+    ncolor.r = color->v[0];
+    ncolor.g = color->v[1];
+    ncolor.b = color->v[2];
+    ncolor.a = color->v[3];
 
     u8* outaddr;
     // Assuming RGB8 format until actual framebuffer format handling is implemented
@@ -119,40 +126,23 @@ static void DrawPixel(int x, int y, const struct clov4* color)
 
     case 0: //RGBA8
         outaddr = color_buffer + x * 4 + y * (outy)* 4; //check if that is correct
-        *outaddr = color->v[2];
-        outaddr++;
-        *outaddr = color->v[1];
-        outaddr++;
-        *outaddr = color->v[0];
-        outaddr++;
-        *outaddr = color->v[3];
-        outaddr++;
+        color_encode(&ncolor, RGBA8, outaddr);
         break;
     case 0x1000: //RGB8
         outaddr = color_buffer + x * 3 + y * (outy)* 3; //check if that is correct
-        *outaddr = color->v[0];
-        outaddr++;
-        *outaddr = color->v[1];
-        outaddr++;
-        *outaddr = color->v[2];
-        outaddr++;
+        color_encode(&ncolor, RGB8, outaddr);
         break;
-    case 0x2000: { //RGB565
-        DEBUG("error unknown output format %04X\n", GPU_Regs[BUFFERFORMAT] & 0x7000);
-    }
-    break;
+    case 0x2000: //RGB565
+        outaddr = color_buffer + x * 2 + y * (outy)* 2; //check if that is correct
+        color_encode(&ncolor, RGB565, outaddr);
+        break;
     case 0x3000: //RGB5A1
         outaddr = color_buffer + x * 2 + y * (outy)* 2; //check if that is correct
-        *outaddr = (color->v[0] >> 3) | (((color->v[1] >> 3) << 5) & 0xE0);
-        outaddr++;
-        *outaddr = (u8)((color->v[2] >> 3) << 3) | ((color->v[1] >> 3) & 0x7);
-        if (color->v[3]) *outaddr |= 0x80;
+        color_encode(&ncolor, RGBA5551, outaddr);
         break;
     case 0x4000: //RGBA4
         outaddr = color_buffer + x * 2 + y * (outy)* 2; //check if that is correct
-        *outaddr = (color->v[0] >> 4) | (color->v[1] & 0xF0);
-        outaddr++;
-        *outaddr = (color->v[2] >> 4) | (color->v[3] & 0xF0);
+        color_encode(&ncolor, RGBA4, outaddr);
         break;
     default:
         DEBUG("error unknown output format %04X\n", GPU_Regs[BUFFERFORMAT] & 0x7000);
@@ -160,6 +150,57 @@ static void DrawPixel(int x, int y, const struct clov4* color)
     }
 
 }
+
+static const void RetrievePixel(int x, int y, struct clov4 *output)
+{
+    u8* color_buffer = (u8*)get_pymembuffer(GPU_Regs[COLORBUFFER_ADDRESS] << 3);
+
+    u32 inputdim = GPU_Regs[Framebuffer_FORMAT11E];
+    u32 outy = (inputdim & 0xFFF);
+    u32 outx = ((inputdim >> 0x10) & 0xFFF);
+
+    //TODO: workout why this seems required for ctrulib gpu demo (outy=480)
+    if(outy > 240) outy = 240;
+
+    DEBUG("x=%d,y=%d,outx=%d,outy=%d,format=%d,inputdim=%08X,bufferformat=%08X\n", x, y, outx, outy, (GPU_Regs[BUFFERFORMAT] & 0x7000) >> 12, inputdim, GPU_Regs[BUFFERFORMAT]);
+
+    Color ncolor;
+
+    u8* addr;
+    // Assuming RGB8 format until actual framebuffer format handling is implemented
+    switch(GPU_Regs[BUFFERFORMAT] & 0x7000) { //input format
+
+        case 0: //RGBA8
+            addr = color_buffer + x * 4 + y * (outy)* 4; //check if that is correct
+            color_decode(addr, RGBA8, &ncolor);
+            break;
+        case 0x1000: //RGB8
+            addr = color_buffer + x * 3 + y * (outy)* 3; //check if that is correct
+            color_decode(addr, RGB8, &ncolor);
+            break;
+        case 0x2000: //RGB565
+            addr = color_buffer + x * 2 + y * (outy)* 2; //check if that is correct
+            color_decode(addr, RGB565, &ncolor);
+            break;
+        case 0x3000: //RGB5A1
+            addr = color_buffer + x * 2 + y * (outy)* 2; //check if that is correct
+            color_decode(addr, RGBA5551, &ncolor);
+            break;
+        case 0x4000: //RGBA4
+            addr = color_buffer + x * 2 + y * (outy)* 2; //check if that is correct
+            color_decode(addr, RGBA4, &ncolor);
+            break;
+        default:
+            DEBUG("error unknown output format %04X\n", GPU_Regs[BUFFERFORMAT] & 0x7000);
+            break;
+    }
+
+    output->v[0] = ncolor.r;
+    output->v[1] = ncolor.g;
+    output->v[2] = ncolor.b;
+    output->v[3] = ncolor.a;
+}
+
 static float GetInterpolatedAttribute(float attr0, float attr1, float attr2, const struct OutputVertex *v0, const struct OutputVertex * v1, const struct OutputVertex * v2,float w0,float w1, float w2)
 {
     float interpolated_attr_over_w = (attr0 / v0->pos.v[3])*w0 + (attr1 / v1->pos.v[3])*w1 + (attr2 / v2->pos.v[3])*w2;
@@ -313,8 +354,69 @@ static u8 GetAlphaModifier(u32 factor, u8 value)
 }
 
 typedef enum{
+    Zero = 0,
+    One = 1,
+
+    SourceAlpha = 6,
+    OneMinusSourceAlpha = 7,
+} BlendFactor;
+static void LookupFactorRGB(BlendFactor factor, struct clov3 *source, struct clov3 *output)
+{
+    switch(factor)
+    {
+        case Zero:
+            output->v[0] = 0;
+            output->v[1] = 0;
+            output->v[2] = 0;
+            break;
+        case One:
+            output->v[0] = 255;
+            output->v[1] = 255;
+            output->v[2] = 255;
+            break;
+        case SourceAlpha:
+            output->v[0] = source->v[3];
+            output->v[1] = source->v[3];
+            output->v[2] = source->v[3];
+            break;
+        case OneMinusSourceAlpha:
+            output->v[0] = 255 - source->v[3];
+            output->v[1] = 255 - source->v[3];
+            output->v[2] = 255 - source->v[3];
+            break;
+        default:
+            DEBUG("Unknown color blend factor %x\n", factor);
+            break;
+    }
+}
+
+static void LookupFactorA(BlendFactor factor, struct clov3 *source, struct clov3 *output)
+{
+    switch(factor)
+    {
+        case Zero:
+            output->v[3] = 0;
+            break;
+        case One:
+            output->v[3] = 255;
+            break;
+        case SourceAlpha:
+            output->v[3] = source->v[3];
+            break;
+        case OneMinusSourceAlpha:
+            output->v[3] = 255 - source->v[3];
+            break;
+        default:
+            DEBUG("Unknown alpha blend factor %x\n", factor);
+            break;
+    }
+}
+
+typedef enum{
     ClampToEdge = 0,
+    ClampToBorder = 1,
     Repeat = 2,
+    MirrorRepeat = 3
 } WrapMode;
 static int GetWrappedTexCoord(WrapMode wrap, int val, int size)
 {
@@ -340,24 +442,6 @@ static int GetWrappedTexCoord(WrapMode wrap, int val, int size)
 #undef MIN
 }
 
-typedef enum{
-    RGBA8 = 0,
-    RGB8 = 1,
-    RGBA5551 = 2,
-    RGB565 = 3,
-    RGBA4 = 4,
-    IA8 = 5,
-    HILO8 = 6,
-    I8 = 7,
-    A8 = 8,
-    IA4 = 9,
-    I4 = 10,
-    A4 = 11,
-    ETC1 = 12,
-    ETC1A4 = 13,
-    // TODO: Support for the other formats is not implemented, yet.
-    // Seems like they are luminance formats and compressed textures.
-} TextureFormat;
 
 static unsigned NibblesPerPixel(TextureFormat format) {
     switch(format) {
@@ -385,6 +469,7 @@ static unsigned NibblesPerPixel(TextureFormat format) {
 }
 const struct clov4 LookupTexture(const u8* source, int x, int y, const TextureFormat format, int stride, int width, int height, bool disable_alpha)
 {
+    DEBUG("Format=%d\n", format);
     // Images are split into 8x8 tiles. Each tile is composed of four 4x4 subtiles each
     // of which is composed of four 2x2 subtiles each of which is composed of four texels.
     // Each structure is embedded into the next-bigger one in a diagonal pattern, e.g.
@@ -606,6 +691,7 @@ const struct clov4 LookupTexture(const u8* source, int x, int y, const TextureFo
                 ret.v[2] = 0;
                 ret.v[3] = a;
             }
+            break;
         }
 
         default:

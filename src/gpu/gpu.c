@@ -85,16 +85,6 @@ u32 getsizeofwight(u16 val) //this is the size of pixel
         return 2;
     }
 }
-static u32 getsizeofframebuffer(u32 val)
-{
-    switch (val) {
-    case 0x0201:
-        return 3;
-    default:
-        GPUDEBUG("unknown len %08x\n", val);
-        return 3;
-    }
-}
 
 u32 renderaddr = 0;
 u32 unknownaddr = 0;

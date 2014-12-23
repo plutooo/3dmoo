@@ -253,6 +253,7 @@
     <ClCompile Include="..\src\arm11\vfp\vfpinstr.c" />
     <ClCompile Include="..\src\arm11\vfp\vfpsingle.c" />
     <ClCompile Include="..\src\arm11\wrap.c" />
+    <ClCompile Include="..\src\color.c" />
     <ClCompile Include="..\src\config.c" />
     <ClCompile Include="..\src\dsp\dspemu.c" />
     <ClCompile Include="..\src\fs\extsavedata.c" />
@@ -352,6 +353,7 @@
   <ItemGroup>
     <ClInclude Include="..\inc\3dsx.h" />
     <ClInclude Include="..\inc\arm11.h" />
+    <ClInclude Include="..\inc\color.h" />
     <ClInclude Include="..\inc\dirent.h" />
     <ClInclude Include="..\inc\dsp.h" />
     <ClInclude Include="..\inc\fs.h" />

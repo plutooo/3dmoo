@@ -499,7 +499,7 @@ SERVICE_CMD(0x50200) // SetBufferSwap
     }
 
     // TODO: Get rid of this:
-    updateFramebufferaddr(CMD(2),
+    updateFramebufferaddr(arm11_ServiceBufferAddress() + 0x88, //don't use CMD(2) here it is not working!
                           screen & 0x1);
 
     screen_RenderGPU(); //display new stuff

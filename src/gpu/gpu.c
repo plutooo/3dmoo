@@ -1048,7 +1048,7 @@ void RunShader(struct vec4 input[17], int num_attributes, struct OutputVertex *r
     struct VertexShaderState state;
 
     //const u32* main = &shader_memory[registers.Get<Regs::VSMainOffset>().offset_words];
-    state.program_counter = (u32*)(uintptr_t)((u32)(uintptr_t)(&GPUshadercodebuffer[0]) + (u16)(uintptr_t)GPU_Regs[VSMainOffset]*4);
+    state.program_counter = &GPUshadercodebuffer[GPU_Regs[VSMainOffset] & 0xFFFF];
 
     // Setup input register table
 

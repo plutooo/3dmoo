@@ -618,7 +618,7 @@ void gpu_SendInterruptToAll(u32 ID)
         *(u8*)(GSPsharedbuff + i * 0x40 + 0xC + next) = ID;
     }
 
-    //if (ID == 4)
+    if (ID == 4)
     {
         extern int noscreen;
         if (!noscreen) {

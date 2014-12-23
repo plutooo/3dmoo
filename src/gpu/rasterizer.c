@@ -360,7 +360,7 @@ typedef enum{
     SourceAlpha = 6,
     OneMinusSourceAlpha = 7,
 } BlendFactor;
-static void LookupFactorRGB(BlendFactor factor, struct clov3 *source, struct clov3 *output)
+static void LookupFactorRGB(BlendFactor factor, struct clov4 *source, struct clov4 *output)
 {
     switch(factor)
     {
@@ -390,7 +390,7 @@ static void LookupFactorRGB(BlendFactor factor, struct clov3 *source, struct clo
     }
 }
 
-static void LookupFactorA(BlendFactor factor, struct clov3 *source, struct clov3 *output)
+static void LookupFactorA(BlendFactor factor, struct clov4 *source, struct clov4 *output)
 {
     switch(factor)
     {
@@ -469,7 +469,7 @@ static unsigned NibblesPerPixel(TextureFormat format) {
 }
 const struct clov4 LookupTexture(const u8* source, int x, int y, const TextureFormat format, int stride, int width, int height, bool disable_alpha)
 {
-    DEBUG("Format=%d\n", format);
+    //DEBUG("Format=%d\n", format);
     // Images are split into 8x8 tiles. Each tile is composed of four 4x4 subtiles each
     // of which is composed of four 2x2 subtiles each of which is composed of four texels.
     // Each structure is embedded into the next-bigger one in a diagonal pattern, e.g.
@@ -790,7 +790,7 @@ void rasterizer_ProcessTriangle(const struct OutputVertex *v0,
 
             for (int i = 0; i < 3; ++i) {
                 if (GPU_Regs[TEXTURINGSETINGS80] & (0x1<<i)) {
-                    u8* texture_data;
+                    u8* texture_data = NULL;
                     switch (i) {
                     case 0:
                         texture_data = (u8*)(get_pymembuffer(GPU_Regs[TEXTURCONFIG0ADDR] << 3));
@@ -1005,11 +1005,40 @@ void rasterizer_ProcessTriangle(const struct OutputVertex *v0,
                 color_result[0].v[3] = AlphaCombine((GPU_Regs[regnumaddr + 2] >> 16) & 0xF, &alpha_result);
                 memcpy(&combiner_output, &color_result[0], sizeof(struct clov4));
             }
-            u16 z = (u16)(((float)v0->screenpos.v[2] * w0 +
-                           (float)v1->screenpos.v[2] * w1 +
-                           (float)v2->screenpos.v[2] * w2) * 65535.f / wsum); // TODO: Shouldn't need to multiply by 65536?
 
-            SetDepth(x >> 4, y >> 4, z);
+            // TODO: Does depth indeed only get written even if depth testing is enabled?
+            if(GPU_Regs[DEPTHTEST_CONFIG] & 1)
+            {
+                u16 z = (u16)(-((float)v0->screenpos.v[2] * w0 +
+                    (float)v1->screenpos.v[2] * w1 +
+                    (float)v2->screenpos.v[2] * w2) * 65535.f / wsum); // TODO: Shouldn't need to multiply by 65536?
+
+                u16 ref_z = GetDepth(x >> 4, y >> 4);
+
+                bool pass = false;
+
+                switch((GPU_Regs[DEPTHTEST_CONFIG]>>4)&7) {
+                    case 1: //Always
+                        pass = true;
+                        break;
+
+                    case 6: //GreaterThan
+                        pass = z > ref_z;
+                        break;
+
+                    default:
+                        DEBUG("Unknown depth test function %x\n", (GPU_Regs[DEPTHTEST_CONFIG] >> 4) & 7);
+                        break;
+                }
+
+                if(!pass)
+                    continue;
+
+                if((GPU_Regs[DEPTHTEST_CONFIG]>>12) & 1)
+                    SetDepth(x >> 4, y >> 4, z);
+            }
+
+
 
             /*struct clov4 combiner_output;
             combiner_output.v[0] = 0x0;

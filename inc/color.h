@@ -31,9 +31,9 @@ struct Color{
 typedef struct Color Color;
 
 //Decode one pixel into RGBA8 color format
-void color_decode(unsigned char* input, int format, Color *color);
+void color_decode(unsigned char* input, const TextureFormat format, Color *output);
 
 //Encode one pixel from RGBA8 color format
-void color_encode(Color *color, int format, unsigned char* output);
+void color_encode(Color *input, const TextureFormat format, unsigned char* output);
 
 #endif

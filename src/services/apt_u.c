@@ -242,6 +242,15 @@ SERVICE_CMD(0xb0040)
     return 0;
 }
 
+SERVICE_CMD(0xc0104)
+{
+    u32 appID = CMD(1);
+    DEBUG("SendParameter, appID=%08x\n", appID);
+
+    RESP(1, 0); // Result
+    return 0;
+}
+
 SERVICE_CMD(0xd0080)
 {
     u32 appID = CMD(1);
@@ -280,6 +289,14 @@ SERVICE_CMD(0x4f0080)
 {
     DEBUG("SetApplicationCpuTimeLimit: core=%u, percent=%u%%\n",
           CMD(1), CMD(2));
+
+    RESP(1, 0);
+    return 0;
+}
+
+SERVICE_CMD(0x180040)
+{
+    DEBUG("PrepareToStartLibraryApplet: %08x %08x %08x %08x %08x %08x %08x %08x --todo--\n", CMD(1), CMD(2), CMD(3), CMD(4), CMD(5), CMD(6), CMD(7), CMD(8));
 
     RESP(1, 0);
     return 0;

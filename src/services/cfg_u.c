@@ -49,50 +49,7 @@ static const u8 stereo_camera_settings[32] =
 
 u32 getconfigfromNAND(u32 size, u32 id, u32 pointer,u32 filter)
 {
-    if (config_usesys) {
-        char p[0x200];
-        snprintf(p, 256, "%s/00010017/config", config_sysdataoutpath);
-        FILE* fd = fopen(p, "rb");
-        u16 numb;
-        u16 unk;
-        fread(&numb, 1, 2, fd);
-        fread(&unk, 1, 2, fd);
-        int i;
-        for (i = 0; i < numb; i++) {
-            config_block conf;
-            fread(&conf, 1, sizeof(conf), fd);
-            if (id == Read32(conf.BlkID)) {
-                u16 asize = (conf.size[0]) | (conf.size[1] << 8);
-                u16 flags = (conf.flags[0]) | (conf.flags[1] << 8);
-                u16 readsize = size < asize ? size : asize;
-                DEBUG("found %04x %04x\n", asize,flags);
-                if (filter & flags) {
-                    if (size <= 4) {
-                        for (int j = 0; j < readsize; j++) {
-                            mem_Write8(pointer + j, conf.offset[j]);
-                        }
-                    } else {
-                        u8 abuffer[0x8000]; //max size
-                        long temp = ftell(fd);
-                        fseek(fd, Read32(conf.offset), SEEK_SET);
-                        fread(abuffer, 1, readsize, fd);
-                        for (int j = 0; j < readsize; j++) {
-                            mem_Write8(pointer + j, abuffer[j]);
-                        }
-                        fseek(fd, temp, SEEK_SET);
-                    }
-                    break;
-                } else {
-                    DEBUG("filtered out\n");
-                }
-            }
-        }
-        if (numb == i) {
-            DEBUG("error not found\n");
-        }
-        fclose(fd);
-    } else {
-        switch (id) {
+    switch(id) {
         case 0x00050005: //Stereo camera settings?
             mem_Write(stereo_camera_settings, pointer, sizeof(stereo_camera_settings));
             break;
@@ -109,7 +66,56 @@ u32 getconfigfromNAND(u32 size, u32 id, u32 pointer,u32 filter)
             mem_Write8(pointer + 3, 78); // 78=Germany	Country code, same as DSi/Wii country codes. Value 0xff is invalid.
             break;
         default:
-            ERROR("Unknown id %08x\n", id);
+        {
+            if(config_usesys) {
+                char p[0x200];
+                snprintf(p, 256, "%s/00010017/config", config_sysdataoutpath);
+                FILE* fd = fopen(p, "rb");
+                u16 numb;
+                u16 unk;
+                fread(&numb, 1, 2, fd);
+                fread(&unk, 1, 2, fd);
+                int i;
+                for(i = 0; i < numb; i++) {
+                    config_block conf;
+                    fread(&conf, 1, sizeof(conf), fd);
+                    if(id == Read32(conf.BlkID)) {
+                        u16 asize = (conf.size[0]) | (conf.size[1] << 8);
+                        u16 flags = (conf.flags[0]) | (conf.flags[1] << 8);
+                        u16 readsize = size < asize ? size : asize;
+                        DEBUG("found %04x %04x\n", asize, flags);
+                        if(filter & flags) {
+                            if(size <= 4) {
+                                for(int j = 0; j < readsize; j++) {
+                                    mem_Write8(pointer + j, conf.offset[j]);
+                                }
+                            }
+                            else {
+                                u8 abuffer[0x8000]; //max size
+                                long temp = ftell(fd);
+                                fseek(fd, Read32(conf.offset), SEEK_SET);
+                                fread(abuffer, 1, readsize, fd);
+                                for(int j = 0; j < readsize; j++) {
+                                    mem_Write8(pointer + j, abuffer[j]);
+                                }
+                                fseek(fd, temp, SEEK_SET);
+                            }
+                            break;
+                        }
+                        else {
+                            DEBUG("filtered out\n");
+                        }
+                    }
+                }
+                if(numb == i) {
+                    //DEBUG("error not found\n");
+                    ERROR("Unknown id %08x\n", id);
+                }
+                fclose(fd);
+            }
+            else
+                ERROR("Unknown id %08x\n", id);
+
             break;
         }
     }

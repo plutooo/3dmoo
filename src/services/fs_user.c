@@ -917,8 +917,6 @@ SERVICE_CMD(0x08040000)   // GetSize
     u32 rc = 0;
     u64 sz = 0;
 
-    DEBUG("GetSize\n");
-
     file_type* type = (file_type*)h->subtype;
 
     if (type->fnGetSize != NULL) {
@@ -927,6 +925,8 @@ SERVICE_CMD(0x08040000)   // GetSize
         ERROR("GetSize() not implemented for this type.\n");
         rc = -1;
     }
+
+    DEBUG("GetSize ret=%08X(%d)\n",sz,sz);
 
     RESP(1, rc); // Result
     RESP(2, (u32)sz);

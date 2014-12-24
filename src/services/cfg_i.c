@@ -21,6 +21,8 @@
 #include "mem.h"
 #include "arm11.h"
 
+#include "config.h"
+
 #include "service_macros.h"
 
 u32 getconfigfromNAND(u32 size, u32 id, u32 pointer, u32 filter);
@@ -32,7 +34,7 @@ SERVICE_CMD(0x00020000)   // SecureInfoGetRegion this is mirrored in all cfg cha
     DEBUG("SecureInfoGetRegion\n");
 
     RESP(1, 0); // Result
-    RESP(2, 2); // 1 = USA 2=Europe
+    RESP(2, config_region); // 1 = USA 2=Europe
     return 0;
 }
 

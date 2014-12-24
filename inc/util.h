@@ -72,7 +72,7 @@ typedef int64_t s64;
 #endif
 
 #ifdef _WIN32
-static int _wincolors[] = {
+static WORD _wincolors[] = {
     0,                                                          // black
     FOREGROUND_RED   | FOREGROUND_INTENSITY,                    // red
     FOREGROUND_GREEN | FOREGROUND_INTENSITY,                    // green
@@ -109,7 +109,7 @@ static int color_teal()  { return set_color(6); }
 static void color_restore(int old)
 {
 #ifdef _WIN32
-    SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), old);
+    SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), (WORD)old);
 #else
     fprintf(stdout, "\033[0m");
 #endif

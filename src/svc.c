@@ -322,3 +322,20 @@ void svc_Execute(ARMul_State * state, u8 num)
         //exit(1);
     }
 }
+
+
+u32 svcGetProcessId()
+{
+    u32 handle = arm11_R(1);
+
+    ERROR("svcGetProcessId (%02X)\n", handle);
+
+    if(handle == 0xffff8000) {
+        arm11_SetR(1, 1);
+        return 0;
+    }
+    else {
+        THREADDEBUG("svcGetProcessId not supported\n");
+        return 0;
+    }
+}

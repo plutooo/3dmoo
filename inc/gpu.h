@@ -92,6 +92,11 @@ extern u32 GPU_Regs[0xFFFF];
 
 #define GLTEXENV 0xC0
 // untill 0x100 with a jump at 0xE0- 0xF0
+#define COLOROUTPUT_CONFIG 0x100
+#define BLEND_CONFIG 0x101
+#define COLORLOGICOP_CONFIG 0x102
+#define BLEND_COLOR 0x103
+#define ALPHATEST_CONFIG 0x104
 
 #define DEPTHTEST_CONFIG 0x107
 #define BUFFERFORMAT 0x117

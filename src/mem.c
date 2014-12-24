@@ -452,7 +452,7 @@ u32 mem_Read32(uint32_t addr)
     return 0;
 }
 
-int mem_Write(uint8_t* in_buff, uint32_t addr, uint32_t size)
+int mem_Write(const uint8_t* in_buff, uint32_t addr, uint32_t size)
 {
 #ifdef MEM_TRACE
     fprintf(stderr, "w (sz=%08x) %08x\n", size, addr);

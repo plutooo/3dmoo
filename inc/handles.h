@@ -159,6 +159,8 @@ char** overdrivnames;
 // handles.c
 handleinfo* handle_Get(u32 handle);
 u32 handle_New(u32 type, uintptr_t subtype);
+int handle_free(u32 handle);
+void handle_init();
 
 #ifdef MODULE_SUPPORT
 u32 *curprocesshandlelist;
@@ -185,10 +187,11 @@ u32 event_WaitSynchronization(handleinfo* h, bool *locked);
 
 u32 file_SyncRequest(handleinfo* h, bool *locked);
 u32 dir_SyncRequest(handleinfo* h, bool *locked);
+u32 dir_CloseHandle(ARMul_State *state, u32 handle);
 
 //arm11/threads.c
 u32 thread_SyncRequest(handleinfo* h, bool *locked);
-u32 thread_CloseHandle(ARMul_State *state, handleinfo* h);
+u32 thread_CloseHandle(ARMul_State *state, u32 handle);
 u32 thread_WaitSynchronization(handleinfo* h, bool *locked);
 
 // svc/syn.c
@@ -197,7 +200,7 @@ u32 semaphore_SyncRequest(handleinfo* h, bool *locked);
 
 //services/file.c
 u32 file_SyncRequest(handleinfo* h, bool *locked);
-u32 file_CloseHandle(ARMul_State *state, handleinfo* h);
+u32 file_CloseHandle(ARMul_State *state, u32 handle);
 u32 file_WaitSynchronization(handleinfo* h, bool *locked);
 
 u32 nop_SyncRequest(handleinfo* h, bool *locked);
@@ -213,7 +216,7 @@ u32 timer_WaitSynchronization(handleinfo* h, bool *locked);
 static struct {
     const char* name;
     u32(*fnSyncRequest)(handleinfo* h, bool *locked);
-    u32(*fnCloseHandle)(ARMul_State *state, handleinfo* h);
+    u32(*fnCloseHandle)(ARMul_State *state, u32 handle);
     u32(*fnWaitSynchronization)(handleinfo* h, bool *locked);
 
 } handle_types[] = {
@@ -304,7 +307,7 @@ static struct {
     {
         "dir",
         &dir_SyncRequest,
-        NULL,
+        &dir_CloseHandle,
         NULL
     },
     {

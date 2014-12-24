@@ -21,6 +21,8 @@
 #include "hid_user.h"
 #include "color.h"
 #include <SDL.h>
+#include "arm11.h"
+
 
 SDL_Window *win = NULL;
 SDL_Renderer *renderer = NULL;

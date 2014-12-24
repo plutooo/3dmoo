@@ -113,6 +113,8 @@ int main(int argc, char* argv[])
     //setvbuf(stderr, errBuf, _IOLBF, sizeof(errBuf));
 #endif
     atexit(AtExit);
+    handle_init(); //must be done first
+
     if (argc < 2) {
         printf("Usage:\n");
 

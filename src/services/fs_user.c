@@ -1003,9 +1003,13 @@ SERVICE_CMD(0x080C0000)   // OpenLinkFile
 
 SERVICE_END();
 
-u32 file_CloseHandle(ARMul_State *state, handleinfo* h)
+u32 file_CloseHandle(ARMul_State *state, u32 handle)
 {
-    DEBUG("file_CloseHandle - STUB\n");
+    DEBUG("file_CloseHandle\n");
+
+    //don't close the file here it is just a handle close
+
+    handle_free(handle);
     return 0;
 }
 
@@ -1049,3 +1053,13 @@ SERVICE_CMD(0x08020000)   // Close
 }
 
 SERVICE_END();
+
+u32 dir_CloseHandle(ARMul_State *state, u32 handle)
+{
+    DEBUG("dir_CloseHandle\n");
+
+    //don't close the dir here it is just a handle close
+
+    handle_free(handle);
+    return 0;
+}

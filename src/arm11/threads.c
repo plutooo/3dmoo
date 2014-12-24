@@ -573,14 +573,15 @@ u32 svcCreateThread()
 
 // --- Thread handle callbacks ---
 
-u32 thread_CloseHandle(ARMul_State *state, handleinfo* h)
+u32 thread_CloseHandle(ARMul_State *state, u32 handle)
 {
-    u32 id = threads_FindIdByHandle(h->handle);
+    u32 id = threads_FindIdByHandle(handle);
     if (id == -1)
         return -1;
 
     threads_StopThread(id);
     state->NumInstrsToExecute = 0;
+    handle_free(handle);
     return 0;
 }
 

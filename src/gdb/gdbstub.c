@@ -57,7 +57,7 @@
 extern u32 loader_txt;
 extern u32 loader_data;
 extern u32 loader_bss;
-int mem_Write(uint8_t* in_buff, uint32_t addr, uint32_t size);
+int mem_Write(const uint8_t* in_buff, uint32_t addr, uint32_t size);
 extern thread threads[MAX_THREADS];
 
 #define uint32_t u32

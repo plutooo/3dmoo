@@ -33,24 +33,70 @@ static u32 handles_num;
 
 #define NUM_HANDLE_TYPES ARRAY_SIZE(handle_types)
 
-
-u32 handle_New(u32 type, uintptr_t subtype)
+void handle_init()
 {
-    if(handles_num == MAX_NUM_HANDLES) {
-        ERROR("not enough handles..\n");
-        arm11_Dump();
-        exit(1);
+    for (int i = 0; i < MAX_NUM_HANDLES; i++)
+    {
+        handles[i].taken = false;
+        handles[i].handle = HANDLES_BASE + i;
     }
-    DEBUG("handle=%x\n", HANDLES_BASE + handles_num);
-    handles[handles_num].taken    = true;
-    handles[handles_num].type     = type;
-    handles[handles_num].subtype  = subtype;
-    handles[handles_num].locked   = false;
-    handles[handles_num].locktype = LOCK_TYPE_STICKY;
+}
 
-    handles_num++;
+int handle_free(u32 handle)
+{
+    u32 idx = handle - HANDLES_BASE;
 
-    return HANDLES_BASE + handles_num - 1;
+    bool first = true;
+    u32 nexthand = 0;
+
+    for (int i = 0; i < MAX_NUM_HANDLES;i++)
+    {
+        if (handles[i].type == HANDLE_TYPE_REDIR && handles[i].taken && handles[i].subtype == handle)
+        {
+            if (first) //move handle
+            {
+                u32 temphandle = handles[i].handle;
+                memcpy(&handles[i], &handles[idx], sizeof(handleinfo));
+                handles[i].handle = temphandle;
+                nexthand = HANDLES_BASE + i;
+                first = false;
+            }
+            else //relink handle
+            {
+                handles[i].subtype = nexthand;
+            }
+        }
+    }
+    handles[idx].taken = false;
+
+    return 1;
+}
+
+u32 handle_New(u32 type, uintptr_t subtype) //we need to make sure the handles untill MAX_NUM_HANDLES are different for better debugging
+{
+    int nexthandle = handles_num;
+    if(handles_num == MAX_NUM_HANDLES) {
+        for (int i = 0; i < MAX_NUM_HANDLES; i++)
+            if (!handles[i].taken)
+                nexthandle = i;
+        if (handles_num == MAX_NUM_HANDLES)
+        {
+            ERROR("not enough handles..\n");
+            arm11_Dump();
+            exit(1);
+        }
+    }
+    DEBUG("handle=%x\n", HANDLES_BASE + nexthandle);
+    handles[nexthandle].taken = true;
+    handles[nexthandle].type = type;
+    handles[nexthandle].subtype = subtype;
+    handles[nexthandle].locked = false;
+    handles[nexthandle].locktype = LOCK_TYPE_STICKY;
+
+    if (handles_num != MAX_NUM_HANDLES)
+        handles_num++;
+
+    return HANDLES_BASE + nexthandle;
 }
 
 handleinfo* handle_Get(u32 handle)
@@ -58,6 +104,11 @@ handleinfo* handle_Get(u32 handle)
     u32 idx = handle - HANDLES_BASE;
 
     if (idx < handles_num) {
+        if (!handles[idx].taken)
+        {
+            ERROR("handle_Get on free handle %08x", handle);
+            return NULL;
+        }
         if (handles[idx].type == HANDLE_TYPE_REDIR)
             return handle_Get(handles[idx].subtype);
 
@@ -146,7 +197,7 @@ u32 svcCloseHandle(ARMul_State *state)
 
     // Lookup actual callback in table.
     if(handle_types[hi->type].fnCloseHandle != NULL)
-        return handle_types[hi->type].fnCloseHandle(state, hi);
+        return handle_types[hi->type].fnCloseHandle(state, handle);
 
     ERROR("svcCloseHandle undefined for handle-type \"%s\".\n",
           handle_types[hi->type].name);

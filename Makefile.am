@@ -92,7 +92,7 @@ noinst_HEADERS	=	inc/3dsx.h			\
 
 AM_CPPFLAGS	=	-iquote$(top_srcdir)/inc -iquote$(top_srcdir)/src/arm11 -iquote$(top_srcdir)/src/arm11/vfp \
 			-Wno-format-zero-length -DMODET -DMODE32 -D_DEFAULT_SOURCE -D_BSD_SOURCE -D_POSIX_SOURCE -DGDB_STUB \
-			-std=c99
+			-std=c99 -DDISABLE_DEBUG
 
 bin_PROGRAMS	=	3dmoo
 

@@ -266,7 +266,7 @@ void Clipper_ProcessTriangle(struct OutputVertex *v0, struct OutputVertex *v1, s
             rasterizer_ProcessTriangle(vtx0, vtx1, vtx2);
 
             //HACK
-            //rasterizer_ProcessTriangle(vtx2, vtx1, vtx0);
+            rasterizer_ProcessTriangle(vtx2, vtx1, vtx0);
         }
     }
 }

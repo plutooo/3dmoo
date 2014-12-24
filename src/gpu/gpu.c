@@ -557,6 +557,20 @@ void ProcessShaderCode(struct VertexShaderState* state)
 
             break;
         }
+        case SHDR_FLR: {
+#ifdef printfunc
+            DEBUG("FLR %02X %02X %02X %08x\n", instr_common_destv, instr_common_src1v, instr_common_src2v, swizzle);
+#endif
+            for(int i = 0; i < 4; ++i) {
+                if(!swizzle_DestComponentEnabled(i, swizzle))
+                    continue;
+
+                dest[i] = floorf(src1[i]);
+            }
+
+            break;
+        }
+
         case SHDR_MAX: {
 #ifdef printfunc
             DEBUG("MAX %02X %02X %02X %08x\n", instr_common_destv, instr_common_src1v, instr_common_src2v, swizzle);

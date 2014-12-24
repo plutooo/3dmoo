@@ -360,6 +360,8 @@ typedef enum{
 
     SourceAlpha = 6,
     OneMinusSourceAlpha = 7,
+    ConstantAlpha = 12,
+    OneMinusConstantAlpha = 13,
 } BlendFactor;
 static void LookupFactorRGB(BlendFactor factor, struct clov4 *source, struct clov4 *output)
 {
@@ -385,6 +387,12 @@ static void LookupFactorRGB(BlendFactor factor, struct clov4 *source, struct clo
             output->v[1] = 255 - source->v[3];
             output->v[2] = 255 - source->v[3];
             break;
+        case ConstantAlpha:
+            output->v[0] = output->v[1] = output->v[2] = GPU_Regs[BLEND_COLOR] >> 24;
+            break;
+        case OneMinusConstantAlpha:
+            output->v[0] = output->v[1] = output->v[2] = 255 - GPU_Regs[BLEND_COLOR] >> 24;
+            break;
         default:
             DEBUG("Unknown color blend factor %x\n", factor);
             break;
@@ -406,6 +414,12 @@ static void LookupFactorA(BlendFactor factor, struct clov4 *source, struct clov4
             break;
         case OneMinusSourceAlpha:
             output->v[3] = 255 - source->v[3];
+            break;
+        case ConstantAlpha:
+            output->v[3] = GPU_Regs[BLEND_COLOR] >> 24;
+            break;
+        case OneMinusConstantAlpha:
+            output->v[3] = 255-GPU_Regs[BLEND_COLOR] >> 24;
             break;
         default:
             DEBUG("Unknown alpha blend factor %x\n", factor);
@@ -1057,7 +1071,7 @@ void rasterizer_ProcessTriangle(const struct OutputVertex *v0,
                         result.v[0] = MIN(255, ((int)combiner_output.v[0] * (int)srcfactor.v[0] + (int)dest.v[0] * (int)dstfactor.v[0]) / 255);
                         result.v[1] = MIN(255, ((int)combiner_output.v[1] * (int)srcfactor.v[1] + (int)dest.v[1] * (int)dstfactor.v[1]) / 255);
                         result.v[2] = MIN(255, ((int)combiner_output.v[2] * (int)srcfactor.v[2] + (int)dest.v[2] * (int)dstfactor.v[2]) / 255);
-                        result.v[3] = 255;// (combiner_output.v[3] * srcfactor.v[3] + dest.v[3] * dstfactor.v[3]) / 255;
+                        result.v[3] = MIN(255, ((int)combiner_output.v[3] * (int)srcfactor.v[3] + (int)dest.v[3] * (int)dstfactor.v[3]) / 255);
                         memcpy(&combiner_output, &result, sizeof(struct clov4));
                         break;
                     default:

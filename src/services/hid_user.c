@@ -117,6 +117,11 @@ u32 translate_to_bit(const SDL_KeyboardEvent* key)
         return 1 << 10;
     case SDL_SCANCODE_H:
         return 1 << 11;
+    case SDL_SCANCODE_F1:
+    {
+        mem_Dbugdump();
+        return 0;
+    }
     default:
         return 0;
     }

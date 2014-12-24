@@ -158,11 +158,6 @@ void gsp_ExecuteCommandFromSharedMem()
                     unk = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x18);
                     GPUDEBUG("GX SetDisplayTransfer 0x%08X 0x%08X 0x%08X 0x%08X 0x%08X 0x%08X\r\n", inpaddr, outputaddr, inputdim, outputdim, flags, unk);
 
-                    if (inputdim != outputdim) {
-                        GPUDEBUG("error converting from %08x to %08x\n", inputdim, outputdim);
-                        break;
-                    }
-
                     u8 * inaddr = get_pymembuffer(convertvirtualtopys(inpaddr));
                     u8 * outaddr = get_pymembuffer(convertvirtualtopys(outputaddr));
 
@@ -171,6 +166,45 @@ void gsp_ExecuteCommandFromSharedMem()
 
                     u32 outy = (outputdim & 0xFFFF);
                     u32 outx = ((outputdim >> 0x10) & 0xFFFF);
+
+                    if(inputdim != outputdim) {
+                        /*FILE *test = fopen("Conversion.bin", "wb");
+                        u32 len = 0;
+                        switch(flags & 0x700)
+                        {
+                            case 0: //RGBA8
+                                len = rely * relx * 4;
+                                break;
+                            case 0x100: //RGB8
+                                len = rely * relx * 3;
+                                break;
+                            case 0x200: //RGB565
+                            case 0x300: //RGB5A1
+                            case 0x400: //RGBA4
+                                len = rely * relx * 2;
+                                break;
+                        }
+                        fwrite(inaddr, 1, len, test);
+                        fclose(test);*/
+
+                        //Lets just skip the first 80*240*bytesperpixel or so as its blank then continue as usual
+                        switch(flags & 0x700)
+                        {
+                            case 0: //RGBA8
+                                inaddr += outy * abs(relx - outx) * 4;
+                                break;
+                            case 0x100: //RGB8
+                                inaddr += outy * abs(relx - outx) * 3;
+                                break;
+                            case 0x200: //RGB565
+                            case 0x300: //RGB5A1
+                            case 0x400: //RGBA4
+                                inaddr += outy * abs(relx - outx) * 2;
+                                break;
+                        }
+                        //GPUDEBUG("error converting from %08x to %08x\n", inputdim, outputdim);
+                        //break;
+                    }
 
                     if((flags & 0x700) == ((flags & 0x7000) >> 4))
                     {
@@ -197,9 +231,9 @@ void gsp_ExecuteCommandFromSharedMem()
                         GPUDEBUG("converting %d to %d (width %d/%d, height %d/%d)\n", (flags & 0x700) >> 8, (flags & 0x7000) >> 12, relx, outx, rely, outy);
                         Color color;
                         
-                        for(u32 y = 0; y < rely; ++y)
+                        for(u32 y = 0; y < outy; ++y)
                         {
-                            for(u32 x = 0; x < relx; ++x) 
+                            for(u32 x = 0; x < outx; ++x) 
                             {
                                 switch(flags & 0x700) { //input format
 
@@ -228,11 +262,6 @@ void gsp_ExecuteCommandFromSharedMem()
                                         break;
                                 }
                                 //write it back
-
-                                if(x >= outx) 
-                                    continue;
-                                if(y >= outy)
-                                    continue;
 
                                 switch(flags & 0x7000) { //output format
 

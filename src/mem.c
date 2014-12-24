@@ -107,6 +107,10 @@ void mem_Dbugdump()
     FILE* data = fopen("VRAMdump.bin", "wb");
     fwrite(VRAMbuff, 1, 0x600000, data);
     fclose(data);
+
+    FILE* membuf = fopen("LINEmembuffer.bin", "wb");
+    fwrite(LINEmembuffer, 1, 0x8000000, membuf);
+    fclose(membuf);
 }
 
 static int Overlaps(memmap_t* a, memmap_t* b)

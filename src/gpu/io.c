@@ -8,6 +8,12 @@ void gpu_WriteReg32(u32 addr, u32 data)
 {
     //GPUDEBUG("w32 %08x to %08x\n",data, addr);
 
+    if(addr >= 0x1EB00000 && addr < (0x1EB00000 + 0x420000))
+    {
+        DEBUG("Write to %08X from physical address %08X\n", addr - 0x1EB00000, addr);
+        addr -= 0x1EB00000;
+    }
+
     if(addr >= MAX_IO_REGS) {
         GPUDEBUG("Write to %08x: out of range\n", addr);
         return;

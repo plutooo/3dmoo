@@ -1050,6 +1050,7 @@ void rasterizer_ProcessTriangle(const struct OutputVertex *v0,
             if((GPU_Regs[COLOROUTPUT_CONFIG] >> 8) & 1) //Alpha blending enabled?
             {
 #define MIN(x, y) (((x) < (y)) ? (x) : (y))
+#define CLAMP(x, low, high)  (((x) > (high)) ? (high) : (((x) < (low)) ? (low) : (x)))
                 struct clov4 dest, srcfactor, dstfactor, result;
                 GetPixel(x >> 4, y >> 4, &dest);
 
@@ -1068,10 +1069,24 @@ void rasterizer_ProcessTriangle(const struct OutputVertex *v0,
                 switch(blend_equation_rgb)
                 {
                     case 0: //Add
-                        result.v[0] = MIN(255, ((int)combiner_output.v[0] * (int)srcfactor.v[0] + (int)dest.v[0] * (int)dstfactor.v[0]) / 255);
-                        result.v[1] = MIN(255, ((int)combiner_output.v[1] * (int)srcfactor.v[1] + (int)dest.v[1] * (int)dstfactor.v[1]) / 255);
-                        result.v[2] = MIN(255, ((int)combiner_output.v[2] * (int)srcfactor.v[2] + (int)dest.v[2] * (int)dstfactor.v[2]) / 255);
-                        result.v[3] = MIN(255, ((int)combiner_output.v[3] * (int)srcfactor.v[3] + (int)dest.v[3] * (int)dstfactor.v[3]) / 255);
+                        result.v[0] = CLAMP((((int)combiner_output.v[0] * (int)srcfactor.v[0] + (int)dest.v[0] * (int)dstfactor.v[0]) / 255), 0, 255);
+                        result.v[1] = CLAMP((((int)combiner_output.v[1] * (int)srcfactor.v[1] + (int)dest.v[1] * (int)dstfactor.v[1]) / 255), 0, 255);
+                        result.v[2] = CLAMP((((int)combiner_output.v[2] * (int)srcfactor.v[2] + (int)dest.v[2] * (int)dstfactor.v[2]) / 255), 0, 255);
+                        result.v[3] = CLAMP((((int)combiner_output.v[3] * (int)srcfactor.v[3] + (int)dest.v[3] * (int)dstfactor.v[3]) / 255), 0, 255);
+                        memcpy(&combiner_output, &result, sizeof(struct clov4));
+                        break;
+                    case 1: //Subtract
+                        result.v[0] = CLAMP((((int)combiner_output.v[0] * (int)srcfactor.v[0] - (int)dest.v[0] * (int)dstfactor.v[0]) / 255), 0, 255);
+                        result.v[1] = CLAMP((((int)combiner_output.v[1] * (int)srcfactor.v[1] - (int)dest.v[1] * (int)dstfactor.v[1]) / 255), 0, 255);
+                        result.v[2] = CLAMP((((int)combiner_output.v[2] * (int)srcfactor.v[2] - (int)dest.v[2] * (int)dstfactor.v[2]) / 255), 0, 255);
+                        result.v[3] = CLAMP((((int)combiner_output.v[3] * (int)srcfactor.v[3] - (int)dest.v[3] * (int)dstfactor.v[3]) / 255), 0, 255);
+                        memcpy(&combiner_output, &result, sizeof(struct clov4));
+                        break;
+                    case 2: //Reverse Subtract
+                        result.v[0] = CLAMP((((int)dest.v[0] * (int)dstfactor.v[0] - (int)combiner_output.v[0] * (int)srcfactor.v[0]) / 255), 0, 255);
+                        result.v[1] = CLAMP((((int)dest.v[1] * (int)dstfactor.v[1] - (int)combiner_output.v[1] * (int)srcfactor.v[1]) / 255), 0, 255);
+                        result.v[2] = CLAMP((((int)dest.v[2] * (int)dstfactor.v[2] - (int)combiner_output.v[2] * (int)srcfactor.v[2]) / 255), 0, 255);
+                        result.v[3] = CLAMP((((int)dest.v[3] * (int)dstfactor.v[3] - (int)combiner_output.v[3] * (int)srcfactor.v[3]) / 255), 0, 255);
                         memcpy(&combiner_output, &result, sizeof(struct clov4));
                         break;
                     default:

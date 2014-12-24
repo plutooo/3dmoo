@@ -374,7 +374,7 @@ static bool ShaderCMP(float a, float b, u32 mode)
     return false;
 }
 
-#define printfunc
+//#define printfunc
 
 void loop(struct VertexShaderState* state, u32 offset, u32 num_instruction, u32 return_offset,u32 int_reg)
 {
@@ -1457,30 +1457,39 @@ void updateFramebuffer()
                 baseaddrtop += 0x20; //get the other
             else
                 baseaddrtop += 0x4;
-            if (*(u32*)(baseaddrtop) == 0)
-                gpu_WriteReg32(RGBuponeleft, convertvirtualtopys(*(u32*)(baseaddrtop + 4)));
-            else
-                gpu_WriteReg32(RGBuptwoleft, convertvirtualtopys(*(u32*)(baseaddrtop + 4)));
 
-            if (*(u32*)(baseaddrtop + 8) == 0)
+            u32 active_framebuf = *(u32*)(baseaddrtop); //"0=first, 1=second"
+            u32 framebuf0_vaddr = *(u32*)(baseaddrtop + 4); //"Framebuffer virtual address, for the main screen this is the 3D left framebuffer"
+            u32 framebuf1_vaddr = *(u32*)(baseaddrtop + 8); //"For the main screen: 3D right framebuffer address"
+            u32 framebuf_widthbytesize = *(u32*)(baseaddrtop + 12); //"Value for 0x1EF00X90, controls framebuffer width"
+            u32 format = *(u32*)(baseaddrtop + 16); //"Framebuffer format, this u16 is written to the low u16 for LCD register 0x1EF00X70."
+            u32 framebuf_dispselect = *(u32*)(baseaddrtop + 20); //"Value for 0x1EF00X78, controls which framebuffer is displayed"
+            u32 unk = *(u32*)(baseaddrtop + 24); //"?"
+
+            if(active_framebuf == 0)
+                gpu_WriteReg32(RGBuponeleft, convertvirtualtopys(framebuf0_vaddr));
+            else
+                gpu_WriteReg32(RGBuptwoleft, convertvirtualtopys(framebuf0_vaddr));
+
+            if(framebuf1_vaddr == 0)
             {
-                if (*(u32*)(baseaddrtop) == 0)
-                    gpu_WriteReg32(RGBuponeright, convertvirtualtopys(*(u32*)(baseaddrtop + 4)));
+                if(active_framebuf == 0)
+                    gpu_WriteReg32(RGBuponeright, convertvirtualtopys(framebuf0_vaddr));
                 else
-                    gpu_WriteReg32(RGBuptworight, convertvirtualtopys(*(u32*)(baseaddrtop + 4)));
+                    gpu_WriteReg32(RGBuptworight, convertvirtualtopys(framebuf0_vaddr));
             }
             else
             {
-                if (*(u32*)(baseaddrtop) == 0)
-                    gpu_WriteReg32(RGBuponeright, convertvirtualtopys(*(u32*)(baseaddrtop + 8)));
+                if(active_framebuf == 0)
+                    gpu_WriteReg32(RGBuponeright, convertvirtualtopys(framebuf1_vaddr));
                 else
-                    gpu_WriteReg32(RGBuptworight, convertvirtualtopys(*(u32*)(baseaddrtop + 8)));
+                    gpu_WriteReg32(RGBuptworight, convertvirtualtopys(framebuf1_vaddr));
             }
 
-            gpu_WriteReg32(framestridetop, *(u32*)(baseaddrtop + 0xC));
+            gpu_WriteReg32(framestridetop, framebuf_widthbytesize);
 
-            gpu_WriteReg32(frameformattop, (*(u32*)(baseaddrtop + 0x10) & 0xFFFF) | (gpu_ReadReg32(frameformattop)&~0xFFFF));
-            gpu_WriteReg32(frameselecttop, *(u32*)(baseaddrtop + 0x14) & 0xFF);
+            gpu_WriteReg32(frameformattop, format);
+            gpu_WriteReg32(frameselecttop, framebuf_dispselect);
         }
         u8 *baseaddrbot = (u8*)(GSPsharedbuff + 0x240 + i * 0x80); //bot
         if (*(u8*)(baseaddrbot + 1)) {
@@ -1490,15 +1499,23 @@ void updateFramebuffer()
             else
                 baseaddrbot += 0x4;
 
-            if (*(u32*)(baseaddrbot) == 0)
-                gpu_WriteReg32(RGBdownoneleft, convertvirtualtopys(*(u32*)(baseaddrbot + 4)));
+            u32 active_framebuf = *(u32*)(baseaddrbot); //"0=first, 1=second"
+            u32 framebuf0_vaddr = *(u32*)(baseaddrbot + 4); //"Framebuffer virtual address, for the main screen this is the 3D left framebuffer"
+            u32 framebuf1_vaddr = *(u32*)(baseaddrbot + 8); //"For the main screen: 3D right framebuffer address"
+            u32 framebuf_widthbytesize = *(u32*)(baseaddrbot + 12); //"Value for 0x1EF00X90, controls framebuffer width"
+            u32 format = *(u32*)(baseaddrbot + 16); //"Framebuffer format, this u16 is written to the low u16 for LCD register 0x1EF00X70."
+            u32 framebuf_dispselect = *(u32*)(baseaddrbot + 20); //"Value for 0x1EF00X78, controls which framebuffer is displayed"
+            u32 unk = *(u32*)(baseaddrbot + 24); //"?"
+
+            if(active_framebuf == 0)
+                gpu_WriteReg32(RGBdownoneleft, convertvirtualtopys(framebuf0_vaddr));
             else
-                gpu_WriteReg32(RGBdowntwoleft, convertvirtualtopys(*(u32*)(baseaddrbot + 4)));
+                gpu_WriteReg32(RGBdowntwoleft, convertvirtualtopys(framebuf0_vaddr));
 
-            gpu_WriteReg32(framestridebot, *(u32*)(baseaddrbot + 0xC));
+            gpu_WriteReg32(framestridebot, framebuf_widthbytesize);
 
-            gpu_WriteReg32(frameformatbot, (*(u32*)(baseaddrbot + 0x10) & 0xFFFF) | (gpu_ReadReg32(frameformatbot)&~0xFFFF));
-            gpu_WriteReg32(frameselectbot, *(u32*)(baseaddrbot + 0x14) & 0xFF);
+            gpu_WriteReg32(frameformatbot, format);
+            gpu_WriteReg32(frameselectbot, framebuf_dispselect);
         }
     }
 

@@ -151,6 +151,7 @@ static void DrawPixel(int x, int y, const struct clov4* color)
 
 }
 
+#define GetPixel RetrievePixel
 static const void RetrievePixel(int x, int y, struct clov4 *output)
 {
     u8* color_buffer = (u8*)get_pymembuffer(GPU_Regs[COLORBUFFER_ADDRESS] << 3);
@@ -162,7 +163,7 @@ static const void RetrievePixel(int x, int y, struct clov4 *output)
     //TODO: workout why this seems required for ctrulib gpu demo (outy=480)
     if(outy > 240) outy = 240;
 
-    DEBUG("x=%d,y=%d,outx=%d,outy=%d,format=%d,inputdim=%08X,bufferformat=%08X\n", x, y, outx, outy, (GPU_Regs[BUFFERFORMAT] & 0x7000) >> 12, inputdim, GPU_Regs[BUFFERFORMAT]);
+    //DEBUG("x=%d,y=%d,outx=%d,outy=%d,format=%d,inputdim=%08X,bufferformat=%08X\n", x, y, outx, outy, (GPU_Regs[BUFFERFORMAT] & 0x7000) >> 12, inputdim, GPU_Regs[BUFFERFORMAT]);
 
     Color ncolor;
 
@@ -422,22 +423,23 @@ static int GetWrappedTexCoord(WrapMode wrap, int val, int size)
 {
 #define MAX(x, y) (((x) > (y)) ? (x) : (y))
 #define MIN(x, y) (((x) < (y)) ? (x) : (y))
+    int ret = 0;
     switch(wrap)
     {
         case ClampToEdge:
-            val = MAX(val, 0);
-            val = MIN(val, size - 1);
+            ret = MAX(val, 0);
+            ret = MIN(ret, size - 1);
             break;
         case Repeat:
-            val %= size;
+            ret = (int)((unsigned)val % size);
             break;
         default:
             DEBUG("Unknown wrap format %08X", wrap);
-            val = 0;
+            ret = 0;
             break;
     }
 
-    return val;
+    return ret;
 #undef MAX
 #undef MIN
 }
@@ -814,42 +816,34 @@ void rasterizer_ProcessTriangle(const struct OutputVertex *v0,
                     switch (i) {
                     case 0:
                         height = (GPU_Regs[TEXTURCONFIG0SIZE] & 0xFFFF);
-                        width = (GPU_Regs[TEXTURCONFIG0SIZE] >> 16);
+                        width = (GPU_Regs[TEXTURCONFIG0SIZE] >> 16) & 0xFFFF;
                         wrap_s = (GPU_Regs[TEXTURCONFIG0SIZE] >> 8) & 3;
                         wrap_t = (GPU_Regs[TEXTURCONFIG0SIZE] >> 11) & 3;
-                        s = (int)(u[i] * (width*1.0f));
-                        s = GetWrappedTexCoord((WrapMode)wrap_s, s, width);
-                        t = (int)(v[i] * (height*1.0f));
-                        t = GetWrappedTexCoord((WrapMode)wrap_t, t, height);
-                        row_stride = NibblesPerPixel(format) * width / 2;
                         format = GPU_Regs[TEXTURCONFIG0TYPE] & 0xF;
                         break;
                     case 1:
                         height = (GPU_Regs[TEXTURCONFIG1SIZE] & 0xFFFF);
-                        width = (GPU_Regs[TEXTURCONFIG1SIZE] >> 16);
+                        width = (GPU_Regs[TEXTURCONFIG1SIZE] >> 16) & 0xFFFF;
                         wrap_s = (GPU_Regs[TEXTURCONFIG1SIZE] >> 8) & 3;
                         wrap_t = (GPU_Regs[TEXTURCONFIG1SIZE] >> 11) & 3;
-                        s = (int)(u[i] * (width*1.0f));
-                        s = GetWrappedTexCoord((WrapMode)wrap_s, s, width);
-                        t = (int)(v[i] * (height*1.0f));
-                        t = GetWrappedTexCoord((WrapMode)wrap_t, t, height);
-                        row_stride = NibblesPerPixel(format) * width / 2;
                         format = GPU_Regs[TEXTURCONFIG1TYPE] & 0xF;
                         break;
                     case 2:
                         height = (GPU_Regs[TEXTURCONFIG2SIZE] & 0xFFFF);
-                        width = (GPU_Regs[TEXTURCONFIG2SIZE] >> 16);
+                        width = (GPU_Regs[TEXTURCONFIG2SIZE] >> 16) & 0xFFFF;
                         wrap_s = (GPU_Regs[TEXTURCONFIG2SIZE] >> 8) & 3;
                         wrap_t = (GPU_Regs[TEXTURCONFIG2SIZE] >> 11) & 3;
-                        s = (int)(u[i] * (width*1.0f));
-                        s = GetWrappedTexCoord((WrapMode)wrap_s, s, width);
-                        t = (int)(v[i] * (height*1.0f));
-                        t = GetWrappedTexCoord((WrapMode)wrap_t, t, height);
-                        row_stride = NibblesPerPixel(format) * width / 2;
                         format = GPU_Regs[TEXTURCONFIG2TYPE] & 0xF;
                         break;
                     }
                     
+                    s = (int)(u[i] * (width*1.0f));
+                    s = GetWrappedTexCoord((WrapMode)wrap_s, s, width);
+                    t = (int)(v[i] * (height*1.0f));
+                    t = GetWrappedTexCoord((WrapMode)wrap_t, t, height);
+                    row_stride = NibblesPerPixel(format) * width / 2;
+
+                    //Flip it vertically
                     t = height - 1 - t;
                     //TODO: Fix this up so it works correctly.
 
@@ -1038,7 +1032,44 @@ void rasterizer_ProcessTriangle(const struct OutputVertex *v0,
                     SetDepth(x >> 4, y >> 4, z);
             }
 
+            //Alpha blending
+            if((GPU_Regs[COLOROUTPUT_CONFIG] >> 8) & 1) //Alpha blending enabled?
+            {
+#define MIN(x, y) (((x) < (y)) ? (x) : (y))
+                struct clov4 dest, srcfactor, dstfactor, result;
+                GetPixel(x >> 4, y >> 4, &dest);
 
+                u32 factor_source_rgb = (GPU_Regs[BLEND_CONFIG] >> 16) & 0xF;
+                u32 factor_source_a = (GPU_Regs[BLEND_CONFIG] >> 24) & 0xF;
+                LookupFactorRGB(factor_source_rgb, &combiner_output, &srcfactor);
+                LookupFactorA(factor_source_a, &combiner_output, &srcfactor);
+
+                u32 factor_dest_rgb = (GPU_Regs[BLEND_CONFIG] >> 20) & 0xF;
+                u32 factor_dest_a = (GPU_Regs[BLEND_CONFIG] >> 28) & 0xF;
+                LookupFactorRGB(factor_dest_rgb, &combiner_output, &dstfactor);
+                LookupFactorA(factor_dest_a, &combiner_output, &dstfactor);
+
+                u32 blend_equation_rgb = GPU_Regs[BLEND_CONFIG] & 0xFF;
+                u32 blend_equation_a = (GPU_Regs[BLEND_CONFIG]>>8) & 0xFF;
+                switch(blend_equation_rgb)
+                {
+                    case 0: //Add
+                        result.v[0] = MIN(255, ((int)combiner_output.v[0] * (int)srcfactor.v[0] + (int)dest.v[0] * (int)dstfactor.v[0]) / 255);
+                        result.v[1] = MIN(255, ((int)combiner_output.v[1] * (int)srcfactor.v[1] + (int)dest.v[1] * (int)dstfactor.v[1]) / 255);
+                        result.v[2] = MIN(255, ((int)combiner_output.v[2] * (int)srcfactor.v[2] + (int)dest.v[2] * (int)dstfactor.v[2]) / 255);
+                        result.v[3] = 255;// (combiner_output.v[3] * srcfactor.v[3] + dest.v[3] * dstfactor.v[3]) / 255;
+                        memcpy(&combiner_output, &result, sizeof(struct clov4));
+                        break;
+                    default:
+                        DEBUG("Unknown RGB blend equation %x", blend_equation_rgb);
+                        break;
+                }
+#undef MIN
+            }
+            else
+            {
+                DEBUG("logic op: %x", GPU_Regs[COLORLOGICOP_CONFIG] & 0xF);
+            }
 
             /*struct clov4 combiner_output;
             combiner_output.v[0] = 0x0;

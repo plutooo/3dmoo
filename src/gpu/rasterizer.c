@@ -152,7 +152,7 @@ static void DrawPixel(int x, int y, const struct clov4* color)
 }
 
 #define GetPixel RetrievePixel
-static const void RetrievePixel(int x, int y, struct clov4 *output)
+static void RetrievePixel(int x, int y, struct clov4 *output)
 {
     u8* color_buffer = (u8*)get_pymembuffer(GPU_Regs[COLORBUFFER_ADDRESS] << 3);
 

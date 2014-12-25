@@ -176,7 +176,7 @@ struct VertexShaderState {
 
     float* input_register_table[16];
     struct vec4  temporary_registers[16];
-    u8  address_registers[2];
+    s32  address_registers[2];
     bool boolean_registers[16];
     u8 integer_registers[4][3];
 
@@ -431,7 +431,7 @@ void ProcessShaderCode(struct VertexShaderState* state)
         bool increment_pc = true;
         u32 instr = *(u32*)state->program_counter;
 
-        s8 idx = state->address_registers[instr_common_idx(instr)];
+        s32 idx = (instr_common_idx(instr) == 0) ? 0 : state->address_registers[instr_common_idx(instr)];
         u32 instr_common_src1v = instr_common_src1(instr) + idx;
         const float* src1_ = (instr_common_src1v < 0x10) ? state->input_register_table[instr_common_src1v]
                              : (instr_common_src1v < 0x20) ? &state->temporary_registers[instr_common_src1v - 0x10].v[0]
@@ -462,13 +462,13 @@ void ProcessShaderCode(struct VertexShaderState* state)
             src2_[(int)((swizzle >> 14) & 0x3)],
         };
 
-        if (swizzle&(1 << 0xD)) {
+        if (swizzle & (1 << 13)) {
             src2[0] = src2[0] * (-1.f);
             src2[1] = src2[1] * (-1.f);
             src2[2] = src2[2] * (-1.f);
             src2[3] = src2[3] * (-1.f);
         }
-        if (swizzle & 0x10) {
+        if(swizzle & (1 << 4)) {
             src1[0] = src1[0] * (-1.f);
             src1[1] = src1[1] * (-1.f);
             src1[2] = src1[2] * (-1.f);
@@ -649,13 +649,6 @@ void ProcessShaderCode(struct VertexShaderState* state)
 #ifdef printfunc
             DEBUG("RET\n");
 #endif
-            /*state->call_stack_pointer--;
-            if (*state->call_stack_pointer == VertexShaderState_INVALID_ADDRESS) {
-                return;
-            } else {
-                state->program_counter = &GPUshadercodebuffer[*state->call_stack_pointer];
-            }
-            */
             break;
 
         case SHDR_CALL:
@@ -666,14 +659,6 @@ void ProcessShaderCode(struct VertexShaderState* state)
             u32 addrv = (instr >> 8) & 0x3FFC;
             u32 boolv = (instr >> 22) & 0xF;
             u32 retv = instr & 0x3FF;
-
-            increment_pc = false;
-
-            //_dbg_assert_(GPU, state.call_stack_pointer - state.call_stack < sizeof(state.call_stack)); //todo
-
-            //*state->call_stack_pointer = ((u32)(uintptr_t)state->program_counter - (u32)(uintptr_t)(&GPUshadercodebuffer[0])) / 4;
-            //state->call_stack_pointer++;
-
             call(state, addrv / 4, retv, ((u32)(uintptr_t)(state->program_counter + 1) - (u32)(uintptr_t)(&GPUshadercodebuffer[0])) / 4);
             break;
         }
@@ -715,7 +700,6 @@ void ProcessShaderCode(struct VertexShaderState* state)
 
             if (condition)
             {
-                increment_pc = false;
                 call(state, addrv / 4, retv, ((u32)(uintptr_t)(state->program_counter + 1) - (u32)(uintptr_t)(&GPUshadercodebuffer[0])) / 4);
             }
             break;
@@ -727,19 +711,12 @@ void ProcessShaderCode(struct VertexShaderState* state)
             u32 boolv = (instr >> 22) & 0xF;
             u32 retv = instr & 0x3FF;
 
-
-            //_dbg_assert_(GPU, state.call_stack_pointer - state.call_stack < sizeof(state.call_stack)); //todo
-
-            //*state->call_stack_pointer = ((u32)(uintptr_t)state->program_counter - (u32)(uintptr_t)(&GPUshadercodebuffer[0])) / 4;
-            //state->call_stack_pointer++;
-
 #ifdef printfunc
             DEBUG("CALLB %02X (%s)\n", boolv, state->boolean_registers[boolv] ? "true" : "false");
 #endif
 
             if (state->boolean_registers[boolv])
             {
-                increment_pc = false;
                 call(state, addrv / 4, retv, ((u32)(uintptr_t)(state->program_counter + 1) - (u32)(uintptr_t)(&GPUshadercodebuffer[0])) / 4);
             }
             break;
@@ -757,8 +734,8 @@ void ProcessShaderCode(struct VertexShaderState* state)
             DEBUG("CMP\n");
 #endif
             //Not 100% sure:
-            u32 mode1 = (instr >> 19) & 0x7;
-            u32 mode2 = (instr >> 22) & 0x7;
+            u32 mode1 = (instr >> 21) & 0x7;
+            u32 mode2 = (instr >> 24) & 0x7;
             //This is correct
             state->status_registers[0] = ShaderCMP(src1[0], src2[0], mode1);
             state->status_registers[1] = ShaderCMP(src1[1], src2[1], mode2);
@@ -774,12 +751,6 @@ void ProcessShaderCode(struct VertexShaderState* state)
 #ifdef printfunc
             DEBUG("IFB %02X (%s)\n", boolv, condition?"true":"false");
 #endif
-            //If condition is false skip to else case
-            /*if (!condition) {
-                increment_pc = false;
-                state->program_counter = &GPUshadercodebuffer[addrv/4];
-                break;
-            }*/
 
             if(condition)
             {
@@ -790,17 +761,6 @@ void ProcessShaderCode(struct VertexShaderState* state)
             {
                 call(state, addrv / 4, retv, (addrv / 4) + retv);
             }
-            //Store return address on stack... This is generally used
-            /**state->call_stack_pointer = (addrv / 4) + retv;
-            state->call_stack_pointer++;
-
-            //u32 *next_pc = &GPUshadercodebuffer[(addrv / 4) + retv];
-            state->program_counter_end = &GPUshadercodebuffer[addrv / 4];
-            state->program_counter++;
-            ProcessShaderCode(state);*/
-
-            //increment_pc = false;
-            //state->program_counter = next_pc;
             break;
         }
         case SHDR_IFC: {
@@ -836,14 +796,6 @@ void ProcessShaderCode(struct VertexShaderState* state)
             DEBUG("IFC %s\n", condition ? "true" : "false");
 #endif
 
-            //If condition is false skip to else case
-            /*if (!condition) {
-                increment_pc = false;
-                state->program_counter = &GPUshadercodebuffer[addrv / 4];
-                break;
-            }*/
-
-
             if(condition)
             {
                 u32 binary_offset = ((u32)(uintptr_t)(state->program_counter) - (u32)(uintptr_t)(&GPUshadercodebuffer[0])) / 4;
@@ -853,18 +805,6 @@ void ProcessShaderCode(struct VertexShaderState* state)
             {
                 call(state, addrv / 4, retv, (addrv / 4) + retv);
             }
-
-            //Store return address on stack... This is generally used
-            /**state->call_stack_pointer = (addrv / 4) + retv;
-            state->call_stack_pointer++;
-
-            //u32 *next_pc = &GPUshadercodebuffer[(addrv / 4) + retv];
-            state->program_counter_end = &GPUshadercodebuffer[addrv / 4];
-            state->program_counter++;
-            ProcessShaderCode(state);*/
-
-            //increment_pc = false;
-            //state->program_counter = next_pc;
             break;
         }
 
@@ -936,8 +876,11 @@ void ProcessShaderCode(struct VertexShaderState* state)
 #endif
 
             for (int i = 0; i < 2; ++i) {
+                if(!swizzle_DestComponentEnabled(i, swizzle))
+                    continue;
+
                 //Is it just high 8bits or low 8bits? can't be more than 8 bits at the value looks wrong otherwise
-                state->address_registers[i+1] = ((u32)src1[i] >> 24);
+                state->address_registers[i] = ((s32)src1[i]);
             }
 
             break;
@@ -1048,11 +991,6 @@ void ProcessShaderCode(struct VertexShaderState* state)
 
         if (increment_pc)
             state->program_counter++;
-
-        /*if (state->program_counter == state->program_counter_end) {
-            state->program_counter_end = 0;
-            break;
-        }*/
     }
 
 }
@@ -1077,12 +1015,13 @@ void RunShader(struct vec4 input[17], int num_attributes, struct OutputVertex *r
         state.boolean_registers[i] = GPU_Regs[0x2B0]&(1<<i);
 
     for (int i = 0; i < 4; i++)
-        state.address_registers[i] = 0;
+        state.address_registers[i] = 0.f;
 
     //set up integer
     for (int i = 0; i < 4; i++)
         for (int j = 0; j < 3; j++)
             state.integer_registers[i][j] = ((GPU_Regs[VS_INTUNIFORM_I0 + i]>>(j*8))&0xFF);
+
     // Setup output register table
     //struct OutputVertex ret;
     for (int i = 0; i < 7; ++i) {

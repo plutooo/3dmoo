@@ -25,6 +25,7 @@
 #define HANDLE_SERV_STAT_SYNCING     0x4
 #define HANDLE_SERV_STAT_ACKING      0x8
 #define HANDLE_SERV_STAT_INITING     0x10
+#define HANDLE_SERV_STAT_OPENING     0x20
 
 #define HANDLE_TYPE_UNK                     0
 #define HANDLE_TYPE_PORT                    1
@@ -46,6 +47,7 @@
 #define HANDLE_TYPE_SERVICE_UNMOUNTED       17
 #define HANDLE_TYPE_SERVICE_SERVER          18
 #define HANDLE_TYPE_TIMER                   19
+#define HANDLE_TYPE_KResourceLimit          20
 
 
 #define PORT_TYPE_SRV         0

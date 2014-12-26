@@ -126,6 +126,7 @@ u32 svcSendSyncRequest()
 
     if(hi == NULL) {
         ERROR("handle %08x not found.\n", handle);
+        IPC_debugprint(arm11_ServiceBufferAddress() + 0x80);
         arm11_Dump();
         PAUSE();
 #ifdef EXIT_ON_ERROR

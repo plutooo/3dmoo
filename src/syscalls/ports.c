@@ -72,7 +72,13 @@ static struct {
         PORT_TYPE_err_f,
         &err_f_InitHandle,
         &err_f_SyncRequest
-    }
+    },
+    {
+       "srv:pm",        //this is needed to boot the pm module it uses pm for registering services
+       PORT_TYPE_SRV,
+       &srv_InitHandle,
+       &srv_SyncRequest
+     }
 };
 
 u32 svcConnectToPort()

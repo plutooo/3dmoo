@@ -660,6 +660,8 @@ u32 srv_SyncRequest()
                     // Write result.
                     mem_Write32(arm11_ServiceBufferAddress() + 0x84, 0);
 
+                    wrapWaitSynchronizationN(0xFFFFFFFF, arm11_ServiceBufferAddress() + 0x8C, 1, false, 0xFFFFFFFF, 0); //workaround todo fixme
+
                     s.NumInstrsToExecute = 0; //this will make it wait a round so the server has time to take the service
                     return 0;
                 }
@@ -758,9 +760,9 @@ u32 svcReplyAndReceive()
     u32 replyTarget = arm11_R(3);
     DEBUG("svcReplyAndReceive %08x %08x %08x %08x\n", index, handles, handleCount, replyTarget);
 
-    IPC_debugprint(arm11_ServiceBufferAddress() + 0x80);
     if (replyTarget) //respond
     {
+        IPC_debugprint(arm11_ServiceBufferAddress() + 0x80);
         handleinfo* h2 = handle_Get(replyTarget);
         if (h2 == NULL) {
             ERROR("handle not there");
@@ -855,6 +857,8 @@ u32 svcAcceptSession()
         ERROR("getting handle.\n");
         return 0x0;
     }
+
+
     u32 newhand = handle_New(HANDLE_TYPE_SERVICE_SERVER, SERVICE_DIRECT);
 
     handleinfo* newhi2 = handle_Get(newhand);
@@ -864,7 +868,15 @@ u32 svcAcceptSession()
     }
     newhi2->misc[0] = newhi->misc[1];
 
+    //unlock
+    handleinfo* anewhi = handle_Get(newhi->misc[1]);
+    if (anewhi == NULL) {
+        ERROR("getting handle.\n");
+        return 0x0;
+    }
+    anewhi->misc[0] |= HANDLE_SERV_STAT_OPENING;
     DEBUG("AcceptSession %08x %08x\n", session, newhi->misc[1]);
+
 
 
     arm11_SetR(1, newhand);
@@ -872,6 +884,12 @@ u32 svcAcceptSession()
 }
 u32 services_WaitSynchronization(handleinfo* h, bool *locked)
 {
+    if (h->misc[0] & HANDLE_SERV_STAT_OPENING)
+    {
+        *locked = false;
+        h->misc[0] &= ~(HANDLE_SERV_STAT_OPENING | HANDLE_SERV_STAT_INITING);
+        return 0;
+    }
     if (h->misc[0] & HANDLE_SERV_STAT_SYNCING) {
         mem_Write(h->misc_ptr[0], arm11_ServiceBufferAddress() + 0x80, 0x80);
         *locked = false;

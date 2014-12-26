@@ -242,8 +242,11 @@ void svc_Execute(ARMul_State * state, u8 num)
         arm11_SetR(0, (u32)s.NumInstrs);
         arm11_SetR(1, (u32)(s.NumInstrs >> 32));
         return;
+    case 0x2A:
+        arm11_SetR(0, svcGetSystemInfo());
+        return;
     case 0x2B:
-        DEBUG("svcGetProcessInfo=%08x\n", arm11_R(2));
+        DEBUG("svcGetProcessInfo=%08x\n",  arm11_R(2));
         DEBUG("STUBBED\n");
         arm11_SetR(0, 0);
         return;
@@ -252,6 +255,12 @@ void svc_Execute(ARMul_State * state, u8 num)
         return;
     case 0x32:
         arm11_SetR(0, svcSendSyncRequest());
+        return;
+    case 0x33:
+        DEBUG("OpenProcess=%08x\n",arm11_R(1));
+        DEBUG("STUBBED\n");
+        arm11_SetR(0, 0);
+        arm11_SetR(1, handle_New(0, HANDLE_TYPE_PROCESS ));
         return;
     case 0x38:
         DEBUG("resourcelimit=%08x, handle=%08x\n", arm11_R(0), arm11_R(1));
@@ -306,6 +315,15 @@ void svc_Execute(ARMul_State * state, u8 num)
         return;
     case 0x50:
         arm11_SetR(0, svcBindInterrupt());
+        return;
+    case 0x78:
+        arm11_SetR(0, svcCreateResourceLimit());
+        return;
+    case 0x79:
+        arm11_SetR(0, svcSetResourceLimitValues());
+        return;
+    case 0x7C:
+        arm11_SetR(0, svcKernelSetState());
         return;
     case 0xFF:
         fprintf(stdout, "%c", (u8)arm11_R(0));

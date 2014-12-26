@@ -212,6 +212,6 @@ static void color_restore(int old)
 #endif
 
 
-float f24to32(u32 data, void *dataa);
+void f24to32(u32 data, void *dataa);
 
 #endif

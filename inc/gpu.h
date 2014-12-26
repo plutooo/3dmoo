@@ -68,7 +68,9 @@ extern u32 GPU_Regs[0xFFFF];
 #define TRIGGER_IRQ 0x10
 
 #define VIEWPORT_WIDTH 0x41
+#define VIEWPORT_WIDTH2 0x42
 #define VIEWPORT_HEIGHT 0x43
+#define VIEWPORT_HEIGHT2 0x44
 
 #define GLViewport 0x68
 #define Viewport_depth_range 0x4D
@@ -102,6 +104,7 @@ extern u32 GPU_Regs[0xFFFF];
 #define ALPHATEST_CONFIG 0x104
 
 #define DEPTHTEST_CONFIG 0x107
+#define DEPTHFORMAT 0x116
 #define BUFFERFORMAT 0x117
 
 #define DEPTHBUFFER_ADDRESS 0x11C

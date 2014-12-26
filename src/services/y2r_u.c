@@ -82,6 +82,22 @@ SERVICE_CMD(0x00220040)   // ???
     return 0;
 }
 
+SERVICE_CMD(0x00270000)   // ???
+{
+    DEBUG("Unknown_270000 --todo-- %08x %08x %08x\n", CMD(1), CMD(2), CMD(3));
+
+    RESP(1, 0); // Result
+    return 0;
+}
+
+SERVICE_CMD(0x00280000)   // ???
+{
+    DEBUG("Unknown_280000 --todo-- %08x %08x %08x\n", CMD(1), CMD(2), CMD(3));
+
+    RESP(1, 80); // Result
+    return 0;
+}
+
 SERVICE_CMD(0x002B0000)   // ???
 {
     DEBUG("Init?_2B0000 --todo-- %08x %08x %08x\n", CMD(1), CMD(2), CMD(3));

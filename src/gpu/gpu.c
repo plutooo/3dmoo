@@ -201,7 +201,7 @@ static u32 getattribute_register_map(u32 reg, u32 data1, u32 data2)
     if (reg < 8) {
         return (data1 >> (reg*4))&0xF;
     } else {
-        return (data2 >> (reg * 4)) & 0xF;
+        return (data2 >> ((reg-7) * 4)) & 0xF;
     }
 }
 

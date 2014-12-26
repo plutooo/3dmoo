@@ -97,7 +97,7 @@ u32 threads_New(u32 handle)
 }
 
 // Returns true if given thread is ready to execute.
-bool threads_IsThreadActive(u32 id)
+bool threads_IsThreadActive(s32 id)
 {
     u32 i;
     bool ret;
@@ -189,7 +189,7 @@ u32 threads_NextIdToBeDeleted()
         if (threads[i].state == STOPPED)
             return i;
     }
-    return -1;
+    return (u32)-1;
 }
 
 void threads_RemoveZombies()
@@ -302,6 +302,10 @@ void threads_Execute()
         nothreadused = false;
         threads_Switch(t);
 
+#ifdef MEM_REORDER
+        mem_Reorder();
+#endif
+
         //arm11_Run(11172*16); //process one line
 
 #ifdef GDB_STUB
@@ -391,7 +395,7 @@ u32 threads_FindIdByHandle(u32 handle)
         if (threads[i].handle == handle)
             return i;
     }
-    return -1;
+    return (u32)-1;
 }
 
 void threads_GetPrintableInfo(u32 handle, char* string)
@@ -550,7 +554,7 @@ u32 svcCreateThread()
     u32 ent_pc = arm11_R(1);
     u32 ent_r0 = arm11_R(2);
     u32 ent_sp = arm11_R(3);
-    u32 cpu  = arm11_R(4);
+    s32 cpu  = arm11_R(4);
 
     THREADDEBUG("entrypoint=%08x, r0=%08x, sp=%08x, prio=%x, cpu=%x\n",
                 ent_pc, ent_r0, ent_sp, prio, cpu);
@@ -561,7 +565,7 @@ u32 svcCreateThread()
     threads[numthread].priority = prio;
     threads[numthread].r[0] = ent_r0;
     threads[numthread].sp = ent_sp;
-    threads[numthread].r15 = ent_pc &~0x1;
+    threads[numthread].r15 = ent_pc & ~0x1;
 
     threads[numthread].cpsr = (ent_pc & 0x1) ? 0x3F : 0x1F; //usermode
     threads[numthread].mode = RESUME;
@@ -577,7 +581,7 @@ u32 thread_CloseHandle(ARMul_State *state, u32 handle)
 {
     u32 id = threads_FindIdByHandle(handle);
     if (id == -1)
-        return -1;
+        return (u32)-1;
 
     threads_StopThread(id);
     state->NumInstrsToExecute = 0;

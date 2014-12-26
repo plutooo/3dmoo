@@ -24,7 +24,7 @@
 #define error_not_a_mutex 0x81234567 //correct me fixme
 
 // svc.c
-void svc_Execute(ARMul_State * state, u8 num);
+void svc_Execute(ARMul_State * state, ARMword num);
 
 // arm11/threads.c
 u32 svcCreateThread();
@@ -33,6 +33,7 @@ u32 svcGetThreadId();
 // syscalls/memory.c
 u32 svcControlMemory();
 u32 svcMapMemoryBlock();
+u32 svcUnmapMemoryBlock();
 u32 svcCreateMemoryBlock();
 
 // syscalls/ports.c
@@ -61,9 +62,6 @@ u32 svcDuplicateHandle();
 
 //syscalls/Interrupt.c
 u32 svcBindInterrupt();
-
-//mem
-u32 svcmapMemoryBlock();
 
 //screen.c
 u32 svcsleep();

@@ -74,7 +74,7 @@ static s32 orient2d(u16 vtx1x, u16  vtx1y, u16  vtx2x, u16  vtx2y, u16  vtx3x, u
     return vec1x*vec2y - vec1y*vec2x;
 }
 
-static u32 GetDepth(int x, int y) 
+static u16 GetDepth(int x, int y) 
 {
     u16* depth_buffer = (u16*)get_pymembuffer(GPU_Regs[DEPTHBUFFER_ADDRESS] << 3);
 
@@ -166,6 +166,7 @@ static void RetrievePixel(int x, int y, struct clov4 *output)
     //DEBUG("x=%d,y=%d,outx=%d,outy=%d,format=%d,inputdim=%08X,bufferformat=%08X\n", x, y, outx, outy, (GPU_Regs[BUFFERFORMAT] & 0x7000) >> 12, inputdim, GPU_Regs[BUFFERFORMAT]);
 
     Color ncolor;
+    memset(&ncolor, 0, sizeof(Color));
 
     u8* addr;
     // Assuming RGB8 format until actual framebuffer format handling is implemented
@@ -391,7 +392,7 @@ static void LookupFactorRGB(BlendFactor factor, struct clov4 *source, struct clo
             output->v[0] = output->v[1] = output->v[2] = GPU_Regs[BLEND_COLOR] >> 24;
             break;
         case OneMinusConstantAlpha:
-            output->v[0] = output->v[1] = output->v[2] = 255 - GPU_Regs[BLEND_COLOR] >> 24;
+            output->v[0] = output->v[1] = output->v[2] = 255 - (GPU_Regs[BLEND_COLOR] >> 24);
             break;
         default:
             DEBUG("Unknown color blend factor %x\n", factor);
@@ -419,7 +420,7 @@ static void LookupFactorA(BlendFactor factor, struct clov4 *source, struct clov4
             output->v[3] = GPU_Regs[BLEND_COLOR] >> 24;
             break;
         case OneMinusConstantAlpha:
-            output->v[3] = 255-GPU_Regs[BLEND_COLOR] >> 24;
+            output->v[3] = 255-(GPU_Regs[BLEND_COLOR] >> 24);
             break;
         default:
             DEBUG("Unknown alpha blend factor %x\n", factor);
@@ -447,8 +448,12 @@ static int GetWrappedTexCoord(WrapMode wrap, int val, int size)
         case Repeat:
             ret = (int)((unsigned)val % size);
             break;
+        //case MirrorRepeat:
+            //val %= size;
+            //val = ~val;
+        //    break;
         default:
-            DEBUG("Unknown wrap format %08X", wrap);
+            DEBUG("Unknown wrap format %08X\n", wrap);
             ret = 0;
             break;
     }
@@ -819,34 +824,34 @@ void rasterizer_ProcessTriangle(const struct OutputVertex *v0,
                         break;
                     }
 
-                    int s;
-                    int t;
-                    int row_stride;
-                    int format;
-                    int height;
-                    int width;
-                    int wrap_s;
-                    int wrap_t;
+                    int s=0;
+                    int t=0;
+                    int row_stride=0;
+                    int format=0;
+                    int height=0;
+                    int width=0;
+                    int wrap_s=0;
+                    int wrap_t=0;
                     switch (i) {
                     case 0:
                         height = (GPU_Regs[TEXTURCONFIG0SIZE] & 0xFFFF);
                         width = (GPU_Regs[TEXTURCONFIG0SIZE] >> 16) & 0xFFFF;
-                        wrap_s = (GPU_Regs[TEXTURCONFIG0SIZE] >> 8) & 3;
-                        wrap_t = (GPU_Regs[TEXTURCONFIG0SIZE] >> 11) & 3;
+                        wrap_s = (GPU_Regs[TEXTURCONFIG0WRAP] >> 8) & 3;
+                        wrap_t = (GPU_Regs[TEXTURCONFIG0WRAP] >> 12) & 3;
                         format = GPU_Regs[TEXTURCONFIG0TYPE] & 0xF;
                         break;
                     case 1:
                         height = (GPU_Regs[TEXTURCONFIG1SIZE] & 0xFFFF);
                         width = (GPU_Regs[TEXTURCONFIG1SIZE] >> 16) & 0xFFFF;
-                        wrap_s = (GPU_Regs[TEXTURCONFIG1SIZE] >> 8) & 3;
-                        wrap_t = (GPU_Regs[TEXTURCONFIG1SIZE] >> 11) & 3;
+                        wrap_s = (GPU_Regs[TEXTURCONFIG1WRAP] >> 8) & 3;
+                        wrap_t = (GPU_Regs[TEXTURCONFIG1WRAP] >> 12) & 3;
                         format = GPU_Regs[TEXTURCONFIG1TYPE] & 0xF;
                         break;
                     case 2:
                         height = (GPU_Regs[TEXTURCONFIG2SIZE] & 0xFFFF);
                         width = (GPU_Regs[TEXTURCONFIG2SIZE] >> 16) & 0xFFFF;
-                        wrap_s = (GPU_Regs[TEXTURCONFIG2SIZE] >> 8) & 3;
-                        wrap_t = (GPU_Regs[TEXTURCONFIG2SIZE] >> 11) & 3;
+                        wrap_s = (GPU_Regs[TEXTURCONFIG2WRAP] >> 8) & 3;
+                        wrap_t = (GPU_Regs[TEXTURCONFIG2WRAP] >> 12) & 3;
                         format = GPU_Regs[TEXTURCONFIG2TYPE] & 0xF;
                         break;
                     }
@@ -921,11 +926,11 @@ void rasterizer_ProcessTriangle(const struct OutputVertex *v0,
                     }
                 }
 
-                // struct clov3 color_result[3]; /*= {
+                // struct clov3 color_result[3]; = {
                 //    GetColorSource(tev_stage.color_source1)),
                 //     GetColorSource(tev_stage.color_source2)),
                 //    GetColorSource(tev_stage.color_source3))
-                //     };*/
+                //     };
                 struct clov4 color_result[3];
 
                 for (int j = 0; j < 3; j++) {

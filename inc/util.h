@@ -20,6 +20,7 @@
 #ifndef _UTIL_H_
 #define _UTIL_H_
 
+#define MEM_REORDER
 #ifndef WINVER
 #define WINVER 0x0500   // default to Windows Version 4.0
 #endif
@@ -211,6 +212,6 @@ static void color_restore(int old)
 #endif
 
 
-float f24to32(u32 data, void *dataa);
+void f24to32(u32 data, void *dataa);
 
 #endif

@@ -30,6 +30,10 @@ bool mem_test(uint32_t addr);
 u8* mem_rawaddr(uint32_t addr, uint32_t size);
 void mem_Dbugdump();
 
+#ifdef MEM_REORDER
+void mem_Reorder();
+#endif
+
 #ifdef MODULE_SUPPORT
 void ModuleSupport_MemInit(u32 modulenum);
 #endif

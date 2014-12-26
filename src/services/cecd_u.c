@@ -50,4 +50,12 @@ SERVICE_CMD(0x000D0082) //unknown
     return 0;
 }
 
+SERVICE_CMD(0x00120104)   // ???
+{
+    DEBUG("???_120104 %08x %08x %08x %08x %08x %08x %08x %08x --todo--\n", CMD(1), CMD(2), CMD(3), CMD(4), CMD(5), CMD(6), CMD(7), CMD(8));
+
+    RESP(1, 0);
+    return 0;
+}
+
 SERVICE_END();

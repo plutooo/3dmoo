@@ -34,7 +34,6 @@
 extern struct armcpu_memory_iface *gdb_memio;
 #endif
 
-
 extern ARMul_State s;
 
 typedef struct {
@@ -44,6 +43,9 @@ typedef struct {
     bool     ro;
 #ifdef MEM_TRACE_EXTERNAL
     bool enable_log;
+#endif
+#ifdef MEM_REORDER
+    u64 accesses;
 #endif
 } memmap_t;
 
@@ -140,6 +142,7 @@ static int AddMapping(uint32_t base, uint32_t size)
     size_t i = num_mappings, j;
     mappings[i].base = base;
     mappings[i].size = size;
+    mappings[i].accesses = 0;
 
     for(j=0; j<num_mappings; j++) {
         if(Overlaps(&mappings[j], &mappings[i])) {
@@ -185,6 +188,7 @@ int mem_AddMappingShared(uint32_t base, uint32_t size, u8* data)
     size_t i = num_mappings, j;
     mappings[i].base = base;
     mappings[i].size = size;
+    mappings[i].accesses = 0;
 
     for (j = 0; j<num_mappings; j++) {
         if (Overlaps(&mappings[j], &mappings[i])) {
@@ -239,6 +243,9 @@ int mem_Write8(uint32_t addr, uint8_t w)
     size_t i;
     for(i=0; i<num_mappings; i++) {
         if(Contains(&mappings[i], addr, 1)) {
+#ifdef MEM_REORDER
+            mappings[i].accesses++;
+#endif
 #ifdef MEM_TRACE_EXTERNAL
             if (mappings[i].enable_log)fprintf(stderr, "w8 %08x <- w=%02x pc=%08x\n", addr, w & 0xff, s.Reg[15]);
 #endif
@@ -267,6 +274,9 @@ uint8_t mem_Read8(uint32_t addr)
 
     for(i=0; i<num_mappings; i++) {
         if(Contains(&mappings[i], addr, 1)) {
+#ifdef MEM_REORDER
+            mappings[i].accesses++;
+#endif
 #ifdef MEM_TRACE_EXTERNAL
             if (mappings[i].enable_log)fprintf(stderr, "r8 %08x pc=%08x\n", addr, s.Reg[15]);
 #endif
@@ -296,6 +306,9 @@ int mem_Write16(uint32_t addr, uint16_t w)
     size_t i;
     for(i=0; i<num_mappings; i++) {
         if(Contains(&mappings[i], addr, 2)) {
+#ifdef MEM_REORDER
+            mappings[i].accesses += 2;
+#endif
 #ifdef MEM_TRACE_EXTERNAL
             if (mappings[i].enable_log)fprintf(stderr, "w16 %08x <- w=%04x pc=%08x\n", addr, w & 0xffff, s.Reg[15]);
 #endif
@@ -328,6 +341,10 @@ uint16_t mem_Read16(uint32_t addr)
     size_t i;
     for(i=0; i<num_mappings; i++) {
         if(Contains(&mappings[i], addr, 2)) {
+
+#ifdef MEM_REORDER
+            mappings[i].accesses += 2;
+#endif
 
 #ifdef MEM_TRACE_EXTERNAL
             if (mappings[i].enable_log)fprintf(stderr, "r16 %08x pc=%08x\n", addr, s.Reg[15]);
@@ -367,6 +384,10 @@ int mem_Write32(uint32_t addr, uint32_t w)
     size_t i;
     for(i=0; i<num_mappings; i++) {
         if(Contains(&mappings[i], addr, 4)) {
+
+#ifdef MEM_REORDER
+            mappings[i].accesses += 4;
+#endif
 
 #ifdef MEM_TRACE_EXTERNAL
             if (mappings[i].enable_log)
@@ -409,14 +430,18 @@ bool mem_test(uint32_t addr)
 
 u32 mem_Read32(uint32_t addr)
 {
-    if (addr > 0xFFFFFFF0) { //wrong
+    /*if (addr > 0xFFFFFFF0) { //wrong
         ERROR("trying to read32 form unmapped addr %08x\n", addr);
         arm11_Dump();
         return 0;
-    }
+    }*/
     size_t i;
     for(i=0; i<num_mappings; i++) {
         if(Contains(&mappings[i], addr, 4)) {
+
+#ifdef MEM_REORDER
+            mappings[i].accesses += 4;
+#endif
 
 #ifdef MEM_TRACE_EXTERNAL
             if (mappings[i].enable_log) {
@@ -466,12 +491,19 @@ int mem_Write(const uint8_t* in_buff, uint32_t addr, uint32_t size)
     uint32_t map = 0xdeadc0de;
     for (i = 0; i<num_mappings; i++) {
         if (Contains(&mappings[i], addr, size)) {
+#ifdef MEM_REORDER
+            mappings[i].accesses += size;
+#endif
             memcpy(&mappings[i].phys[addr - mappings[i].base],in_buff, size);
             return 0;
         } else if (Contains(&mappings[i], addr, 1)) {
             map = i;
         }
     }
+
+#ifdef MEM_REORDER
+    mappings[i].accesses += size;
+#endif
 
     //If spread across multiple mappings
     if (map != 0xdeadc0de) {
@@ -504,12 +536,19 @@ int mem_Read(uint8_t* buf_out, uint32_t addr, uint32_t size)
     uint32_t map = 0xdeadc0de;
     for(i=0; i<num_mappings; i++) {
         if(Contains(&mappings[i], addr, size)) {
+#ifdef MEM_REORDER
+            mappings[i].accesses += size;
+#endif
             memcpy(buf_out, &mappings[i].phys[addr - mappings[i].base], size);
             return 0;
         } else if (Contains(&mappings[i], addr, 1)) {
             map = i;
         }
     }
+
+#ifdef MEM_REORDER
+    mappings[map].accesses += size;
+#endif
 
     //If spread across multiple mappings
     if (map != 0xdeadc0de) {
@@ -541,6 +580,9 @@ u8* mem_rawaddr(uint32_t addr, uint32_t size)
     size_t i;
     for (i = 0; i<num_mappings; i++) {
         if (Contains(&mappings[i], addr, size)) {
+#ifdef MEM_REORDER
+            mappings[i].accesses++;
+#endif
             return (u8*)&mappings[i].phys[addr - mappings[i].base];
         }
     }
@@ -553,3 +595,31 @@ u8* mem_rawaddr(uint32_t addr, uint32_t size)
 #endif
     return NULL;
 }
+
+#ifdef MEM_REORDER
+//Reorder the mappings according to number of accesses using selection sort
+//Should be called once per frame?
+void mem_Reorder()
+{
+    size_t i;
+    for(i = 0; i < num_mappings - 1; ++i)
+    {
+        size_t j, max;
+        memmap_t temp;
+        max = i;
+        for(j = i + 1; j < num_mappings; ++j)
+        {
+            if(mappings[j].accesses > mappings[max].accesses)
+                max = j;
+        }
+
+        memcpy(&temp, &mappings[i], sizeof(memmap_t));
+        memcpy(&mappings[i], &mappings[max], sizeof(memmap_t));
+        memcpy(&mappings[max], &temp, sizeof(memmap_t));
+    }
+
+    //Reset accesses because the most used could be different
+    for(i = 0; i < num_mappings; i++)
+        mappings[i].accesses = 0;
+}
+#endif

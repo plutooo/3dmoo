@@ -762,7 +762,11 @@ SERVICE_CMD(0x08490040)   // GetArchiveResource
 {
     DEBUG("GetArchiveResource -- TODO --\n");
 
-    RESP(1, -1); // Result
+    RESP(1, 0); // Result
+    RESP(2, 0);
+    RESP(3, 0);
+    RESP(4, 0);
+    RESP(5, 0);
     return 0;
 }
 

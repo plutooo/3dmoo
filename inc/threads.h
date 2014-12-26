@@ -65,7 +65,7 @@ typedef struct {
 
 
 u32  threads_New(u32 handle);
-bool threads_IsThreadActive(u32 id);
+bool threads_IsThreadActive(s32 id);
 void threads_Execute();
 u32  threads_Count();
 void threads_GetAllActive(u32* handles, u32* size);

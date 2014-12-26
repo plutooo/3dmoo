@@ -140,7 +140,7 @@ static const char* names[256] = {
 };
 
 
-void svc_Execute(ARMul_State * state, u8 num)
+void svc_Execute(ARMul_State * state, ARMword num)
 {
     const char* name = names[num & 0xFF];
 
@@ -215,6 +215,9 @@ void svc_Execute(ARMul_State * state, u8 num)
         return;
     case 0x1F:
         arm11_SetR(0, svcMapMemoryBlock());
+        return;
+    case 0x20:
+        arm11_SetR(0, svcUnmapMemoryBlock());
         return;
     case 0x21:
         arm11_SetR(0, svcCreateAddressArbiter());
@@ -313,7 +316,7 @@ void svc_Execute(ARMul_State * state, u8 num)
 
     default:
         //Lets not error yet
-        ERROR("Syscall (%02X) not implemented.\n", num);
+        ERROR("Syscall (0x%02X) not implemented.\n", num);
         arm11_SetR(0, -1);
         break;
 

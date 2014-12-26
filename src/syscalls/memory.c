@@ -238,6 +238,7 @@ u32 svcControlMemory()
     }
     if ((op & 0xF) == 0x6) { //Protect we don't protect mem sorry
         DEBUG("STUBBED!\n");
+        arm11_Dump();
         return 0;
     }
 
@@ -350,6 +351,76 @@ u32 svcMapMemoryBlock()
         ERROR("Handle has incorrect type\n");
         return -1;
     }
+
+    return 0;
+}
+
+u32 svcUnmapMemoryBlock() //STUB
+{
+    u32 handle = arm11_R(0);
+    u32 addr = arm11_R(1);
+    handleinfo* h = handle_Get(handle);
+
+    DEBUG("handle=%x, addr=%08x\n",
+          handle, addr);
+
+    if(h == NULL) {
+        DEBUG("Invalid handle.\n");
+        PAUSE();
+        return -1;
+    }
+
+    /*if(h->type == HANDLE_TYPE_SHAREDMEM) {
+        switch(h->subtype) {
+            case MEM_TYPE_GSP_0:
+                mem_AddMappingShared(addr, GSPsharebuffsize, GSPsharedbuff);
+                break;
+            case MEM_TYPE_HID_0:
+                mem_AddMappingShared(addr, 0x2000, HIDsharedbuff);
+                break;
+            case MEM_TYPE_HID_SPVR_0:
+                mem_AddMappingShared(addr, 0x2000, HIDsharedbuffSPVR);
+                break;
+            case MEM_TYPE_CSND:
+                mem_AddMappingShared(addr, CSND_sharedmemsize, CSND_sharedmem);
+                break;
+            case MEM_TYPE_APT_SHARED_FONT:
+
+                // If user has supplied the shared font, map it.
+                if(APTsharedfont == NULL) {
+                    ERROR("No shared font supplied\n");
+                    return -1;
+                }
+
+                mem_AddMappingShared(0x18000000, APTsharedfontsize, APTsharedfont); //todo ichfly
+                break;
+
+            case MEM_TYPE_APT_S_SHARED_FONT:
+
+                // If user has supplied the shared font, map it.
+                if(APTs_sharedfont == NULL) {
+                    ERROR("No shared font supplied\n");
+                    return -1;
+                }
+
+                mem_AddMappingShared(0x18000000, APTs_sharedfontsize, APTs_sharedfont); //todo ichfly
+                break;
+
+            case MEM_TYPE_ALLOC:
+                if(h->misc[0] != 0) {
+                    DEBUG("meaning of addr unk %08x", h->misc[0]);
+                }
+                mem_AddMappingShared(addr, h->misc[1], h->misc_ptr[0]);
+                break;
+            default:
+                ERROR("Trying to map unknown memory\n");
+                return -1;
+        }
+    }
+    else {
+        ERROR("Handle has incorrect type\n");
+        return -1;
+    }*/
 
     return 0;
 }

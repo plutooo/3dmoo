@@ -1,6 +1,7 @@
 #include "util.h"
 
 void f24to32(u32 data, void *dataa)
+{
     u32 sign = data & 0x800000;
     int exp = (int)((data & 0x7F0000) >> 16);
     u32 fraction = (data & 0xFFFF) << (23 - 16);

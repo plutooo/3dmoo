@@ -20,6 +20,7 @@
 #ifndef _UTIL_H_
 #define _UTIL_H_
 
+#define MEM_REORDER
 #ifndef WINVER
 #define WINVER 0x0500   // default to Windows Version 4.0
 #endif

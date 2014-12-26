@@ -544,9 +544,9 @@ const struct clov4 LookupTexture(const u8* source, int x, int y, const TextureFo
         case RGB8:
         {
             const u8* source_ptr = source + coarse_x * block_height * 3 + coarse_y * stride + texel_index_within_tile * 3;
-            ret.v[0] = source_ptr[2];
+            ret.v[0] = source_ptr[0];
             ret.v[1] = source_ptr[1];
-            ret.v[2] = source_ptr[0];
+            ret.v[2] = source_ptr[2];
             ret.v[3] = 255;
             break;
         }
@@ -1077,27 +1077,39 @@ void rasterizer_ProcessTriangle(const struct OutputVertex *v0,
                         result.v[0] = CLAMP((((int)combiner_output.v[0] * (int)srcfactor.v[0] + (int)dest.v[0] * (int)dstfactor.v[0]) / 255), 0, 255);
                         result.v[1] = CLAMP((((int)combiner_output.v[1] * (int)srcfactor.v[1] + (int)dest.v[1] * (int)dstfactor.v[1]) / 255), 0, 255);
                         result.v[2] = CLAMP((((int)combiner_output.v[2] * (int)srcfactor.v[2] + (int)dest.v[2] * (int)dstfactor.v[2]) / 255), 0, 255);
-                        result.v[3] = CLAMP((((int)combiner_output.v[3] * (int)srcfactor.v[3] + (int)dest.v[3] * (int)dstfactor.v[3]) / 255), 0, 255);
-                        memcpy(&combiner_output, &result, sizeof(struct clov4));
                         break;
                     case 1: //Subtract
                         result.v[0] = CLAMP((((int)combiner_output.v[0] * (int)srcfactor.v[0] - (int)dest.v[0] * (int)dstfactor.v[0]) / 255), 0, 255);
                         result.v[1] = CLAMP((((int)combiner_output.v[1] * (int)srcfactor.v[1] - (int)dest.v[1] * (int)dstfactor.v[1]) / 255), 0, 255);
                         result.v[2] = CLAMP((((int)combiner_output.v[2] * (int)srcfactor.v[2] - (int)dest.v[2] * (int)dstfactor.v[2]) / 255), 0, 255);
-                        result.v[3] = CLAMP((((int)combiner_output.v[3] * (int)srcfactor.v[3] - (int)dest.v[3] * (int)dstfactor.v[3]) / 255), 0, 255);
-                        memcpy(&combiner_output, &result, sizeof(struct clov4));
                         break;
                     case 2: //Reverse Subtract
                         result.v[0] = CLAMP((((int)dest.v[0] * (int)dstfactor.v[0] - (int)combiner_output.v[0] * (int)srcfactor.v[0]) / 255), 0, 255);
                         result.v[1] = CLAMP((((int)dest.v[1] * (int)dstfactor.v[1] - (int)combiner_output.v[1] * (int)srcfactor.v[1]) / 255), 0, 255);
                         result.v[2] = CLAMP((((int)dest.v[2] * (int)dstfactor.v[2] - (int)combiner_output.v[2] * (int)srcfactor.v[2]) / 255), 0, 255);
-                        result.v[3] = CLAMP((((int)dest.v[3] * (int)dstfactor.v[3] - (int)combiner_output.v[3] * (int)srcfactor.v[3]) / 255), 0, 255);
-                        memcpy(&combiner_output, &result, sizeof(struct clov4));
                         break;
                     default:
                         DEBUG("Unknown RGB blend equation %x", blend_equation_rgb);
                         break;
                 }
+
+                switch(blend_equation_a)
+                {
+                    case 0: //Add
+                        result.v[3] = CLAMP((((int)combiner_output.v[3] * (int)srcfactor.v[3] + (int)dest.v[3] * (int)dstfactor.v[3]) / 255), 0, 255);
+                        break;
+                    case 1: //Subtract
+                        result.v[3] = CLAMP((((int)combiner_output.v[3] * (int)srcfactor.v[3] - (int)dest.v[3] * (int)dstfactor.v[3]) / 255), 0, 255);
+                        break;
+                    case 2: //Reverse Subtract
+                        result.v[3] = CLAMP((((int)dest.v[3] * (int)dstfactor.v[3] - (int)combiner_output.v[3] * (int)srcfactor.v[3]) / 255), 0, 255);
+                        break;
+                    default:
+                        DEBUG("Unknown A blend equation %x", blend_equation_a);
+                        break;
+                }
+
+                memcpy(&combiner_output, &result, sizeof(struct clov4));
 #undef MIN
             }
             else

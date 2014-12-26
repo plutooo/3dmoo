@@ -15,9 +15,9 @@ void color_decode(unsigned char* input, const TextureFormat format, Color *outpu
 
         case RGB8:
         {
-            output->b = input[0];
-            output->g = input[1];
             output->r = input[2];
+            output->g = input[1];
+            output->b = input[0];
             output->a = 255;
             break;
         }
@@ -146,9 +146,9 @@ void color_encode(Color *input, const TextureFormat format, unsigned char* outpu
 
         case RGB8:
         {
-            output[2] = input->b;
+            output[0] = input->b;
             output[1] = input->g;
-            output[0] = input->r;
+            output[2] = input->r;
             break;
         }
 

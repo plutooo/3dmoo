@@ -100,11 +100,6 @@ static u32 sdmcfile_Read(file_type* self, u32 ptr, u32 sz, u64 off, u32* read_ou
     }
 
     u32 read = fread(b, 1, sz, fd);
-    if(read != sz) {
-        ERROR("fread failed\n");
-        free(b);
-        return -1;
-    }
 
     if(mem_Write(b, ptr, read) != 0) {
         ERROR("mem_Write failed.\n");

@@ -208,7 +208,7 @@ u32 svcCloseHandle()
     return 0;
 }
 
-static u32 svcWaitSynchronization1() //todo timeout
+u32 svcWaitSynchronization1() //todo timeout
 {
     u32 handle = arm11_R(0);
     handle_wrapWaitSynchronization1(handle);
@@ -321,7 +321,7 @@ u32 wrapWaitSynchronizationN(u32 nanoseconds1,u32 handles_ptr,u32 handles_count,
 }
 
 
-static u32 svcWaitSynchronizationN() // TODO: timeouts
+u32 svcWaitSynchronizationN() // TODO: timeouts
 {
     u32 nanoseconds1  = arm11_R(0);
     u32 handles_ptr   = arm11_R(1);

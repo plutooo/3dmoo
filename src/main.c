@@ -312,7 +312,7 @@ int main(int argc, char* argv[])
 #ifdef MODULE_SUPPORT
         for (u32 i = 0; i < modulenum + 1; i++)
         {
-            //DEBUG("process:%d\n",i);
+            DEBUG("process:%d\n",i);
             ModuleSupport_SwapProcessMem(i);
 #endif
             if (!noscreen)

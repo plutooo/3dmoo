@@ -836,7 +836,6 @@ u32 svcReplyAndReceive()
 
     if (replyTarget) //respond
     {
-        IPC_debugprint(arm11_ServiceBufferAddress() + 0x80);
         handleinfo* sserv = handle_Get(replyTarget);
         if (sserv == NULL) {
             ERROR("handle not found");

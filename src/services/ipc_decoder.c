@@ -29,8 +29,8 @@ void IPC_readstruct(u32 addr,u8* buffer)
 }
 void IPC_writestruct(u32 addr, u8* buffer)
 {
-    IPC_debugprint(addr);
     mem_Write(buffer, addr, 0x80); //todo
+    IPC_debugprint(addr);
 }
 
 void IPC_debugprint(u32 addr)

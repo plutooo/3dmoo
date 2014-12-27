@@ -199,7 +199,7 @@ int main(int argc, char* argv[])
             overdrivnum = atoi(argv[i]);
             overdrivnames = malloc(sizeof(char*)*modulenum);
             i++;
-            for (u32 j = 0; j < modulenum; j++) {
+            for (u32 j = 0; j < overdrivnum; j++) {
                 *(overdrivnames + j) = malloc(strlen(argv[i]));
                 strcpy(*(overdrivnames + j), argv[i]);
                 i++;

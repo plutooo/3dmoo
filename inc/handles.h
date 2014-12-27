@@ -26,6 +26,7 @@
 #define HANDLE_SERV_STAT_ACKING      0x8
 #define HANDLE_SERV_STAT_INITING     0x10
 #define HANDLE_SERV_STAT_OPENING     0x20
+#define HANDLE_SERV_STAT_AKTIVE_REQ  0x40
 
 #define HANDLE_TYPE_UNK                     0
 #define HANDLE_TYPE_PORT                    1

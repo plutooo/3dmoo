@@ -62,18 +62,7 @@ u32 svcSetTimer()
 
 u32 timer_WaitSynchronization(handleinfo* h, bool *locked)
 {
-    handleinfo* hi = handle_Get(h->misc[0]);
-    if(hi == NULL) {
-        *locked = 1;
-        return 0;
-    }
-    if(hi->misc[0] & HANDLE_SERV_STAT_SYNCING) {
-        mem_Write(hi->misc_ptr[0], arm11_ServiceBufferAddress() + 0x80, 0x80); //todo 
-        *locked = 0;
-        return 0;
-    }
-    else {
-        *locked = 0;
-        return 0;
-    }
+    DEBUG("timer wait --stub--\n");
+    *locked = 0;
+    return 0;
 }

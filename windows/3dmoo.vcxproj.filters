@@ -434,9 +434,6 @@
     <ClInclude Include="..\inc\fs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\services\service_macros.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\inc\vec4.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -464,7 +461,7 @@
     <ClInclude Include="..\inc\color.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\inc\config.h">
+    <ClInclude Include="..\inc\service_macros.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

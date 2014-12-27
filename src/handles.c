@@ -23,6 +23,8 @@
 
 #include "mem.h"
 
+#include "service_macros.h"
+
 #define MAX_NUM_HANDLES 0x1000
 
 //#define EXIT_ON_ERROR 1
@@ -208,11 +210,6 @@ u32 svcCloseHandle()
     return 0;
 }
 
-u32 svcWaitSynchronization1() //todo timeout
-{
-    u32 handle = arm11_R(0);
-    handle_wrapWaitSynchronization1(handle);
-}
 u32 handle_wrapWaitSynchronization1(u32 handle)
 {
     handleinfo* hi = handle_Get(handle);
@@ -257,7 +254,11 @@ u32 handle_wrapWaitSynchronization1(u32 handle)
         return 0;
     }
 }
-
+u32 svcWaitSynchronization1() //todo timeout
+{
+    u32 handle = arm11_R(0);
+    return handle_wrapWaitSynchronization1(handle);
+}
 
 u32 wrapWaitSynchronizationN(u32 nanoseconds1,u32 handles_ptr,u32 handles_count,u32 wait_all,u32 nanoseconds2,u32 out) // TODO: timeouts
 {
@@ -336,4 +337,4 @@ u32 svcWaitSynchronizationN() // TODO: timeouts
 u32 nop_SyncRequest(handleinfo* h, bool *locked)
 {
     return 0;
-};
+}

@@ -17,8 +17,6 @@
 
 #include "arm11.h"
 
-void IPC_debugprint(u32 addr);
-
 #define CMD(n)                                  \
     mem_Read32(arm11_ServiceBufferAddress() + 0x80 + 4*(n))
 

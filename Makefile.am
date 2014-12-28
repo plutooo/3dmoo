@@ -87,8 +87,7 @@ noinst_HEADERS	=	inc/3dsx.h			\
 			src/arm11/vfp/vfp.h		\
 			src/arm11/vfp/vfpdouble.h	\
 			src/arm11/vfp/vfp_helper.h	\
-			src/gpu/mat4.h			\
-			src/services/service_macros.h
+			src/gpu/mat4.h
 
 AM_CPPFLAGS	=	-iquote$(top_srcdir)/inc -iquote$(top_srcdir)/src/arm11 -iquote$(top_srcdir)/src/arm11/vfp \
 			-Wno-format-zero-length -DMODET -DMODE32 -D_DEFAULT_SOURCE -D_BSD_SOURCE -D_POSIX_SOURCE -DGDB_STUB \

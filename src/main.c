@@ -122,6 +122,11 @@ int main(int argc, char* argv[])
         int gdb_port = 0;
         if ((strcmp(argv[i], "-gdbport") == 0)) {
             gdb_port = atoi(argv[++i]);
+            if (gdb_port < 1 || gdb_port > 65535)
+            {
+                ERROR("gdb port out of range!\n");
+                exit(-1);
+            }
         }
         gdbstub_Init(gdb_port);
 #endif

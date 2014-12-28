@@ -83,6 +83,10 @@ typedef void *gdbstub_handle_t;
 #ifdef __cplusplus
 extern "C"
 #endif
+
+void
+gdbstub_Init(u32 port);
+
 gdbstub_handle_t
 createStub_gdb( u16 port,
                 struct armcpu_memory_iface **cpu_memio,

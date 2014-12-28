@@ -29,6 +29,10 @@
 #include "config.h"
 #include "armemu.h"
 
+#ifdef GDB_STUB
+#include "gdb/gdbstub.h"
+#endif
+
 extern ARMul_State s;
 
 int loader_LoadFile(FILE* fd);

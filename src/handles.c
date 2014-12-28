@@ -35,7 +35,7 @@ static u32 handles_num;
 
 #define NUM_HANDLE_TYPES ARRAY_SIZE(handle_types)
 
-void handle_init()
+void handle_Init()
 {
     for (int i = 0; i < MAX_NUM_HANDLES; i++)
     {
@@ -44,37 +44,7 @@ void handle_init()
     }
 }
 
-int handle_free(u32 handle)
-{
-    u32 idx = handle - HANDLES_BASE;
-
-    bool first = true;
-    u32 nexthand = 0;
-
-    for (int i = 0; i < MAX_NUM_HANDLES;i++)
-    {
-        if (handles[i].type == HANDLE_TYPE_REDIR && handles[i].taken && handles[i].subtype == handle)
-        {
-            if (first) //move handle
-            {
-                u32 temphandle = handles[i].handle;
-                memcpy(&handles[i], &handles[idx], sizeof(handleinfo));
-                handles[i].handle = temphandle;
-                nexthand = HANDLES_BASE + i;
-                first = false;
-            }
-            else //relink handle
-            {
-                handles[i].subtype = nexthand;
-            }
-        }
-    }
-    handles[idx].taken = false;
-
-    return 1;
-}
-
-u32 handle_New(u32 type, uintptr_t subtype) //we need to make sure the handles untill MAX_NUM_HANDLES are different for better debugging
+u32 handle_New(u32 type, uintptr_t subtype)
 {
     int nexthandle = handles_num;
     if(handles_num == MAX_NUM_HANDLES) {
@@ -321,7 +291,6 @@ u32 wrapWaitSynchronizationN(u32 nanoseconds1,u32 handles_ptr,u32 handles_count,
 
 }
 
-
 u32 svcWaitSynchronizationN() // TODO: timeouts
 {
     u32 nanoseconds1  = arm11_R(0);
@@ -330,6 +299,7 @@ u32 svcWaitSynchronizationN() // TODO: timeouts
     u32 wait_all      = arm11_R(3);
     u32 nanoseconds2  = arm11_R(4);
     u32 out =           arm11_R(5);
+
     wrapWaitSynchronizationN(nanoseconds1, handles_ptr, handles_count, wait_all, nanoseconds2, out);
     return 0;
 }

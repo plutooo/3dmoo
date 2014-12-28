@@ -48,7 +48,7 @@ u32 ReadPipeIfPossibleResp[] = {
 
 #define DSPramaddr 0x1FF00000
 
-void initDSP()
+void dsp_Init()
 {
     mutex_handle = handle_New(HANDLE_TYPE_EVENT, 0);
 }

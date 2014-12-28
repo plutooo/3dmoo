@@ -131,7 +131,7 @@ bool threads_IsThreadActive(s32 id)
                     handle_types[hi->type].fnWaitSynchronization(hi, &is_waiting);
                 else
                 {
-                    DEBUG("handle_types[hi->type].fnWaitSynchronization == NULL type %i", hi->type);
+                    DEBUG("handle_types[hi->type].fnWaitSynchronization == NULL type %x\n", hi->type);
                     return true;
                 }
                 THREADDEBUG("    %08x, type=%s, waiting=%s\n", handle, handle_types[hi->type].name,
@@ -585,7 +585,6 @@ u32 thread_CloseHandle(ARMul_State *state, u32 handle)
 
     threads_StopThread(id);
     state->NumInstrsToExecute = 0;
-    handle_free(handle);
     return 0;
 }
 

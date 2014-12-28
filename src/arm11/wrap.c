@@ -12,7 +12,6 @@
 
 #ifdef GDB_STUB
 #include "gdb/gdbstub.h"
-
 extern struct armcpu_memory_iface *gdb_memio;
 #endif
 

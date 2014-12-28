@@ -163,13 +163,13 @@ char** overdrivnames;
 handleinfo* handle_Get(u32 handle);
 u32 handle_New(u32 type, uintptr_t subtype);
 int handle_free(u32 handle);
-void handle_init();
+void handle_Init();
 
 #ifdef MODULE_SUPPORT
 u32 *curprocesshandlelist;
 #endif
 
-u32 curprocesshandle;
+u32 g_process_handle;
 
 //handles.h
 u32 wrapWaitSynchronizationN(u32 nanoseconds1, u32 handles_ptr, u32 handles_count, u32 wait_all, u32 nanoseconds2, u32 out);

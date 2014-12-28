@@ -100,13 +100,13 @@ u32 svcDuplicateHandle()
         to_clone = threads_GetCurrentThreadHandle();
 
     if (to_clone == HANDLE_CURRENT_PROCESS)
-        to_clone = curprocesshandle;
+        to_clone = g_process_handle;
 
     handle = handle_New(HANDLE_TYPE_REDIR, to_clone);
 
     handleinfo* h = handle_Get(handle);
     if (h == NULL) {
-        DEBUG("failed to get newly created copy\n");
+        DEBUG("Failed to get newly created copy\n");
         PAUSE();
         return -1;
     }

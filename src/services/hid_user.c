@@ -90,33 +90,70 @@ SERVICE_CMD(0x170000)
 
 SERVICE_END();
 
+#define BITSET(n) (1<<(n))
+
+enum
+{
+    KEY_A            = BITSET(0),
+    KEY_B            = BITSET(1),
+    KEY_SELECT       = BITSET(2),
+    KEY_START        = BITSET(3),
+    KEY_DRIGHT       = BITSET(4),
+    KEY_DLEFT        = BITSET(5),
+    KEY_DUP          = BITSET(6),
+    KEY_DDOWN        = BITSET(7),
+    KEY_R            = BITSET(8),
+    KEY_L            = BITSET(9),
+    KEY_X            = BITSET(10),
+    KEY_Y            = BITSET(11),
+    KEY_ZL           = BITSET(14), // (new 3DS only)
+    KEY_ZR           = BITSET(15), // (new 3DS only)
+    KEY_TOUCH        = BITSET(20), // Not actually provided by HID
+    KEY_CSTICK_RIGHT = BITSET(24), // c-stick (new 3DS only)
+    KEY_CSTICK_LEFT  = BITSET(25), // c-stick (new 3DS only)
+    KEY_CSTICK_UP    = BITSET(26), // c-stick (new 3DS only)
+    KEY_CSTICK_DOWN  = BITSET(27), // c-stick (new 3DS only)
+    KEY_CPAD_RIGHT   = BITSET(28), // circle pad
+    KEY_CPAD_LEFT    = BITSET(29), // circle pad
+    KEY_CPAD_UP      = BITSET(30), // circle pad
+    KEY_CPAD_DOWN    = BITSET(31), // circle pad
+
+    // Generic catch-all directions
+    KEY_UP    = KEY_DUP    | KEY_CPAD_UP,
+    KEY_DOWN  = KEY_DDOWN  | KEY_CPAD_DOWN,
+    KEY_LEFT  = KEY_DLEFT  | KEY_CPAD_LEFT,
+    KEY_RIGHT = KEY_DRIGHT | KEY_CPAD_RIGHT,
+};
+
 u32 translate_to_bit(const SDL_KeyboardEvent* key)
 {
     switch (SDL_GetScancodeFromKey(key->keysym.sym)) {
     case SDL_SCANCODE_V:
-        return 1 <<0;
+        return KEY_A;
     case SDL_SCANCODE_B :
-        return 1 << 1;
+        return KEY_B;
     case SDL_SCANCODE_KP_SPACE:
-        return 1 << 2;
+        return KEY_SELECT;
+    case SDL_SCANCODE_KP_PLUS:
+        return KEY_SELECT;
     case SDL_SCANCODE_KP_ENTER:
-        return 1 << 3;
+        return KEY_START;
     case SDL_SCANCODE_RIGHT:
-        return 1 << 4;
+        return KEY_DRIGHT;
     case SDL_SCANCODE_LEFT:
-        return 1 << 5;
+        return KEY_DLEFT;
     case SDL_SCANCODE_UP:
-        return 1 << 6;
+        return KEY_DUP;
     case SDL_SCANCODE_DOWN:
-        return 1 << 7;
+        return KEY_DDOWN;
     case SDL_SCANCODE_C:
-        return 1 << 8;
+        return KEY_R;
     case SDL_SCANCODE_N:
-        return 1 << 9;
+        return KEY_L;
     case SDL_SCANCODE_G:
-        return 1 << 10;
+        return KEY_X;
     case SDL_SCANCODE_H:
-        return 1 << 11;
+        return KEY_Y;
     case SDL_SCANCODE_F1:
     {
         mem_Dbugdump();

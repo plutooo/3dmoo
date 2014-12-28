@@ -510,11 +510,11 @@ u32 svcCreateCodeSet() //Result CreateCodeSet(Handle* handle_out, struct CodeSet
     h->misc_ptr[2] = (void*)malloc(rosize * 0x1000);
     h->misc_ptr[3] = (void*)malloc(datasize * 0x1000);
 
-    /*mem_Read(h->misc_ptr[1],)
 
-    mem_Read(h->misc_ptr[0], arm11_R(1), 0x40);
-    mem_Read(h->misc_ptr[0], arm11_R(1), 0x40);
-    mem_Read(h->misc_ptr[0], arm11_R(1), 0x40);*/
+
+    mem_Read(h->misc_ptr[1], code_ptr, textsize * 0x1000);
+    mem_Read(h->misc_ptr[2], ro_ptr, rosize * 0x1000);
+    mem_Read(h->misc_ptr[3], data_ptr, datasize * 0x1000);
 
     arm11_SetR(1, handle);
 

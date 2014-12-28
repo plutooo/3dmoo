@@ -1,7 +1,8 @@
 # Makefile.am -- Process this file with automake to produce Makefile.in
 
 SRC_FILES	=	src/mem.c src/screen.c src/handles.c src/loader.c src/utils.c	\
-			src/svc.c src/config.c src/gdb/gdbstubchelper.c src/gdb/gdbstub.c
+			src/svc.c src/config.c src/gdb/gdbstubchelper.c src/gdb/gdbstub.c \
+			src/gdb/gdb.c
 
 ARM11_FILES	=	src/arm11/armsupp.c src/arm11/armemu.c src/arm11/threads.c	\
 			src/arm11/thumbemu.c src/arm11/arminit.c src/arm11/armcopro.c	\
@@ -35,14 +36,15 @@ FS_FILES	=	src/fs/sysdata.c src/fs/sysdatac.c src/fs/shared_extdata.c src/fs/uti
 			src/fs/romfs.c src/fs/savedata.c src/fs/extsavedata.c src/fs/sdmc.c
 
 GPU_FILES	=	src/gpu/gpu.c src/gpu/clipper.c src/gpu/io.c src/gpu/rasterizer.c \
-			src/gpu/vec4.c
+			src/gpu/vec4.c src/gpu/color.c src/gpu/commands.c
 
-DSP_FILES	=	src/dsp/dspemu.c
+DSP_FILES	=
 
-CRYPTO_FILES	=	src/crypto/bignum.c src/crypto/aes.c src/crypto/sha2.c src/crypto/rsa.c \
-			src/crypto/nin_public_crypt.c
+CRYPTO_FILES	=	src/lib/crypto/bignum.c src/lib/crypto/aes.c src/lib/crypto/sha2.c src/lib/crypto/rsa.c \
+			src/lib/crypto/nin_public_crypt.c
 
-HTTP_FILES	=	src/http/HTTPClientString.c src/http/HTTPClientWrapper.c src/http/HTTPClientAuth.c src/http/HTTPClient.c
+HTTP_FILES	=	src/lib/http/HTTPClientString.c src/lib/http/HTTPClientWrapper.c \
+			src/lib/http/HTTPClientAuth.c src/lib/http/HTTPClient.c
 
 MAIN_FILES	=	src/main.c
 
@@ -58,7 +60,6 @@ noinst_HEADERS	=	inc/3dsx.h			\
 			inc/crypto/rsa.h		\
 			inc/crypto/sha2.h		\
 			inc/dirent.h			\
-			inc/dsp.h			\
 			inc/fs.h			\
 			inc/gdb/gdbstub.h		\
 			inc/gdb/gdbstubchelper.h	\
@@ -87,7 +88,8 @@ noinst_HEADERS	=	inc/3dsx.h			\
 			src/arm11/vfp/vfp.h		\
 			src/arm11/vfp/vfpdouble.h	\
 			src/arm11/vfp/vfp_helper.h	\
-			src/gpu/mat4.h
+			src/gpu/mat4.h			\
+			src/services/service_macros.h
 
 AM_CPPFLAGS	=	-iquote$(top_srcdir)/inc -iquote$(top_srcdir)/src/arm11 -iquote$(top_srcdir)/src/arm11/vfp \
 			-Wno-format-zero-length -DMODET -DMODE32 -D_DEFAULT_SOURCE -D_BSD_SOURCE -D_POSIX_SOURCE -DGDB_STUB \

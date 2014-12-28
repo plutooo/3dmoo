@@ -52,6 +52,9 @@
     <Filter Include="Source Files\httpap">
       <UniqueIdentifier>{1a943786-0c3c-4ed9-8fd7-804734b0e7ea}</UniqueIdentifier>
     </Filter>
+    <Filter Include="gdb">
+      <UniqueIdentifier>{a9a3838c-d498-4baf-ac7b-1090421b22fd}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\handles.c">
@@ -158,9 +161,6 @@
     </ClCompile>
     <ClCompile Include="..\src\services\dsp_dsp.c">
       <Filter>Source Files\services</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\dsp\dspemu.c">
-      <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\src\services\boss_u.c">
       <Filter>Source Files\services</Filter>
@@ -270,9 +270,6 @@
     <ClCompile Include="..\src\services\mic_u.c">
       <Filter>Source Files\services</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\gdb\gdbstubchelper.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\services\PxiPS9.c">
       <Filter>Source Files\services</Filter>
     </ClCompile>
@@ -281,21 +278,6 @@
     </ClCompile>
     <ClCompile Include="..\src\services\csnd_SND.c">
       <Filter>Source Files\services</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\crypto\bignum.c">
-      <Filter>Source Files\crypto</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\crypto\rsa.c">
-      <Filter>Source Files\crypto</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\crypto\sha2.c">
-      <Filter>Source Files\crypto</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\crypto\aes.c">
-      <Filter>Source Files\crypto</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\crypto\nin_public_crypt.c">
-      <Filter>Source Files\crypto</Filter>
     </ClCompile>
     <ClCompile Include="..\src\config.c">
       <Filter>Source Files</Filter>
@@ -351,29 +333,53 @@
     <ClCompile Include="..\src\gpu\io.c">
       <Filter>Source Files\GPU</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\http\HTTPClientString.c">
-      <Filter>Source Files\httpap</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\http\HTTPClientWrapper.c">
-      <Filter>Source Files\httpap</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\http\HTTPClient.c">
-      <Filter>Source Files\httpap</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\http\HTTPClientAuth.c">
-      <Filter>Source Files\httpap</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\services\ipc_decoder.c">
       <Filter>Source Files\services</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\gdb\gdbstub.c">
-      <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\src\services\ldr_ro.c">
       <Filter>Source Files\services</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\color.c">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="..\src\lib\crypto\aes.c">
+      <Filter>Source Files\crypto</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\lib\crypto\bignum.c">
+      <Filter>Source Files\crypto</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\lib\crypto\nin_public_crypt.c">
+      <Filter>Source Files\crypto</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\lib\crypto\rsa.c">
+      <Filter>Source Files\crypto</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\lib\crypto\sha2.c">
+      <Filter>Source Files\crypto</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\lib\http\HTTPClient.c">
+      <Filter>Source Files\httpap</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\lib\http\HTTPClientAuth.c">
+      <Filter>Source Files\httpap</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\lib\http\HTTPClientString.c">
+      <Filter>Source Files\httpap</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\lib\http\HTTPClientWrapper.c">
+      <Filter>Source Files\httpap</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\gpu\color.c">
+      <Filter>Source Files\GPU</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\gdb\gdb.c">
+      <Filter>gdb</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\gdb\gdbstub.c">
+      <Filter>gdb</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\gdb\gdbstubchelper.c">
+      <Filter>gdb</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\gpu\commands.c">
+      <Filter>Source Files\GPU</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -464,8 +470,8 @@
     <ClInclude Include="..\inc\color.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\inc\config.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="..\src\gpu\mat4.h">
+      <Filter>Source Files\GPU</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

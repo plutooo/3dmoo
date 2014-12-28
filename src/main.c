@@ -60,14 +60,6 @@ int noscreen = 0;
 bool disasm = false;
 char* codepath = NULL;
 
-#ifdef MODULE_SUPPORT
-u32 modulenum = 0;
-char** modulenames = NULL;
-
-u32 overdrivnum = 0;
-char** overdrivnames = NULL;
-#endif
-
 #define FPS  60
 #define interval 1000 / FPS // The unit of interval is ms.
 u32 NextTick;
@@ -118,12 +110,7 @@ int main(int argc, char* argv[])
     if (argc < 2) {
         printf("Usage:\n");
 
-#ifdef MODULE_SUPPORT
-        printf("%s <in.ncch> [-d|-noscreen|-codepatch <code>|-modules <num> <in.ncch>|-overdrivlist <num> <services>|-sdmc <path>|-sysdata <path>|-sdwrite|-slotone|-configsave|-gdbport <port>]\n", argv[0]);
-#else
         printf("%s <in.ncch> [-d|-noscreen|-codepatch <code>|-sdmc <path>|-sysdata <path>|-sdwrite|-slotone|-configsave|-gdbport <port>]\n", argv[0]);
-#endif
-
         return 1;
     }
 
@@ -179,41 +166,7 @@ int main(int argc, char* argv[])
         }
 #endif
         if (i >= argc)break;
-
-
-#ifdef MODULE_SUPPORT
-        if ((strcmp(argv[i], "-modules") == 0)) {
-            i++;
-            modulenum = atoi(argv[i]);
-            modulenames = malloc(sizeof(char*)*modulenum);
-            i++;
-            for (u32 j = 0; j < modulenum; j++) {
-                *(modulenames + j) = malloc(strlen(argv[i]));
-                strcpy(*(modulenames + j), argv[i]);
-                i++;
-            }
-        }
-        if (i >= argc)break;
-        if ((strcmp(argv[i], "-overdrivlist") == 0)) {
-            i++;
-            overdrivnum = atoi(argv[i]);
-            overdrivnames = malloc(sizeof(char*)*modulenum);
-            i++;
-            for (u32 j = 0; j < modulenum; j++) {
-                *(overdrivnames + j) = malloc(strlen(argv[i]));
-                strcpy(*(overdrivnames + j), argv[i]);
-                i++;
-            }
-        }
-        if (i >= argc)break;
-#endif
-
     }
-
-#ifdef MODULE_SUPPORT
-    curprocesshandlelist = malloc(sizeof(u32)*(modulenum + 1));
-    ModuleSupport_MemInit(modulenum);
-#endif
 
     signal(SIGINT, AtSig);
 
@@ -229,41 +182,8 @@ int main(int argc, char* argv[])
 
     arm11_Init();
 
-#ifdef MODULE_SUPPORT
-    u32 i;
-
-    for (i = 0; i<modulenum; i++) {
-        u32 handzwei = handle_New(HANDLE_TYPE_PROCESS, 0);
-        curprocesshandle = handzwei;
-        *(curprocesshandlelist + i) = handzwei;
-
-        ModuleSupport_SwapProcessMem(i);
-
-        s.NextInstr = RESUME;
-
-        u32 hand = handle_New(HANDLE_TYPE_THREAD, 0);
-        threads_New(hand);
-
-        // Load file.
-        FILE* fd = fopen(*(modulenames + i), "rb");
-        if (fd == NULL) {
-            perror("Error opening file");
-            return 1;
-        }
-
-        if (loader_LoadFile(fd) != 0) {
-            fclose(fd);
-            return 1;
-        }
-    }
-
-    u32 handzwei = handle_New(HANDLE_TYPE_PROCESS, 0);
-    *(curprocesshandlelist + modulenum) = handzwei;
-    ModuleSupport_SwapProcessMem(modulenum);
-#else
     u32 handzwei = handle_New(HANDLE_TYPE_PROCESS, 0);
     curprocesshandle = handzwei;
-#endif
 
     FILE* fd = fopen(argv[1], "rb");
     if (fd == NULL) {
@@ -279,10 +199,6 @@ int main(int argc, char* argv[])
         fclose(fd);
         return 1;
     }
-#ifdef MODULE_SUPPORT
-        s.NextInstr = RESUME;
-        ModuleSupport_SwapProcessMem(0);
-#endif
 
 #ifdef GDB_STUB
     if (global_gdb_port) {
@@ -309,20 +225,11 @@ int main(int argc, char* argv[])
 #endif
     // Execute.
     while (running) {
-#ifdef MODULE_SUPPORT
-        for (u32 i = 0; i < modulenum + 1; i++)
-        {
-            //DEBUG("process:%d\n",i);
-            ModuleSupport_SwapProcessMem(i);
-#endif
-            if (!noscreen)
-                screen_HandleEvent();
-            threads_Execute();
-            //FPS_Lock();
-            //mem_Dbugdump();
-#ifdef MODULE_SUPPORT
-        }
-#endif
+        if (!noscreen)
+            screen_HandleEvent();
+        threads_Execute();
+        //FPS_Lock();
+        //mem_Dbugdump();
     }
 
 

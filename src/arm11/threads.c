@@ -44,40 +44,6 @@ extern ARMul_State s;
 #define THREAD_ID_OFFSET 0xC
 
 
-#ifdef MODULE_SUPPORT
-
-thread** threadsproc;
-u32*    num_threadsproc;
-u32     current_proc = 0;
-
-void ModuleSupport_ThreadsInit(u32 modulenum)
-{
-    u32 i;
-    threadsproc = (thread **)malloc(sizeof(thread *)*(modulenum + 1));
-    for (i = 0; i < (modulenum + 1); i++) {
-        *(threadsproc + i) = (thread *)malloc(sizeof(thread)*(MAX_THREADS));
-        memset(*(threadsproc + i), 0, sizeof(thread)*(MAX_THREADS));
-    }
-    num_threadsproc = (u32 *)malloc(sizeof(u32)*(modulenum + 1));
-    memset(num_threadsproc, 0, sizeof(u32*)*(modulenum + 1));
-}
-void ModuleSupport_SwapProcessThreads(u32 newproc)
-{
-    threads_SaveContextCurrentThread();
-    memcpy(*(threadsproc + current_proc), threads, sizeof(thread)*(MAX_THREADS)); //save maps
-    *(num_threadsproc + current_proc) = num_threads;
-
-    memcpy(threads, *(threadsproc + newproc), sizeof(thread)*(MAX_THREADS)); //save maps
-    current_thread = 0;
-    num_threads = *(num_threadsproc + newproc);
-    curprocesshandle = *(curprocesshandlelist + newproc);
-    current_proc = newproc;
-    arm11_LoadContext(&threads[0]);
-}
-
-#endif
-
-
 u32 threads_New(u32 handle)
 {
     if(num_threads == MAX_THREADS) {

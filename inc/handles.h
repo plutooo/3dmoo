@@ -153,20 +153,12 @@ typedef struct {
 } handleinfo;
 
 //main.c
-#ifdef MODULE_SUPPORT
-u32 overdrivnum;
-char** overdrivnames;
-#endif
 
 // handles.c
 handleinfo* handle_Get(u32 handle);
 u32 handle_New(u32 type, uintptr_t subtype);
 int handle_free(u32 handle);
 void handle_init();
-
-#ifdef MODULE_SUPPORT
-u32 *curprocesshandlelist;
-#endif
 
 u32 curprocesshandle;
 

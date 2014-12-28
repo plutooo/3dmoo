@@ -59,41 +59,6 @@ static size_t   num_mappings;
 //#define EXIT_ON_ILLEGAL 1
 
 
-#ifdef MODULE_SUPPORT
-
-memmap_t **mappingsproc;
-size_t*   num_mappingsproc;
-u32 currentmap = 0;
-
-void ModuleSupport_MemInit(u32 modulenum)
-{
-    mappingsproc = (memmap_t **)malloc(sizeof(memmap_t *)*(modulenum + 1));
-
-    u32 i;
-    for (i = 0; i < (modulenum + 1); i++) {
-        *(mappingsproc + i) = (memmap_t *)malloc(sizeof(memmap_t)*(MAX_MAPPINGS));
-    }
-
-    num_mappingsproc = (size_t*)malloc(sizeof(size_t*)*(modulenum + 1));
-    memset(num_mappingsproc, 0, sizeof(size_t*)*(modulenum + 1));
-
-    ModuleSupport_ThreadsInit(modulenum);
-}
-
-void ModuleSupport_SwapProcessMem(u32 newproc)
-{
-    memcpy(*(mappingsproc + currentmap), mappings, sizeof(memmap_t)*(MAX_MAPPINGS)); //save maps
-    *(num_mappingsproc + currentmap) = num_mappings;
-
-    memcpy(mappings, *(mappingsproc + newproc), sizeof(memmap_t)*(MAX_MAPPINGS)); //save maps
-    num_mappings = *(num_mappingsproc + newproc);
-
-    ModuleSupport_SwapProcessThreads(newproc);
-    currentmap = newproc;
-}
-
-#endif
-
 
 void mem_Dbugdump()
 {

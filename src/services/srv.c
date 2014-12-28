@@ -621,54 +621,6 @@ u32 srv_SyncRequest()
               req.unk2);
         PAUSE();
 
-#ifdef MODULE_SUPPORT
-        bool overdr = false;
-        for (u32 i = 0; i < overdrivnum; i++) {
-            if (memcmp(req.name, *(overdrivnames + i), _strnlen(*(overdrivnames + i), 8)) == 0)overdr = true;
-        }
-
-        if (!overdr) {
-            for (u32 i = 0; i < ownservice_num; i++) {
-                if (memcmp(req.name, ownservice[i].name, _strnlen(ownservice[i].name, 8)) == 0) {
-
-                    u32 newhand = handle_New(HANDLE_TYPE_SERVICE, SERVICE_DIRECT);
-
-                    handleinfo* newhi = handle_Get(newhand);
-                    if (newhi == NULL) {
-                        ERROR("getting handle.\n");
-                        return 0x0;
-                    }
-                    newhi->misc[0] = HANDLE_SERV_STAT_TAKEN | HANDLE_SERV_STAT_INITING; //init
-
-                    newhi->misc_ptr[0] = malloc(0x200);
-
-                    handleinfo* oldhi = handle_Get(ownservice[i].handle);
-
-                    if (oldhi == NULL) {
-                        ERROR("getting handle.\n");
-                        return 0x0;
-                    }
-
-                    oldhi->misc[0] = 1;
-
-                    oldhi->misc[1] = newhand;
-
-
-                    // Write handle_out.
-                    mem_Write32(arm11_ServiceBufferAddress() + 0x8C, newhand);
-
-                    // Write result.
-                    mem_Write32(arm11_ServiceBufferAddress() + 0x84, 0);
-
-                    wrapWaitSynchronizationN(0xFFFFFFFF, arm11_ServiceBufferAddress() + 0x8C, 1, false, 0xFFFFFFFF, 0); //workaround todo fixme
-
-                    s.NumInstrsToExecute = 0; //this will make it wait a round so the server has time to take the service
-                    return 0;
-                }
-            }
-        }
-#endif
-
         u32 i;
         for(i=0; i<ARRAY_SIZE(services); i++) {
             // Find service in list.
@@ -777,37 +729,10 @@ u32 svcReplyAndReceive()
             h2->misc[0] |= HANDLE_SERV_STAT_ACKING;
         }
     }
-#ifdef MODULE_SUPPORT
-    for (u32 i = 0; i < handleCount; i++) {
-        DEBUG("%08x\n", mem_Read32(handles+i*4));
-
-        handleinfo* h = handle_Get(mem_Read32(handles + i * 4));
-        if (h == NULL) {
-            ERROR("getting handle.\n");
-            continue;
-        }
-
-        handleinfo* h2 = handle_Get(replyTarget);
-        if (h2 == NULL) {
-            continue;
-        }
-
-
-        if (h->type == HANDLE_TYPE_SERVICE) {
-            h->misc[0] |= HANDLE_SERV_STAT_WAITING;
-            h->misc[1] = curprocesshandle;
-            h->misc[2] = threads_GetCurrentThreadHandle();
-        }
-
-        h->locked = true;
-    }
-    wrapWaitSynchronizationN(0xFFFFFFFF,handles,handleCount,false,0xFFFFFFFF,0);
-#else
 
     for (u32 i = 0; i < handleCount; i++) {
         DEBUG("%08x\n", mem_Read32(handles + i * 4));
     }
-#endif
     /*wrapWaitSynchronizationN(0xFFFFFFFF, handles, handleCount, 0, 0xFFFFFFFF,0);
 
 

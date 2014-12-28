@@ -18,13 +18,15 @@ INC_FILES = inc/*
 ARM11_FILES = $(foreach dir, src/arm11, $(wildcard $(dir)/*.c)) \
 	$(foreach dir, src/arm11/vfp, $(wildcard $(dir)/*.c))
 
-SYSCALLS_FILES = $(foreach dir, src/syscalls, $(wildcard $(dir)/*.c))
-SERVICES_FILES = $(foreach dir, src/services, $(wildcard $(dir)/*.c))
-FS_FILES       = $(foreach dir, src/fs,       $(wildcard $(dir)/*.c))
-GPU_FILES      = $(foreach dir, src/gpu,      $(wildcard $(dir)/*.c))
-DSP_FILES      = $(foreach dir, src/dsp,      $(wildcard $(dir)/*.c))
-CRYPTO_FILES   = $(foreach dir, src/crypto, $(wildcard $(dir)/*.c))
-HTTP_FILES     = $(foreach dir, src/http,     $(wildcard $(dir)/*.c))
+SYSCALLS_FILES = $(foreach dir, src/syscalls,   $(wildcard $(dir)/*.c))
+SERVICES_FILES = $(foreach dir, src/services,   $(wildcard $(dir)/*.c))
+FS_FILES       = $(foreach dir, src/fs,         $(wildcard $(dir)/*.c))
+GPU_FILES      = $(foreach dir, src/gpu,        $(wildcard $(dir)/*.c))
+DSP_FILES      = $(foreach dir, src/dsp,        $(wildcard $(dir)/*.c))
+
+# Libraries.
+CRYPTO_FILES   = $(foreach dir, src/lib/crypto, $(wildcard $(dir)/*.c))
+HTTP_FILES     = $(foreach dir, src/lib/http,   $(wildcard $(dir)/*.c))
 
 C_FILES = $(SRC_FILES) $(ARM11_FILES) $(SYSCALLS_FILES) $(SERVICES_FILES) $(FS_FILES) $(GPU_FILES) $(DSP_FILES) $(CRYPTO_FILES) $(HTTP_FILES)
 OBJECTS=$(C_FILES:.c=.o)

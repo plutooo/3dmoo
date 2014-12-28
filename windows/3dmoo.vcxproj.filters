@@ -52,6 +52,9 @@
     <Filter Include="Source Files\httpap">
       <UniqueIdentifier>{1a943786-0c3c-4ed9-8fd7-804734b0e7ea}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\gdb">
+      <UniqueIdentifier>{d348a39a-7043-4c35-b594-4e0aa0738f6f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\handles.c">
@@ -267,9 +270,6 @@
     <ClCompile Include="..\src\services\mic_u.c">
       <Filter>Source Files\services</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\gdb\gdbstubchelper.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\services\PxiPS9.c">
       <Filter>Source Files\services</Filter>
     </ClCompile>
@@ -336,9 +336,6 @@
     <ClCompile Include="..\src\services\ipc_decoder.c">
       <Filter>Source Files\services</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\gdb\gdbstub.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\services\ldr_ro.c">
       <Filter>Source Files\services</Filter>
     </ClCompile>
@@ -374,6 +371,18 @@
     </ClCompile>
     <ClCompile Include="..\src\lib\crypto\rsa.c">
       <Filter>Source Files\crypto</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\gdb\gdbstub.c">
+      <Filter>Source Files\gdb</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\gdb\gdbstubchelper.c">
+      <Filter>Source Files\gdb</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\gdb\gdb.c">
+      <Filter>Source Files\gdb</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\gpu\commands.c">
+      <Filter>Source Files\GPU</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

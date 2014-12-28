@@ -43,6 +43,7 @@ extern ARMul_State s;
 //#define THREADING_DEBUG
 #define THREAD_ID_OFFSET 0xC
 
+u32 curprocesshandle;
 
 #ifdef MODULE_SUPPORT
 

@@ -264,9 +264,11 @@
     <ClCompile Include="..\src\fs\sysdata.c" />
     <ClCompile Include="..\src\fs\sysdatac.c" />
     <ClCompile Include="..\src\fs\util.c" />
+    <ClCompile Include="..\src\gdb\gdb.c" />
     <ClCompile Include="..\src\gdb\gdbstub.c" />
     <ClCompile Include="..\src\gdb\gdbstubchelper.c" />
     <ClCompile Include="..\src\gpu\clipper.c" />
+    <ClCompile Include="..\src\gpu\commands.c" />
     <ClCompile Include="..\src\gpu\io.c" />
     <ClCompile Include="..\src\gpu\rasterizer.c" />
     <ClCompile Include="..\src\gpu\vec4.c" />

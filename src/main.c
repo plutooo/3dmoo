@@ -90,6 +90,8 @@ void FPS_Lock(void)
     return;
 }
 
+bool main_hasgdbarg = false;
+
 int main(int argc, char* argv[])
 {
 #ifndef WIN32
@@ -148,6 +150,9 @@ int main(int argc, char* argv[])
         if (i >= argc)
             break;
     }
+
+    if (!main_hasgdbarg)
+        gdbstub_Init(0);
 
     signal(SIGINT, AtSig);
 

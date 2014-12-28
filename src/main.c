@@ -57,6 +57,7 @@ char** modulenames = NULL;
 
 u32 overdrivnum = 0;
 char** overdrivnames = NULL;
+extern u32 curprocesshandle;
 #endif
 
 #define FPS  60
@@ -147,9 +148,41 @@ int main(int argc, char* argv[])
             gdbstub_Init(atoi(argv[++i]));
         }
 #endif
+
+#ifdef MODULE_SUPPORT
+        if ((strcmp(argv[i], "-modules") == 0)) {
+            i++;
+            modulenum = atoi(argv[i]);
+            modulenames = malloc(sizeof(char*)*modulenum);
+            i++;
+            for (u32 j = 0; j < modulenum; j++) {
+                *(modulenames + j) = malloc(strlen(argv[i]));
+                strcpy(*(modulenames + j), argv[i]);
+                i++;
+            }
+        }
+        if (i >= argc)break;
+        if ((strcmp(argv[i], "-overdrivlist") == 0)) {
+            i++;
+            overdrivnum = atoi(argv[i]);
+            overdrivnames = malloc(sizeof(char*)*modulenum);
+            i++;
+            for (u32 j = 0; j < overdrivnum; j++) {
+                *(overdrivnames + j) = malloc(strlen(argv[i]));
+                strcpy(*(overdrivnames + j), argv[i]);
+                i++;
+            }
+        }
+        if (i >= argc)break;
+#endif
         if (i >= argc)
             break;
     }
+
+#ifdef MODULE_SUPPORT
+    curprocesshandlelist = malloc(sizeof(u32)*(modulenum + 1));
+    ModuleSupport_MemInit(modulenum);
+#endif
 
     if (!main_hasgdbarg)
         gdbstub_Init(0);
@@ -170,6 +203,43 @@ int main(int argc, char* argv[])
 
     arm11_Init();
 
+
+#ifdef MODULE_SUPPORT
+    u32 i;
+
+    for (i = 0; i<modulenum; i++) {
+        u32 handzwei = handle_New(HANDLE_TYPE_PROCESS, 0);
+        curprocesshandle = handzwei;
+        *(curprocesshandlelist + i) = handzwei;
+
+        ModuleSupport_SwapProcessMem(i);
+
+        s.NextInstr = RESUME;
+
+        u32 hand = handle_New(HANDLE_TYPE_THREAD, 0);
+        threads_New(hand);
+
+        // Load file.
+        FILE* fd = fopen(*(modulenames + i), "rb");
+        if (fd == NULL) {
+            perror("Error opening file");
+            return 1;
+        }
+
+        if (loader_LoadFile(fd) != 0) {
+            fclose(fd);
+            return 1;
+        }
+    }
+
+    u32 handzwei = handle_New(HANDLE_TYPE_PROCESS, 0);
+    *(curprocesshandlelist + modulenum) = handzwei;
+    ModuleSupport_SwapProcessMem(modulenum);
+#else
+    u32 handzwei = handle_New(HANDLE_TYPE_PROCESS, 0);
+    curprocesshandle = handzwei;
+#endif
+
     g_process_handle = handle_New(HANDLE_TYPE_PROCESS, 0);
 
     FILE* fd = fopen(argv[1], "rb");
@@ -185,15 +255,26 @@ int main(int argc, char* argv[])
         fclose(fd);
         return 1;
     }
-
+#ifdef MODULE_SUPPORT
+    s.NextInstr = RESUME;
+    ModuleSupport_SwapProcessMem(0);
+#endif
     // Execute.
     while (running) {
-        if (!noscreen)
-            screen_HandleEvent();
-
-        threads_Execute();
-        //FPS_Lock();
-        //mem_Dbugdump();
+#ifdef MODULE_SUPPORT
+        for (u32 i = 0; i < modulenum + 1; i++)
+        {
+            DEBUG("process:%d\n",i);
+            ModuleSupport_SwapProcessMem(i);
+#endif
+            if (!noscreen)
+                screen_HandleEvent();
+            threads_Execute();
+            //FPS_Lock();
+            //mem_Dbugdump();
+#ifdef MODULE_SUPPORT
+        }
+#endif
     }
 
 

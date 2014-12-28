@@ -455,7 +455,7 @@ u32 svcCreateCodeSet() //Result CreateCodeSet(Handle* handle_out, struct CodeSet
     u32 CodeSetInfo = arm11_R(1);
     u32 code_ptr = arm11_R(2);
     u32 ro_ptr = arm11_R(3);
-    u32 data_ptr = arm11_R(4);
+    u32 data_ptr = arm11_R(0);
 
     DEBUG("CreateCodeSet code=%08x ro=%08x data=%08x --stub--\n", code_ptr, ro_ptr, data_ptr);
 

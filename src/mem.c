@@ -56,6 +56,7 @@ static size_t   num_mappings;
 
 #define PRINT_ILLEGAL 1
 #define EXIT_ON_ILLEGAL 1
+//#define PRINT_MISALIGNED 1
 
 
 
@@ -194,6 +195,19 @@ int mem_AddSegment(uint32_t base, uint32_t size, uint8_t* data)
     return 0;
 }
 
+void print_illegal(const char*fmt, ...) {
+    va_list args;
+    va_start(args, fmt);
+    vfprintf(stdout, fmt, args);
+    va_end(args);
+    arm11_Dump();
+    //mem_Dbugdump();
+#ifdef EXIT_ON_ILLEGAL
+    exit(1);
+#endif
+}
+
+
 int mem_Write8(uint32_t addr, uint8_t w)
 {
     size_t i;
@@ -212,11 +226,7 @@ int mem_Write8(uint32_t addr, uint8_t w)
     }
 
 #ifdef PRINT_ILLEGAL
-    ERROR("trying to write8 unmapped addr %08x, w=%02x\n", addr, w & 0xff);
-    arm11_Dump();
-#endif
-#ifdef EXIT_ON_ILLEGAL
-    exit(1);
+    print_illegal("trying to write8 unmapped addr %08x, w=%02x\n", addr, w & 0xff);
 #endif
     return 1;
 }
@@ -239,11 +249,7 @@ uint8_t mem_Read8(uint32_t addr)
         }
     }
 #ifdef PRINT_ILLEGAL
-    ERROR("trying to read8 unmapped addr %08x\n", addr);
-    arm11_Dump();
-#endif
-#ifdef EXIT_ON_ILLEGAL
-    exit(1);
+    print_illegal("trying to read8 unmapped addr %08x\n", addr);
 #endif
     return 0;
 }
@@ -263,6 +269,9 @@ int mem_Write16(uint32_t addr, uint16_t w)
 #endif
             // Unaligned.
             if (addr & 1) {
+#ifdef PRINT_MISALIGNED
+                print_illegal("trying to write16 misaligned addr %08x, w=%04x\n", addr, w & 0xffff);
+#endif
                 mappings[i].phys[addr - mappings[i].base] = (u8)w;
                 mappings[i].phys[addr - mappings[i].base + 1] = (u8)(w >> 8);
             } else
@@ -272,11 +281,7 @@ int mem_Write16(uint32_t addr, uint16_t w)
     }
 
 #ifdef PRINT_ILLEGAL
-    ERROR("trying to write16 unmapped addr %08x, w=%04x\n", addr, w & 0xffff);
-    arm11_Dump();
-#endif
-#ifdef EXIT_ON_ILLEGAL
-    exit(1);
+    print_illegal("trying to write16 unmapped addr %08x, w=%04x\n", addr, w & 0xffff);
 #endif
     return 1;
 }
@@ -296,6 +301,9 @@ uint16_t mem_Read16(uint32_t addr)
 #endif
             // Unaligned.
             if (addr & 1) {
+#ifdef PRINT_MISALIGNED
+                print_illegal("trying to read16 misaligned addr %08x\n", addr);
+#endif
                 uint16_t ret = mappings[i].phys[addr - mappings[i].base + 1] << 8;
                 ret |= mappings[i].phys[addr - mappings[i].base];
                 return ret;
@@ -305,11 +313,7 @@ uint16_t mem_Read16(uint32_t addr)
     }
 
 #ifdef PRINT_ILLEGAL
-    ERROR("trying to read16 unmapped addr %08x\n", addr);
-    arm11_Dump();
-#endif
-#ifdef EXIT_ON_ILLEGAL
-    exit(1);
+    print_illegal("trying to read16 unmapped addr %08x\n", addr);
 #endif
     return 0;
 }
@@ -330,6 +334,9 @@ int mem_Write32(uint32_t addr, uint32_t w)
 #endif
             // Unaligned.
             if (addr & 3) {
+#ifdef PRINT_MISALIGNED
+                print_illegal("trying to write32 misaligned addr %08x, w=%04x\n", addr, w & 0xffff);
+#endif
                 mappings[i].phys[addr - mappings[i].base] = w;
                 mappings[i].phys[addr - mappings[i].base + 1] = w >> 8;
                 mappings[i].phys[addr - mappings[i].base + 2] = w >> 16;
@@ -340,11 +347,7 @@ int mem_Write32(uint32_t addr, uint32_t w)
         }
     }
 #ifdef PRINT_ILLEGAL
-    ERROR("trying to write32 unmapped addr %08x, w=%08x\n", addr, w);
-    arm11_Dump();
-#endif
-#ifdef EXIT_ON_ILLEGAL
-    exit(1);
+    print_illegal("trying to write32 unmapped addr %08x, w=%04x\n", addr, w & 0xffff);
 #endif
     return 0;
 }
@@ -389,6 +392,11 @@ u32 mem_Read32(uint32_t addr)
 #ifdef MEM_TRACE
             fprintf(stderr, "r32 %08x --> %08x (%08X)\n", addr, temp, s.Reg[15]);
 #endif
+            if (addr & 3) {
+#ifdef PRINT_MISALIGNED
+                print_illegal("trying to read32 misaligned addr %08x\n", addr);
+#endif
+            }
             switch (addr & 3) {
             case 0:
                 return temp;
@@ -404,12 +412,7 @@ u32 mem_Read32(uint32_t addr)
     }
 
 #ifdef PRINT_ILLEGAL
-    ERROR("trying to read32 unmapped addr %08x\n", addr);
-    arm11_Dump();
-    //mem_Dbugdump();
-#endif
-#ifdef EXIT_ON_ILLEGAL
-    exit(1);
+    print_illegal("trying to read32 unmapped addr %08x\n", addr);
 #endif
     return 0;
 }

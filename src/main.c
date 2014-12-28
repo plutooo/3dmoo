@@ -155,8 +155,6 @@ int main(int argc, char* argv[])
         return 1;
     }
 
-#ifdef GDB_STUB
-#endif
     // Execute.
     while (running) {
         if (!noscreen)

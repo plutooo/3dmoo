@@ -37,7 +37,6 @@
 
 #define SERVICE_END()                                           \
         default:                                                \
-            IPC_debugprint(arm11_ServiceBufferAddress() + 0x80);\
             ERROR("Not implemented cmd %08x\n", CMD(0));        \
             return -1;                                          \
         }                                                       \

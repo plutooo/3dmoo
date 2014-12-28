@@ -41,6 +41,7 @@
 #include <stdbool.h>
 #include <string.h>
 #include <stdio.h>
+#include <stdarg.h>
 
 #ifndef u8
 typedef uint8_t u8;

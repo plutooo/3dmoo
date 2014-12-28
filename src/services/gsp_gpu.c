@@ -94,7 +94,7 @@ void gsp_ExecuteCommandFromSharedMem()
 
                 u8* buffer = malloc(size);
                 mem_Read(buffer, addr, size);
-                runGPU_Commands(buffer, size);
+                gpu_ExecuteCommands(buffer, size);
 
 #ifdef DUMP_CMDLIST
                 fwrite(buffer, size, 1, out);

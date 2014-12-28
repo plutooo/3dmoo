@@ -3,6 +3,9 @@
 * Copyright (C) 2014 - ichfly
 * Copyright (C) 2014 - Normmatt
 *
+* Uses code from:
+*   Copyright (C) 2014 - Tony Wasserka
+*
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
 * the Free Software Foundation, either version 3 of the License, or
@@ -17,17 +20,16 @@
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-//Parts of this file are based on code taken from Citra, copyright (C) 2014 Tony Wasserka.
+#include <math.h>
 
 #include "util.h"
 #include "arm11.h"
 #include "handles.h"
 #include "mem.h"
 #include "gpu.h"
-#include <math.h>
+
 
 //#define GSP_ENABLE_LOG
-
 u32 GPU_Regs[0xFFFF]; //do they all exist don't know but well
 
 u32 GPUshadercodebuffer[0xFFFF]; //how big is the buffer?
@@ -1300,54 +1302,6 @@ void writeGPUID(u16 ID, u8 mask, u32 size, u32* buffer)
 }
 
 
-void runGPU_Commands(u8* buffer, u32 sizea)
-{
-    u32 i;
-    for (i = 0; i < sizea; i += 8) {
-        u32 cmd = *(u32*)(buffer + 4 + i);
-        u32 dataone = *(u32*)(buffer + i);
-        u16 ID = cmd & 0xFFFF;
-        u8 mask = (cmd >> 16) & 0xF;
-        u16 size = (cmd >> 20) & 0x7FF;
-        u8 grouping = (cmd >> 31);
-        u32 datafild[0x800]; //maximal size
-        datafild[0] = dataone;
-#ifdef GSP_ENABLE_LOG
-		GPUDEBUG("cmd %04x mask %01x size %03x (%08x) %s \n", ID, mask, size, dataone, grouping ? "grouping" : "");
-#endif
-        int j;
-        for (j = 0; j < size; j++) {
-            datafild[1 + j] = *(u32*)(buffer + 8 + i);
-#ifdef GSP_ENABLE_LOG
-            GPUDEBUG("data %08x\n", datafild[1 + j]);
-#endif
-            i += 4;
-        }
-        if (size & 0x1) {
-            u32 data = *(u32*)(buffer + 8 + i);
-#ifdef GSP_ENABLE_LOG
-            GPUDEBUG("padding data %08x\n", data);
-#endif
-            i += 4;
-        }
-        if (mask != 0) {
-#ifdef GSP_ENABLE_LOG
-            if (size > 0 && mask != 0xF)
-                GPUDEBUG("masked data? cmd %04x mask %01x size %03x (%08x) %s \n", ID, mask, size, dataone, grouping ? "grouping" : "");
-#endif
-            if (grouping) {
-                for (j = 0; j <= size; j++)writeGPUID(ID + j, mask, 1, &datafild[j]);
-            } else {
-                writeGPUID(ID, mask, size + 1, datafild);
-            }
-        } else {
-#ifdef GSP_ENABLE_LOG
-            GPUDEBUG("masked out data is ignored cmd %04x mask %01x size %03x (%08x) %s \n", ID, mask, size, dataone, grouping ? "grouping" : "");
-#endif
-        }
-
-    }
-}
 
 void updateFramebufferaddr(u32 addr,bool bot)
 {

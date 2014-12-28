@@ -55,7 +55,7 @@ static memmap_t mappings[MAX_MAPPINGS];
 static size_t   num_mappings;
 
 //#define MEM_TRACE 1
-//#define PRINT_ILLEGAL 1
+#define PRINT_ILLEGAL 1
 //#define EXIT_ON_ILLEGAL 1
 
 
@@ -233,9 +233,11 @@ int mem_AddSegment(uint32_t base, uint32_t size, uint8_t* data)
 
 int mem_Write8(uint32_t addr, uint8_t w)
 {
-    if (addr == 0x14189F28) {
-        //break_execution(gdb_memio->data, addr, 0);
+
+    if ((addr & 0xFFFF0000) == 0x1FF80000) { //wrong
+        ERROR("ARM11 kernel write %08x %02X\n", addr,w);
     }
+
 #ifdef MEM_TRACE
     fprintf(stderr, "w8 %08x <- w=%02x\n", addr, w & 0xff);
 #endif
@@ -266,6 +268,9 @@ int mem_Write8(uint32_t addr, uint8_t w)
 
 uint8_t mem_Read8(uint32_t addr)
 {
+    if ((addr & 0xFFFF0000) == 0x1FF80000) { //wrong
+        ERROR("ARM11 kernel read 8 %08x\n", addr);
+    }
 #ifdef MEM_TRACE
     fprintf(stderr, "r8 %08x\n", addr);
 #endif
@@ -296,9 +301,10 @@ uint8_t mem_Read8(uint32_t addr)
 
 int mem_Write16(uint32_t addr, uint16_t w)
 {
-    if (addr == 0x14189F28) {
-        //break_execution(gdb_memio->data, addr, 0);
+    if ((addr & 0xFFFF0000) == 0x1FF80000) { //wrong
+        ERROR("ARM11 kernel write %08x %04X\n", addr, w);
     }
+
 #ifdef MEM_TRACE
     fprintf(stderr, "w16 %08x <- w=%04x\n", addr, w & 0xffff);
 #endif
@@ -334,6 +340,13 @@ int mem_Write16(uint32_t addr, uint16_t w)
 
 uint16_t mem_Read16(uint32_t addr)
 {
+    if ((addr & 0xFFFF0000) == 0x1FF80000) { //wrong
+        ERROR("ARM11 kernel read 16 %08x\n", addr);
+    }
+    if (addr == 0x1ec63004)// this is HW
+    {
+        return 0x8101; //Send Fifo Empty | Send Receive Fifo Empty |  Receive Fifo Empty
+    }
 #ifdef MEM_TRACE
     fprintf(stderr, "r16 %08x\n", addr);
 #endif
@@ -373,6 +386,11 @@ uint16_t mem_Read16(uint32_t addr)
 
 int mem_Write32(uint32_t addr, uint32_t w)
 {
+
+    if ((addr & 0xFFFF0000) == 0x1FF80000) { //wrong
+        ERROR("ARM11 kernel write %08x %08X\n", addr, w);
+    }
+
     if (addr > 0xFFFFFFF0) { //wrong
         ERROR("trying to write32 unmapped addr %08x, w=%08x\n", addr, w);
         arm11_Dump();
@@ -430,11 +448,9 @@ bool mem_test(uint32_t addr)
 
 u32 mem_Read32(uint32_t addr)
 {
-    /*if (addr > 0xFFFFFFF0) { //wrong
-        ERROR("trying to read32 form unmapped addr %08x\n", addr);
-        arm11_Dump();
-        return 0;
-    }*/
+    if ((addr & 0xFFFF0000) == 0x1FF80000) { //wrong
+        ERROR("ARM11 kernel read 32 %08x\n", addr);
+    }
     size_t i;
     for(i=0; i<num_mappings; i++) {
         if(Contains(&mappings[i], addr, 4)) {

@@ -330,10 +330,23 @@ void IPC_debugprint(u32 addr)
              break;
          }
          case 0x4:
-             DEBUG("PXI I/O addr = %08x (size %08X)\n",mem_Read32(addr + 4), (desc >> 4));
+         {
+             u32 inaddr = mem_Read32(addr + 4);
+             u32 size = (desc >> 4);
+             DEBUG("PXI I/O addr = %08x (size %08X)\n", inaddr, size);
+
+             for (u32 i = 0; i < size; i++)
+             {
+                 u8 temp = mem_Read8(inaddr);
+                 printf("%02X ", temp);
+                 inaddr++;
+             }
+             printf("\n");
+
              addr += 4;
              i++;
              break;
+         }
          case 0x6:
              DEBUG("nothing %08X\n", desc);
              break;

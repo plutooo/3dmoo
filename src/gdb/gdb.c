@@ -16,11 +16,6 @@ struct armcpu_memory_iface gdb_base_memory_iface;
 struct armcpu_ctrl_iface gdb_ctrl_iface;
 
 void gdbstub_Init(u32 port){
-    if (global_gdb_port < 1 || global_gdb_port > 65535) {
-        DEBUG("Invalid GDB port.\n");
-        exit(-1);
-    }
-
     global_gdb_port = port;
     
     gdb_ctrl_iface.stall = stall_cpu;

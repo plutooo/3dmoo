@@ -59,7 +59,7 @@ s32 svcSetResourceLimitValues()
     u32 LimitableResources = arm11_R(1);
     u32 vals = arm11_R(2);
     u32 size =arm11_R(3);
-    DEBUG("ResourceLimitCurrentValues %08x %08x %08x %08x %08x\n", handle, LimitableResources, vals, size);
+    DEBUG("ResourceLimitCurrentValues %08x %08x %08x %08x\n", handle, LimitableResources, vals, size);
     
     for (int i = 0; i < size; i++)
     {
@@ -71,7 +71,7 @@ s32 svcGetSystemInfo() //this is part of the resource limmits
 {
     u32 SystemInfoType = arm11_R(1);
     u32 param = arm11_R(2);
-    DEBUG("svcGetSystemInfo %08x %08x\n", arm11_R(1), arm11_R(2));
+    DEBUG("svcGetSystemInfo %08x %08x\n", SystemInfoType, param);
     switch (SystemInfoType)
     {
         case 26:
@@ -79,7 +79,7 @@ s32 svcGetSystemInfo() //this is part of the resource limmits
             arm11_SetR(2, 0);
             return 0;
         default:
-            ERROR("unknown svcGetSystemInfo %08x %08x");
+            ERROR("unknown svcGetSystemInfo %08x %08x", SystemInfoType, param);
             arm11_SetR(1, 0);
             arm11_SetR(2, 0);
             return -1;
@@ -92,6 +92,6 @@ s32 svcKernelSetState() //this is part of the resource limmits
     u32 param0 = arm11_R(1);
     u32 param1 = arm11_R(2);
     u32 param2 = arm11_R(3);
-    DEBUG("KernelSetState %08x %08x %08x %08x %08x\n", type, param0, param1, param2);
+    DEBUG("KernelSetState %08x %08x %08x %08x\n", type, param0, param1, param2);
     return 0;
 }

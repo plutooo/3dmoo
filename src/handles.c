@@ -278,7 +278,6 @@ u32 wrapWaitSynchronizationN(u32 nanoseconds1,u32 handles_ptr,u32 handles_count,
     }
 
     // Put thread in WAITING state if not all handles were unlocked.
-
     u32* wait_list = malloc(handles_count*4);
     mem_Read((u8 *) wait_list, handles_ptr, handles_count * 4);
 

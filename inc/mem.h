@@ -26,7 +26,7 @@ u32 mem_Read32(uint32_t addr);
 int mem_Write(const uint8_t* in_buff, uint32_t addr, uint32_t size);
 int mem_Read(uint8_t* buf_out, uint32_t addr, uint32_t size);
 int mem_AddMappingShared(uint32_t base, uint32_t size, u8* data);
-bool mem_test(uint32_t addr);
+bool mem_IsAddrMapped(uint32_t addr);
 u8* mem_rawaddr(uint32_t addr, uint32_t size);
 void mem_Dbugdump();
 

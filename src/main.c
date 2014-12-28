@@ -119,8 +119,9 @@ int main(int argc, char* argv[])
         else if ((strcmp(argv[i], "-region=JP") == 0))config_region = 0;
 
 #ifdef GDB_STUB
+        int gdb_port = 0;
         if ((strcmp(argv[i], "-gdbport") == 0)) {
-            gdb_port = atoi(argv[++i]));
+            gdb_port = atoi(argv[++i]);
         }
         gdbstub_Init(gdb_port);
 #endif

@@ -20,40 +20,21 @@
 #include "arm11.h"
 #include "screen.h"
 #include "gpu.h"
-
 #include "handles.h"
-
 #include "init.h"
 
 #include <signal.h>
 #include <SDL.h>
 
 #include "config.h"
-
-#ifdef GDB_STUB
-#include "armemu.h"
-#include "armdefs.h"
-
-#include "gdb/gdbstub.h"
-#include "gdb/gdbstubchelper.h"
-#endif
-
 #include "armemu.h"
 
 extern ARMul_State s;
 
 int loader_LoadFile(FILE* fd);
 
-u32 curprocesshandle;
-
-#ifdef GDB_STUB
-u32 global_gdb_port = 0;
-gdbstub_handle_t gdb_stub;
-
-struct armcpu_memory_iface *gdb_memio;
-struct armcpu_memory_iface gdb_base_memory_iface;
-struct armcpu_ctrl_iface gdb_ctrl_iface;
-#endif
+// Holds handle for the process that is being executed.
+u32 g_process_handle;
 
 static int running = 1;
 int noscreen = 0;
@@ -63,6 +44,7 @@ char* codepath = NULL;
 #define FPS  60
 #define interval 1000 / FPS // The unit of interval is ms.
 u32 NextTick;
+
 
 void AtSig(int t)
 {
@@ -85,7 +67,6 @@ void FPS_Lock(void)
 {
     if (NextTick > SDL_GetTicks()) {
         u32 delay = NextTick - SDL_GetTicks();
-        //fprintf(stderr,"delay = %08X\n", delay);
         SDL_Delay(delay);
     }
     NextTick = SDL_GetTicks() + interval;
@@ -105,26 +86,19 @@ int main(int argc, char* argv[])
     //setvbuf(stderr, errBuf, _IOLBF, sizeof(errBuf));
 #endif
     atexit(AtExit);
-    handle_init(); //must be done first
+
+    handle_Init();
 
     if (argc < 2) {
         printf("Usage:\n");
-
         printf("%s <in.ncch> [-d|-noscreen|-codepatch <code>|-sdmc <path>|-sysdata <path>|-sdwrite|-slotone|-configsave|-gdbport <port>]\n", argv[0]);
         return 1;
     }
 
-    //disasm = (argc > 2) && (strcmp(argv[2], "-d") == 0);
-    //noscreen =    (argc > 2) && (strcmp(argv[2], "-noscreen") == 0);
-
     for (int i = 2; i < argc; i++) {
         if ((strcmp(argv[i], "-d") == 0))disasm = true;
         else if ((strcmp(argv[i], "-noscreen") == 0))noscreen = true;
-        else if ((strcmp(argv[i], "-codepatch") == 0)) {
-            i++;
-            codepath = malloc(strlen(argv[i])+1);
-            strcpy(codepath, argv[i]);
-        } else if ((strcmp(argv[i], "-sdmc") == 0)) {
+        else if ((strcmp(argv[i], "-sdmc") == 0)) {
             i++;
             strcpy(config_sdmc_path, argv[i]);
             config_has_sdmc = true;
@@ -143,47 +117,29 @@ int main(int argc, char* argv[])
 #ifdef GDB_STUB
         if ((strcmp(argv[i], "-gdbport") == 0)) {
             i++;
-            global_gdb_port = atoi(argv[i]);
-            if (global_gdb_port < 1 || global_gdb_port > 65535) {
-                DEBUG("ARM9 GDB stub port must be in the range 1 to 65535\n");
-                exit(-1);
-            }
-            gdb_ctrl_iface.stall = stall_cpu;
-            gdb_ctrl_iface.unstall = unstall_cpu;
-            gdb_ctrl_iface.read_reg = read_cpu_reg;
-            gdb_ctrl_iface.set_reg = set_cpu_reg;
-            gdb_ctrl_iface.install_post_ex_fn = install_post_exec_fn;
-            gdb_ctrl_iface.remove_post_ex_fn = remove_post_exec_fn;
-
-            gdb_base_memory_iface.prefetch16 = gdb_prefetch16;
-            gdb_base_memory_iface.prefetch32 = gdb_prefetch32;
-            gdb_base_memory_iface.read32 = gdb_read32;
-            gdb_base_memory_iface.write32 = gdb_write32;
-            gdb_base_memory_iface.read16 = gdb_read16;
-            gdb_base_memory_iface.write16 = gdb_write16;
-            gdb_base_memory_iface.read8 = gdb_read8;
-            gdb_base_memory_iface.write8 = gdb_write8;
+            gdbstub_Init(atoi(argv[++i]));
         }
 #endif
-        if (i >= argc)break;
+        if (i >= argc)
+            break;
     }
 
     signal(SIGINT, AtSig);
 
     if (!noscreen)
         screen_Init();
+
+    // Services that need some init.
     hid_spvr_init();
     hid_user_init();
-    initDSP();
     mcu_GPU_init();
+    dsp_Init();
     gpu_Init();
     srv_InitGlobal();
 
-
     arm11_Init();
 
-    u32 handzwei = handle_New(HANDLE_TYPE_PROCESS, 0);
-    curprocesshandle = handzwei;
+    g_process_handle = handle_New(HANDLE_TYPE_PROCESS, 0);
 
     FILE* fd = fopen(argv[1], "rb");
     if (fd == NULL) {
@@ -191,8 +147,7 @@ int main(int argc, char* argv[])
         return 1;
     }
 
-    u32 hand = handle_New(HANDLE_TYPE_THREAD, 0);
-    threads_New(hand);
+    threads_New(handle_New(HANDLE_TYPE_THREAD, 0));
 
     // Load file.
     if (loader_LoadFile(fd) != 0) {
@@ -201,32 +156,12 @@ int main(int argc, char* argv[])
     }
 
 #ifdef GDB_STUB
-    if (global_gdb_port) {
-        gdb_stub = createStub_gdb(global_gdb_port,
-                                  &gdb_memio,
-                                  &gdb_base_memory_iface);
-        if (gdb_stub == NULL) {
-            DEBUG("Failed to create ARM9 gdbstub on port %d\n",
-                  global_gdb_port);
-            exit(-1);
-        }
-        activateStub_gdb(gdb_stub, &gdb_ctrl_iface);
-    } else {
-        gdb_memio = malloc(sizeof(struct armcpu_memory_iface));
-        gdb_memio->prefetch16 = gdb_prefetch16;
-        gdb_memio->prefetch32 = gdb_prefetch32;
-        gdb_memio->read32 = gdb_read32;
-        gdb_memio->write32 = gdb_write32;
-        gdb_memio->read16 = gdb_read16;
-        gdb_memio->write16 = gdb_write16;
-        gdb_memio->read8 = gdb_read8;
-        gdb_memio->write8 = gdb_write8;
-    }
 #endif
     // Execute.
     while (running) {
         if (!noscreen)
             screen_HandleEvent();
+
         threads_Execute();
         //FPS_Lock();
         //mem_Dbugdump();

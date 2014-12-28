@@ -144,7 +144,6 @@ typedef struct {
 
     bool locked;
     u32  locktype;
-    u32  process;
     u32  thread;
     u32  handle;
 
@@ -155,12 +154,11 @@ typedef struct {
 //main.c
 
 // handles.c
+void handle_Init();
 handleinfo* handle_Get(u32 handle);
 u32 handle_New(u32 type, uintptr_t subtype);
-int handle_free(u32 handle);
-void handle_init();
 
-u32 curprocesshandle;
+u32 g_process_handle;
 
 //handles.h
 u32 wrapWaitSynchronizationN(u32 nanoseconds1, u32 handles_ptr, u32 handles_count, u32 wait_all, u32 nanoseconds2, u32 out);

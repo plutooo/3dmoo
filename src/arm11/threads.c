@@ -295,12 +295,12 @@ void threads_Execute()
         }
         last_one = s.NumInstrs - diff;//the cycels we have not used
         s.NumInstrs += 11172; //should be less but we have to debug stuff and that makes if faster (normal ~1000)
-        threads_Switch(t);
         if (!threads_IsThreadActive(t)) {
             THREADDEBUG("Skipping thread %d..\n", t);
             continue;
         }
         nothreadused = false;
+        threads_Switch(t);
 
 #ifdef MEM_REORDER
         mem_Reorder();

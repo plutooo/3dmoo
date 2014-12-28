@@ -479,17 +479,17 @@ u32 services_SyncRequest(handleinfo* h, bool *locked)
             return services[i].fnSyncRequest();
     }
 
-    if (h->subtype == SERVICE_DIRECT) { 
-        if (h->misc[0] != SERVERFREE)
-        {
-            ERROR("used unfree service %08x",h->handle);
+    if (h->subtype == SERVICE_DIRECT) {
+        if (h->misc[0] & HANDLE_SERV_STAT_ACKING) {
+            mem_Write(h->misc_ptr[0], arm11_ServiceBufferAddress() + 0x80, 0x80); //todo 
+            h->misc[0] &= ~(HANDLE_SERV_STAT_ACKING | HANDLE_SERV_STAT_SYNCING);
             *locked = false;
-            return -1;
-        }
-        else
-        {
-            IPC_readstruct(arm11_ServiceBufferAddress() + 0x80, h->misc_ptr[0]);
-            h->misc[0] |= HANDLE_SERV_STAT_SYN;
+            return 0;
+        } else {
+            IPC_debugprint(arm11_ServiceBufferAddress() + 0x80);
+            if (!(h->misc[0] & HANDLE_SERV_STAT_SYNCING)) 
+                mem_Read(h->misc_ptr[0], arm11_ServiceBufferAddress() + 0x80, 0x80);
+            h->misc[0] |= HANDLE_SERV_STAT_SYNCING | HANDLE_SERV_STAT_AKTIVE_REQ;
             *locked = true;
             return 0;
         }
@@ -500,76 +500,6 @@ u32 services_SyncRequest(handleinfo* h, bool *locked)
     PAUSE();
     return 0;
 }
-u32 services_WaitSynchronization(handleinfo* h, bool *locked)
-{
-    if (h->misc[0] & HANDLE_SERV_STAT_REPLY) {
-        h->misc[0] &= ~HANDLE_SERV_STAT_REPLY;
-        IPC_writestruct(arm11_ServiceBufferAddress() + 0x80, h->misc_ptr[0]);
-        *locked = 0;
-        return 0;
-    }
-    if (h->misc[0] & HANDLE_SERV_STAT_CONNECTEDOPEN)
-    {
-        *locked = false;
-        h->misc[0] &= ~(HANDLE_SERV_STAT_CONNECTEDOPEN);
-        return 0;
-    }
-
-    *locked = 1;
-    return 0;
-}
-u32 svc_unmountWaitSynchronization(handleinfo* h, bool *locked)
-{
-    if (h->misc[0]) {
-        *locked = 0;
-        return 0;
-    }
-    else {
-        *locked = 1;
-        return 0;
-    }
-}
-u32 svc_unmountSyncRequest(handleinfo* h, bool *locked)
-{
-    if (h->misc[0]) {
-        *locked = 0;
-        return 0;
-    }
-    else {
-        *locked = 1;
-        return 0;
-    }
-}
-u32 svc_serverSyncRequest(handleinfo* h, bool *locked) //this should always wait
-{
-    handleinfo* serv = handle_Get(h->misc[0]);
-    if (serv == NULL) {
-        *locked = 1;
-        return 0;
-    }
-    *locked = 1;
-    return 0;
-}
-u32 svc_serverWaitSynchronization(handleinfo* h, bool *locked)
-{
-    handleinfo* serv = handle_Get(h->misc[1]);
-    if (serv == NULL) {
-        *locked = 1;
-        return 0;
-    }
-    if (serv->misc[0] & HANDLE_SERV_STAT_SYN) {
-        serv->misc[0] &= ~HANDLE_SERV_STAT_SYN;
-        serv->misc[0] |= HANDLE_SERV_STAT_SYN_IN_PROGRESS;
-        IPC_writestruct(arm11_ServiceBufferAddress() + 0x80, h->misc_ptr[0]);
-        *locked = 0;
-        return 0;
-    }
-    else {
-        *locked = 1;
-        return 0;
-    }
-}
-
 
 u32 eventhandle;
 
@@ -634,7 +564,18 @@ u32 srv_SyncRequest()
         return 0;
 
         char names[9];
+    case 0x000400C0:
+        DEBUG("srv_UnRegisterService --todo--\n");
 
+        // Read rest of command header
+        mem_Read((u8*)&req, arm11_ServiceBufferAddress() + 0x84, sizeof(req));
+
+        memcpy(names, req.name, 8);
+        names[8] = '\0';
+
+        DEBUG("name=%s, namelen=%u\n", names, req.name_len);
+
+        return 0;
 
     case 0x00030100:
         DEBUG("srv_registerService\n");
@@ -654,33 +595,18 @@ u32 srv_SyncRequest()
 
         ownservice[ownservice_num].handle = handle_New(HANDLE_TYPE_SERVICE_UNMOUNTED, SERVICE_DIRECT);
 
-        handleinfo* servunm = handle_Get(ownservice[ownservice_num].handle);
+        handleinfo* oldhi = handle_Get(ownservice[ownservice_num].handle);
 
-        if (servunm == NULL) {
+        if (oldhi == NULL) {
             ERROR("getting handle.\n");
             return 0x0;
         }
 
-        servunm->misc[0] = 0; //numb of connected todo more than one
-
-        servunm->misc_ptr[0] = NULL;
+        oldhi->misc[0] = 0; //numb of connected todo more than one
 
         mem_Write32(arm11_ServiceBufferAddress() + 0x84, 0); //no error
         mem_Write32(arm11_ServiceBufferAddress() + 0x8C, ownservice[ownservice_num].handle); //return handle
         ownservice_num++;
-        return 0;
-
-    case 0x000400C0:
-        DEBUG("srv_UnRegisterService --todo--\n");
-
-        // Read rest of command header
-        mem_Read((u8*)&req, arm11_ServiceBufferAddress() + 0x84, sizeof(req));
-
-        memcpy(names, req.name, 8);
-        names[8] = '\0';
-
-        DEBUG("name=%s, namelen=%u\n", names, req.name_len);
-
         return 0;
 
     case 0x50100:
@@ -706,37 +632,39 @@ u32 srv_SyncRequest()
             for (u32 i = 0; i < ownservice_num; i++) {
                 if (memcmp(req.name, ownservice[i].name, _strnlen(ownservice[i].name, 8)) == 0) {
 
-                    u32 servhand = handle_New(HANDLE_TYPE_SERVICE, SERVICE_DIRECT);
+                    u32 newhand = handle_New(HANDLE_TYPE_SERVICE, SERVICE_DIRECT);
 
-                    handleinfo* servhi = handle_Get(servhand);
-                    if (servhi == NULL) {
+                    handleinfo* newhi = handle_Get(newhand);
+                    if (newhi == NULL) {
                         ERROR("getting handle.\n");
                         return 0x0;
                     }
-                    servhi->misc[0] = 0; //noting happend yet
+                    newhi->misc[0] = HANDLE_SERV_STAT_TAKEN | HANDLE_SERV_STAT_INITING; //init
 
-                    handleinfo* servunm = handle_Get(ownservice[i].handle);
+                    newhi->misc_ptr[0] = malloc(0x200);
 
-                    if (servunm == NULL) {
+                    handleinfo* oldhi = handle_Get(ownservice[i].handle);
+
+                    if (oldhi == NULL) {
                         ERROR("getting handle.\n");
                         return 0x0;
                     }
 
-                    servunm->misc[0]++;
+                    oldhi->misc[0]++;
 
-                    servunm->misc_ptr[0] = realloc(servunm->misc_ptr[0], sizeof(u32)*servunm->misc[0]);
+                    oldhi->misc_ptr[1] = 
+                    oldhi->misc[1] = newhand;
 
-                    *((u32*)servunm->misc_ptr[0] + servunm->misc[0] - 1) = servhand;
 
                     // Write handle_out.
-                    mem_Write32(arm11_ServiceBufferAddress() + 0x8C, servhand);
+                    mem_Write32(arm11_ServiceBufferAddress() + 0x8C, newhand);
 
                     // Write result.
                     mem_Write32(arm11_ServiceBufferAddress() + 0x84, 0);
 
-                    handle_wrapWaitSynchronization1(servhand);
+                    wrapWaitSynchronizationN(0xFFFFFFFF, arm11_ServiceBufferAddress() + 0x8C, 1, false, 0xFFFFFFFF, 0); //workaround todo fixme
 
-                    s.NumInstrsToExecute = 0; //wait
+                    s.NumInstrsToExecute = 0; //this will make it wait a round so the server has time to take the service
                     return 0;
                 }
             }
@@ -837,38 +765,54 @@ u32 svcReplyAndReceive()
     if (replyTarget) //respond
     {
         IPC_debugprint(arm11_ServiceBufferAddress() + 0x80);
-        handleinfo* sserv = handle_Get(replyTarget);
-        if (sserv == NULL) {
-            ERROR("handle not found");
-            return -1;
+        handleinfo* h2 = handle_Get(replyTarget);
+        if (h2 == NULL) {
+            ERROR("handle not there");
         }
 
-        if (sserv->type == HANDLE_TYPE_SERVICE_SERVER)
+        eventhandle = h2->misc[0];
+        h2 = handle_Get(eventhandle);
+        if (h2 == NULL) {
+            ERROR("handle not there");
+        }
+        if (h2->misc[0] & HANDLE_SERV_STAT_AKTIVE_REQ)
         {
-            u32 servhandle = sserv->misc[1];
-            handleinfo* serv = handle_Get(servhandle);
-            if (serv == NULL) {
-                ERROR("handle not found");
-                return -1;
-            }
-            if (serv->misc[0] & HANDLE_SERV_STAT_SYN_IN_PROGRESS)
-            {
-                serv->misc[0] &= ~HANDLE_SERV_STAT_SYN_IN_PROGRESS;
-                IPC_readstruct(arm11_ServiceBufferAddress() + 0x80, serv->misc_ptr[0]);
-                serv->misc[0] |= HANDLE_SERV_STAT_REPLY;
-            }
-            else
-            {
-                ERROR("reply to non HANDLE_SERV_STAT_SYN_IN_PROGRESS\n");
+            h2->misc[0] &= ~(HANDLE_SERV_STAT_AKTIVE_REQ);
+            if (h2->misc[0] & HANDLE_SERV_STAT_SYNCING) {
+                mem_Read(h2->misc_ptr[0], arm11_ServiceBufferAddress() + 0x80, 0x80); //todo 
+                h2->misc[0] |= HANDLE_SERV_STAT_ACKING;
             }
         }
         else
         {
-            DEBUG("repl to type %X",sserv->type);
+            ERROR("failded to repl\n");
         }
     }
 #ifdef MODULE_SUPPORT
-    wrapWaitSynchronizationN(0xFFFFFFFF, handles, handleCount, false, 0xFFFFFFFF, 0);
+    for (u32 i = 0; i < handleCount; i++) {
+        DEBUG("%08x\n", mem_Read32(handles+i*4));
+
+        handleinfo* h = handle_Get(mem_Read32(handles + i * 4));
+        if (h == NULL) {
+            ERROR("getting handle.\n");
+            continue;
+        }
+
+        handleinfo* h2 = handle_Get(replyTarget);
+        if (h2 == NULL) {
+            continue;
+        }
+
+
+        if (h->type == HANDLE_TYPE_SERVICE) {
+            h->misc[0] |= HANDLE_SERV_STAT_WAITING;
+            h->misc[1] = curprocesshandle;
+            h->misc[2] = threads_GetCurrentThreadHandle();
+        }
+
+        h->locked = true;
+    }
+    wrapWaitSynchronizationN(0xFFFFFFFF,handles,handleCount,false,0xFFFFFFFF,0);
 #else
 
     for (u32 i = 0; i < handleCount; i++) {
@@ -917,48 +861,106 @@ u32 svcAcceptSession()
     u32 session = arm11_R(0);
     u32 old_port = arm11_R(1);
 
-    handleinfo* servunm = handle_Get(old_port);
-    if (servunm == NULL) {
+    handleinfo* newhi = handle_Get(old_port);
+    if (newhi == NULL) {
         ERROR("getting handle.\n");
         return 0x0;
     }
 
 
-    u32 sservhand = handle_New(HANDLE_TYPE_SERVICE_SERVER, SERVICE_DIRECT);
+    u32 newhand = handle_New(HANDLE_TYPE_SERVICE_SERVER, SERVICE_DIRECT);
 
-    handleinfo* sserv = handle_Get(sservhand);
-    if (sserv == NULL) {
+    handleinfo* newhi2 = handle_Get(newhand);
+    if (newhi2 == NULL) {
         ERROR("getting handle.\n");
         return 0x0;
     }
+    newhi2->misc[0] = newhi->misc[1];
 
-    servunm->misc[0]--;
-    u32 servhand = *((u32*)servunm->misc_ptr[0] + servunm->misc[0]);
-
-    if (servunm->misc[0])
-        servunm->misc_ptr[0] = realloc(servunm->misc_ptr, sizeof(u32)*servunm->misc[0]);
-    else
-    {
-        free(servunm->misc_ptr[0]);
-        servunm->misc_ptr[0] = NULL;
-    }
-
-    handleinfo* serv = handle_Get(servhand);
-    if (serv == NULL) {
+    //unlock
+    handleinfo* anewhi = handle_Get(newhi->misc[1]);
+    if (anewhi == NULL) {
         ERROR("getting handle.\n");
         return 0x0;
     }
+    anewhi->misc[0] |= HANDLE_SERV_STAT_OPENING;
+    DEBUG("AcceptSession %08x %08x\n", session, newhi->misc[1]);
 
-    serv->misc[0] = HANDLE_SERV_STAT_CONNECTED | HANDLE_SERV_STAT_CONNECTEDOPEN;
 
-    serv->misc[1] = sservhand;
-    sserv->misc[1] = servhand;
 
-    serv->misc_ptr[0] = malloc(0x200);
-    sserv->misc_ptr[0] = serv->misc_ptr[0];
-
-    DEBUG("AcceptSession %08x servicehand = %08x\n", session, servhand);
-
-    arm11_SetR(1, sservhand);
+    arm11_SetR(1, newhand);
     return 0;
+}
+u32 services_WaitSynchronization(handleinfo* h, bool *locked)
+{
+    if (h->misc[0] & HANDLE_SERV_STAT_OPENING)
+    {
+        *locked = false;
+        h->misc[0] &= ~(HANDLE_SERV_STAT_OPENING | HANDLE_SERV_STAT_INITING);
+        return 0;
+    }
+    if (h->misc[0] & HANDLE_SERV_STAT_SYNCING) {
+        mem_Write(h->misc_ptr[0], arm11_ServiceBufferAddress() + 0x80, 0x80);
+        *locked = false;
+        h->misc[0] &= ~HANDLE_SERV_STAT_SYNCING;
+    } else*locked = true;
+    return 0;
+}
+u32 svc_unmountWaitSynchronization(handleinfo* h, bool *locked)
+{
+    if (h->misc[0]) {
+        h->misc[0]--;
+        *locked = 0;
+        return 0;
+    }
+    else {
+        *locked = 1;
+        return 0;
+    }
+}
+u32 svc_unmountSyncRequest(handleinfo* h, bool *locked)
+{
+    if (h->misc[0]) {
+        h->misc[0]--;
+        *locked = 0;
+        return 0;
+    }
+    else {
+        *locked = 1;
+        return 0;
+    }
+}
+u32 svc_serverSyncRequest(handleinfo* h, bool *locked)
+{
+    handleinfo* hi = handle_Get(h->misc[0]);
+    if (hi == NULL) {
+        *locked = 1;
+        return 0;
+    }
+    if (hi->misc[0] & HANDLE_SERV_STAT_SYNCING) {
+        mem_Write(hi->misc_ptr[0], arm11_ServiceBufferAddress() + 0x80, 0x80); //todo 
+        *locked = 0;
+        return 0;
+    }
+    else {
+        *locked = 1;
+        return 0;
+    }
+}
+u32 svc_serverWaitSynchronization(handleinfo* h, bool *locked)
+{
+    handleinfo* hi = handle_Get(h->misc[0]);
+    if (hi == NULL) {
+        *locked = 1;
+        return 0;
+    }
+    if (hi->misc[0] & HANDLE_SERV_STAT_SYNCING) {
+        mem_Write(hi->misc_ptr[0], arm11_ServiceBufferAddress() + 0x80, 0x80); //todo 
+        *locked = 0;
+        return 0;
+    }
+    else {
+        *locked = 1;
+        return 0;
+    }
 }

@@ -1,8 +1,8 @@
 srv_registerService 
 
 registers a service the returning type is HANDLE_TYPE_SERVICE_UNMOUNTED, SERVICE_DIRECT
-servunm->misc[0] = 0; means no new processes want to connect
-servunm->misc_ptr[0] = NULL; is the fild of HANDLE_TYPE_SERVICE, SERVICE_DIRECT that want to connect
+oldhi->misc[0] = 0; means no new processes want to connect
+oldhi->misc_ptr[0] = NULL; is the fild of HANDLE_TYPE_SERVICE, SERVICE_DIRECT that want to connect
 
 srv_GetServiceHandle
 

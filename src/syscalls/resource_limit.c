@@ -61,9 +61,9 @@ s32 svcSetResourceLimitValues()
     u32 size =arm11_R(3);
     DEBUG("ResourceLimitCurrentValues %08x %08x %08x %08x %08x\n", handle, LimitableResources, vals, size);
     
-    for (u32 i = 0; i < size; i++)
+    for (int i = 0; i < size; i++)
     {
-        printf("%08X -> %016X\n", mem_Read32(i * 4 + LimitableResources), (u64)(mem_Read32(i * 8 + vals) | ((u64)mem_Read32(i * 8 + vals + 4) << 32)));
+        printf("%08X -> %016X\n", mem_Read32(i * 4 + LimitableResources), (u64)(mem_Read32(i * 8 + vals) | (mem_Read32(i * 8 + vals + 4) << 32)));
     }
     return 0;
 }

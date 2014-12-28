@@ -367,7 +367,6 @@
     <ClInclude Include="..\inc\mem.h" />
     <ClInclude Include="..\inc\screen.h" />
     <ClInclude Include="..\inc\gpu.h" />
-    <ClInclude Include="..\inc\service_macros.h" />
     <ClInclude Include="..\inc\svc.h" />
     <ClInclude Include="..\inc\threads.h" />
     <ClInclude Include="..\inc\util.h" />
@@ -380,6 +379,7 @@
     <ClInclude Include="..\src\arm11\vfp\vfp.h" />
     <ClInclude Include="..\src\arm11\vfp\vfpdouble.h" />
     <ClInclude Include="..\src\arm11\vfp\vfp_helper.h" />
+    <ClInclude Include="..\src\services\service_macros.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

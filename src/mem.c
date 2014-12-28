@@ -56,7 +56,7 @@ static size_t   num_mappings;
 
 #define PRINT_ILLEGAL 1
 #define EXIT_ON_ILLEGAL 1
-//#define PRINT_MISALIGNED 1
+#define PRINT_MISALIGNED 1
 
 
 
@@ -196,10 +196,12 @@ int mem_AddSegment(uint32_t base, uint32_t size, uint8_t* data)
 }
 
 void print_illegal(const char*fmt, ...) {
+    char buf[1024];
     va_list args;
     va_start(args, fmt);
-    vfprintf(stdout, fmt, args);
+    vsnprintf(buf, sizeof(buf), fmt, args );
     va_end(args);
+    ERROR(buf);
     arm11_Dump();
     //mem_Dbugdump();
 #ifdef EXIT_ON_ILLEGAL

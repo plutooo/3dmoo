@@ -198,9 +198,7 @@ void svc_Execute(ARMul_State * state, ARMword num)
         return;
 
     case 0x12:
-        DEBUG("Run %08x %08x\n", arm11_R(1), arm11_R(2));
-        DEBUG("STUBBED\n");
-        arm11_SetR(1, 0);
+        arm11_SetR(0, svcRun());
         return;
 
     case 0x13:

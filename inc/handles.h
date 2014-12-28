@@ -218,6 +218,8 @@ u32 svc_serverWaitSynchronization(handleinfo* h, bool *locked);
 
 u32 timer_WaitSynchronization(handleinfo* h, bool *locked);
 
+u32 process_WaitSynchronization(handleinfo* h, bool *locked);
+
 static struct {
     const char* name;
     u32(*fnSyncRequest)(handleinfo* h, bool *locked);
@@ -277,7 +279,7 @@ static struct {
         "process",
         NULL,
         NULL,
-        NULL
+        &process_WaitSynchronization
     },
     {
         "arbiter",

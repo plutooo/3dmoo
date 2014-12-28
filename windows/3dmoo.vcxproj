@@ -347,6 +347,7 @@
     <ClCompile Include="..\src\syscalls\Interrupt.c" />
     <ClCompile Include="..\src\syscalls\memory.c" />
     <ClCompile Include="..\src\syscalls\ports.c" />
+    <ClCompile Include="..\src\syscalls\process.c" />
     <ClCompile Include="..\src\syscalls\resource_limit.c" />
     <ClCompile Include="..\src\syscalls\syn.c" />
     <ClCompile Include="..\src\syscalls\timer.c" />

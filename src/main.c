@@ -43,6 +43,7 @@
 extern ARMul_State s;
 
 int loader_LoadFile(FILE* fd);
+void loader_golbalmemsetup();
 
 u32 g_process_handle;
 
@@ -107,6 +108,8 @@ int main(int argc, char* argv[])
 #endif
     atexit(AtExit);
     handle_Init(); //must be done first
+
+    loader_golbalmemsetup();
 
     if (argc < 2) {
         printf("Usage:\n");

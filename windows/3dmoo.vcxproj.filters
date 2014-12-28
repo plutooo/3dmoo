@@ -384,6 +384,9 @@
     <ClCompile Include="..\src\gpu\commands.c">
       <Filter>Source Files\GPU</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\syscalls\process.c">
+      <Filter>Source Files\syscalls</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\inc\handles.h">

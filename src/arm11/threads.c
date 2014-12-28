@@ -51,6 +51,14 @@ thread** threadsproc;
 u32*    num_threadsproc;
 u32     current_proc = 0;
 
+void ModuleSupport_Threadsadd(u32 modulenum)
+{
+    *(threadsproc + modulenum) = (thread *)malloc(sizeof(thread)*(MAX_THREADS));
+    memset(*(threadsproc + modulenum), 0, sizeof(thread)*(MAX_THREADS));
+    num_threadsproc = (u32 *)realloc(num_threadsproc,sizeof(u32)*(modulenum + 1));
+    memset(num_threadsproc + modulenum, 0, sizeof(u32*));
+}
+
 void ModuleSupport_ThreadsInit(u32 modulenum)
 {
     u32 i;
@@ -65,10 +73,10 @@ void ModuleSupport_ThreadsInit(u32 modulenum)
 void ModuleSupport_SwapProcessThreads(u32 newproc)
 {
     threads_SaveContextCurrentThread();
-    memcpy(*(threadsproc + current_proc), threads, sizeof(thread)*(MAX_THREADS)); //save maps
+    memcpy(*(threadsproc + current_proc), threads, sizeof(thread)*(MAX_THREADS)); //save threads
     *(num_threadsproc + current_proc) = num_threads;
 
-    memcpy(threads, *(threadsproc + newproc), sizeof(thread)*(MAX_THREADS)); //save maps
+    memcpy(threads, *(threadsproc + newproc), sizeof(thread)*(MAX_THREADS)); //load threads
     current_thread = 0;
     num_threads = *(num_threadsproc + newproc);
     curprocesshandle = *(curprocesshandlelist + newproc);
@@ -78,6 +86,33 @@ void ModuleSupport_SwapProcessThreads(u32 newproc)
 
 #endif
 
+u32 ModuleSupport_threads_New(u32 handle,u32 process)
+{
+    thread threads[MAX_THREADS];
+    memcpy(threads, *(threadsproc + process), sizeof(thread)*(MAX_THREADS)); //load threads
+    current_thread = 0;
+    u32 num_threads = *(num_threadsproc + process);
+
+    if (num_threads == MAX_THREADS) {
+        ERROR("Too many threads..\n");
+        arm11_Dump();
+        PAUSE();
+        exit(1);
+    }
+
+    threads[num_threads].priority = 50;
+    threads[num_threads].handle = handle;
+    threads[num_threads].state = RUNNING;
+    threads[num_threads].wait_list = NULL;
+    threads[num_threads].wait_list_size = 0;
+
+    num_threads++;
+
+    memcpy(*(threadsproc + process), threads, sizeof(thread)*(MAX_THREADS)); //save threads
+    *(num_threadsproc + process) = num_threads;
+
+    return num_threads;
+}
 
 u32 threads_New(u32 handle)
 {

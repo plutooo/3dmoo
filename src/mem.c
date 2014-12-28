@@ -35,6 +35,8 @@ extern struct armcpu_memory_iface *gdb_memio;
 #endif
 
 extern ARMul_State s;
+extern u8* loader_Shared_page;
+void ModuleSupport_Threadsadd(u32 modulenum);
 
 typedef struct {
     uint32_t base;
@@ -61,9 +63,50 @@ static size_t   num_mappings;
 
 #ifdef MODULE_SUPPORT
 
+
+typedef struct {
+    u8 name[8];
+    u8 unk[8];
+    u8 textaddr[4];
+    u8 textsize[4];
+    u8 roaddr[4];
+    u8 rosize[4];
+    u8 dataaddr[4];
+    u8 datasize[4];
+    u8 rooffset[4];
+    u8 dataoffset[4];
+    u8 bdsize[4];
+    u8 pid[8];
+    u8 unk2[8];
+} ctr_CodeSetInfo;
+
 memmap_t **mappingsproc;
 size_t*   num_mappingsproc;
 u32 currentmap = 0;
+
+void ModuleSupport_Memadd(u32 modulenum, u32 codeset_handle)
+{
+    mappingsproc = (memmap_t **)realloc(mappingsproc, sizeof(memmap_t *)*(modulenum + 1));
+
+    *(mappingsproc + modulenum) = (memmap_t *)malloc(sizeof(memmap_t)*(MAX_MAPPINGS));
+
+    num_mappingsproc = (size_t*)realloc(num_mappingsproc, sizeof(size_t*)*(modulenum + 1));
+    memset((num_mappingsproc + modulenum), 0, sizeof(size_t*));
+
+    ModuleSupport_Threadsadd(modulenum);
+
+    handleinfo* hi = handle_Get(codeset_handle);
+    if (hi == NULL)
+    {
+        ERROR("can't read codeset");
+        return;
+    }
+    ctr_CodeSetInfo* co = hi->misc_ptr[0];
+    ModuleSupport_mem_AddMappingShared(Read32(co->textaddr), Read32(co->textsize) * 0x1000, hi->misc_ptr[1], modulenum);
+    ModuleSupport_mem_AddMappingShared(Read32(co->roaddr), Read32(co->rosize) * 0x1000, hi->misc_ptr[2], modulenum);
+    ModuleSupport_mem_AddMappingShared(Read32(co->dataaddr), Read32(co->bdsize) * 0x1000, hi->misc_ptr[3], modulenum);
+    ModuleSupport_mem_AddMappingShared(0x1FF80000, 0x2000, loader_Shared_page, modulenum);
+}
 
 void ModuleSupport_MemInit(u32 modulenum)
 {
@@ -85,11 +128,60 @@ void ModuleSupport_SwapProcessMem(u32 newproc)
     memcpy(*(mappingsproc + currentmap), mappings, sizeof(memmap_t)*(MAX_MAPPINGS)); //save maps
     *(num_mappingsproc + currentmap) = num_mappings;
 
-    memcpy(mappings, *(mappingsproc + newproc), sizeof(memmap_t)*(MAX_MAPPINGS)); //save maps
+    memcpy(mappings, *(mappingsproc + newproc), sizeof(memmap_t)*(MAX_MAPPINGS)); //load maps
     num_mappings = *(num_mappingsproc + newproc);
 
     ModuleSupport_SwapProcessThreads(newproc);
     currentmap = newproc;
+}
+int ModuleSupport_mem_AddMappingShared(uint32_t base, uint32_t size, u8* data,u32 process)
+{
+    if (size == 0)
+        return 0;
+    memmap_t mappings[MAX_MAPPINGS];
+    memcpy(mappings, *(mappingsproc + process), sizeof(memmap_t)*(MAX_MAPPINGS)); //load maps
+    u32 num_mappings = *(num_mappingsproc + process);
+
+    if (num_mappings == MAX_MAPPINGS) {
+        ERROR("too many mappings.\n");
+        return 1;
+    }
+
+    size_t i = num_mappings, j;
+    mappings[i].base = base;
+    mappings[i].size = size;
+    mappings[i].accesses = 0;
+
+    for (j = 0; j<num_mappings; j++) {
+        if (Overlaps(&mappings[j], &mappings[i])) {
+            ERROR("trying to add overlapping mapping %08x, size=%08x.\n",
+                base, size);
+            return 2;
+        }
+    }
+
+    mappings[i].phys = data;
+
+#ifdef MEM_TRACE_EXTERNAL
+    if (
+        (base & 0xFFFF0000) == 0x1FF80000
+        || base == 0x10000000
+        || base == 0x14000000
+        //|| base == 0x10002000
+        ) {
+        mappings[i].enable_log = true;
+    }
+    else {
+        mappings[i].enable_log = false;
+    }
+#endif
+
+    num_mappings++;
+
+    memcpy(*(mappingsproc + process), mappings, sizeof(memmap_t)*(MAX_MAPPINGS)); //save maps
+    *(num_mappingsproc + process) = num_mappings;
+
+    return 0;
 }
 
 #endif

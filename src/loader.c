@@ -331,7 +331,11 @@ static u32 LoadElfFile(u8 *addr)
 
     return Read32((u8*) &header[6]);
 }
-
+u8* loader_Shared_page;
+void loader_golbalmemsetup()
+{
+    loader_Shared_page = malloc(0x2000);
+}
 static void CommonMemSetup()
 {
     // Add thread command buffer.
@@ -342,23 +346,17 @@ static void CommonMemSetup()
 
     mem_AddSegment(0xFFFF0000 - 0x1000 * MAX_THREADS, 0x1000 * (MAX_THREADS+1), NULL);
 
-    // DSP memory
-    mem_AddSegment(0x1FF00000, 0x80000, NULL);
+    // 	Shared page
+    mem_AddMappingShared(0x1FF80000, 0x2000, loader_Shared_page); //this should be 2 0x1000 pages but we don't support perm yet so we make it one
 
-    // Add Read Only Shared Info / AXI WRAM
-    mem_AddSegment(0x1FF80000, 0x80000, NULL);
-
+    //is readonly so don't bother if we writes this multible times
 
     mem_Write32(0x1FF80008, 0x00008002); //load NS
     mem_Write32(0x1FF8000C, 0x00040130);
-
-    mem_Write8(0x1FF80014, 1); //Bit0 set for Retail
-
+    mem_Write8 (0x1FF80014, 1); //Bit0 set for Retail
     mem_Write32(0x1FF80040, 64 * 1024 * 1024); //Set App Memory Size to 64MB? (Configmem-APPMEMTYPE)
     mem_Write32(0x1FF80044, 0x02C00000); //Set App Memory Size to 46MB?
-    //Shared Memory Page For ARM11 Processes
-    //mem_AddSegment(0x1FF81000, 0x100, NULL);
-    mem_Write8(0x1FF800c0, 1); //headset connected
+    mem_Write8 (0x1FF800C0, 1); //headset connected
 
 }
 

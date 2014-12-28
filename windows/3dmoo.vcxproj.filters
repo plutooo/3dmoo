@@ -375,6 +375,9 @@
     <ClCompile Include="..\src\color.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\fs\exefs.c">
+      <Filter>Source Files\fs</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\inc\handles.h">

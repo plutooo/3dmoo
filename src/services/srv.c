@@ -616,7 +616,6 @@ u32 srv_SyncRequest()
 
     // Read command-id.
     switch(cid) {
-
     case 0x10002:
         DEBUG("srv_Initialize\n");
 
@@ -812,6 +811,29 @@ u32 srv_SyncRequest()
         mem_Write32(arm11_ServiceBufferAddress() + 0x84, 0); //worked
         mem_Write32(arm11_ServiceBufferAddress() + 0x88, 0); //type
         return 0;
+
+
+    case 0x04030082: // RegisterProcess
+    {
+        u32 pcid = mem_Read32(arm11_ServiceBufferAddress() + 0x84);
+        u32 wordsz = mem_Read32(arm11_ServiceBufferAddress() + 0x88);
+        u32 serviceaccesscontrol = mem_Read32(arm11_ServiceBufferAddress() + 0x90);
+
+
+
+        DEBUG("RegisterProcess %08x %08x\n", pcid, wordsz);
+
+        for (int i = 0; i < (wordsz /2); i++)
+        {
+            char name[9];
+            mem_Read(name, serviceaccesscontrol + i*8, 8);
+            name[8] = '\0';
+            printf("%s\n", name);
+        } 
+        
+        mem_Write32(arm11_ServiceBufferAddress() + 0x84, 0); //worked
+        return 0;
+    }
 
     default:
         ERROR("Unimplemented command %08x in \"srv:\"\n", cid);

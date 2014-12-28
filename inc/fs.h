@@ -138,6 +138,8 @@ archive* extsavedata_OpenArchive(file_path path);
 
 archive* SaveDatacheck_OpenArchive(file_path path);
 
+archive* exefsfs_OpenArchive(file_path path);
+
 typedef struct {
     const char* name;
     u32 id;
@@ -185,6 +187,11 @@ static archive_type archive_types[] =  {
         "SaveDatacheck",
         0x2345678A,
         SaveDatacheck_OpenArchive
+    },
+    {
+        "exefs",
+        0x2345678E,
+        exefsfs_OpenArchive
     }
 };
 

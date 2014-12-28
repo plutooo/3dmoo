@@ -49,6 +49,7 @@
 #define HANDLE_TYPE_SERVICE_SERVER          18
 #define HANDLE_TYPE_TIMER                   19
 #define HANDLE_TYPE_KResourceLimit          20
+#define HANDLE_TYPE_CODESET                 21
 
 
 #define PORT_TYPE_SRV         0
@@ -343,5 +344,17 @@ static struct {
         NULL,
         NULL,
         &timer_WaitSynchronization
+    },
+    {
+        "KResourceLimit",
+        NULL,
+        NULL,
+        NULL
+    },
+    {
+        "CODESET",
+        NULL,
+        NULL,
+        NULL
     }
 };

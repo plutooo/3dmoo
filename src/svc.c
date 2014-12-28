@@ -163,6 +163,19 @@ void svc_Execute(ARMul_State * state, ARMword num)
         state->NumInstrsToExecute = 0;
         exit(1);
         return;
+
+    case 0x5:
+        DEBUG("SetProcessAffinityMask %08x %08x %08x\n", arm11_R(1), arm11_R(2), arm11_R(3));
+        DEBUG("STUBBED\n");
+        arm11_SetR(1, 0);
+        return;
+
+    case 0x7:
+        DEBUG("SetProcessIdealProcessor %08x %08x\n", arm11_R(1), arm11_R(2));
+        DEBUG("STUBBED\n");
+        arm11_SetR(1, 0);
+        return;
+
     case 8:
         arm11_SetR(0, svcCreateThread());
         return;
@@ -183,6 +196,13 @@ void svc_Execute(ARMul_State * state, ARMword num)
     case 0xc:
         arm11_SetR(0, svcSetThreadPriority());
         return;
+
+    case 0x12:
+        DEBUG("Run %08x %08x\n", arm11_R(1), arm11_R(2));
+        DEBUG("STUBBED\n");
+        arm11_SetR(1, 0);
+        return;
+
     case 0x13:
         arm11_SetR(0, svcCreateMutex());
         return;
@@ -265,6 +285,12 @@ void svc_Execute(ARMul_State * state, ARMword num)
         arm11_SetR(0, 0);
         arm11_SetR(1, handle_New(0, HANDLE_TYPE_PROCESS ));
         return;
+    case 0x35:
+        DEBUG("GetProcessId=%08x\n", arm11_R(1));
+        DEBUG("STUBBED\n");
+        arm11_SetR(0, 0);
+        arm11_SetR(1, 5);
+        return;
     case 0x38:
         DEBUG("resourcelimit=%08x, handle=%08x\n", arm11_R(0), arm11_R(1));
         DEBUG("STUBBED\n");
@@ -318,6 +344,17 @@ void svc_Execute(ARMul_State * state, ARMword num)
         return;
     case 0x50:
         arm11_SetR(0, svcBindInterrupt());
+        return;
+    case 0x73:
+        arm11_SetR(0, svcCreateCodeSet());
+        return;
+    case 0x75:
+        arm11_SetR(0, svcCreateProcess());
+        return;
+    case 0x77:
+        DEBUG("ResourceLimits %08x %08x\n", arm11_R(1), arm11_R(2));
+        DEBUG("STUBBED\n");
+        arm11_SetR(0, 0);
         return;
     case 0x78:
         arm11_SetR(0, svcCreateResourceLimit());

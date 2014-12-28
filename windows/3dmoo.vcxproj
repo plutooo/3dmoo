@@ -256,6 +256,7 @@
     <ClCompile Include="..\src\color.c" />
     <ClCompile Include="..\src\config.c" />
     <ClCompile Include="..\src\dsp\dspemu.c" />
+    <ClCompile Include="..\src\fs\exefs.c" />
     <ClCompile Include="..\src\fs\extsavedata.c" />
     <ClCompile Include="..\src\fs\romfs.c" />
     <ClCompile Include="..\src\fs\savedata.c" />

@@ -1235,9 +1235,9 @@ mainswitch:
                     Rn = BITS(0, 3);
                     lsb = BITS(7, 11);
                     msb = BITS(16, 20); //-V519
-                    if ((Rd == 15)) {
+                    if (Rd == 15) {
                         ARMul_UndefInstr (state, instr);
-                    } else if ((Rn == 15)) {
+                    } else if (Rn == 15) {
                         data = state->Reg[Rd];
                         tmp_rd = ((ARMword)(data << (31 - lsb)) >> (31 - lsb));
                         dst = ((data >> msb) << (msb - lsb));

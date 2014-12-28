@@ -22,23 +22,6 @@
 
 #include "service_macros.h"
 
-static u32 priority;
-
 SERVICE_START(fs_ldr);
-SERVICE_CMD(0x08610042)   // InitializeWithSdkVersion
-{
-    DEBUG("InitializeWithSdkVersion -- TODO --\n");
 
-    RESP(1, 0); // Result
-    return 0;
-}
-
-SERVICE_CMD(0x08620040)   // SetPriority
-{
-    priority = CMD(1);
-    DEBUG("SetPriority, prio=%x\n", priority);
-
-    RESP(1, 0);
-    return 0;
-}
 SERVICE_END();

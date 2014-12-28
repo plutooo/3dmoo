@@ -487,9 +487,8 @@ u32 services_SyncRequest(handleinfo* h, bool *locked)
             return 0;
         } else {
             IPC_debugprint(arm11_ServiceBufferAddress() + 0x80);
-            if (!(h->misc[0] & HANDLE_SERV_STAT_SYNCING)) 
-                mem_Read(h->misc_ptr[0], arm11_ServiceBufferAddress() + 0x80, 0x80);
-            h->misc[0] |= HANDLE_SERV_STAT_SYNCING | HANDLE_SERV_STAT_AKTIVE_REQ;
+            if (!(h->misc[0] & HANDLE_SERV_STAT_SYNCING)) mem_Read(h->misc_ptr[0], arm11_ServiceBufferAddress() + 0x80, 0x80);
+            h->misc[0] |= HANDLE_SERV_STAT_SYNCING;
             *locked = true;
             return 0;
         }
@@ -650,9 +649,8 @@ u32 srv_SyncRequest()
                         return 0x0;
                     }
 
-                    oldhi->misc[0]++;
+                    oldhi->misc[0] = 1;
 
-                    oldhi->misc_ptr[1] = 
                     oldhi->misc[1] = newhand;
 
 
@@ -769,23 +767,14 @@ u32 svcReplyAndReceive()
         if (h2 == NULL) {
             ERROR("handle not there");
         }
-
         eventhandle = h2->misc[0];
         h2 = handle_Get(eventhandle);
         if (h2 == NULL) {
             ERROR("handle not there");
         }
-        if (h2->misc[0] & HANDLE_SERV_STAT_AKTIVE_REQ)
-        {
-            h2->misc[0] &= ~(HANDLE_SERV_STAT_AKTIVE_REQ);
-            if (h2->misc[0] & HANDLE_SERV_STAT_SYNCING) {
-                mem_Read(h2->misc_ptr[0], arm11_ServiceBufferAddress() + 0x80, 0x80); //todo 
-                h2->misc[0] |= HANDLE_SERV_STAT_ACKING;
-            }
-        }
-        else
-        {
-            ERROR("failded to repl\n");
+        if (h2->misc[0] & HANDLE_SERV_STAT_SYNCING) {
+            mem_Read(h2->misc_ptr[0], arm11_ServiceBufferAddress() + 0x80, 0x80); //todo 
+            h2->misc[0] |= HANDLE_SERV_STAT_ACKING;
         }
     }
 #ifdef MODULE_SUPPORT
@@ -848,11 +837,13 @@ u32 svcReplyAndReceive()
         break;
     }*/
 
-    //times++;
     //RESP(0, 0x00010800);
 
     //feed end
 
+    times++;
+
+    arm11_SetR(1, 0);
 
     return 0;
 }

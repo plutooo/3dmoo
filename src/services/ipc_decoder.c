@@ -32,8 +32,7 @@ void IPC_debugprint(u32 addr)
      addr += 4;
      for (u32 i = 0; i < normal; i++)
      {
-         u32 temp = mem_Read32(addr);
-         DEBUG("%08X\n", temp);
+         DEBUG("%08X\n", mem_Read32(addr));
          addr += 4;
      }
      for (u32 i = 0; i < translated; i++)

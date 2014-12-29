@@ -207,7 +207,11 @@ void print_illegal(const char*fmt, ...) {
 #endif
     //mem_Dbugdump();
 #ifdef EXIT_ON_ILLEGAL
+#ifdef GDB_STUB
     if (!global_gdb_port) exit(1);
+#else
+    exit(1);
+#endif
 #endif
 }
 

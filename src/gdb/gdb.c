@@ -1,3 +1,4 @@
+#ifdef GDB_STUB
 #include <stdlib.h>
 
 #include "util.h"
@@ -56,3 +57,4 @@ void gdbstub_Init(u32 port){
         gdb_memio->write8 = gdb_write8;
     }
 }
+#endif

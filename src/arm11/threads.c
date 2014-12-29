@@ -86,11 +86,10 @@ void ModuleSupport_SwapProcessThreads(u32 newproc)
 
 #endif
 
-u32 ModuleSupport_threads_New(u32 handle,u32 process)
+u32 ModuleSupport_threads_New(u32 handle, u32 process, u32 ent_pc, u32 stack, u32 ent_r0, u32 prio)
 {
     thread threads[MAX_THREADS];
     memcpy(threads, *(threadsproc + process), sizeof(thread)*(MAX_THREADS)); //load threads
-    current_thread = 0;
     u32 num_threads = *(num_threadsproc + process);
 
     if (num_threads == MAX_THREADS) {
@@ -105,6 +104,14 @@ u32 ModuleSupport_threads_New(u32 handle,u32 process)
     threads[num_threads].state = RUNNING;
     threads[num_threads].wait_list = NULL;
     threads[num_threads].wait_list_size = 0;
+
+    threads[num_threads].priority = prio;
+    threads[num_threads].r[0] = ent_r0;
+    threads[num_threads].sp = stack;
+    threads[num_threads].r15 = ent_pc & ~0x1;
+
+    threads[num_threads].cpsr = (ent_pc & 0x1) ? 0x3F : 0x1F; //usermode
+    threads[num_threads].mode = RESUME;
 
     num_threads++;
 

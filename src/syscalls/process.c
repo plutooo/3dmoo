@@ -25,7 +25,7 @@ extern u32 modulenum;
 void ModuleSupport_Memadd(u32 modulenum, u32 codeset_handle);
 void ModuleSupport_Threadsadd(u32 modulenum);
 int ModuleSupport_mem_AddMappingShared(uint32_t base, uint32_t size, u8* data, u32 process);
-
+u32 ModuleSupport_threads_New(u32 handle, u32 process, u32 ent_pc, u32 stack, u32 ent_r0, u32 prio);
 static u32 Read32(uint8_t p[4])
 {
     u32 temp = p[0] | p[1] << 8 | p[2] << 16 | p[3] << 24;
@@ -252,7 +252,6 @@ u32 svcCreateProcess()
 
 
     u32 handle = handle_New(HANDLE_TYPE_PROCESS, 0);
-    modulenum++;
     handleinfo* hi = handle_Get(handle);
     if (hi == NULL)
     {
@@ -260,6 +259,7 @@ u32 svcCreateProcess()
         return -1;
     }
     hi->misc[0] = modulenum;
+    modulenum++;
     curprocesshandlelist = realloc(curprocesshandlelist, sizeof(u32)*(modulenum + 1));
     ModuleSupport_Memadd(modulenum, codeset_handle);
     arm11_SetR(1, handle);
@@ -276,7 +276,7 @@ u32 svcRun()
 {
     u32 handle = arm11_R(0);
     u32 prio = arm11_R(1);
-    u32 stacksize = arm11_R(2);
+    u32 stacksize = arm11_R(2); //todo
     u32 argc = arm11_R(3);
     u32 argv = arm11_R(4);
     u32 envp = arm11_R(5);
@@ -286,7 +286,10 @@ u32 svcRun()
         DEBUG("wrong handle\n");
         return -1;
     }
-    ModuleSupport_threads_New(handle_New(HANDLE_TYPE_THREAD, 0), hi->misc[0]);
+    u8* stack =malloc(stacksize);
+    ModuleSupport_mem_AddMappingShared(0x10000000 - stacksize,stacksize, stack, hi->misc[0]);
+
+    ModuleSupport_threads_New(handle_New(HANDLE_TYPE_THREAD, 0), hi->misc[0], 0x00100000, 0x10000000, argc, prio);
     DEBUG("RUN %08X %08X %08X %08X %08X %08X\n", handle, prio, stacksize, argc, argv, envp);
     return 0;
 }

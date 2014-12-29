@@ -223,7 +223,6 @@ abort_execution(void *data, int reason) {
 
     /* stall the processor */
     stub->cpu_ctrl->stall(stub->cpu_ctrl->data);
-    NDS_debug_break();
 
     /* remove the post execution function */
     stub->cpu_ctrl->remove_post_ex_fn(stub->cpu_ctrl->data);

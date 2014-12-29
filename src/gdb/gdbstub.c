@@ -218,21 +218,43 @@ indicateCPUStop_gdb( struct gdb_stub_state *stub) {
  *
  */
 void
-break_execution( void *data, UNUSED_PARM(uint32_t addr), UNUSED_PARM(int thunmb)) {
-  struct gdb_stub_state *stub = (struct gdb_stub_state *)data;
+abort_execution(void *data, int reason) {
+    struct gdb_stub_state *stub = (struct gdb_stub_state *)data;
 
-  /* stall the processor */
-  stub->cpu_ctrl->stall( stub->cpu_ctrl->data);
-  NDS_debug_break();
+    /* stall the processor */
+    stub->cpu_ctrl->stall(stub->cpu_ctrl->data);
+    NDS_debug_break();
 
-  /* remove the post execution function */
-  stub->cpu_ctrl->remove_post_ex_fn( stub->cpu_ctrl->data);
+    /* remove the post execution function */
+    stub->cpu_ctrl->remove_post_ex_fn(stub->cpu_ctrl->data);
 
-  /* indicate the halt */
-  stub->stop_type = STOP_HOST_BREAK;
-  indicateCPUStop_gdb( stub);
+    /* indicate the halt */
+    stub->stop_type = reason;
+    indicateCPUStop_gdb(stub);
 }
 
+/*
+*
+*
+*
+*/
+void
+break_execution(void *data, UNUSED_PARM(uint32_t addr), UNUSED_PARM(int thunmb)) {
+    abort_execution(data, STOP_HOST_BREAK);
+}
+
+/*
+*
+*
+*
+*/
+void
+break_bus_error(void *data) {
+    struct gdb_stub_state *stub = (struct gdb_stub_state *)data;
+//    u32 pc = stub->cpu_ctrl->read_reg(stub->cpu_ctrl->data, 15, gdb_id_glob);
+//    stub->cpu_ctrl->set_reg(stub->cpu_ctrl->data, 15, pc-4, gdb_id_glob);
+    abort_execution(data, STOP_BUS_ERROR);
+}
 
 static void
 step_instruction_watch( void *data, uint32_t addr, UNUSED_PARM(int thunmb)) {
@@ -519,6 +541,13 @@ make_stop_packet( uint8_t *ptr, enum stop_type type, uint32_t stop_address) {
     ptr[2] = hexchars[TARGET_SIGNAL_INT & 0xf];
     stop_size = 3;
     break;
+
+  case STOP_BUS_ERROR:
+      ptr[0] = 'S';
+      ptr[1] = hexchars[TARGET_SIGNAL_BUS >> 4];
+      ptr[2] = hexchars[TARGET_SIGNAL_BUS & 0xf];
+      stop_size = 3;
+      break;
 
   case STOP_STEP_BREAK:
   case STOP_BREAKPOINT:

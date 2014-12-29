@@ -56,7 +56,7 @@ static size_t   num_mappings;
 
 #define PRINT_ILLEGAL 1
 #define EXIT_ON_ILLEGAL 1
-#define PRINT_MISALIGNED 1
+//#define PRINT_MISALIGNED 1
 
 
 
@@ -202,10 +202,12 @@ void print_illegal(const char*fmt, ...) {
     vsnprintf(buf, sizeof(buf), fmt, args );
     va_end(args);
     ERROR(buf);
-    arm11_Dump();
+#ifdef GDB_STUB
+    if (global_gdb_port) break_bus_error(gdb_memio->data);
+#endif
     //mem_Dbugdump();
 #ifdef EXIT_ON_ILLEGAL
-    exit(1);
+    if (!global_gdb_port) exit(1);
 #endif
 }
 

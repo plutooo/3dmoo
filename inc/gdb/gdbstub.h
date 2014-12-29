@@ -135,5 +135,10 @@ extern "C"
 void
 break_execution(void *data, UNUSED_PARM(uint32_t addr), UNUSED_PARM(int thunmb));
 
+void
+break_bus_error(void *data);
+
+extern u32 global_gdb_port;
+
 #endif /* End of _GDBSTUB_H_ */
 

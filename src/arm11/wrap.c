@@ -439,6 +439,7 @@ void arm11_SaveContext(thread *t)
     t->EFlag = s.EFlag;
     t->AFlag = s.AFlag;
     t->QFlags = s.QFlag;
+    t->TFlag = s.TFlag;
 }
 void arm11_LoadContext(thread *t)
 {
@@ -477,4 +478,5 @@ void arm11_LoadContext(thread *t)
     s.EFlag = t->EFlag;
     s.AFlag = t->AFlag;
     s.QFlag = t->QFlags;
+    s.TFlag = t->TFlag;
 }

@@ -289,6 +289,9 @@ u32 svcRun()
     u8* stack =malloc(stacksize);
     ModuleSupport_mem_AddMappingShared(0x10000000 - stacksize,stacksize, stack, hi->misc[0]);
 
+    u8* tprif = malloc(0x1000 * (MAX_THREADS + 1));
+    ModuleSupport_mem_AddMappingShared(0xFFFF0000 - 0x1000 * MAX_THREADS, 0x1000 * (MAX_THREADS + 1), tprif, hi->misc[0]);
+
     ModuleSupport_threads_New(handle_New(HANDLE_TYPE_THREAD, 0), hi->misc[0], 0x00100000, 0x10000000, argc, prio);
     DEBUG("RUN %08X %08X %08X %08X %08X %08X\n", handle, prio, stacksize, argc, argv, envp);
     return 0;

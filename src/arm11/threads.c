@@ -55,6 +55,18 @@ void ModuleSupport_Threadsadd(u32 modulenum)
 {
     *(threadsproc + modulenum) = (thread *)malloc(sizeof(thread)*(MAX_THREADS));
     memset(*(threadsproc + modulenum), 0, sizeof(thread)*(MAX_THREADS));
+
+    thread threads[MAX_THREADS];
+    memcpy(threads, *(threadsproc + modulenum), sizeof(thread)*(MAX_THREADS)); //load threads
+    u32 num_threads = *(num_threadsproc + modulenum);
+
+    for (int i = 0; i < MAX_THREADS; i++) {
+        threads[i].servaddr = 0xFFFF0000 - (0x1000 * (MAX_THREADS - i)); //there is a mirrow of that addr in wrap.c fix this addr as well if you fix this
+    }
+
+    memcpy(*(threadsproc + modulenum), threads, sizeof(thread)*(MAX_THREADS)); //save threads
+    *(num_threadsproc + modulenum) = num_threads;
+
     num_threadsproc = (u32 *)realloc(num_threadsproc,sizeof(u32)*(modulenum + 1));
     memset(num_threadsproc + modulenum, 0, sizeof(u32*));
 }

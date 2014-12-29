@@ -58,7 +58,7 @@ typedef struct {
     s32 priority;
 
     u32 NFlag, ZFlag, CFlag, VFlag, IFFlags;
-    u32 GEFlag, EFlag, AFlag, QFlags;
+    u32 GEFlag, EFlag, AFlag, QFlags,TFlag;
     u32 decoded, loaded, decoded_addr, loaded_addr;
 
 } thread;

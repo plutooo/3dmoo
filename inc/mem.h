@@ -16,6 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+
 int mem_AddSegment(uint32_t base, uint32_t size, uint8_t* data);
 int mem_Write8(uint32_t addr, uint8_t w);
 u8  mem_Read8(uint32_t addr);
@@ -36,4 +37,6 @@ void mem_Reorder();
 
 #ifdef MODULE_SUPPORT
 void ModuleSupport_MemInit(u32 modulenum);
+void ModuleSupport_Memadd(u32 modulenum, u32 codeset_handle);
+int ModuleSupport_mem_AddMappingShared(uint32_t base, uint32_t size, u8* data, u32 process);
 #endif

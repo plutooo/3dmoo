@@ -22,10 +22,7 @@
 
 extern u32 modulenum;
 
-void ModuleSupport_Memadd(u32 modulenum, u32 codeset_handle);
-void ModuleSupport_Threadsadd(u32 modulenum);
-int ModuleSupport_mem_AddMappingShared(uint32_t base, uint32_t size, u8* data, u32 process);
-u32 ModuleSupport_threads_New(u32 handle, u32 process, u32 ent_pc, u32 stack, u32 ent_r0, u32 prio);
+
 static u32 Read32(uint8_t p[4])
 {
     u32 temp = p[0] | p[1] << 8 | p[2] << 16 | p[3] << 24;

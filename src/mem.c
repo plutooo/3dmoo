@@ -25,7 +25,13 @@
 #include "threads.h"
 #include "gpu.h"
 
+typedef int(*HWread8)(u32);
+typedef int(*HWread16)(u32);
+typedef int(*HWread32)(u32);
 
+typedef void(*HWwrite8)(u32, u32);
+typedef void(*HWwrite16)(u32, u32);
+typedef void(*HWwrite32)(u32, u32);
 
 #ifdef GDB_STUB
 #include "gdb/gdbstub.h"
@@ -43,12 +49,14 @@ typedef struct {
     uint32_t size;
     uint8_t* phys;
     bool     ro;
+    bool     isHW;
 #ifdef MEM_TRACE_EXTERNAL
     bool enable_log;
 #endif
 #ifdef MEM_REORDER
     u64 accesses;
 #endif
+
 } memmap_t;
 
 #define MAX_MAPPINGS 16

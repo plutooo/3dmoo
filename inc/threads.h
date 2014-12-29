@@ -93,6 +93,8 @@ void ModuleSupport_ThreadsInit(u32 modulenum);
 void ModuleSupport_MemInit(u32 modulenum);
 void ModuleSupport_SwapProcessMem(u32 newproc);
 void ModuleSupport_SwapProcessThreads(u32 newproc);
+void ModuleSupport_Threadsadd(u32 modulenum);
+u32 ModuleSupport_threads_New(u32 handle, u32 process, u32 ent_pc, u32 stack, u32 ent_r0, u32 prio);
 #endif
 #define MAX_THREADS 32
 

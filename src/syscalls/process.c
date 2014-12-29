@@ -253,13 +253,14 @@ u32 svcCreateProcess()
 
     u32 handle = handle_New(HANDLE_TYPE_PROCESS, 0);
     handleinfo* hi = handle_Get(handle);
+
+    modulenum++;
     if (hi == NULL)
     {
         DEBUG("out of handles\n");
         return -1;
     }
     hi->misc[0] = modulenum;
-    modulenum++;
     curprocesshandlelist = realloc(curprocesshandlelist, sizeof(u32)*(modulenum + 1));
     ModuleSupport_Memadd(modulenum, codeset_handle);
     arm11_SetR(1, handle);

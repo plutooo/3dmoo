@@ -56,9 +56,9 @@ typedef struct {
 static memmap_t mappings[MAX_MAPPINGS];
 static size_t   num_mappings;
 
-#define MEM_TRACE 1
-#define PRINT_ILLEGAL 1
-#define EXIT_ON_ILLEGAL 1
+//#define MEM_TRACE 1
+//#define PRINT_ILLEGAL 1
+//#define EXIT_ON_ILLEGAL 1
 
 
 #ifdef MODULE_SUPPORT

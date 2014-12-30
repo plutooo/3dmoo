@@ -119,20 +119,22 @@ int main(int argc, char* argv[])
         else if ((strcmp(argv[i], "-region=JP") == 0))config_region = 0;
 
 #ifdef GDB_STUB
-        int gdb_port = 0;
         if ((strcmp(argv[i], "-gdbport") == 0)) {
-            gdb_port = atoi(argv[++i]);
-            if (gdb_port < 1 || gdb_port > 65535)
+            global_gdb_port = atoi(argv[++i]);
+            if (global_gdb_port < 1 || global_gdb_port > 65535)
             {
                 ERROR("gdb port out of range!\n");
                 exit(-1);
             }
         }
-        gdbstub_Init(gdb_port);
 #endif
         if (i >= argc)
             break;
     }
+
+#ifdef GDB_STUB
+    gdbstub_Init(global_gdb_port);
+#endif
 
     signal(SIGINT, AtSig);
 

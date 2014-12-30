@@ -823,7 +823,7 @@ u32 srv_SyncRequest()
     {
         u32 ID = mem_Read32(arm11_ServiceBufferAddress() + 0x84);
         u32 flag = mem_Read32(arm11_ServiceBufferAddress() + 0x88);
-        DEBUG("PublishToSubscriber %08x %08x\n", ID,flag);
+        DEBUG("PublishToSubscriber %08x %08x --STUB--\n", ID,flag);
         mem_Write32(arm11_ServiceBufferAddress() + 0x84, 0); //worked
         return 0;
     }

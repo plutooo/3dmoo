@@ -27,5 +27,10 @@ SERVICE_START(Pxiam9);
 SERVICE_END();
 
 SERVICE_START(Pximc);
-
+SERVICE_CMD(0x000A00C0)   //unk
+{
+    DEBUG("unkA %08x %08x %08x\n", CMD(1), CMD(2), CMD(3));
+    RESP(1, 0); // Result
+    return 0;
+}
 SERVICE_END();

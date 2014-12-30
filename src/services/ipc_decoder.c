@@ -75,7 +75,7 @@ void IPC_readstruct(u32 addr,u8* buffer)
 
             *((u32**)buffer + 1) = (u32*)buffera;
 
-            buffer += 8;
+            buffer += 4 + sizeof(u32*);
             addr += 8;
 
             break;
@@ -105,26 +105,50 @@ void IPC_readstruct(u32 addr,u8* buffer)
 
             break;
         case 0xA:
-            DEBUG("unsupported:Readonly (size %08X) (ptr %08X)\n", (desc >> 4), mem_Read32(addr + 4));
-            mem_Read(buffer, addr, 8);
-            buffer += 8;
-            addr += 8;
+        {
+            u32 size = (desc >> 4);
+            u32 EXaddr = mem_Read32(addr + 4);
             i++;
+
+            mem_Read(buffer, addr, 4);
+            u32* buffera = mem_rawaddr(EXaddr, size);
+
+            *((u32**)buffer + 1) = (u32*)buffera;
+
+            buffer += 4 + sizeof(u32*);
+            addr += 8;
             break;
+        }
         case 0xC:
-            DEBUG("unsupported:Writeonly (size %08X) (ptr %08X)\n", (desc >> 4), mem_Read32(addr + 4));
-            mem_Read(buffer, addr, 8);
-            buffer += 8;
-            addr += 8;
+        {
+            u32 size = (desc >> 4);
+            u32 EXaddr = mem_Read32(addr + 4);
             i++;
+
+            mem_Read(buffer, addr, 4);
+            u32* buffera = mem_rawaddr(EXaddr, size);
+
+            *((u32**)buffer + 1) = (u32*)buffera;
+
+            buffer += 4 + sizeof(u32*);
+            addr += 8;
             break;
+        }
         case 0xE:
-            DEBUG("unsupported:RW (size %08X) (ptr %08X)\n", (desc >> 4), mem_Read32(addr + 4));
-            mem_Read(buffer, addr, 8);
-            buffer += 8;
-            addr += 8;
+        {
+            u32 size = (desc >> 4);
+            u32 EXaddr = mem_Read32(addr + 4);
             i++;
+
+            mem_Read(buffer, addr, 4);
+            u32* buffera = mem_rawaddr(EXaddr, size);
+
+            *((u32**)buffer + 1) = (u32*)buffera;
+
+            buffer += 4 + sizeof(u32*);
+            addr += 8;
             break;
+        }
         default:
             DEBUG("unknown desc %08X %08X\n", desc, mem_Read32(addr + 4));
             mem_Read(buffer, addr, 8);
@@ -183,7 +207,7 @@ void IPC_writestruct(u32 addr, u8* buffer)
         {
             u32 size = (desc >> 14);
             u32 id = (desc >> 10) &0xF;
-            u32* temp = (buf + 1);
+            u32** temp = (u32**)(buf + 1);
             u32* internaladdr = *temp;
             i++;
 
@@ -226,26 +250,74 @@ void IPC_writestruct(u32 addr, u8* buffer)
 
             break;
         case 0xA:
-            DEBUG("unsupported:Readonly (size %08X) (ptr %08X)\n", (desc >> 4), mem_Read32(addr + 4));
-            mem_Write((u8*)buf, addr, 8);
-            buf += 2;
-            addr += 8;
+        {
+            u32 size = (desc >> 4);
+            u32 id = (desc >> 10) & 0xF;
+            u32** temp = (u32**)(buf + 1);
+            u32* internaladdr = *temp;
             i++;
+
+            mem_AddMappingShared(0x70A00000, size, internaladdr);
+
+            u32 tranaddr = 0x70A00000; //there is a way to size check find out how and implement 
+
+            mem_Write32(addr, *buf);
+            buf = (u8*)buf + sizeof(u32*);
+            addr += 4;
+
+            mem_Write32(addr, tranaddr);
+
+            buf++;
+            addr += 8;
+
             break;
+        }
         case 0xC:
-            DEBUG("unsupported:Writeonly (size %08X) (ptr %08X)\n", (desc >> 4), mem_Read32(addr + 4));
-            mem_Write((u8*)buf, addr, 8);
-            buf += 2;
-            addr += 8;
+        {
+            u32 size = (desc >> 4);
+            u32 id = (desc >> 10) & 0xF;
+            u32** temp = (u32**)(buf + 1);
+            u32* internaladdr = *temp;
             i++;
+
+            mem_AddMappingShared(0x70A00000, size, internaladdr);
+
+            u32 tranaddr = 0x70A00000; //there is a way to size check find out how and implement 
+
+            mem_Write32(addr, *buf);
+            buf = (u8*)buf + sizeof(u32*);
+            addr += 4;
+
+            mem_Write32(addr, tranaddr);
+
+            buf++;
+            addr += 8;
+
             break;
+        }
         case 0xE:
-            DEBUG("unsupported:RW (size %08X) (ptr %08X)\n", (desc >> 4), mem_Read32(addr + 4));
-            mem_Write((u8*)buf, addr, 8);
-            buf += 2;
-            addr += 8;
+        {
+            u32 size = (desc >> 4);
+            u32 id = (desc >> 10) & 0xF;
+            u32** temp = (u32**)(buf + 1);
+            u32* internaladdr = *temp;
             i++;
+
+            mem_AddMappingShared(0x70A00000, size, internaladdr);
+
+            u32 tranaddr = 0x70A00000; //there is a way to size check find out how and implement 
+
+            mem_Write32(addr, *buf);
+            buf = (u8*)buf + sizeof(u32*);
+            addr += 4;
+
+            mem_Write32(addr, tranaddr);
+
+            buf++;
+            addr += 8;
+
             break;
+        }
         default:
             DEBUG("unknown desc %08X %08X\n", desc, mem_Read32(addr + 4));
             mem_Write((u8*)buf, addr, 8);

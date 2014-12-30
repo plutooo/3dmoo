@@ -847,6 +847,13 @@ SERVICE_CMD(0x08350080)   // DeleteExtSaveData
     RESP(1, 0);
     return 0;
 }
+SERVICE_CMD(0x08390000)   // SendInitializeInfoTo9
+{
+    DEBUG("SendInitializeInfoTo9\n");
+
+    RESP(1, 0); //Process 9 is ready
+    return 0;
+}
 
 SERVICE_END();
 

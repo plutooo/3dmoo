@@ -205,41 +205,41 @@ void remove_post_exec_fn(void *instance)
 }
 u16 gdb_prefetch16(void *data, u32 adr)
 {
-    return mem_Read16(adr);
+    //return mem_Read16(adr);
 }
 
 u32 gdb_prefetch32(void *data, u32 adr)
 {
-    return mem_Read32(adr);
+    //return mem_Read32(adr);
 }
 
 u8 gdb_read8(void *data, u32 adr)
 {
-    return mem_Read8(adr);
+    //return mem_Read8(adr);
 }
 
 u16 gdb_read16(void *data, u32 adr)
 {
-    return mem_Read16(adr);
+    //return mem_Read16(adr);
 }
 
 u32 gdb_read32(void *data, u32 adr)
 {
-    return mem_Read32(adr);
+    //return mem_Read32(adr);
 }
 
 void gdb_write8(void *data, u32 adr, u8 val)
 {
-    mem_Write8(adr, val);
+    //mem_Write8(adr, val);
 }
 
 void gdb_write16(void *data, u32 adr, u16 val)
 {
-    mem_Write16(adr, val);
+    // mem_Write16(adr, val);
 }
 
 void gdb_write32(void *data, u32 adr, u32 val)
 {
-    mem_Write32(adr, val);
+    //mem_Write32(adr, val);
 }
 #endif

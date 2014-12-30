@@ -81,6 +81,7 @@ u32 ir_rst_SyncRequest();
 u32 ptm_play_SyncRequest();
 u32 cam_u_SyncRequest();
 u32 ldr_ro_SyncRequest();
+u32 Pximc_SyncRequest();
 
 static size_t _strnlen(const char* p, size_t n)
 {
@@ -448,6 +449,12 @@ static struct {
         SERVICE_TYPE_LDR_RO,
         0,
         &ldr_ro_SyncRequest
+    },
+    {
+        "pxi:mc",
+        SERVICE_TYPE_PIX_MC,
+        0,
+        &Pximc_SyncRequest
     }
 };
 
@@ -812,6 +819,14 @@ u32 srv_SyncRequest()
         mem_Write32(arm11_ServiceBufferAddress() + 0x88, 0); //type
         return 0;
 
+    case 0x000C0080: // PublishToSubscriber
+    {
+        u32 ID = mem_Read32(arm11_ServiceBufferAddress() + 0x84);
+        u32 flag = mem_Read32(arm11_ServiceBufferAddress() + 0x88);
+        DEBUG("PublishToSubscriber %08x %08x\n", ID,flag);
+        mem_Write32(arm11_ServiceBufferAddress() + 0x84, 0); //worked
+        return 0;
+    }
 
     case 0x04030082: // RegisterProcess
     {
@@ -957,7 +972,7 @@ u32 svcAcceptSession()
     u32 servhand = *((u32*)servunm->misc_ptr[0] + servunm->misc[0]);
 
     if (servunm->misc[0])
-        servunm->misc_ptr[0] = realloc(servunm->misc_ptr, sizeof(u32)*servunm->misc[0]);
+        servunm->misc_ptr[0] = realloc(servunm->misc_ptr[0], sizeof(u32)*servunm->misc[0]);
     else
     {
         free(servunm->misc_ptr[0]);

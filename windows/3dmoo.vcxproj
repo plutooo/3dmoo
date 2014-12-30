@@ -274,6 +274,7 @@
     <ClCompile Include="..\src\gpu\vec4.c" />
     <ClCompile Include="..\src\handles.c" />
     <ClCompile Include="..\src\gpu\gpu.c" />
+    <ClCompile Include="..\src\io\IO_wr.c" />
     <ClCompile Include="..\src\lib\crypto\aes.c" />
     <ClCompile Include="..\src\lib\crypto\bignum.c" />
     <ClCompile Include="..\src\lib\crypto\nin_public_crypt.c" />
@@ -366,6 +367,7 @@
     <ClInclude Include="..\inc\handles.h" />
     <ClInclude Include="..\inc\hid_user.h" />
     <ClInclude Include="..\inc\init.h" />
+    <ClInclude Include="..\inc\IO\IO_reg.h" />
     <ClInclude Include="..\inc\loader.h" />
     <ClInclude Include="..\inc\mem.h" />
     <ClInclude Include="..\inc\screen.h" />

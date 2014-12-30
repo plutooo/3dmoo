@@ -387,6 +387,9 @@
     <ClCompile Include="..\src\syscalls\process.c">
       <Filter>Source Files\syscalls</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\io\IO_wr.c">
+      <Filter>Source Files\IO</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\inc\handles.h">
@@ -474,6 +477,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\inc\service_macros.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\inc\IO\IO_reg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

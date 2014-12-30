@@ -356,7 +356,8 @@ u32 *ainstr;
                 };
                 *ainstr = subset[((tinstr & (1 << 11)) >> 10) | ((tinstr & (1 << 8)) >> 8)]	/* base */
                           | (tinstr & 0x00FF);	/* mask8 */
-            } else {
+            }
+            else {
                 //e6bf1071 	sxth	r1, r1
                 //e6af1071 	sxtb	r1, r1
                 //e6ff1078 	uxth	r1, r8
@@ -371,12 +372,19 @@ u32 *ainstr;
 
                 if ((tinstr & 0xF00) == 0x200) { //Bit(7) unsigned (set = sxt. cleared = uxt) Bit(6) byte (set = .xtb cleared = .xth) Bit 5-3    Rb src                Bit 2-0    Rd dest
                     *ainstr = subset[((tinstr & (0x3 << 6)) >> 6)] |
-                              (tinstr & 0x7) << 12 |
-                              (tinstr & 0x38) >> 3;
-                } else {
-                    valid = t_undefined;
-                    DEBUG("unk thumb instr %04x\n", tinstr);
+                        (tinstr & 0x7) << 12 |
+                        (tinstr & 0x38) >> 3;
                 }
+                else if ((tinstr & 0x0FC0) == 0x0A00){
+                        u32 Destr = (tinstr & 0x7);
+                        u32 srcr = ((tinstr>>3) & 0x7);
+                        *ainstr = 0xE6BF0F30 | srcr | (Destr<<12);
+                    }
+                    else
+                    {
+                        valid = t_undefined;
+                        DEBUG("unk thumb instr %04x\n", tinstr);
+                    }
 
             }
         }

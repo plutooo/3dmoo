@@ -108,6 +108,20 @@ u32 svcCreateProcess()
 
     DEBUG("CreateProcess %08x %08x %08x --stub--\n", codeset_handle, arm11kernelcaps_ptr, arm11kernelcaps_num);
 
+    u32 handle = handle_New(HANDLE_TYPE_PROCESS, 0);
+    handleinfo* hi = handle_Get(handle);
+
+    modulenum++;
+    if (hi == NULL)
+    {
+        DEBUG("out of handles\n");
+        return -1;
+    }
+    hi->misc[0] = modulenum;
+    curprocesshandlelist = realloc(curprocesshandlelist, sizeof(u32)*(modulenum + 1));
+    ModuleSupport_Memadd(modulenum, codeset_handle);
+
+
 
 
     unsigned int i, j;
@@ -120,9 +134,9 @@ u32 svcCreateProcess()
     memset(systemcallmask, 0, sizeof(systemcallmask));
     memset(interrupt, 0, sizeof(interrupt));
 
-    for (i = 0; i<arm11kernelcaps_num; i++)
+    for (i = 0; i < arm11kernelcaps_num; i++)
     {
-        unsigned int descriptor = mem_Read32(arm11kernelcaps_ptr + i*4);
+        unsigned int descriptor = mem_Read32(arm11kernelcaps_ptr + i * 4);
 
         unknowndescriptor[i] = 0;
 
@@ -132,13 +146,16 @@ u32 svcCreateProcess()
             fprintf(stdout, "Kernel release version: %d.%d\n", (descriptor >> 8) & 0xFF, (descriptor >> 0) & 0xFF);
         else if ((descriptor & (0xf << 28)) == (0xe << 28))
         {
-            for (j = 0; j<4; j++)
+            for (j = 0; j < 4; j++)
                 interrupt[(descriptor >> (j * 7)) & 0x7F] = 1;
         }
         else if ((descriptor & (0xff << 24)) == (0xfe << 24))
             fprintf(stdout, "Handle table size:      0x%X\n", descriptor & 0x3FF);
         else if ((descriptor & (0xfff << 20)) == (0xffe << 20))
+        {
+            mem_AddMappingIO((descriptor & 0xFFFFF) << 12, 1 << 12, modulenum);
             fprintf(stdout, "Mapping IO address:     0x%X (%s)\n", (descriptor & 0xFFFFF) << 12, (descriptor&(1 << 20)) ? "RO" : "RW");
+        }
         else if ((descriptor & (0x7ff << 21)) == (0x7fc << 21))
             fprintf(stdout, "Mapping static address: 0x%X (%s)\n", (descriptor & 0x1FFFFF) << 12, (descriptor&(1 << 20)) ? "RO" : "RW");
         else if ((descriptor & (0x1ff << 23)) == (0x1fe << 23))
@@ -247,19 +264,6 @@ u32 svcCreateProcess()
 
 
 
-
-    u32 handle = handle_New(HANDLE_TYPE_PROCESS, 0);
-    handleinfo* hi = handle_Get(handle);
-
-    modulenum++;
-    if (hi == NULL)
-    {
-        DEBUG("out of handles\n");
-        return -1;
-    }
-    hi->misc[0] = modulenum;
-    curprocesshandlelist = realloc(curprocesshandlelist, sizeof(u32)*(modulenum + 1));
-    ModuleSupport_Memadd(modulenum, codeset_handle);
     arm11_SetR(1, handle);
 
     return 0;

@@ -624,6 +624,7 @@ u32 svcCreateThread()
 
     threads[numthread].cpsr = (ent_pc & 0x1) ? 0x3F : 0x1F; //usermode
     threads[numthread].mode = RESUME;
+    threads[numthread].TFlag = (ent_pc & 0x1);
 
     arm11_SetR(1, hand); // r1 = handle_out
 

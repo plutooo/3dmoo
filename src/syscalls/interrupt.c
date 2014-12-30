@@ -21,8 +21,21 @@
 #include "mem.h"
 #include "handles.h"
 #include "threads.h"
+#include "IO/IO_reg.h"
 
+u32 interrupthandletable[0x100] = {0};
+u32 interruptisManualCleartable[0x100] = { 0 };
+u32 interruptpriotable[0x100] = { 0 };
 
+s32 hwfireInterrupt(u32 id)
+{
+    handleinfo* h = handle_Get(interrupthandletable[id]);
+    if (h != NULL) {
+        h->locked = false;
+        return 1;
+    }
+    return -1;
+}
 
 u32 svcBindInterrupt()
 {
@@ -31,5 +44,8 @@ u32 svcBindInterrupt()
     u32 priority = arm11_R(2);
     u32 isManualClear = arm11_R(3);
     DEBUG("svcBindInterrupt %08x %08x %08x %08x\n", name, syncObject, priority, isManualClear);
+    interrupthandletable[name] = syncObject;
+    interruptisManualCleartable[name] = isManualClear;
+    interruptpriotable[name] = priority;
     return 0;
 }

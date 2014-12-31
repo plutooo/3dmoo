@@ -436,6 +436,7 @@ typedef enum{
 } WrapMode;
 static int GetWrappedTexCoord(WrapMode wrap, int val, int size)
 {
+    if(size == 0) return val;
 #define MAX(x, y) (((x) > (y)) ? (x) : (y))
 #define MIN(x, y) (((x) < (y)) ? (x) : (y))
     int ret = 0;

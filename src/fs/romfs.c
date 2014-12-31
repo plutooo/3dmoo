@@ -56,11 +56,6 @@ static u32 rawromfs_Read(file_type* self, u32 ptr, u32 sz, u64 off, u32* read_ou
     }
 
     u32 read = fread(b, 1, sz, in_fd);
-    if(read != sz) { //eshop dose this
-        ERROR("fread failed\n");
-        free(b);
-        return -1;
-    }
 
     ctr_aes_context ctx;
 

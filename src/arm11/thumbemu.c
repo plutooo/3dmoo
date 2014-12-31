@@ -373,7 +373,13 @@ u32 *ainstr;
                     *ainstr = subset[((tinstr & (0x3 << 6)) >> 6)] |
                               (tinstr & 0x7) << 12 |
                               (tinstr & 0x38) >> 3;
-                } else {
+                }
+                else if ((tinstr & 0x0FC0) == 0x0A00){
+                    u32 Destr = (tinstr & 0x7);
+                    u32 srcr = ((tinstr >> 3) & 0x7);
+                    *ainstr = 0xE6BF0F30 | srcr | (Destr << 12);
+                }
+                else {
                     valid = t_undefined;
                     DEBUG("unk thumb instr %04x\n", tinstr);
                 }
@@ -384,12 +390,27 @@ u32 *ainstr;
     case 24:		/* STMIA */
     case 25:		/* LDMIA */
         /* Format 15 */
-        *ainstr = ((tinstr & (1 << 11))	/* base */
-                   ? 0xE8B00000	/* LDMIA */
-                   : 0xE8A00000)	/* STMIA */
-                  |((tinstr & 0x0700) << (16 - 8))	/* Rb */
-                  |(tinstr & 0x00FF);	/* mask8 */
-        break;
+    {
+        u32 Rb = (tinstr & 0x0700) >> 8;
+        if ((1 << Rb)&tinstr) //no write back if the register is in the list
+        {
+            *ainstr = ((tinstr & (1 << 11))	/* base */
+                ? 0xE8900000	/* LDMIA */
+                : 0xE8800000)	/* STMIA */
+                | ((tinstr & 0x0700) << (16 - 8))	/* Rb */
+                | (tinstr & 0x00FF);	/* mask8 */
+            break;
+        }
+        else
+        {
+            *ainstr = ((tinstr & (1 << 11))	/* base */
+                ? 0xE8B00000	/* LDMIA */
+                : 0xE8A00000)	/* STMIA */
+                | ((tinstr & 0x0700) << (16 - 8))	/* Rb */
+                | (tinstr & 0x00FF);	/* mask8 */
+            break;
+        }
+    }
     case 26:		/* Bcc */
     case 27:		/* Bcc/SWI */
         if ((tinstr & 0x0F00) == 0x0F00) {

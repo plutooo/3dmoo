@@ -46,6 +46,7 @@
 #define framestridetop 0x400490
 #define frameformattop 0x400470
 #define frameselecttop 0x400478
+#define framebuffer_top_size 0x40045C
 #define RGBuponeleft 0x400468
 #define RGBuptwoleft 0x40046C
 #define RGBuponeright 0x400494

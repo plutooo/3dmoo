@@ -49,6 +49,7 @@ void gpu_Init()
     memset(GSPsharedbuff, 0, GSPsharebuffsize);
     memset(GPUshadercodebuffer, 0, 0xFFFF*4);
 
+    gpu_WriteReg32(framebuffer_top_size, 0x019000f0);
     gpu_WriteReg32(frameselecttop, 0);
     gpu_WriteReg32(RGBuponeleft, 0x18000000);
     gpu_WriteReg32(RGBuptwoleft, 0x18000000 + 0x5DC00 * 1);

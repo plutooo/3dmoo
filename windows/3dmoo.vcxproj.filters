@@ -390,6 +390,12 @@
     <ClCompile Include="..\src\io\IO_wr.c">
       <Filter>Source Files\IO</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\fs\nandro.c">
+      <Filter>Source Files\fs</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\fs\nandrw.c">
+      <Filter>Source Files\fs</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\inc\handles.h">

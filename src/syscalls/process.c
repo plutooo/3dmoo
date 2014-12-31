@@ -292,7 +292,7 @@ u32 svcRun()
         return -1;
     }
     u8* stack =malloc(stacksize);
-    memset(stack, 0, stacksize);
+    //memset(stack, 0, stacksize);
     ModuleSupport_mem_AddMappingShared(0x10000000 - stacksize,stacksize, stack, hi->misc[0]);
 
     u8* tprif = malloc(0x1000 * (MAX_THREADS + 1));

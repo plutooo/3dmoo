@@ -358,6 +358,10 @@ static void CommonMemSetup()
     mem_Write32(0x1FF80044, 0x02C00000); //Set App Memory Size to 46MB?
     mem_Write8 (0x1FF800C0, 1); //headset connected
 
+
+    mem_Write8(0x1ff81004, 1); //RUNNING_HW (1=product, 2=devboard, 3=debugger, 4=capture) 
+    mem_Write8(0x1ff81086, 1); //??? RUNNING_HW (1=product, 2=devboard, 3=debugger, 4=capture) 
+
 }
 
 int loader_LoadFile(FILE* fd)

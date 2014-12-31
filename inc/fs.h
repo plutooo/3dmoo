@@ -140,6 +140,10 @@ archive* SaveDatacheck_OpenArchive(file_path path);
 
 archive* exefsfs_OpenArchive(file_path path);
 
+archive* nandrwfs_OpenArchive(file_path path);
+
+archive* nandrofs_OpenArchive(file_path path);
+
 typedef struct {
     const char* name;
     u32 id;
@@ -192,6 +196,16 @@ static archive_type archive_types[] =  {
         "exefs",
         0x2345678E,
         exefsfs_OpenArchive
+    },
+    {
+        "NAND RW",
+        0x1234567D,
+        nandrwfs_OpenArchive
+    },
+    {
+        "NAND RO",
+        0x1234567E,
+        nandrofs_OpenArchive
     }
 };
 

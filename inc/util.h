@@ -144,13 +144,13 @@ static void color_restore(int old)
 #define GPUDEBUG(...) ((void)0)
 #endif
 
-#ifndef DISABLE_DEBUG
+/*#ifndef DISABLE_DEBUG
 #define THREADDEBUG(...) do {                                 \
     DEBUG(__VA_ARGS__);                   \
 } while (0)
-#else
+#else*/
 #define THREADDEBUG(...) ((void)0)
-#endif
+//#endif
 
 #ifndef DISABLE_DEBUG
 #define LOG(...) do {                                 \

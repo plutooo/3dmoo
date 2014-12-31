@@ -772,7 +772,7 @@ SERVICE_CMD(0x08490040)   // GetArchiveResource
 
 SERVICE_CMD(0x08610042)   // InitializeWithSdkVersion
 {
-    DEBUG("InitializeWithSdkVersion -- TODO --\n");
+    DEBUG("InitializeWithSdkVersion %08x -- TODO --\n",CMD(1));
 
     RESP(1, 0); // Result
     return 0;
@@ -854,7 +854,13 @@ SERVICE_CMD(0x08390000)   // SendInitializeInfoTo9
     RESP(1, 0); //Process 9 is ready
     return 0;
 }
+SERVICE_CMD(0x08570080)   // DeleteExtSaveData
+{
+    DEBUG("DeleteExtSaveData %08x %08x\n", CMD(1), CMD(2));
 
+    RESP(1, 0); //Process 9 is ready
+    return 0;
+}
 SERVICE_END();
 
 

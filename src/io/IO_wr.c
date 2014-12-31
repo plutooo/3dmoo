@@ -93,7 +93,7 @@ void IO_Write8(u32 addr,u8 v)
     }
     case 0x1ec44000:
     {
-        DEBUG("w8 %08x %02x\n", addr, v);
+        //DEBUG("w8 %08x %02x\n", addr, v);
         SPI2DATA = v;
         break;
     }

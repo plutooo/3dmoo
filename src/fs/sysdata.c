@@ -326,7 +326,7 @@ int sysdata_CreateDir(archive* self, file_path path)
 archive* sysdata_OpenArchive(file_path path)
 {
     // SysData needs a binary path with an 8-byte id.
-    if(/*path.type != PATH_BINARY ||*/ path.size != 8) { //this is not true ptm opens it with type 0x0fffff3c which is wrong but works
+    if(path.type != PATH_BINARY || path.size != 8) { //this is not true ptm opens it with type 0x0fffff3c which is wrong but works
         ERROR("Unknown SysData path.\n");
         return NULL;
     }

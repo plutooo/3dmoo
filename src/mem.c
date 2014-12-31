@@ -52,14 +52,14 @@ typedef struct {
 
 } memmap_t;
 
-#define MAX_MAPPINGS 16
+#define MAX_MAPPINGS 32
 
 static memmap_t mappings[MAX_MAPPINGS];
 static size_t   num_mappings;
 
 //#define MEM_TRACE 1
-//#define PRINT_ILLEGAL 1
-//#define EXIT_ON_ILLEGAL 1
+#define PRINT_ILLEGAL 1
+#define EXIT_ON_ILLEGAL 1
 
 
 #ifdef MODULE_SUPPORT
@@ -334,11 +334,17 @@ int mem_AddMappingShared(uint32_t base, uint32_t size, u8* data)
 
     size_t i = num_mappings, j;
 
+    mappings[i].base = base;
+    mappings[i].size = size;
+
+    bool ovelap = false;
+
     for (j = 0; j<num_mappings; j++) {
         if (Overlaps(&mappings[j], &mappings[i])) {
-            ERROR("trying to add overlapping mapping %08x, size=%08x.\n",
-                  base, size);
-            return 2;
+            ERROR("trying to add overlapping mapping overwriting %08x, size=%08x.\n",base, size);
+            ovelap = true;
+            i = j;
+            break;
         }
     }
 
@@ -360,8 +366,8 @@ int mem_AddMappingShared(uint32_t base, uint32_t size, u8* data)
         mappings[i].enable_log = false;
     }
 #endif
-
-    num_mappings++;
+    if (!ovelap)
+        num_mappings++;
     return 0;
 }
 
@@ -399,8 +405,10 @@ int mem_Write8(uint32_t addr, uint8_t w)
 #ifdef MEM_TRACE_EXTERNAL
             if (mappings[i].enable_log)fprintf(stderr, "w8 %08x <- w=%02x pc=%08x\n", addr, w & 0xff, s.Reg[15]);
 #endif
-            if (mappings[i].isHW)
+            if (mappings[i].isHW){
                 IO_Write8(addr, w);
+            return;
+        }
             else
                 mappings[i].phys[addr - mappings[i].base] = w;
             return 0;
@@ -472,8 +480,10 @@ int mem_Write16(uint32_t addr, uint16_t w)
             if (mappings[i].enable_log)fprintf(stderr, "w16 %08x <- w=%04x pc=%08x\n", addr, w & 0xffff, s.Reg[15]);
 #endif
             // Unaligned.
-            if (mappings[i].isHW)
+            if (mappings[i].isHW) {
                 IO_Write16(addr, w);
+            return;
+        }
             else
             {
                 if (addr & 1) {
@@ -499,6 +509,7 @@ int mem_Write16(uint32_t addr, uint16_t w)
 
 uint16_t mem_Read16(uint32_t addr)
 {
+
     if ((addr & 0xFFFF0000) == 0x1FF80000) { //wrong
         ERROR("ARM11 kernel read 16 %08x\n", addr);
     }
@@ -520,6 +531,7 @@ uint16_t mem_Read16(uint32_t addr)
 
             if (mappings[i].isHW)
                 return IO_Read16(addr);
+
             else
             // Unaligned.
             if (addr & 1) {
@@ -559,7 +571,7 @@ int mem_Write32(uint32_t addr, uint32_t w)
 #endif
     size_t i;
     for(i=0; i<num_mappings; i++) {
-        if(Contains(&mappings[i], addr, 4)) {
+        if (Contains(&mappings[i], addr, 4)) {
 
 #ifdef MEM_REORDER
             mappings[i].accesses += 4;
@@ -570,8 +582,10 @@ int mem_Write32(uint32_t addr, uint32_t w)
                 fprintf(stderr, "w32 %08x <- w=%08x pc=%08x\n", addr, w, s.Reg[15]);
 #endif
 
-            if (mappings[i].isHW)
+            if (mappings[i].isHW){
                 IO_Write32(addr, w);
+                return;
+        }
             else
             {
                 // Unaligned.

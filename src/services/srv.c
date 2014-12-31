@@ -495,6 +495,7 @@ u32 services_SyncRequest(handleinfo* h, bool *locked)
         }
         else
         {
+            DEBUG("serv: %s\n", h->misc_ptr[3]);
             IPC_readstruct(arm11_ServiceBufferAddress() + 0x80, h->misc_ptr[0]);
             h->misc[0] |= HANDLE_SERV_STAT_SYN;
             *locked = true;
@@ -511,6 +512,7 @@ u32 services_WaitSynchronization(handleinfo* h, bool *locked)
 {
     if (h->misc[0] & HANDLE_SERV_STAT_REPLY) {
         h->misc[0] &= ~HANDLE_SERV_STAT_REPLY;
+        DEBUG("serv: %s\n",h->misc_ptr[3]);
         IPC_writestruct(arm11_ServiceBufferAddress() + 0x80, h->misc_ptr[0]);
         *locked = 0;
         return 0;
@@ -580,25 +582,62 @@ u32 svc_serverWaitSynchronization(handleinfo* h, bool *locked)
 
 u32 eventhandle;
 
+u32* srvhandleslist = NULL;
+u32* semahandleslist = NULL;
+u32 srvhandleslistinlist = 0;
+
 u32 srv_InitHandle()
 {
     // Create a handle for srv: port.
-    arm11_SetR(1, handle_New(HANDLE_TYPE_PORT, PORT_TYPE_SRV));
+    u32 servport = handle_New(HANDLE_TYPE_PORT, PORT_TYPE_SRV);
+    arm11_SetR(1, servport);
     eventhandle = handle_New(HANDLE_TYPE_SEMAPHORE, 0);
 
 
-    handleinfo* h = handle_Get(eventhandle);
-    if (h == NULL) {
+    handleinfo* ha = handle_Get(eventhandle);
+    if (ha == NULL) {
         DEBUG("failed to get newly created semaphore\n");
         PAUSE();
         return -1;
     }
 
-    h->locked = true;
+    ha->locked = true;
 
-    h->misc[0] = 0x10; //there are 0x10 events we know 2 non of them are used here
-    h->misc[1] = 0x10;
+    ha->misc[0] = 0x10;
+    ha->misc[1] = 0x10;
 
+    //event stuff
+
+    srvhandleslistinlist++;
+    srvhandleslist = realloc(srvhandleslist, srvhandleslistinlist*sizeof(u32));
+    semahandleslist = realloc(semahandleslist, srvhandleslistinlist*sizeof(u32));
+    semahandleslist[srvhandleslistinlist - 1] = eventhandle;
+    srvhandleslist[srvhandleslistinlist - 1] = servport;
+
+    handleinfo* servhandle = handle_Get(servport);
+    if (ha == NULL) {
+        DEBUG("failed to get newly created semaphore\n");
+        PAUSE();
+        return -1;
+    }
+    servhandle->misc_ptr[0] = NULL; //waiting events
+    servhandle->misc[0] = 0;
+    servhandle->misc_ptr[1] = NULL; //allocd events
+    servhandle->misc[1] = 0;
+    return 0;
+}
+
+u32 sendevent(u32 flag,u32 name) //todo what flags only send to the one that allocated something?
+{
+    for (int i = 0; i < srvhandleslistinlist; i++)
+    {
+        handleinfo* serv = handle_Get(srvhandleslist[i]);
+        handleinfo* smea = handle_Get(semahandleslist[i]);
+        smea->misc[0]--;
+        serv->misc[0]++;
+        serv->misc_ptr[0] = realloc(serv->misc_ptr[0], serv->misc[0] * sizeof(u32));
+        ((u32*)(serv->misc_ptr[0]))[serv->misc[0] - 1] = name;
+    }
     return 0;
 }
 
@@ -617,13 +656,9 @@ struct {
     uint32_t unk2;
 } req;
 
-u32 srv_SyncRequest()
-{
-    u32 cid = mem_Read32(arm11_ServiceBufferAddress() + 0x80);
+SERVICE_START(srv);
 
-    // Read command-id.
-    switch(cid) {
-    case 0x10002:
+SERVICE_CMD(0x10002)
         DEBUG("srv_Initialize\n");
 
         // XXX: check +4, flags?
@@ -631,7 +666,7 @@ u32 srv_SyncRequest()
         PAUSE();
         return 0;
 
-    case 0x20000:
+SERVICE_CMD(0x20000)
         DEBUG("srv_GetProcSemaphore\n");
 
         mem_Write32(arm11_ServiceBufferAddress() + 0x84, 0); //no error
@@ -642,7 +677,7 @@ u32 srv_SyncRequest()
         char names[9];
 
 
-    case 0x00030100:
+SERVICE_CMD(0x00030100)
         DEBUG("srv_registerService\n");
 
         // Read rest of command header
@@ -676,7 +711,7 @@ u32 srv_SyncRequest()
         ownservice_num++;
         return 0;
 
-    case 0x000400C0:
+SERVICE_CMD(0x000400C0)
         DEBUG("srv_UnRegisterService --todo--\n");
 
         // Read rest of command header
@@ -689,7 +724,7 @@ u32 srv_SyncRequest()
 
         return 0;
 
-    case 0x50100:
+SERVICE_CMD(0x50100)
         DEBUG("srv_GetServiceHandle\n");
 
         // Read rest of command header
@@ -732,6 +767,8 @@ u32 srv_SyncRequest()
 
                     servunm->misc_ptr[0] = realloc(servunm->misc_ptr[0], sizeof(u32)*servunm->misc[0]);
 
+                    servunm->misc_ptr[3] = ownservice[i].name;
+
                     *((u32*)servunm->misc_ptr[0] + servunm->misc[0] - 1) = servhand;
 
                     // Write handle_out.
@@ -771,7 +808,7 @@ u32 srv_SyncRequest()
         mem_Write32(arm11_ServiceBufferAddress() + 0x8C, 0xDEADBABE);
         return 0;
 
-    case 0x00080100:
+SERVICE_CMD(0x00080100)
         DEBUG("srv_GetHandle\n");
 
         // Read rest of command header
@@ -794,7 +831,7 @@ u32 srv_SyncRequest()
         return 0;
 
 
-    case 0x90040: // EnableNotificationType
+SERVICE_CMD(0x90040) // EnableNotificationType
         DEBUG("srv_EnableNotificationType\n");
 
         u32 type = mem_Read32(arm11_ServiceBufferAddress() + 0x84);
@@ -803,7 +840,7 @@ u32 srv_SyncRequest()
         mem_Write32(arm11_ServiceBufferAddress() + 0x84, 0);
         return 0;
 
-    case 0xa0040: // DisableNotificationType
+SERVICE_CMD(0xa0040) // DisableNotificationType
         DEBUG("srv_DisableNotificationType\n");
 
         type = mem_Read32(arm11_ServiceBufferAddress() + 0x84);
@@ -812,23 +849,27 @@ u32 srv_SyncRequest()
         mem_Write32(arm11_ServiceBufferAddress() + 0x84, 0); //no error
         return 0;
 
-    case 0xB0000: // GetNotificationType
-        DEBUG("srv_GetNotificationType\n");
-        //mem_Dbugdump();
-        mem_Write32(arm11_ServiceBufferAddress() + 0x84, 0); //worked
-        mem_Write32(arm11_ServiceBufferAddress() + 0x88, 0); //type
-        return 0;
+SERVICE_CMD(0xB0000) // GetNotificationType
+        {
+            DEBUG("srv_GetNotificationType\n");
+            //mem_Dbugdump();
+            mem_Write32(arm11_ServiceBufferAddress() + 0x84, 0); //worked
+            h->misc[0]--;
+            mem_Write32(arm11_ServiceBufferAddress() + 0x88, ((u32*)(h->misc_ptr[0]))[h->misc[0]]); //type
+            return 0;
+        }
 
-    case 0x000C0080: // PublishToSubscriber
+SERVICE_CMD(0x000C0080) // PublishToSubscriber
     {
         u32 ID = mem_Read32(arm11_ServiceBufferAddress() + 0x84);
         u32 flag = mem_Read32(arm11_ServiceBufferAddress() + 0x88);
         DEBUG("PublishToSubscriber %08x %08x --STUB--\n", ID,flag);
+        sendevent(flag,ID);
         mem_Write32(arm11_ServiceBufferAddress() + 0x84, 0); //worked
         return 0;
     }
 
-    case 0x04030082: // RegisterProcess
+SERVICE_CMD(0x04030082) // RegisterProcess
     {
         u32 pcid = mem_Read32(arm11_ServiceBufferAddress() + 0x84);
         u32 wordsz = mem_Read32(arm11_ServiceBufferAddress() + 0x88);
@@ -850,16 +891,7 @@ u32 srv_SyncRequest()
         return 0;
     }
 
-    default:
-        ERROR("Unimplemented command %08x in \"srv:\"\n", cid);
-        arm11_Dump();
-        mem_Write32(arm11_ServiceBufferAddress() + 0x84, 0xFFFFFFFF); //worked
-        return 0;
-        //exit(1);
-    }
-
-    return 0;
-}
+SERVICE_END();
 
 u32 times = 0;
 u32 svcReplyAndReceive()
@@ -992,6 +1024,7 @@ u32 svcAcceptSession()
 
     serv->misc_ptr[0] = malloc(0x200);
     sserv->misc_ptr[0] = serv->misc_ptr[0];
+    serv->misc_ptr[3] = servunm->misc_ptr[3];
 
     DEBUG("AcceptSession %08x servicehand = %08x\n", session, servhand);
 

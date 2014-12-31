@@ -46,4 +46,17 @@ SERVICE_CMD(0x00020244)
     return 0;
 }
 
+SERVICE_CMD(0x000D0042) //GenerateRandomBytes
+{
+    u32 size = CMD(1);
+    u32 ouput = CMD(3);
+
+
+
+    DEBUG("GenerateRandomBytes %08x %08x --STUB--\n", size, ouput);
+
+    RESP(1, 0); // Result this is a patch to allow homebrew
+    return 0;
+}
+
 SERVICE_END();

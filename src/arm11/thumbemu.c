@@ -392,12 +392,27 @@ u32 *ainstr;
     case 24:		/* STMIA */
     case 25:		/* LDMIA */
         /* Format 15 */
-        *ainstr = ((tinstr & (1 << 11))	/* base */
-                   ? 0xE8B00000	/* LDMIA */
-                   : 0xE8A00000)	/* STMIA */
-                  |((tinstr & 0x0700) << (16 - 8))	/* Rb */
-                  |(tinstr & 0x00FF);	/* mask8 */
-        break;
+    {
+        u32 Rb = (tinstr & 0x0700) >> 8;
+        if ((1 << Rb)&tinstr) //ichfly no write back here
+        {
+            *ainstr = ((tinstr & (1 << 11))	/* base */
+                ? 0xE8900000	/* LDMIA */
+                : 0xE8800000)	/* STMIA */
+                | ((tinstr & 0x0700) << (16 - 8))	/* Rb */
+                | (tinstr & 0x00FF);	/* mask8 */
+            break;
+        }
+        else
+        {
+            *ainstr = ((tinstr & (1 << 11))	/* base */
+                ? 0xE8B00000	/* LDMIA */
+                : 0xE8A00000)	/* STMIA */
+                | ((tinstr & 0x0700) << (16 - 8))	/* Rb */
+                | (tinstr & 0x00FF);	/* mask8 */
+            break;
+        }
+    }
     case 26:		/* Bcc */
     case 27:		/* Bcc/SWI */
         if ((tinstr & 0x0F00) == 0x0F00) {

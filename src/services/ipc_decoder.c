@@ -426,20 +426,60 @@ void IPC_debugprint(u32 addr)
              DEBUG("kernelpanic %08X\n", desc);
              break;
          case 0xA:
-             DEBUG("Readonly (size %08X) (ptr %08X)\n", (desc >> 4), mem_Read32(addr + 4));
+         {
+             u32 inaddr = mem_Read32(addr + 4);
+             u32 size = (desc >> 4);
+
+             DEBUG("Readonly (size %08X) (ptr %08X)\n", size, inaddr);
+
+             for (u32 i = 0; i < size; i++)
+             {
+                 u8 temp = mem_Read8(inaddr);
+                 printf("%02X ", temp);
+                 inaddr++;
+             }
+             printf("\n");
+
              addr += 4;
              i++;
              break;
+         }
          case 0xC:
-             DEBUG("Writeonly (size %08X) (ptr %08X)\n", (desc >> 4), mem_Read32(addr + 4));
+         {
+             u32 inaddr = mem_Read32(addr + 4);
+             u32 size = (desc >> 4);
+
+             DEBUG("Writeonly (size %08X) (ptr %08X)\n", size, inaddr);
+
+             for (u32 i = 0; i < size; i++)
+             {
+                 u8 temp = mem_Read8(inaddr);
+                 printf("%02X ", temp);
+                 inaddr++;
+             }
+             printf("\n");
              addr += 4;
              i++;
              break;
+         }
          case 0xE:
-             DEBUG("RW (size %08X) (ptr %08X)\n", (desc >> 4), mem_Read32(addr + 4));
+         {
+             u32 inaddr = mem_Read32(addr + 4);
+             u32 size = (desc >> 4);
+
+             DEBUG("RW (size %08X) (ptr %08X)\n", size, inaddr);
+
+             for (u32 i = 0; i < size; i++)
+             {
+                 u8 temp = mem_Read8(inaddr);
+                 printf("%02X ", temp);
+                 inaddr++;
+             }
+             printf("\n");
              addr += 4;
              i++;
              break;
+         }
          default:
              DEBUG("unknown desc %08X %08X\n", desc, mem_Read32(addr + 4));
              addr += 4;

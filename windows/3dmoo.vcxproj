@@ -257,6 +257,8 @@
     <ClCompile Include="..\src\config.c" />
     <ClCompile Include="..\src\fs\exefs.c" />
     <ClCompile Include="..\src\fs\extsavedata.c" />
+    <ClCompile Include="..\src\fs\nandro.c" />
+    <ClCompile Include="..\src\fs\nandrw.c" />
     <ClCompile Include="..\src\fs\romfs.c" />
     <ClCompile Include="..\src\fs\savedata.c" />
     <ClCompile Include="..\src\fs\sdmc.c" />

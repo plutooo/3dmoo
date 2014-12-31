@@ -23,7 +23,7 @@
 
 // services/srv.c
 u32 srv_InitHandle();
-u32 srv_SyncRequest();
+u32 srv_SyncRequest(handleinfo* h);
 
 
 
@@ -34,7 +34,7 @@ u32 err_f_InitHandle()
     arm11_Dump();
     return 0;
 }
-u32 err_f_SyncRequest()
+u32 err_f_SyncRequest(handleinfo* h)
 {
     u32 cid = mem_Read32(arm11_ServiceBufferAddress() + 0x80);
 
@@ -57,8 +57,8 @@ u32 err_f_SyncRequest()
 static struct {
     const char* name;
     u32 subtype;
-    u32 (*fnInitHandle)();
-    u32 (*fnSyncRequest)();
+    u32(*fnInitHandle)();
+    u32(*fnSyncRequest)(handleinfo* h);
 } ports[] = {
     // Ports are declared here.
     {
@@ -120,7 +120,7 @@ u32 port_SyncRequest(handleinfo* h, bool *locked)
 
     for(i=0; i<ARRAY_SIZE(ports); i++) {
         if(h->subtype == ports[i].subtype)
-            return ports[i].fnSyncRequest();
+            return ports[i].fnSyncRequest(h);
     }
 
     // This should never happen.

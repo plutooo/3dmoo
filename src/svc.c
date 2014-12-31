@@ -147,7 +147,7 @@ void svc_Execute(ARMul_State * state, ARMword num)
     if (name == NULL)
         name = "Unknown";
 
-    LOG("\n>> svc%s (0x%x)\n", name, num);
+    //LOG("\n>> svc%s (0x%x)\n", name, num);
 
     switch (num) {
     case 1:

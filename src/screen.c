@@ -41,6 +41,14 @@ void screen_Init()
         exit(1);
     }
 
+    renderer = SDL_CreateRenderer(win, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+    if(renderer == NULL){
+        SDL_DestroyWindow(win);
+        ERROR("SDL_CreateRenderer Error: %s\n",SDL_GetError());
+        SDL_Quit();
+        return 1;
+    }
+
     bitmapSurface = SDL_GetWindowSurface(win);
 }
 

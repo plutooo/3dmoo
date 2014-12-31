@@ -95,17 +95,9 @@ static u32 nandrwfs_OpenFile(archive* self, file_path path, u32 flags, u32 attr)
 
     char me[0x10];
 
-    if (mem_Read(me, path.ptr, 0x10) != 0) {
-        ERROR("Got unsafe path.\n");
-        return 0;
-    }
-
-    snprintf(tmp,
-        sizeof(tmp),
-        "%s",
-        &me[4]);
 
 
+    fs_PathToString(path.type, path.ptr, path.size, tmp, sizeof(tmp));
     // Generate path on host file system
     snprintf(p, 256, "rw/%s",
         tmp);

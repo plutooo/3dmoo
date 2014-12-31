@@ -627,16 +627,26 @@ u32 srv_InitHandle()
     return 0;
 }
 
-u32 sendevent(u32 flag,u32 name) //todo what flags only send to the one that allocated something?
+u32 sendevent(u32 flag,u32 name)
 {
     for (int i = 0; i < srvhandleslistinlist; i++)
     {
         handleinfo* serv = handle_Get(srvhandleslist[i]);
         handleinfo* smea = handle_Get(semahandleslist[i]);
-        smea->misc[0]--;
-        serv->misc[0]++;
-        serv->misc_ptr[0] = realloc(serv->misc_ptr[0], serv->misc[0] * sizeof(u32));
-        ((u32*)(serv->misc_ptr[0]))[serv->misc[0] - 1] = name;
+        bool have = false;
+        for (int i = 0; i < serv->misc[1]; i++)
+        {
+            
+            if (((u32*)(serv->misc_ptr[1]))[serv->misc[1] - 1] == name)
+                have = true;
+        }
+        if (have)
+        {
+            smea->misc[0]--;
+            serv->misc[0]++;
+            serv->misc_ptr[0] = realloc(serv->misc_ptr[0], serv->misc[0] * sizeof(u32));
+            ((u32*)(serv->misc_ptr[0]))[serv->misc[0] - 1] = name;
+        }
     }
     return 0;
 }
@@ -835,7 +845,12 @@ SERVICE_CMD(0x90040) // EnableNotificationType
         DEBUG("srv_EnableNotificationType\n");
 
         u32 type = mem_Read32(arm11_ServiceBufferAddress() + 0x84);
-        DEBUG("STUBBED, type=%x\n", type);
+        DEBUG("type=%x\n", type);
+
+        h->misc[1]++;
+        h->misc_ptr[1] = realloc(h->misc_ptr[1], h->misc[1] * sizeof(u32));
+        ((u32*)(h->misc_ptr[1]))[h->misc[1] - 1] = type;
+
 
         mem_Write32(arm11_ServiceBufferAddress() + 0x84, 0);
         return 0;

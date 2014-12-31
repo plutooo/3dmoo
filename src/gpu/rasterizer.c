@@ -484,10 +484,45 @@ static unsigned NibblesPerPixel(TextureFormat format) {
         case I8:
         case A8:
         case IA4:
+        case ETC1:
+        case ETC1A4:
         default:  // placeholder for yet unknown formats
             return 2;
     }
 }
+
+const int ETC1Modifiers[][2] =
+{
+    { 2, 8 },
+    { 5, 17 },
+    { 9, 29 },
+    { 13, 42 },
+    { 18, 60 },
+    { 24, 80 },
+    { 33, 106 },
+    { 47, 183 }
+};
+
+static int ColorClamp(int Color)
+{
+    if(Color > 255) Color = 255;
+    if(Color < 0) Color = 0;
+    return Color;
+}
+
+int Etc1BlockStart(int width, int x, int y, bool HasAlpha)
+{
+    int num = x / 4;
+    int num2 = y / 4;
+    int num3 = x / 8;
+    int num4 = y / 8;
+    int numBlocks = num3 + (num4*(width / 8));
+    int numBlocksInBytes = numBlocks * 4;
+    numBlocksInBytes += num & 1;
+    numBlocksInBytes += (num2 & 1) * 2;
+    return (numBlocksInBytes*(HasAlpha ? 16 : 8));
+}
+
 const struct clov4 LookupTexture(const u8* source, int x, int y, const TextureFormat format, int stride, int width, int height, bool disable_alpha)
 {
     //DEBUG("Format=%d\n", format);
@@ -715,6 +750,74 @@ const struct clov4 LookupTexture(const u8* source, int x, int y, const TextureFo
             break;
         }
 
+        case ETC1:
+        case ETC1A4:
+        {
+            //Based on code from EveryFileExplorer by Gericom
+            const u8* source_ptr = source;
+            u32 offs = Etc1BlockStart(stride, x, y, format == ETC1A4);
+
+            u64 alpha = 0xFFFFFFFFFFFFFFFF;
+            if(format == ETC1A4)
+            {
+                alpha = *(u64*)&source_ptr[offs];
+                offs += 8;
+            }
+            u64 data = *(u64*)&source_ptr[offs];
+            bool diffbit = ((data >> 33) & 1) == 1;
+            bool flipbit = ((data >> 32) & 1) == 1; //0: |||, 1: |-|
+            int r1, r2, g1, g2, b1, b2;
+            if(diffbit) //'differential' mode
+            {
+                int r = (int)((data >> 59) & 0x1F);
+                int g = (int)((data >> 51) & 0x1F);
+                int b = (int)((data >> 43) & 0x1F);
+                r1 = (r << 3) | ((r & 0x1C) >> 2);
+                g1 = (g << 3) | ((g & 0x1C) >> 2);
+                b1 = (b << 3) | ((b & 0x1C) >> 2);
+                r += (int)((data >> 56) & 0x7) << 29 >> 29;
+                g += (int)((data >> 48) & 0x7) << 29 >> 29;
+                b += (int)((data >> 40) & 0x7) << 29 >> 29;
+                r2 = (r << 3) | ((r & 0x1C) >> 2);
+                g2 = (g << 3) | ((g & 0x1C) >> 2);
+                b2 = (b << 3) | ((b & 0x1C) >> 2);
+            }
+            else //'individual' mode
+            {
+                r1 = (int)((data >> 60) & 0xF) * 0x11;
+                g1 = (int)((data >> 52) & 0xF) * 0x11;
+                b1 = (int)((data >> 44) & 0xF) * 0x11;
+                r2 = (int)((data >> 56) & 0xF) * 0x11;
+                g2 = (int)((data >> 48) & 0xF) * 0x11;
+                b2 = (int)((data >> 40) & 0xF) * 0x11;
+            }
+            int Table1 = (int)((data >> 37) & 0x7);
+            int Table2 = (int)((data >> 34) & 0x7);
+
+            int wantedY = y & 3;
+            int wantedX = x & 3;
+            int val = (int)((data >> (wantedX * 4 + wantedY)) & 0x1);
+            bool neg = ((data >> (wantedX * 4 + wantedY + 16)) & 0x1) == 1;
+
+            if((flipbit && wantedY < 2) || (!flipbit && wantedX < 2))
+            {
+                int add = ETC1Modifiers[Table1][val] * (neg ? -1 : 1);
+                ret.v[0] = (u8)ColorClamp(r1 + add);
+                ret.v[1] = (u8)ColorClamp(g1 + add);
+                ret.v[2] = (u8)ColorClamp(b1 + add);
+            }
+            else
+            {
+                int add = ETC1Modifiers[Table2][val] * (neg ? -1 : 1);
+                ret.v[0] = (u8)ColorClamp(r2 + add);
+                ret.v[1] = (u8)ColorClamp(g2 + add);
+                ret.v[2] = (u8)ColorClamp(b2 + add);
+            }
+            ret.v[3] = disable_alpha ? 255 : (u8)(((alpha >> ((wantedX * 4 + wantedY) * 4)) & 0xF) * 0x11);
+            break;
+        }
+
+
         default:
             DEBUG("Unknown texture format: 0x%08X\n", (u32)format);
             break;
@@ -863,7 +966,9 @@ void rasterizer_ProcessTriangle(const struct OutputVertex *v0,
                     row_stride = NibblesPerPixel(format) * width / 2;
 
                     //Flip it vertically
-                    t = height - 1 - t;
+                    //Don't flip for ETC1/ETC1A4
+                    if(format < ETC1)
+                        t = height - 1 - t;
                     //TODO: Fix this up so it works correctly.
 
                     /*int texel_index_within_tile = 0;

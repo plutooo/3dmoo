@@ -480,3 +480,8 @@ void arm11_LoadContext(thread *t)
     s.QFlag = t->QFlags;
     s.TFlag = t->TFlag;
 }
+
+u64 arm11_GetTicks()
+{
+    return ARMul_Time(&s);
+}

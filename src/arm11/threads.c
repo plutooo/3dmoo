@@ -247,20 +247,27 @@ void threads_Execute()
 #else
     u32 t;
     bool nothreadused = true;
-    for (t = 0; t < threads_Count(); t++) {
+    const int frame_cycles = 268123480 / 60;
+    const int frame_ticks = frame_cycles / 3;
+    u64 last_line_ticks = 0;
+    for (t = 0; t < threads_Count(); t++)
+    {
+        u32 height = (gpu_ReadReg32(framebuffer_top_size) >> 16) & 0xFFFF;
+        u64 ticks = arm11_GetTicks();
 
-        signed long long diff = s.NumInstrs - last_one;
-
-        for (; diff >(11172 * 16); diff -= (11172 * 16)) {
+        // Synchronize line...
+        if((ticks - last_line_ticks) >= frame_ticks / height) {
             gpu_SendInterruptToAll(2);
             line++;
-            if (line == 400) {
-                gpu_SendInterruptToAll(3);
-                line = 0;
-            }
+            last_line_ticks = ticks;
         }
-        last_one = s.NumInstrs - diff;//the cycels we have not used
-        s.NumInstrs += 11172; //should be less but we have to debug stuff and that makes if faster (normal ~1000)
+
+        // Synchronize frame...
+        if(line >= height) {
+            line = 0;
+            gpu_SendInterruptToAll(3);
+        }
+
         if (!threads_IsThreadActive(t)) {
             THREADDEBUG("Skipping thread %d..\n", t);
             continue;

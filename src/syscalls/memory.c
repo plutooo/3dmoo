@@ -37,13 +37,23 @@
 
 u32 linearalloced = 0;
 
+u32 svcControlMemory_wrap(u32 op, u32 addr0, u32 addr1, u32 size, u32 perm, u32* newaddr);
+
 u32 svcControlMemory()
 {
-    u32 op    = arm11_R(0);
+    u32 op = arm11_R(0);
     u32 addr0 = arm11_R(1);
     u32 addr1 = arm11_R(2);
-    u32 size  = arm11_R(3);
-    u32 perm    = arm11_R(4);
+    u32 size = arm11_R(3);
+    u32 perm = arm11_R(4);
+    u32 newaddr = 0;
+    s32 ret = svcControlMemory_wrap(op, addr0, addr1, size, perm, &newaddr);
+    arm11_SetR(1, newaddr);
+    return ret;
+}
+
+u32 svcControlMemory_wrap(u32 op, u32 addr0, u32 addr1, u32 size, u32 perm, u32* newaddr)
+{
 
     const char* ops;
     switch(op & 0xFF) {
@@ -213,21 +223,21 @@ u32 svcControlMemory()
                 addr0 = 0x08000000;
             }
 
-            arm11_SetR(1, addr0); // outaddr is in R1
+            *newaddr = addr0; // outaddr is in R1
             return mem_AddSegment(addr0, size, NULL);
         } else {
             if ((op & 0x10000) == 0x10000) { //LINEAR
                 addr0 = 0x14000000 + linearalloced;
                 u8* outLINEmembuffer = LINEmembuffer + linearalloced;
                 linearalloced += size;
-                arm11_SetR(1, addr0); // outaddr is in R1
+                *newaddr = addr0; // outaddr is in R1
                 return mem_AddMappingShared(addr0, size, outLINEmembuffer);
             }
             /*else
             {
                 addr0 = mallocarm11(0x20000000, 0xFFFFF000, size);
             }*/
-            arm11_SetR(1, addr0); // outaddr is in R1
+            *newaddr = addr0; // outaddr is in R1
             return mem_AddSegment(addr0, size, NULL);
         }
     }
@@ -338,8 +348,10 @@ u32 svcMapMemoryBlock()
             break;
 
         case MEM_TYPE_ALLOC:
-            if (h->misc[0] != 0) {
-                DEBUG("meaning of addr unk %08x", h->misc[0]);
+            if (h->misc_ptr[0] == NULL) //it is already mapped
+            {
+                mem_AddMappingShared(h->misc[0], h->misc[1], LINEmembuffer + (h->misc[0] - 0x14000000)); //shared mem gets only mapped when not already mapped
+                return 0;
             }
             mem_AddMappingShared(addr,h->misc[1] ,h->misc_ptr[0] );
             break;
@@ -442,10 +454,20 @@ u32 svcCreateMemoryBlock() // TODO
         PAUSE();
         return -1;
     }
-
-    h->misc[0] = addr;
-    h->misc[1] = size;
-    h->misc_ptr[0] = malloc(size);
+    if (addr == 0)
+    {
+        u32 newaddr;
+        svcControlMemory_wrap(0x10003, 0x0, 0, size, 3, &newaddr); //todo this maps the mem it should not do that yet
+        h->misc[0] = newaddr;
+        h->misc[1] = size;
+        h->misc_ptr[0] = NULL;
+    }
+    else //todo this may be wrong
+    {
+        h->misc[0] = addr;
+        h->misc[1] = size;
+        h->misc_ptr[0] = malloc(size);
+    }
     arm11_SetR(1, handle);
     return 0;
 }

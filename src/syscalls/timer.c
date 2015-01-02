@@ -63,6 +63,6 @@ u32 svcSetTimer()
 u32 timer_WaitSynchronization(handleinfo* h, bool *locked)
 {
     DEBUG("timer wait --stub--\n");
-    *locked = 0;
+    *locked = 1;
     return 0;
 }

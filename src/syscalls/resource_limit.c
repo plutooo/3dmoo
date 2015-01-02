@@ -21,6 +21,8 @@
 #include "handles.h"
 #include "threads.h"
 
+u8 FIRM_Launch_Parameters[0x1000] = { 0 };
+
 s32 svcGetResourceLimitCurrentValues()
 {
     u32 values_ptr = arm11_R(0);
@@ -93,5 +95,12 @@ s32 svcKernelSetState() //this is part of the resource limmits
     u32 param1 = arm11_R(2);
     u32 param2 = arm11_R(3);
     DEBUG("KernelSetState %08x %08x %08x %08x %08x\n", type, param0, param1, param2);
+    if (type == 3 && param0 == 0) //map the firm laod param
+    {
+        FILE* a = fopen("firmparam","r");
+        fread(FIRM_Launch_Parameters, 1, 0x1000, a);
+        mem_AddMappingShared(param1, 0x1000, FIRM_Launch_Parameters);
+        fclose(a);
+    }
     return 0;
 }

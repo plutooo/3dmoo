@@ -489,7 +489,9 @@ u32 services_SyncRequest(handleinfo* h, bool *locked)
     if (h->subtype == SERVICE_DIRECT) { 
         if (h->misc[0] != SERVERFREE)
         {
+            DEBUG("serv: %s\n", h->misc_ptr[3]);
             ERROR("used unfree service %08x",h->handle);
+            IPC_debugprint(arm11_ServiceBufferAddress() + 0x80);
             *locked = false;
             return -1;
         }
@@ -1041,7 +1043,7 @@ u32 svcAcceptSession()
     sserv->misc_ptr[0] = serv->misc_ptr[0];
     serv->misc_ptr[3] = servunm->misc_ptr[3];
 
-    DEBUG("AcceptSession %08x servicehand = %08x\n", session, servhand);
+    DEBUG("AcceptSession %08x servicehand = %08x name = %s\n", session, servhand, servunm->misc_ptr[3]);
 
     arm11_SetR(1, sservhand);
     return 0;

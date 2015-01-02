@@ -31,6 +31,7 @@ u32 svcCreateThread();
 u32 svcGetThreadId();
 
 // syscalls/memory.c
+u32 svcControlMemory_wrap(u32 op, u32 addr0, u32 addr1, u32 size, u32 perm, u32* newaddr);
 u32 svcControlMemory();
 u32 svcMapMemoryBlock();
 u32 svcUnmapMemoryBlock();

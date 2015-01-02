@@ -335,7 +335,7 @@ int mem_AddMappingShared(uint32_t base, uint32_t size, u8* data)
     size_t i = num_mappings, j;
 
     mappings[i].base = base;
-    mappings[i].size = size;
+    mappings[i].size = ((size +3)/4)*4; //aline
 
     bool ovelap = false;
 
@@ -349,7 +349,7 @@ int mem_AddMappingShared(uint32_t base, uint32_t size, u8* data)
     }
 
     mappings[i].base = base;
-    mappings[i].size = size;
+    mappings[i].size = ((size + 3) / 4) * 4; //aline
     mappings[i].accesses = 0;
     mappings[i].phys = data;
     mappings[i].isHW = false;

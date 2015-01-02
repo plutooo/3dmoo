@@ -29,6 +29,7 @@
 u32 SPI2CNT = 0;
 u32 SPI2DATA = 0;
 u32 SPI2selected = 0;
+u32 SPI2register = 0;
 u32 SPI2counter = 0;
 
 u32 GPIOr24 = 0; //this is most likely the current status
@@ -45,6 +46,13 @@ u8 IO_Read8(u32 addr)
         SPI2CNT &= ~0x80;
         return 0x15;
         break;
+    }
+    case 0x1ec44000:
+    {
+        DEBUG("r8 %08x\n", addr);
+        if (SPI2selected == 0x4B && SPI2register == 0x4B)
+            return 0x1;
+        return 0x0;
     }
     default:
        DEBUG("r8 %08x\n", addr);
@@ -83,17 +91,29 @@ void IO_Write8(u32 addr,u8 v)
     {
     case 0x1ec44001:
     {
+        DEBUG("w8 %08x %02x\n", addr, v);
         SPI2CNT = v;
+        if (SPI2CNT & 0x20)
+        {
+            int i = 0;
+        }
         if (SPI2CNT & 0x2) //Start
         {
-            DEBUG("I2C device %02x\n", SPI2DATA);
+            //DEBUG("I2C device %02x\n", SPI2DATA);
             SPI2selected = SPI2DATA;
+            SPI2counter = 0;
         }
+        if (SPI2counter == 1)
+        {
+            SPI2register = SPI2DATA;
+            ERROR("I2C device %02x reg %02x %s\n", SPI2selected, SPI2register, (SPI2CNT & 0x20) ? "read": "write");
+        }
+        SPI2counter++;
         break;
     }
     case 0x1ec44000:
     {
-        //DEBUG("w8 %08x %02x\n", addr, v);
+        DEBUG("w8 %08x %02x\n", addr, v);
         SPI2DATA = v;
         break;
     }

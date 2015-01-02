@@ -147,7 +147,7 @@ void svc_Execute(ARMul_State * state, ARMword num)
     if (name == NULL)
         name = "Unknown";
 
-    //LOG("\n>> svc%s (0x%x)\n", name, num);
+    LOG("\n>> svc%s (0x%x)\n", name, num);
 
     switch (num) {
     case 1:
@@ -155,9 +155,12 @@ void svc_Execute(ARMul_State * state, ARMword num)
         return;
     case 2:
         //Stubbed for now
-        //arm11_SetR(0, svcQueryMemory());
+        //arm11_SetR(0, svcQueryMemory()); //uses R0-R5 r0 = return code r1 = Base process virtual address  r2 = size r3 = perm r4 = MemoryState? r5 = PageInfo
         DEBUG("%x, %x, %x\n", arm11_R(0), arm11_R(1), arm11_R(2));
         arm11_SetR(0, 0);
+        arm11_SetR(1, 0x14000000);
+        arm11_SetR(2, 0x10000);
+        arm11_SetR(4, 6);
         return;
     case 3: //Exit Process
         state->NumInstrsToExecute = 0;

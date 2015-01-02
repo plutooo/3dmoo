@@ -46,15 +46,20 @@ void IPC_readstruct(u32 addr,u8* buffer)
             switch (desc)
             {
             case 0: //send and close KHandle (all handles are global so don't need)
+                mem_Read(buffer, addr, 8);
                 i++;
                 break;
             case 0x10://send KHandle (all handles are global so don't need)
+                mem_Read(buffer, addr, 8);
                 i++;
                 break;
             case 0x20://0 is OK
+                mem_Read(buffer, addr, 4);
+                *(u32*)(buffer + 4) = 0;
                 i++;
                 break;
             default:
+                mem_Read(buffer, addr, 8);
                 DEBUG("unknown desc %08X %08X\n", desc, mem_Read32(addr + 4));
                 i++;
                 break;

@@ -227,6 +227,7 @@ bool threads_IsThreadActive(s32 id)
                         threads[id].r[1] = i;
                     threads[id].state = RUNNING;
                     ret = true;
+                    break;
                 }
             }
             return ret;

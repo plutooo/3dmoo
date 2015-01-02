@@ -119,7 +119,7 @@ struct _file_type {
 
 // fs/romfs.c
 archive* romfs_OpenArchive(file_path path);
-void romfs_Setup(FILE* fd, u32 off, u32 sz);
+void romfs_Setup(FILE* fd, u32 off, u32 sz,u32 module);
 
 // fs/shared_extdata.c
 archive* sharedextd_OpenArchive(file_path path);

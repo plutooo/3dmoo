@@ -43,7 +43,7 @@ void IPC_readstruct(u32 addr,u8* buffer)
         switch (desc & 0xE)
         {
         case 0x0:
-            switch (desc)
+            switch (desc & 0x30)
             {
             case 0: //send and close KHandle (all handles are global so don't need)
                 mem_Read(buffer, addr, 8);
@@ -64,9 +64,10 @@ void IPC_readstruct(u32 addr,u8* buffer)
                 i++;
                 break;
             }
-            mem_Read(buffer, addr, 8);
-            buffer += 8;
-            addr += 8;
+            mem_Read(buffer, addr, 8 + 4 * ((desc >> 26)));
+            buffer += 8 + 4 * ((desc >> 26));
+            addr += 8 + 4 * ((desc >> 26));
+            i += (desc >> 26);
             break;
         case 0x2:
         {
@@ -188,7 +189,7 @@ void IPC_writestruct(u32 addr, u8* buffer)
         switch (desc & 0xE)
         {
         case 0x0:
-            switch (desc)
+            switch (desc & 0x30)
             {
             case 0: //send and close KHandle (all handles are global so don't need)
                 i++;
@@ -204,9 +205,10 @@ void IPC_writestruct(u32 addr, u8* buffer)
                 i++;
                 break;
             }
-            mem_Write(buf, addr, 8);
-            buf += 2;
-            addr += 8;
+            mem_Write(buf, addr, 8 + 4 * ((desc >> 26)));
+            buf += 2 + ((desc >> 26));
+            addr += 8 + 4 * ((desc >> 26));
+            i += (desc >> 26);
             break;
         case 0x2:
         {
@@ -353,8 +355,6 @@ void IPC_debugprint(u32 addr)
      for (u32 i = 0; i < normal; i++)
      {
          u32 temp = mem_Read32(addr);
-         if (i == 0 && temp == 0x3 && head == 0x00020082)
-             arm11_Dump();
          DEBUG("%08X\n", temp);
          addr += 4;
      }
@@ -366,29 +366,53 @@ void IPC_debugprint(u32 addr)
          switch (desc & 0xE)
          {
          case 0x0:
-             switch (desc)
+             switch (desc &0x30)
              {
              case 0:
+             {
                  DEBUG("send and close KHandle %08X\n", mem_Read32(addr + 4));
-                 addr += 4;
+                 for (int i = 0; i < (desc >> 26); i++)
+                 {
+                     DEBUG("%08x\n", mem_Read32(addr + 8 + 4 * i));
+                 }
+                 addr += 4 + 4 * ((desc >> 26) + 1);
                  i++;
+                 i += (desc >> 26);
                  break;
+             }
              case 0x10:
+             {
                  DEBUG("send KHandle duplicate %08X\n", mem_Read32(addr + 4));
-                 addr += 4;
+                 for (int i = 0; i < (desc >> 26); i++)
+                 {
+                     DEBUG("%08x\n",mem_Read32(addr + 8 + 4 * i));
+                 }
+                 addr += 4 + 4 * ((desc >> 26) + 1);
                  i++;
+                 i += (desc >> 26);
                  break;
+             }
              case 0x20:
+             {
                  DEBUG("send ProcessID\n");
-                 addr += 4;
-                 i++;
-                 break;
-             default:
-                 DEBUG("unknown desc %08X %08X\n", desc, mem_Read32(addr + 4));
-                 addr += 4;
+                 addr += 4 + 4 * ((desc >> 26) + 1);
                  i++;
                  break;
              }
+             default:
+             {
+                 DEBUG("unknown desc %08X %08X\n", desc, mem_Read32(addr + 4));
+                 for (int i = 0; i < (desc >> 26); i++)
+                 {
+                     DEBUG("%08x\n", mem_Read32(addr + 8 + 4 * i));
+                 }
+                 addr += 4 + 4 * ((desc >> 26) + 1);
+                 i++;
+                 i += (desc >> 26);
+                 break;
+             }
+             }
+
              break;
          case 0x2:
          {

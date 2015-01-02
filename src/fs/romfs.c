@@ -27,24 +27,32 @@
 
 
 /* RomFS info: this is given by loader. */
-static FILE* in_fd = NULL;
-static u32   romfs_off;
-static u32   romfs_sz;
+static FILE** in_fd = NULL;
+static u32*   romfs_off = NULL;
+static u32*   romfs_sz = NULL;
 
 extern bool loader_encrypted;
+extern u32 main_current_module;
 
 /* ____ Raw RomFS ____ */
+
+u32 ModuleSupport_fssetnumb(u32 numb)
+{
+    in_fd = realloc(in_fd, sizeof(FILE*)*numb);
+    romfs_off = realloc(romfs_off, sizeof(u32*)*numb);
+    romfs_sz = realloc(romfs_sz, sizeof(u32*)*numb);
+}
 
 static u32 rawromfs_Read(file_type* self, u32 ptr, u32 sz, u64 off, u32* read_out)
 {
     *read_out = 0;
 
-    if((off >> 32) || (off >= romfs_sz) || ((off+sz) >= romfs_sz)) {
+    if ((off >> 32) || (off >= romfs_sz[main_current_module]) || ((off + sz) >= romfs_sz[main_current_module])) {
         ERROR("Invalid read params.\n");
         return -1;
     }
 
-    if(fseek64(in_fd, romfs_off + off, SEEK_SET) == -1) {
+    if (fseek64(in_fd[main_current_module], romfs_off[main_current_module] + off, SEEK_SET) == -1) {
         ERROR("fseek failed.\n");
         return -1;
     }
@@ -55,7 +63,7 @@ static u32 rawromfs_Read(file_type* self, u32 ptr, u32 sz, u64 off, u32* read_ou
         return -1;
     }
 
-    u32 read = fread(b, 1, sz, in_fd);
+    u32 read = fread(b, 1, sz, in_fd[main_current_module]);
     if(read != sz) { //eshop dose this
         ERROR("fread failed\n");
         free(b);
@@ -88,7 +96,7 @@ static u32 rawromfs_Read(file_type* self, u32 ptr, u32 sz, u64 off, u32* read_ou
 
 static u64 rawromfs_GetSize(file_type* self)
 {
-    return romfs_sz;
+    return romfs_sz[main_current_module];
 }
 
 static file_type rawromfs_file = {
@@ -139,12 +147,12 @@ static archive romfs = {
 
 archive* romfs_OpenArchive(file_path path)
 {
-    if(path.type != 1) {
+    if (path.type != 1) {
         ERROR("LowPath was not EMPTY.\n");
         return NULL;
     }
 
-    if(in_fd == NULL) {
+    if (in_fd[main_current_module] == NULL) {
         ERROR("Trying to open RomFS archive, but none has been loaded.\n");
         return NULL;
     }
@@ -152,10 +160,10 @@ archive* romfs_OpenArchive(file_path path)
     return &romfs;
 }
 
-void romfs_Setup(FILE* fd, u32 off, u32 sz)
+void romfs_Setup(FILE* fd, u32 off, u32 sz,u32 module)
 {
     // This function is called by loader if loaded file contains RomFS.
-    in_fd = fd;
-    romfs_off = off;
-    romfs_sz  = sz;
+    in_fd[module] = fd;
+    romfs_off[module] = off;
+    romfs_sz[module] = sz;
 }

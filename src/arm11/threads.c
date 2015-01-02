@@ -215,16 +215,22 @@ bool threads_IsThreadActive(s32 id)
                     continue;
 
                 bool is_waiting = false;
-                handle_types[hi->type].fnWaitSynchronization(hi, &is_waiting);
+                u32 retcode = handle_types[hi->type].fnWaitSynchronization(hi, &is_waiting);
 
                 THREADDEBUG("    %08x, type=%s, waiting=%s\n", handle, handle_types[hi->type].name,
                             is_waiting ? "true" : "false");
 
                 if(!ret && !is_waiting) {
                     if (current_thread == id)
+                    {
+                        s.Reg[0] = retcode;
                         s.Reg[1] = i;
+                    }
                     else
+                    {
+                        threads[id].r[0] = retcode;
                         threads[id].r[1] = i;
+                    }
                     threads[id].state = RUNNING;
                     ret = true;
                     break;

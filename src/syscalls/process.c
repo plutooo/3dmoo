@@ -117,12 +117,11 @@ u32 svcCreateProcess()
         DEBUG("out of handles\n");
         return -1;
     }
+    ModuleSupport_fssetnumb(modulenum + 1);
+
     hi->misc[0] = modulenum;
     curprocesshandlelist = realloc(curprocesshandlelist, sizeof(u32)*(modulenum + 1));
     ModuleSupport_Memadd(modulenum, codeset_handle);
-
-
-
 
     unsigned int i, j;
     unsigned int systemcallmask[8];
@@ -265,7 +264,7 @@ u32 svcCreateProcess()
             fprintf(stdout, "Unknown descriptor:     %08X\n", descriptor);
     }
 
-
+    *(curprocesshandlelist + modulenum) = handle;
 
     arm11_SetR(1, handle);
 

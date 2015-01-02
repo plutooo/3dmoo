@@ -25,6 +25,7 @@
 #define HANDLE_SERV_STAT_SYN               0x4
 #define HANDLE_SERV_STAT_SYN_IN_PROGRESS   0x8
 #define HANDLE_SERV_STAT_REPLY             0x10
+#define HANDLE_SERV_STAT_CLOSING           0x20
 
 #define SERVERFREE                         0x1
 #define SERVERFREE2                        0x11
@@ -180,6 +181,7 @@ u32 handle_wrapWaitSynchronization1(u32 handle);
 
 // services/srv.c
 u32 services_SyncRequest(handleinfo* h, bool *locked);
+u32 services_Close(ARMul_State *state, u32 handle);
 u32 services_WaitSynchronization(handleinfo* h, bool *locked);
 
 // svc/syn.c
@@ -244,7 +246,7 @@ static struct {
     {
         "service",
         &services_SyncRequest,
-        NULL,
+        &services_Close,
         &services_WaitSynchronization
     },
     {

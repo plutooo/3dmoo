@@ -232,6 +232,7 @@ u32 svcWaitSynchronization1() //todo timeout
 
 u32 wrapWaitSynchronizationN(u32 nanoseconds1,u32 handles_ptr,u32 handles_count,u32 wait_all,u32 nanoseconds2,u32 out) // TODO: timeouts
 {
+    u32 ret = 0;
     bool all_unlocked = true;
 
     for (u32 i = 0; i < handles_count; i++) {
@@ -259,11 +260,11 @@ u32 wrapWaitSynchronizationN(u32 nanoseconds1,u32 handles_ptr,u32 handles_count,
         if (handle_types[hi->type].fnWaitSynchronization != NULL) {
             bool locked = false;
 
-            handle_types[hi->type].fnWaitSynchronization(hi, &locked);
+            u32 ret =handle_types[hi->type].fnWaitSynchronization(hi, &locked);
 
             if (!locked && !wait_all) {
                 arm11_SetR(1, i);
-                return 0;
+                return ret;
             } else
                 all_unlocked = false;
 
@@ -272,13 +273,13 @@ u32 wrapWaitSynchronizationN(u32 nanoseconds1,u32 handles_ptr,u32 handles_count,
                   handle_types[hi->type].name);
             PAUSE();
             arm11_SetR(1, i); //we just say this one is open
-            return 0;
+            return ret;
         }
     }
 
     if(wait_all && all_unlocked) {
         arm11_SetR(1, handles_count);
-        return 0;
+        return ret;
     }
 
     // Put thread in WAITING state if not all handles were unlocked.

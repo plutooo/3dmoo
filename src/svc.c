@@ -138,6 +138,28 @@ static const char* names[256] = {
     "QueryProcessMemory",
     NULL
 };
+extern u32 curprocesshandle;
+extern u32 modulenum;
+u32 svcGetProcessId()
+{
+    u32 handle = arm11_R(1);
+
+    ERROR("svcGetProcessId (%08X)\n", handle);
+
+    if (handle == 0xffff8000) {
+        handle = curprocesshandle;
+    }
+    for (int i = 0; i <= modulenum;i++)
+    {
+        if (*(curprocesshandlelist + i) == handle)
+        {
+            arm11_SetR(1, i);
+            return 0;
+        }
+    }
+    return 0xFFFFFFFF;
+    
+}
 
 
 void svc_Execute(ARMul_State * state, ARMword num)
@@ -289,9 +311,7 @@ void svc_Execute(ARMul_State * state, ARMword num)
         return;
     case 0x35:
         DEBUG("GetProcessId=%08x\n", arm11_R(1));
-        DEBUG("STUBBED\n");
-        arm11_SetR(0, 0);
-        arm11_SetR(1, 5);
+        arm11_SetR(0, svcGetProcessId());
         return;
     case 0x38:
         DEBUG("resourcelimit=%08x, handle=%08x\n", arm11_R(0), arm11_R(1));
@@ -380,22 +400,5 @@ void svc_Execute(ARMul_State * state, ARMword num)
         arm11_Dump();
         PAUSE();
         //exit(1);
-    }
-}
-
-
-u32 svcGetProcessId()
-{
-    u32 handle = arm11_R(1);
-
-    ERROR("svcGetProcessId (%02X)\n", handle);
-
-    if(handle == 0xffff8000) {
-        arm11_SetR(1, 1);
-        return 0;
-    }
-    else {
-        THREADDEBUG("svcGetProcessId not supported\n");
-        return 0;
     }
 }

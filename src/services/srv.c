@@ -475,7 +475,16 @@ static u32 ownservice_num;
 
 
 
-
+s32 services_Close(ARMul_State *state, u32 handle)
+{
+    handleinfo* serv = handle_Get(handle);
+    if (serv->misc[0] != SERVERFREE)
+    {
+        ERROR("Closing service that still hase data");
+        return -1;
+    }
+    serv->misc[0] |= HANDLE_SERV_STAT_CLOSING;
+}
 u32 services_SyncRequest(handleinfo* h, bool *locked)
 {
     u32 i;
@@ -568,12 +577,17 @@ u32 svc_serverWaitSynchronization(handleinfo* h, bool *locked)
         *locked = 1;
         return 0;
     }
-    if (serv->misc[0] & HANDLE_SERV_STAT_SYN) {
+    else if (serv->misc[0] & HANDLE_SERV_STAT_SYN) {
         serv->misc[0] &= ~HANDLE_SERV_STAT_SYN;
         serv->misc[0] |= HANDLE_SERV_STAT_SYN_IN_PROGRESS;
         IPC_writestruct(arm11_ServiceBufferAddress() + 0x80, h->misc_ptr[0]);
         *locked = 0;
         return 0;
+    }
+    else if (serv->misc[0] & HANDLE_SERV_STAT_CLOSING)
+    {
+        *locked = 0;
+        return 0xc920181a;
     }
     else {
         *locked = 1;
@@ -924,7 +938,7 @@ u32 svcReplyAndReceive()
     {
         handleinfo* sserv = handle_Get(replyTarget);
         if (sserv == NULL) {
-            ERROR("handle not found");
+            ERROR("handle not found\n");
             return -1;
         }
 
@@ -933,10 +947,9 @@ u32 svcReplyAndReceive()
             u32 servhandle = sserv->misc[1];
             handleinfo* serv = handle_Get(servhandle);
             if (serv == NULL) {
-                ERROR("handle not found");
-                return -1;
+                ERROR("handle not found\n");
             }
-            if (serv->misc[0] & HANDLE_SERV_STAT_SYN_IN_PROGRESS)
+            else if (serv->misc[0] & HANDLE_SERV_STAT_SYN_IN_PROGRESS)
             {
                 serv->misc[0] &= ~HANDLE_SERV_STAT_SYN_IN_PROGRESS;
                 IPC_readstruct(arm11_ServiceBufferAddress() + 0x80, serv->misc_ptr[1]);
@@ -949,11 +962,11 @@ u32 svcReplyAndReceive()
         }
         else
         {
-            DEBUG("repl to type %X",sserv->type);
+            DEBUG("repl to type %X\n",sserv->type);
         }
     }
 #ifdef MODULE_SUPPORT
-    wrapWaitSynchronizationN(0xFFFFFFFF, handles, handleCount, false, 0xFFFFFFFF, 0);
+    u32 ret = wrapWaitSynchronizationN(0xFFFFFFFF, handles, handleCount, false, 0xFFFFFFFF, 0);
 #else
 
     for (u32 i = 0; i < handleCount; i++) {
@@ -995,7 +1008,7 @@ u32 svcReplyAndReceive()
     //feed end
 
 
-    return 0;
+    return ret;
 }
 u32 svcAcceptSession()
 {

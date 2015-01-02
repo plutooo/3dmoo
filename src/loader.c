@@ -40,7 +40,7 @@ ctr_ncchheader loader_h;
 
 exheader_header ex;
 
-
+extern u32 modulenum;
 extern thread threads[MAX_THREADS];
 
 static u32 Read32(uint8_t p[4])
@@ -643,7 +643,9 @@ int loader_LoadFile(FILE* fd)
         DEBUG("RomFS offset:    %08x\n", romfs_off);
         DEBUG("RomFS size:      %08x\n", romfs_sz);
 
-        romfs_Setup(fd, romfs_off, romfs_sz);
+        ModuleSupport_fssetnumb(modulenum + 1);
+
+        romfs_Setup(fd, romfs_off, romfs_sz, modulenum);
     }
 
     // Add stack segment.

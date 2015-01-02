@@ -65,6 +65,18 @@ SERVICE_CMD(0x040300C0)   // GetProgramInfo may wants data back in a type 1 resp
 
 SERVICE_CMD(0x040103C0)   // Register
 {
+    char tmp[0x100];
+    sprintf(tmp, "title/%08x/%08x/a.romfs", CMD(3), CMD(2));
+
+    FILE* file = fopen(tmp,"rb");
+    u32 sz = 0;
+    if (file)
+    {
+        fseek(file, 0, SEEK_END);
+        sz = ftell(file);
+        fseek(file, 0, SEEK_SET);
+    }
+    romfs_Setup(file, 0x1000, sz - 0x1000, CMD(1)); //(FILE* fd, u32 off, u32 sz,u32 module)
     DEBUG("Register %08x %08x %08x %08x %08x\n", CMD(1), CMD(2), CMD(3), CMD(4), CMD(5));
     DEBUG("Register %08x %08x %08x %08x %08x\n", CMD(5), CMD(6), CMD(7), CMD(8), CMD(9));
     DEBUG("Register %08x %08x %08x %08x %08x\n", CMD(10), CMD(11), CMD(12), CMD(13), CMD(14));

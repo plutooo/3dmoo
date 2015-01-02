@@ -49,7 +49,7 @@ extern u32 main_current_module;
 
 //#define MEM_TRACE 1
 #define PRINT_ILLEGAL 1
-#define EXIT_ON_ILLEGAL 1
+//#define EXIT_ON_ILLEGAL 1
 
 
 #ifdef MODULE_SUPPORT
@@ -727,7 +727,7 @@ int mem_Write(const uint8_t* in_buff, uint32_t addr, uint32_t size)
     }
 
 #ifdef MEM_REORDER
-    mappings[i].accesses += size;
+    //mappings[i].accesses += size;
 #endif
 
     //If spread across multiple mappings
@@ -772,7 +772,7 @@ int mem_Read(uint8_t* buf_out, uint32_t addr, uint32_t size)
     }
 
 #ifdef MEM_REORDER
-    mappings[map].accesses += size;
+    //mappings[map].accesses += size;
 #endif
 
     //If spread across multiple mappings

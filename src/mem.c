@@ -25,6 +25,8 @@
 #include "threads.h"
 #include "gpu.h"
 
+#include "mem.h"
+
 #ifdef GDB_STUB
 #include "gdb/gdbstub.h"
 #include "gdb/gdbstub_internal.h"
@@ -37,25 +39,13 @@ extern ARMul_State s;
 extern u8* loader_Shared_page;
 void ModuleSupport_Threadsadd(u32 modulenum);
 
-typedef struct {
-    uint32_t base;
-    uint32_t size;
-    uint8_t* phys;
-    bool     ro;
-    bool     isHW;
-#ifdef MEM_TRACE_EXTERNAL
-    bool enable_log;
-#endif
-#ifdef MEM_REORDER
-    u64 accesses;
-#endif
 
-} memmap_t;
+memmap_t mappings[MAX_MAPPINGS];
+size_t   num_mappings;
 
-#define MAX_MAPPINGS 32
+extern u32 main_current_module;
 
-static memmap_t mappings[MAX_MAPPINGS];
-static size_t   num_mappings;
+#define MEM_TRACE_COND main_current_module == 3
 
 //#define MEM_TRACE 1
 #define PRINT_ILLEGAL 1
@@ -103,10 +93,10 @@ void ModuleSupport_Memadd(u32 modulenum, u32 codeset_handle)
         return;
     }
     ctr_CodeSetInfo* co = hi->misc_ptr[0];
-    ModuleSupport_mem_AddMappingShared(Read32(co->textaddr), Read32(co->textsize) * 0x1000, hi->misc_ptr[1], modulenum);
-    ModuleSupport_mem_AddMappingShared(Read32(co->roaddr), Read32(co->rosize) * 0x1000, hi->misc_ptr[2], modulenum);
-    ModuleSupport_mem_AddMappingShared(Read32(co->dataaddr), Read32(co->bdsize) * 0x1000, hi->misc_ptr[3], modulenum);
-    ModuleSupport_mem_AddMappingShared(0x1FF80000, 0x2000, loader_Shared_page, modulenum);
+    ModuleSupport_mem_AddMappingShared(Read32(co->textaddr), Read32(co->textsize) * 0x1000, hi->misc_ptr[1], modulenum, PERM_RX, STAT_PRIVAT);
+    ModuleSupport_mem_AddMappingShared(Read32(co->roaddr), Read32(co->rosize) * 0x1000, hi->misc_ptr[2], modulenum, PERM_R, STAT_PRIVAT);
+    ModuleSupport_mem_AddMappingShared(Read32(co->dataaddr), Read32(co->bdsize) * 0x1000, hi->misc_ptr[3], modulenum, PERM_RW, STAT_PRIVAT);
+    ModuleSupport_mem_AddMappingShared(0x1FF80000, 0x2000, loader_Shared_page, modulenum, PERM_RW, STAT_SHARED);
 }
 
 void ModuleSupport_MemInit(u32 modulenum)
@@ -135,7 +125,7 @@ void ModuleSupport_SwapProcessMem(u32 newproc)
     ModuleSupport_SwapProcessThreads(newproc);
     currentmap = newproc;
 }
-int ModuleSupport_mem_AddMappingShared(uint32_t base, uint32_t size, u8* data,u32 process)
+int ModuleSupport_mem_AddMappingShared(uint32_t base, uint32_t size, u8* data, u32 process, u32 perm, u32 status)
 {
     if (size == 0)
         return 0;
@@ -152,7 +142,8 @@ int ModuleSupport_mem_AddMappingShared(uint32_t base, uint32_t size, u8* data,u3
     mappings[i].base = base;
     mappings[i].size = size;
     mappings[i].accesses = 0;
-    mappings[i].isHW = false;
+    mappings[i].permition = perm;
+    mappings[i].State = status;
 
     for (j = 0; j<num_mappings; j++) {
         if (Overlaps(&mappings[j], &mappings[i])) {
@@ -185,7 +176,7 @@ int ModuleSupport_mem_AddMappingShared(uint32_t base, uint32_t size, u8* data,u3
 
     return 0;
 }
-int mem_AddMappingIO(uint32_t base, uint32_t size, u32 process)
+int mem_AddMappingIO(uint32_t base, uint32_t size, u32 process, u32 perm)
 
 {
 
@@ -205,7 +196,8 @@ int mem_AddMappingIO(uint32_t base, uint32_t size, u32 process)
     mappings[i].base = base;
     mappings[i].size = size;
     mappings[i].accesses = 0;
-    mappings[i].isHW = true;
+    mappings[i].permition = perm;
+    mappings[i].State = 2; //IO
 
     for (j = 0; j<num_mappings; j++) {
         if (Overlaps(&mappings[j], &mappings[i])) {
@@ -275,7 +267,7 @@ static int Contains(memmap_t* m, uint32_t addr, uint32_t sz)
     return (m->base <= addr && (addr+sz) <= (m->base+m->size));
 }
 
-static int AddMapping(uint32_t base, uint32_t size)
+static int AddMapping(uint32_t base, uint32_t size, u32 perm, u32 status)
 {
     if(size == 0)
         return 0;
@@ -288,16 +280,29 @@ static int AddMapping(uint32_t base, uint32_t size)
     size_t i = num_mappings, j;
     mappings[i].base = base;
     mappings[i].size = size;
-    mappings[i].accesses = 0; 
-    mappings[i].isHW = false;
-
     for(j=0; j<num_mappings; j++) {
         if(Overlaps(&mappings[j], &mappings[i])) {
+
+            if (mappings[i].base == mappings[j].base) //this is a realloc
+            {
+                mappings[j].size = size;
+                mappings[j].permition = perm;
+                mappings[j].State = status;
+                mappings[j].phys = realloc(mappings[j].phys, size);
+                return 0;
+            }
+
             ERROR("trying to add overlapping mapping %08x, size=%08x.\n",
                   base, size);
             return 2;
         }
     }
+
+    mappings[i].accesses = 0; 
+    mappings[i].permition = perm;
+    mappings[i].State = status;
+
+
 
     mappings[i].phys = calloc(sizeof(uint8_t), size);
     if(mappings[i].phys == NULL) {
@@ -322,7 +327,7 @@ static int AddMapping(uint32_t base, uint32_t size)
     return 0;
 }
 
-int mem_AddMappingShared(uint32_t base, uint32_t size, u8* data)
+int mem_AddMappingShared(uint32_t base, uint32_t size, u8* data,u32 perm,u32 status)
 {
     if (size == 0)
         return 0;
@@ -352,7 +357,8 @@ int mem_AddMappingShared(uint32_t base, uint32_t size, u8* data)
     mappings[i].size = ((size + 3) / 4) * 4; //aline
     mappings[i].accesses = 0;
     mappings[i].phys = data;
-    mappings[i].isHW = false;
+    mappings[i].permition = perm;
+    mappings[i].State = status;
 
 #ifdef MEM_TRACE_EXTERNAL
     if (
@@ -371,17 +377,17 @@ int mem_AddMappingShared(uint32_t base, uint32_t size, u8* data)
     return 0;
 }
 
-int mem_AddSegment(uint32_t base, uint32_t size, uint8_t* data)
+int mem_AddSegment(uint32_t base, uint32_t size, uint8_t* data,u32 perm, u32 status)
 {
     DEBUG("adding %08x %08x\n", base, size);
     int rc;
 
-    rc = AddMapping(base, size);
+    rc = AddMapping(base, size, perm, status);
     if(rc != 0)
         return rc;
 
     if(data != NULL)
-        memcpy(mappings[num_mappings-1].phys, data, size);
+        memcpy(mappings[num_mappings - 1].phys, data, size);
     return 0;
 }
 
@@ -393,7 +399,10 @@ int mem_Write8(uint32_t addr, uint8_t w)
     }
 
 #ifdef MEM_TRACE
-    fprintf(stderr, "w8 %08x <- w=%02x\n", addr, w & 0xff);
+    if (MEM_TRACE_COND)
+    {
+        fprintf(stderr, "w8 %08x <- w=%02x\n", addr, w & 0xff);
+    }
 #endif
 
     size_t i;
@@ -405,7 +414,7 @@ int mem_Write8(uint32_t addr, uint8_t w)
 #ifdef MEM_TRACE_EXTERNAL
             if (mappings[i].enable_log)fprintf(stderr, "w8 %08x <- w=%02x pc=%08x\n", addr, w & 0xff, s.Reg[15]);
 #endif
-            if (mappings[i].isHW){
+            if (mappings[i].State == 2){
                 IO_Write8(addr, w);
             return;
         }
@@ -431,7 +440,10 @@ uint8_t mem_Read8(uint32_t addr)
         ERROR("ARM11 kernel read 8 %08x\n", addr);
     }
 #ifdef MEM_TRACE
-    fprintf(stderr, "r8 %08x\n", addr);
+    if (MEM_TRACE_COND)
+    {
+        fprintf(stderr, "r8 %08x\n", addr);
+    }
 #endif
 
     size_t i;
@@ -444,7 +456,7 @@ uint8_t mem_Read8(uint32_t addr)
 #ifdef MEM_TRACE_EXTERNAL
             if (mappings[i].enable_log)fprintf(stderr, "r8 %08x pc=%08x\n", addr, s.Reg[15]);
 #endif
-            if (mappings[i].isHW)
+            if (mappings[i].State == 2)
                 return IO_Read8(addr);
             else
                 return mappings[i].phys[addr - mappings[i].base];
@@ -467,7 +479,10 @@ int mem_Write16(uint32_t addr, uint16_t w)
     }
 
 #ifdef MEM_TRACE
-    fprintf(stderr, "w16 %08x <- w=%04x\n", addr, w & 0xffff);
+    if (MEM_TRACE_COND)
+    {
+        fprintf(stderr, "w16 %08x <- w=%04x\n", addr, w & 0xffff);
+    }
 #endif
 
     size_t i;
@@ -480,7 +495,7 @@ int mem_Write16(uint32_t addr, uint16_t w)
             if (mappings[i].enable_log)fprintf(stderr, "w16 %08x <- w=%04x pc=%08x\n", addr, w & 0xffff, s.Reg[15]);
 #endif
             // Unaligned.
-            if (mappings[i].isHW) {
+            if (mappings[i].State == 2) {
                 IO_Write16(addr, w);
             return;
         }
@@ -514,7 +529,10 @@ uint16_t mem_Read16(uint32_t addr)
         ERROR("ARM11 kernel read 16 %08x\n", addr);
     }
 #ifdef MEM_TRACE
-    fprintf(stderr, "r16 %08x\n", addr);
+    if (MEM_TRACE_COND)
+    {
+        fprintf(stderr, "r16 %08x\n", addr);
+    }
 #endif
 
     size_t i;
@@ -529,7 +547,7 @@ uint16_t mem_Read16(uint32_t addr)
             if (mappings[i].enable_log)fprintf(stderr, "r16 %08x pc=%08x\n", addr, s.Reg[15]);
 #endif
 
-            if (mappings[i].isHW)
+            if (mappings[i].State == 2)
                 return IO_Read16(addr);
 
             else
@@ -567,7 +585,10 @@ int mem_Write32(uint32_t addr, uint32_t w)
         return 0;
     }
 #ifdef MEM_TRACE
-    fprintf(stderr, "w32 %08x <- w=%08x\n", addr, w);
+    if (MEM_TRACE_COND)
+    {
+        fprintf(stderr, "w32 %08x <- w=%08x\n", addr, w);
+    }
 #endif
     size_t i;
     for(i=0; i<num_mappings; i++) {
@@ -582,7 +603,7 @@ int mem_Write32(uint32_t addr, uint32_t w)
                 fprintf(stderr, "w32 %08x <- w=%08x pc=%08x\n", addr, w, s.Reg[15]);
 #endif
 
-            if (mappings[i].isHW){
+            if (mappings[i].State == 2){
                 IO_Write32(addr, w);
                 return;
         }
@@ -643,14 +664,21 @@ u32 mem_Read32(uint32_t addr)
             }
 #endif
 
-            if (mappings[i].isHW)
+            if (mappings[i].State == 2)
                 return IO_Read32(addr);
             else
             {
             // Unaligned.
             u32 temp = *(uint32_t*)(&mappings[i].phys[addr - mappings[i].base]);
 #ifdef MEM_TRACE
-            fprintf(stderr, "r32 %08x --> %08x (%08X)\n", addr, temp, s.Reg[15]);
+            if (MEM_TRACE_COND)
+            {
+                if (addr == 0x110688)
+                {
+                    int i = 0;
+                }
+                fprintf(stderr, "r32 %08x --> %08x (%08X)\n", addr, temp, s.Reg[15]);
+            }
 #endif
 
                 switch (addr & 3) {

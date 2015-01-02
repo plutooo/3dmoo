@@ -35,9 +35,9 @@
 
 #define CONTROL_GSP_FLAG 0x10000
 
-u32 linearalloced = 0;
+u32 linearalloced = 0x10000; //that part is reversed for system
 
-u32 svcControlMemory_wrap(u32 op, u32 addr0, u32 addr1, u32 size, u32 perm, u32* newaddr);
+u32 svcControlMemory_wrap(u32 op, u32 addr0, u32 addr1, u32 size, u32 perm, u32* newaddr, u32 alloctype);
 
 u32 svcControlMemory()
 {
@@ -47,12 +47,12 @@ u32 svcControlMemory()
     u32 size = arm11_R(3);
     u32 perm = arm11_R(4);
     u32 newaddr = 0;
-    s32 ret = svcControlMemory_wrap(op, addr0, addr1, size, perm, &newaddr);
+    s32 ret = svcControlMemory_wrap(op, addr0, addr1, size, perm, &newaddr,5);
     arm11_SetR(1, newaddr);
     return ret;
 }
 
-u32 svcControlMemory_wrap(u32 op, u32 addr0, u32 addr1, u32 size, u32 perm, u32* newaddr)
+u32 svcControlMemory_wrap(u32 op, u32 addr0, u32 addr1, u32 size, u32 perm, u32* newaddr,u32 alloctype)
 {
 
     const char* ops;
@@ -231,7 +231,7 @@ u32 svcControlMemory_wrap(u32 op, u32 addr0, u32 addr1, u32 size, u32 perm, u32*
                 u8* outLINEmembuffer = LINEmembuffer + linearalloced;
                 linearalloced += size;
                 *newaddr = addr0; // outaddr is in R1
-                return mem_AddMappingShared(addr0, size, outLINEmembuffer);
+                return mem_AddMappingShared(addr0, size, outLINEmembuffer, perm, alloctype);
             }
             /*else
             {
@@ -244,7 +244,7 @@ u32 svcControlMemory_wrap(u32 op, u32 addr0, u32 addr1, u32 size, u32 perm, u32*
     if ((op & 0xF) == 0x4) { //MAP
         u8* buffer = mem_rawaddr(addr1, size);
         if (buffer == 0)return -1;
-        return mem_AddMappingShared(addr0, size, buffer);
+        return mem_AddMappingShared(addr0, size, buffer, perm, alloctype);
     }
     if ((op & 0xF) == 0x6) { //Protect we don't protect mem sorry
         DEBUG("STUBBED!\n");
@@ -314,16 +314,16 @@ u32 svcMapMemoryBlock()
     if(h->type == HANDLE_TYPE_SHAREDMEM) {
         switch (h->subtype) {
         case MEM_TYPE_GSP_0:
-            mem_AddMappingShared(addr, GSPsharebuffsize, GSPsharedbuff);
+            mem_AddMappingShared(addr, GSPsharebuffsize, GSPsharedbuff, PERM_RW, STAT_SHARED);
             break;
         case MEM_TYPE_HID_0:
-            mem_AddMappingShared(addr, 0x2000, HIDsharedbuff);
+            mem_AddMappingShared(addr, 0x2000, HIDsharedbuff, PERM_RW, STAT_SHARED);
             break;
         case MEM_TYPE_HID_SPVR_0:
-            mem_AddMappingShared(addr, 0x2000, HIDsharedbuffSPVR);
+            mem_AddMappingShared(addr, 0x2000, HIDsharedbuffSPVR, PERM_RW, STAT_SHARED);
             break;
         case MEM_TYPE_CSND:
-            mem_AddMappingShared(addr, CSND_sharedmemsize, CSND_sharedmem);
+            mem_AddMappingShared(addr, CSND_sharedmemsize, CSND_sharedmem, PERM_RW, STAT_SHARED);
             break;
         case MEM_TYPE_APT_SHARED_FONT:
 
@@ -333,7 +333,7 @@ u32 svcMapMemoryBlock()
                 return -1;
             }
 
-            mem_AddMappingShared(0x18000000, APTsharedfontsize, APTsharedfont); //todo ichfly
+            mem_AddMappingShared(0x18000000, APTsharedfontsize, APTsharedfont, PERM_RW, STAT_SHARED); //todo ichfly
             break;
 
         case MEM_TYPE_APT_S_SHARED_FONT:
@@ -344,16 +344,16 @@ u32 svcMapMemoryBlock()
                 return -1;
             }
 
-            mem_AddMappingShared(0x18000000, APTs_sharedfontsize, APTs_sharedfont); //todo ichfly
+            mem_AddMappingShared(0x18000000, APTs_sharedfontsize, APTs_sharedfont, PERM_RW, STAT_SHARED); //todo ichfly
             break;
 
         case MEM_TYPE_ALLOC:
             if (h->misc_ptr[0] == NULL) //it is already mapped
             {
-                mem_AddMappingShared(h->misc[0], h->misc[1], LINEmembuffer + (h->misc[0] - 0x14000000)); //shared mem gets only mapped when not already mapped
+                mem_AddMappingShared(h->misc[0], h->misc[1], LINEmembuffer + (h->misc[0] - 0x14000000), PERM_RW, STAT_SHARED); //shared mem gets only mapped when not already mapped
                 return 0;
             }
-            mem_AddMappingShared(addr,h->misc[1] ,h->misc_ptr[0] );
+            mem_AddMappingShared(addr, h->misc[1], h->misc_ptr[0], PERM_RW, STAT_SHARED);
             break;
         default:
             ERROR("Trying to map unknown memory\n");
@@ -457,7 +457,7 @@ u32 svcCreateMemoryBlock() // TODO
     if (addr == 0)
     {
         u32 newaddr;
-        svcControlMemory_wrap(0x10003, 0x0, 0, size, 3, &newaddr); //todo this maps the mem it should not do that yet
+        svcControlMemory_wrap(0x10003, 0x0, 0, size, 3, &newaddr, STAT_SHARED); //todo this maps the mem it should not do that yet
         h->misc[0] = newaddr;
         h->misc[1] = size;
         h->misc_ptr[0] = NULL;
@@ -470,4 +470,57 @@ u32 svcCreateMemoryBlock() // TODO
     }
     arm11_SetR(1, handle);
     return 0;
+}
+
+
+extern memmap_t mappings[MAX_MAPPINGS];
+extern size_t   num_mappings;
+u32 svcQueryMemory()
+{
+    u32 addr = arm11_R(2);
+    s32 found = -1;
+
+    for (int i = 0; i < num_mappings; i++)
+    {
+        if (mappings[i].base + mappings[i].size > addr  && mappings[i].base <= addr)
+            found = i;
+    }
+    if (found == -1)
+    {
+
+        //find pref
+        found = 0;
+        for (int i = 0; i < num_mappings; i++)
+        {
+            if (addr > mappings[i].base  && mappings[i].base > mappings[found].base)
+                found = i;
+        }
+        u32 start = mappings[found].base;
+        arm11_SetR(1, start);
+        //find next
+        found = -1;
+        u32 foundaddr = 0x80000000;
+        for (int i = 0; i < num_mappings; i++)
+        {
+            if (addr < mappings[i].base  && mappings[i].base < foundaddr)
+            {
+                found = i;
+                foundaddr = mappings[found].base;
+            }
+        }
+        u32 size = mappings[found].base - start;
+        arm11_SetR(2, size);
+        arm11_SetR(3, 0); //MemoryPermission NONE
+        arm11_SetR(4, 0); //MemoryState FREE
+    }
+    else
+    {
+        arm11_SetR(1, mappings[found].base);
+        arm11_SetR(2, mappings[found].size);
+        arm11_SetR(3, mappings[found].permition);
+        arm11_SetR(4, mappings[found].State);
+    }
+
+    arm11_SetR(5, 0); //flags unknown
+    return 0; //worked
 }

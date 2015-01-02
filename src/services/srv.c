@@ -487,7 +487,7 @@ u32 services_SyncRequest(handleinfo* h, bool *locked)
     }
 
     if (h->subtype == SERVICE_DIRECT) { 
-        if (h->misc[0] != SERVERFREE)
+        if (!(h->misc[0] == SERVERFREE || h->misc[0] == SERVERFREE2))
         {
             DEBUG("serv: %s\n", h->misc_ptr[3]);
             ERROR("used unfree service %08x",h->handle);
@@ -515,7 +515,7 @@ u32 services_WaitSynchronization(handleinfo* h, bool *locked)
     if (h->misc[0] & HANDLE_SERV_STAT_REPLY) {
         h->misc[0] &= ~HANDLE_SERV_STAT_REPLY;
         DEBUG("serv: %s\n",h->misc_ptr[3]);
-        IPC_writestruct(arm11_ServiceBufferAddress() + 0x80, h->misc_ptr[0]);
+        IPC_writestruct(arm11_ServiceBufferAddress() + 0x80, h->misc_ptr[1]);
         *locked = 0;
         return 0;
     }
@@ -939,7 +939,7 @@ u32 svcReplyAndReceive()
             if (serv->misc[0] & HANDLE_SERV_STAT_SYN_IN_PROGRESS)
             {
                 serv->misc[0] &= ~HANDLE_SERV_STAT_SYN_IN_PROGRESS;
-                IPC_readstruct(arm11_ServiceBufferAddress() + 0x80, serv->misc_ptr[0]);
+                IPC_readstruct(arm11_ServiceBufferAddress() + 0x80, serv->misc_ptr[1]);
                 serv->misc[0] |= HANDLE_SERV_STAT_REPLY;
             }
             else
@@ -1040,7 +1040,9 @@ u32 svcAcceptSession()
     sserv->misc[1] = servhand;
 
     serv->misc_ptr[0] = malloc(0x200);
+    serv->misc_ptr[1] = malloc(0x200);
     sserv->misc_ptr[0] = serv->misc_ptr[0];
+    sserv->misc_ptr[1] = serv->misc_ptr[1];
     serv->misc_ptr[3] = servunm->misc_ptr[3];
 
     DEBUG("AcceptSession %08x servicehand = %08x name = %s\n", session, servhand, servunm->misc_ptr[3]);

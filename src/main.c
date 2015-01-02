@@ -61,6 +61,8 @@ char** overdrivnames = NULL;
 extern u32 curprocesshandle;
 #endif
 
+u32 main_current_module = 0;
+
 #define FPS  60
 #define interval 1000 / FPS // The unit of interval is ms.
 u32 NextTick;
@@ -265,10 +267,10 @@ int main(int argc, char* argv[])
     // Execute.
     while (running) {
 #ifdef MODULE_SUPPORT
-        for (u32 i = 0; i < modulenum + 1; i++)
+        for (main_current_module = 0; main_current_module < modulenum + 1; main_current_module++)
         {
-            DEBUG("process:%d\n",i);
-            ModuleSupport_SwapProcessMem(i);
+            DEBUG("process:%d\n", main_current_module);
+            ModuleSupport_SwapProcessMem(main_current_module);
 #endif
             if (!noscreen)
                 screen_HandleEvent();

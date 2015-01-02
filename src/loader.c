@@ -347,18 +347,18 @@ static void CommonMemSetup()
     mem_AddSegment(0xFFFF0000 - 0x1000 * MAX_THREADS, 0x1000 * (MAX_THREADS+1), NULL);
 
     // 	Shared page
-    mem_AddMappingShared(0x1FF80000, 0x2000, loader_Shared_page); //this should be 2 0x1000 pages but we don't support perm yet so we make it one
+    mem_AddMappingShared(0x1FF80000, 0x2000, loader_Shared_page, PERM_RW, STAT_SHARED); //this should be 2 0x1000 pages but we don't support perm yet so we make it one
 
     //is readonly so don't bother if we writes this multible times
 
+    mem_Write32(0x1FF80004, 0); //no update don't boot save mode
     mem_Write32(0x1FF80008, 0x00008002); //load NS
     mem_Write32(0x1FF8000C, 0x00040130);
     mem_Write8 (0x1FF80014, 0x1); //Bit0 set for Retail Bit1 for debug
+    mem_Write8 (0x1FF80016, 0);//PREV_FIRM
     mem_Write32(0x1FF80040, 64 * 1024 * 1024); //Set App Memory Size to 64MB? (Configmem-APPMEMTYPE)
     mem_Write32(0x1FF80044, 0x02C00000); //Set App Memory Size to 46MB?
-    mem_Write8 (0x1FF800C0, 1); //headset connected
 
-    mem_Write8(0x1FF80016, 0);//PREV_FIRM
 
     mem_Write8(0x1FF80060, 0);//firm 4.1.0
     mem_Write8(0x1FF80061, 0x0);
@@ -367,6 +367,7 @@ static void CommonMemSetup()
     mem_Write32(0x1FF80064, 0x2); //FIRM_SYSCOREVER 
     mem_Write32(0x1FF80068, 0xBA0E); //FIRM_CTRSDKVERSION 
 
+    mem_Write8 (0x1FF810C0, 1); //headset connected
     mem_Write8(0x1ff81004, 1); //RUNNING_HW (1=product, 2=devboard, 3=debugger, 4=capture) 
     mem_Write8(0x1ff81086, 1); //??? RUNNING_HW (1=product, 2=devboard, 3=debugger, 4=capture) 
 

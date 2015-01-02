@@ -36,6 +36,7 @@ u32 svcControlMemory();
 u32 svcMapMemoryBlock();
 u32 svcUnmapMemoryBlock();
 u32 svcCreateMemoryBlock();
+u32 svcQueryMemory();
 
 // syscalls/ports.c
 u32 svcConnectToPort();

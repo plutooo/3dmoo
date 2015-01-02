@@ -27,6 +27,7 @@
 #define HANDLE_SERV_STAT_REPLY             0x10
 
 #define SERVERFREE                         0x1
+#define SERVERFREE2                        0x11
 
 #define HANDLE_TYPE_UNK                     0
 #define HANDLE_TYPE_PORT                    1

@@ -262,7 +262,7 @@ void IPC_writestruct(u32 addr, u8* buffer)
             u32* internaladdr = *temp;
             i++;
 
-            mem_AddMappingShared(0x70A00000, size, internaladdr);
+            mem_AddMappingShared(0x70A00000, size, internaladdr,PERM_RW, STAT_PRIVAT);
 
             u32 tranaddr = 0x70A00000; //there is a way to size check find out how and implement 
 
@@ -285,7 +285,7 @@ void IPC_writestruct(u32 addr, u8* buffer)
             u32* internaladdr = *temp;
             i++;
 
-            mem_AddMappingShared(0x70A00000, size, internaladdr);
+            mem_AddMappingShared(0x70A00000, size, internaladdr, PERM_RW, STAT_PRIVAT);
 
             u32 tranaddr = 0x70A00000; //there is a way to size check find out how and implement 
 
@@ -308,7 +308,7 @@ void IPC_writestruct(u32 addr, u8* buffer)
             u32* internaladdr = *temp;
             i++;
 
-            mem_AddMappingShared(0x70A00000, size, internaladdr);
+            mem_AddMappingShared(0x70A00000, size, internaladdr, PERM_RW, STAT_PRIVAT);
 
             u32 tranaddr = 0x70A00000; //there is a way to size check find out how and implement 
 
@@ -353,6 +353,8 @@ void IPC_debugprint(u32 addr)
      for (u32 i = 0; i < normal; i++)
      {
          u32 temp = mem_Read32(addr);
+         if (i == 0 && temp == 0x3 && head == 0x00020082)
+             arm11_Dump();
          DEBUG("%08X\n", temp);
          addr += 4;
      }

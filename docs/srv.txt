@@ -20,6 +20,7 @@ serv->misc[0] = HANDLE_SERV_STAT_CONNECTED | HANDLE_SERV_STAT_CONNECTEDOPEN; //s
 sserv->misc[1] = serv;
 serv->misc[1] = sserv;
 sserv->misc_ptr[0] = serv->misc_ptr[0] = malloc(0x200); //data to send
+sserv->misc_ptr[1] = serv->misc_ptr[1] = malloc(0x200); //data to recv
 srv_GetServiceHandle returns
 
 
@@ -37,10 +38,10 @@ serv->misc[0] |= HANDLE_SERV_STAT_SYN_IN_PROGRESS
 
 
 ReplyAndReceive
-copy that data to sserv->misc_ptr[0]
+copy that data to sserv->misc_ptr[1]
 serv->misc[0] &= ~HANDLE_SERV_STAT_SYN_IN_PROGRESS
 serv->misc[0] |= HANDLE_SERV_STAT_REPLY
 
 SyncRequest freed
-copy that data from sserv->misc_ptr[0]
+copy that data from sserv->misc_ptr[1]
 serv->misc[0] &= ~HANDLE_SERV_STAT_REPLY

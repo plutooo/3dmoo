@@ -153,12 +153,12 @@ u32 svcCreateProcess()
             fprintf(stdout, "Handle table size:      0x%X\n", descriptor & 0x3FF);
         else if ((descriptor & (0xfff << 20)) == (0xffe << 20))
         {
-            mem_AddMappingIO((descriptor & 0xFFFFF) << 12, 0x1000, modulenum);
+            mem_AddMappingIO((descriptor & 0xFFFFF) << 12, 0x1000, modulenum, PERM_RW);
             fprintf(stdout, "Mapping IO address:     0x%X (%s)\n", (descriptor & 0xFFFFF) << 12, (descriptor&(1 << 20)) ? "RO" : "RW");
         }
         else if ((descriptor & (0x7ff << 21)) == (0x7fc << 21))
         {
-            mem_AddMappingIO((descriptor & 0x1FFFFF) << 12, 0x1000, modulenum);
+            mem_AddMappingIO((descriptor & 0x1FFFFF) << 12, 0x1000, modulenum, PERM_RW);
             fprintf(stdout, "Mapping static address: 0x%X (%s)\n", (descriptor & 0x1FFFFF) << 12, (descriptor&(1 << 20)) ? "RO" : "RW");
         }
         else if ((descriptor & (0x1ff << 23)) == (0x1fe << 23))
@@ -293,10 +293,10 @@ u32 svcRun()
     }
     u8* stack =malloc(stacksize);
     //memset(stack, 0, stacksize);
-    ModuleSupport_mem_AddMappingShared(0x10000000 - stacksize,stacksize, stack, hi->misc[0]);
+    ModuleSupport_mem_AddMappingShared(0x10000000 - stacksize, stacksize, stack, hi->misc[0], PERM_RW, STAT_PRIVAT);
 
     u8* tprif = malloc(0x1000 * (MAX_THREADS + 1));
-    ModuleSupport_mem_AddMappingShared(0xFFFF0000 - 0x1000 * MAX_THREADS, 0x1000 * (MAX_THREADS + 1), tprif, hi->misc[0]);
+    ModuleSupport_mem_AddMappingShared(0xFFFF0000 - 0x1000 * MAX_THREADS, 0x1000 * (MAX_THREADS + 1), tprif, hi->misc[0], PERM_RW, STAT_PRIVAT);
 
     ModuleSupport_threads_New(handle_New(HANDLE_TYPE_THREAD, 0), hi->misc[0], 0x00100000, 0x10000000, argc, prio);
     DEBUG("RUN %08X %08X %08X %08X %08X %08X\n", handle, prio, stacksize, argc, argv, envp);

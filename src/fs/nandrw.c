@@ -93,7 +93,6 @@ static u32 nandrwfs_OpenFile(archive* self, file_path path, u32 flags, u32 attr)
 {
     char p[256], tmp[256];
 
-    char me[0x10];
 
 
 

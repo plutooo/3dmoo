@@ -99,7 +99,7 @@ s32 svcKernelSetState() //this is part of the resource limmits
     {
         FILE* a = fopen("firmparam","r");
         fread(FIRM_Launch_Parameters, 1, 0x1000, a);
-        mem_AddMappingShared(param1, 0x1000, FIRM_Launch_Parameters);
+        mem_AddMappingShared(param1, 0x1000, FIRM_Launch_Parameters, PERM_RW, STAT_PRIVAT);
         fclose(a);
     }
     return 0;

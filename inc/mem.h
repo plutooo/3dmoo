@@ -26,7 +26,7 @@ int mem_Write32(uint32_t addr, uint32_t w);
 u32 mem_Read32(uint32_t addr);
 int mem_Write(const uint8_t* in_buff, uint32_t addr, uint32_t size);
 int mem_Read(uint8_t* buf_out, uint32_t addr, uint32_t size);
-int mem_AddMappingShared(uint32_t base, uint32_t size, u8* data);
+int mem_AddMappingShared(uint32_t base, uint32_t size, u8* data, u32 perm, u32 status);
 bool mem_test(uint32_t addr);
 u8* mem_rawaddr(uint32_t addr, uint32_t size);
 void mem_Dbugdump();
@@ -35,8 +35,36 @@ void mem_Dbugdump();
 void mem_Reorder();
 #endif
 
+typedef struct {
+    uint32_t base;
+    uint32_t size;
+    uint8_t* phys;
+    u32      permition;
+    u32      State;
+#ifdef MEM_TRACE_EXTERNAL
+    bool enable_log;
+#endif
+#ifdef MEM_REORDER
+    u64 accesses;
+#endif
+
+} memmap_t;
+
+#define MAX_MAPPINGS 32
+
 #ifdef MODULE_SUPPORT
 void ModuleSupport_MemInit(u32 modulenum);
 void ModuleSupport_Memadd(u32 modulenum, u32 codeset_handle);
-int ModuleSupport_mem_AddMappingShared(uint32_t base, uint32_t size, u8* data, u32 process);
+int ModuleSupport_mem_AddMappingShared(uint32_t base, uint32_t size, u8* data, u32 process, u32 perm, u32 status);
+#define PERM_NONE 0
+#define PERM_R 1
+#define PERM_W 2
+#define PERM_RW 3
+#define PERM_RX 5
+
+#define STAT_IO       2
+#define STAT_CODE     4
+#define STAT_PRIVAT   5
+#define STAT_SHARED   6
+
 #endif

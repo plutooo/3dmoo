@@ -160,7 +160,7 @@ void screen_RenderFramebuffer(u8 *bitmapPixels, u8* buffer, u32 format, u32 widt
                 for (u32 x = 0; x < width; x++) {
                     u8* row = (u8*)(bitmapPixels + ((239 - y) * 400 * 4) + ((x + xofs) * 4));
 
-                    color_decode(&buffer[((x * 240 + y) * 2)], RGBA5551, &color);
+                    color_decode(&buffer[((x * 240 + y) * 2)], RGBA4, &color);
 
                     u32 val = SDL_MapRGBA(bitmapSurface->format, color.r, color.g, color.b, color.a);
                     *(u32*)row = val;

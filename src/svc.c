@@ -165,6 +165,8 @@ void svc_Execute(ARMul_State * state, ARMword num)
         return;
     case 8:
         arm11_SetR(0, svcCreateThread());
+        state->NumInstrsToExecute = 0;
+        threads_Reschedule();
         return;
     case 9: //Exit Thread
         arm11_SetR(0, 0);
@@ -200,6 +202,8 @@ void svc_Execute(ARMul_State * state, ARMword num)
         return;
     case 0x18:
         arm11_SetR(0, svcSignalEvent());
+        state->NumInstrsToExecute = 0;
+        threads_Reschedule();
         return;
     case 0x19:
         arm11_SetR(0, svcClearEvent());
@@ -258,6 +262,8 @@ void svc_Execute(ARMul_State * state, ARMword num)
         return;
     case 0x32:
         arm11_SetR(0, svcSendSyncRequest());
+        state->NumInstrsToExecute = 0;
+        threads_Reschedule();
         return;
     case 0x33:
         DEBUG("OpenProcess=%08x\n",arm11_R(1));

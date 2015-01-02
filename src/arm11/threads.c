@@ -53,7 +53,7 @@ u32 threads_New(u32 handle)
         exit(1);
     }
 
-    threads[num_threads].priority = 50;
+    threads[num_threads].priority = 30;
     threads[num_threads].handle = handle;
     threads[num_threads].state = RUNNING;
     threads[num_threads].wait_list = NULL;
@@ -158,17 +158,21 @@ u32 threads_NextIdToBeDeleted()
     return (u32)-1;
 }
 
-void threads_RemoveZombies()
+int threads_RemoveZombies()
 {
     u32 id;
     u32 i;
+    int count = 0;
 
     while ((id = threads_NextIdToBeDeleted()) != -1) {
         for(i=id; i<threads_Count(); i++)
             threads[i] = threads[i + 1];
 
         num_threads--;
+        count++;
     }
+
+    return count;
 }
 
 void threads_Switch(/*u32 from,*/ u32 to)
@@ -201,25 +205,35 @@ void threads_DoReschedule()
 {
 #ifdef PROPER_THREADING
     u32 t;
-    u32 cur_prio = 0;
-    u32 next_thread = 0;
+    s32 cur_prio = 0;
+    u32 next_thread = -1;
+    u32 cur_thread = current_thread;
+    u32 cur_thread_handle = threads_GetCurrentThreadHandle();
 
-    //threads_SaveContextCurrentThread();
-    //threads_RemoveZombies();
+    threads_SaveContextCurrentThread();
+    int removed_threads = threads_RemoveZombies();
+
+    //If any threads were removed get current thread id via handle (as it might not be at the same index anymore)
+    if(removed_threads)
+        cur_thread = threads_FindIdByHandle(cur_thread_handle);
 
     for (t = 0; t < threads_Count(); t++) {
-        if (t == current_thread) continue;
+        if(t == cur_thread) continue;
 
         if (!threads_IsThreadActive(t)) {
             THREADDEBUG("Skipping thread %d..\n", t);
             continue;
         }
 
-        if (threads[t].priority >= cur_prio) {
+        if (threads[t].priority > cur_prio) {
             cur_prio = threads[t].priority;
             next_thread = t;
         }
     }
+
+    //Only switch if we aren't already in that thread
+    if(next_thread == -1)
+        next_thread = cur_thread;
 
     threads_Switch(next_thread);
 #endif
@@ -229,27 +243,54 @@ unsigned long long last_one = 0;
 
 void threads_Execute()
 {
+    const int frame_cycles = 268123480 / 60;
+    const int frame_ticks = frame_cycles / 3;
+    u64 last_line_ticks = 0;
 
 #ifdef PROPER_THREADING
-    if (reschedule) {
+    if(reschedule) {
         threads_DoReschedule();
         reschedule = 0;
     }
 
-    gpu_SendInterruptToAll(2);
+    u32 height = (gpu_ReadReg32(framebuffer_top_size) >> 16) & 0xFFFF;
+    u64 ticks = arm11_GetTicks();
+
+    // Synchronize line...
+    if((ticks - last_line_ticks) >= frame_ticks / height) {
+        gpu_SendInterruptToAll(2);
+        line++;
+        last_line_ticks = ticks;
+    }
+
+    // Synchronize frame...
+    if(line >= height) {
+        line = 0;
+        gpu_SendInterruptToAll(3);
+    }
+
+    /*gpu_SendInterruptToAll(2);
     line++;
     if (line == 400) {
         gpu_SendInterruptToAll(3);
         line = 0;
-    }
+    }*/
 
+#ifdef GDB_STUB
+    wait_while_stall();
+#endif
     arm11_Run(0x7FFFFFFF);
+#ifdef GDB_STUB
+    wait_while_stall();
+#endif
+
+#ifdef MEM_REORDER
+    mem_Reorder();
+#endif
+
 #else
     u32 t;
     bool nothreadused = true;
-    const int frame_cycles = 268123480 / 60;
-    const int frame_ticks = frame_cycles / 3;
-    u64 last_line_ticks = 0;
     for (t = 0; t < threads_Count(); t++)
     {
         u32 height = (gpu_ReadReg32(framebuffer_top_size) >> 16) & 0xFFFF;
@@ -285,7 +326,7 @@ void threads_Execute()
         wait_while_stall();
 #endif
         //arm11_Run(11172 * 16);
-        arm11_Run(0xFFFFFFFF); //state->NumInstrsToExecute don't count down
+        arm11_Run(1000); //state->NumInstrsToExecute don't count down
 #ifdef GDB_STUB
         wait_while_stall();
 #endif
@@ -440,6 +481,7 @@ void threads_SetCurrentThreadArbitrationSuspend(u32 arbiter, u32 addr)
     threads[current_thread].arb_handle = arbiter;
 
     s.NumInstrsToExecute = 0;
+    threads_Reschedule();
 }
 
 void threads_ResumeArbitratedThread(thread* t)
@@ -529,11 +571,12 @@ u32 svcCreateThread()
     u32 ent_sp = arm11_R(3);
     s32 cpu  = arm11_R(4);
 
-    THREADDEBUG("entrypoint=%08x, r0=%08x, sp=%08x, prio=%x, cpu=%x\n",
-                ent_pc, ent_r0, ent_sp, prio, cpu);
-
     u32 hand = handle_New(HANDLE_TYPE_THREAD, 0);
     u32 numthread = threads_New(hand);
+
+    THREADDEBUG("entrypoint=%08x, r0=%08x, sp=%08x, prio=%x, cpu=%x, threadnum=%d\n",
+                ent_pc, ent_r0, ent_sp, prio, cpu, numthread);
+
 
     threads[numthread].priority = prio;
     threads[numthread].r[0] = ent_r0;

@@ -861,6 +861,21 @@ SERVICE_CMD(0x08570080)   // DeleteExtSaveData
     RESP(1, 0); //Process 9 is ready
     return 0;
 }
+SERVICE_CMD(0x08130000)   //GetCardType
+{
+    DEBUG("GetCardType\n");
+
+    RESP(2, 0); //u8 type 0
+    RESP(1, 0); //ret code
+    return 0;
+}
+SERVICE_CMD(0x085F0040)//SwitchCleanupInvalidSaveData
+{
+    DEBUG("SwitchCleanupInvalidSaveData %08x\n",CMD(1));
+
+    RESP(1, 0); //ret code
+    return 0;
+}
 SERVICE_END();
 
 

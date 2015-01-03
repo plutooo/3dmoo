@@ -478,6 +478,8 @@ static u32 ownservice_num;
 s32 services_Close(ARMul_State *state, u32 handle)
 {
     handleinfo* serv = handle_Get(handle);
+    if (serv->subtype != SERVICE_DIRECT)
+        return 0; //worked
     if (serv->misc[0] != SERVERFREE)
     {
         ERROR("Closing service that still hase data");

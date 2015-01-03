@@ -254,6 +254,8 @@ void svc_Execute(ARMul_State * state, ARMword num)
     case 0x1B:
         arm11_SetR(0, svcSetTimer());
         return;
+    case 0x1C:
+        arm11_SetR(0, svcCancelTimer());
     case 0x1E:
         arm11_SetR(0, svcCreateMemoryBlock());
         return;

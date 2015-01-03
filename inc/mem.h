@@ -67,4 +67,20 @@ int ModuleSupport_mem_AddMappingShared(uint32_t base, uint32_t size, u8* data, u
 #define STAT_PRIVAT   5
 #define STAT_SHARED   6
 
+typedef struct {
+    u8 name[8];
+    u8 unk[8];
+    u8 textaddr[4];
+    u8 textsize[4];
+    u8 roaddr[4];
+    u8 rosize[4];
+    u8 dataaddr[4];
+    u8 datasize[4];
+    u8 rooffset[4];
+    u8 dataoffset[4];
+    u8 bdsize[4];
+    u8 pid[8];
+    u8 unk2[8];
+} ctr_CodeSetInfo;
+
 #endif

@@ -60,6 +60,12 @@ u32 svcSetTimer()
     return 0;
 }
 
+u32 svcCancelTimer()
+{
+    u32 timer = arm11_R(0);
+    DEBUG("CancelTimer --todo-- %08x\n", timer);
+    return 0;
+}
 u32 timer_WaitSynchronization(handleinfo* h, bool *locked)
 {
     DEBUG("timer wait --stub--\n");

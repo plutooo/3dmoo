@@ -367,9 +367,9 @@ static void CommonMemSetup()
     mem_Write32(0x1FF80064, 0x2); //FIRM_SYSCOREVER 
     mem_Write32(0x1FF80068, 0xBA0E); //FIRM_CTRSDKVERSION 
 
-    mem_Write8 (0x1FF810C0, 1); //headset connected
     mem_Write8(0x1ff81004, 1); //RUNNING_HW (1=product, 2=devboard, 3=debugger, 4=capture) 
     mem_Write8(0x1ff81086, 1); //??? RUNNING_HW (1=product, 2=devboard, 3=debugger, 4=capture) 
+    mem_Write8(0x1FF810C0, 1); //headset connected
 
 }
 

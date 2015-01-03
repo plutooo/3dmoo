@@ -58,6 +58,10 @@ char** modulenames = NULL;
 
 u32 overdrivnum = 0;
 char** overdrivnames = NULL;
+
+char** main_noloadnumnames = NULL;
+u32 main_noloadnum;
+
 extern u32 curprocesshandle;
 #endif
 
@@ -170,11 +174,22 @@ int main(int argc, char* argv[])
         if ((strcmp(argv[i], "-overdrivlist") == 0)) {
             i++;
             overdrivnum = atoi(argv[i]);
-            overdrivnames = malloc(sizeof(char*)*modulenum);
+            overdrivnames = malloc(sizeof(char*)*overdrivnum);
             i++;
             for (u32 j = 0; j < overdrivnum; j++) {
                 *(overdrivnames + j) = malloc(strlen(argv[i]));
                 strcpy(*(overdrivnames + j), argv[i]);
+                i++;
+            }
+        }
+        if ((strcmp(argv[i], "-noloadlist") == 0)) {
+            i++;
+            main_noloadnum = atoi(argv[i]);
+            main_noloadnumnames = malloc(sizeof(char*)*main_noloadnum);
+            i++;
+            for (u32 j = 0; j < main_noloadnum; j++) {
+                *(main_noloadnumnames + j) = malloc(strlen(argv[i]));
+                strcpy(*(main_noloadnumnames + j), argv[i]);
                 i++;
             }
         }

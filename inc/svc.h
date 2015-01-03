@@ -77,6 +77,7 @@ u32 svcAcceptSession();
 //syscalls/timer.c
 u32 svcCreateTimer();
 u32 svcSetTimer();
+u32 svcCancelTimer();
 
 //syscalls/resource_limit.c
 u32 svcGetResourceLimitCurrentValues();

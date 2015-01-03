@@ -100,6 +100,9 @@ u32 svcCreateCodeSet() //Result CreateCodeSet(Handle* handle_out, struct CodeSet
 
     return 0;
 }
+
+extern char** main_noloadnumnames;
+extern u32 main_noloadnum;
 u32 svcCreateProcess()
 {
     u32 codeset_handle = arm11_R(1);
@@ -107,6 +110,8 @@ u32 svcCreateProcess()
     u32 arm11kernelcaps_num = arm11_R(3);
 
     DEBUG("CreateProcess %08x %08x %08x --stub--\n", codeset_handle, arm11kernelcaps_ptr, arm11kernelcaps_num);
+
+
 
     u32 handle = handle_New(HANDLE_TYPE_PROCESS, 0);
     handleinfo* hi = handle_Get(handle);
@@ -119,7 +124,23 @@ u32 svcCreateProcess()
     }
     ModuleSupport_fssetnumb(modulenum + 1);
 
+
+    bool noload = false;
+    handleinfo* codehi = handle_Get(codeset_handle);
+    ctr_CodeSetInfo* co = codehi->misc_ptr[0];
+
+    for (int i = 0; i < main_noloadnum; i++)
+    {
+        if (strcmp(main_noloadnumnames[i], co->name) == 0)
+            noload = true;
+    }
+
     hi->misc[0] = modulenum;
+    if (noload)
+        hi->misc[1] = 1;
+    else
+        hi->misc[1] = 0;
+
     curprocesshandlelist = realloc(curprocesshandlelist, sizeof(u32)*(modulenum + 1));
     ModuleSupport_Memadd(modulenum, codeset_handle);
 
@@ -297,7 +318,8 @@ u32 svcRun()
     u8* tprif = malloc(0x1000 * (MAX_THREADS + 1));
     ModuleSupport_mem_AddMappingShared(0xFFFF0000 - 0x1000 * MAX_THREADS, 0x1000 * (MAX_THREADS + 1), tprif, hi->misc[0], PERM_RW, STAT_PRIVAT);
 
-    ModuleSupport_threads_New(handle_New(HANDLE_TYPE_THREAD, 0), hi->misc[0], 0x00100000, 0x10000000, argc, prio);
+    if (!hi->misc[1])
+        ModuleSupport_threads_New(handle_New(HANDLE_TYPE_THREAD, 0), hi->misc[0], 0x00100000, 0x10000000, argc, prio);
     DEBUG("RUN %08X %08X %08X %08X %08X %08X\n", handle, prio, stacksize, argc, argv, envp);
     return 0;
 }

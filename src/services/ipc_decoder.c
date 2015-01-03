@@ -228,7 +228,7 @@ void IPC_writestruct(u32 addr, u8* buffer)
             mem_Write32(addr, tranaddr);
 
             buf++;
-            addr += 8;
+            addr += 4;
 
             break;
         }
@@ -375,7 +375,7 @@ void IPC_debugprint(u32 addr)
                  {
                      DEBUG("%08x\n", mem_Read32(addr + 8 + 4 * i));
                  }
-                 addr += 4 + 4 * ((desc >> 26) + 1);
+                 addr += 4 * ((desc >> 26) + 1);
                  i++;
                  i += (desc >> 26);
                  break;
@@ -387,7 +387,7 @@ void IPC_debugprint(u32 addr)
                  {
                      DEBUG("%08x\n",mem_Read32(addr + 8 + 4 * i));
                  }
-                 addr += 4 + 4 * ((desc >> 26) + 1);
+                 addr += 4 * ((desc >> 26) + 1);
                  i++;
                  i += (desc >> 26);
                  break;
@@ -395,7 +395,7 @@ void IPC_debugprint(u32 addr)
              case 0x20:
              {
                  DEBUG("send ProcessID\n");
-                 addr += 4 + 4 * ((desc >> 26) + 1);
+                 addr += 4 * ((desc >> 26) + 1);
                  i++;
                  break;
              }
@@ -406,7 +406,7 @@ void IPC_debugprint(u32 addr)
                  {
                      DEBUG("%08x\n", mem_Read32(addr + 8 + 4 * i));
                  }
-                 addr += 4 + 4 * ((desc >> 26) + 1);
+                 addr += 4 * ((desc >> 26) + 1);
                  i++;
                  i += (desc >> 26);
                  break;

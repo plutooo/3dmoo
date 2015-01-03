@@ -92,7 +92,7 @@ SERVICE_CMD(0x000B0040)   //unk
 }
 SERVICE_CMD(0x00130040)   // ??
 {
-    DEBUG("??_00130040 - STUBBED -\n");
+    DEBUG("??_00130040 %08x - STUBBED -\n",CMD(1));
     RESP(1, 0);
     return 0;
 }

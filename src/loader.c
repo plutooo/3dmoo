@@ -354,8 +354,10 @@ static void CommonMemSetup()
     mem_Write32(0x1FF80004, 0); //no update don't boot save mode
     mem_Write32(0x1FF80008, 0x00008002); //load NS
     mem_Write32(0x1FF8000C, 0x00040130);
+    mem_Write32(0x1FF80010, 0x2); //SYSCOREVER
     mem_Write8 (0x1FF80014, 0x1); //Bit0 set for Retail Bit1 for debug
     mem_Write8 (0x1FF80016, 0);//PREV_FIRM
+    mem_Write32(0x1FF80030, 0); //APPMEMTYPE
     mem_Write32(0x1FF80040, 64 * 1024 * 1024); //Set App Memory Size to 64MB? (Configmem-APPMEMTYPE)
     mem_Write32(0x1FF80044, 0x02C00000); //Set App Memory Size to 46MB?
 

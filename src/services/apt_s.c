@@ -236,7 +236,7 @@ SERVICE_CMD(0x00090040)
     u32 unk = CMD(1);
     DEBUG("IsRegistered, APPID=%08x\n", unk);
 
-    RESP(2, 1); // registered
+    RESP(2, 0); // not registered
     RESP(1, 0); // Result
     return 0;
 }

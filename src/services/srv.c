@@ -608,6 +608,8 @@ u32 srv_InitHandle()
 {
     // Create a handle for srv: port.
     u32 servport = handle_New(HANDLE_TYPE_PORT, PORT_TYPE_SRV);
+    //and a number
+
     arm11_SetR(1, servport);
     eventhandle = handle_New(HANDLE_TYPE_SEMAPHORE, 0);
 
@@ -626,11 +628,13 @@ u32 srv_InitHandle()
 
     //event stuff
 
+
     srvhandleslistinlist++;
     srvhandleslist = realloc(srvhandleslist, srvhandleslistinlist*sizeof(u32));
     semahandleslist = realloc(semahandleslist, srvhandleslistinlist*sizeof(u32));
     semahandleslist[srvhandleslistinlist - 1] = eventhandle;
     srvhandleslist[srvhandleslistinlist - 1] = servport;
+
 
     handleinfo* servhandle = handle_Get(servport);
     if (ha == NULL) {
@@ -642,20 +646,22 @@ u32 srv_InitHandle()
     servhandle->misc[0] = 0;
     servhandle->misc_ptr[1] = NULL; //allocd events
     servhandle->misc[1] = 0;
+    servhandle->misc[2] = eventhandle;
     return 0;
 }
 
 u32 sendevent(u32 flag,u32 name)
 {
+    u32 numb = 0;
     for (int i = 0; i < srvhandleslistinlist; i++)
     {
         handleinfo* serv = handle_Get(srvhandleslist[i]);
         handleinfo* smea = handle_Get(semahandleslist[i]);
         bool have = false;
-        for (int i = 0; i < serv->misc[1]; i++)
+        for (int j = 0; j < serv->misc[1]; j++)
         {
             
-            if (((u32*)(serv->misc_ptr[1]))[serv->misc[1] - 1] == name)
+            if (((u32*)(serv->misc_ptr[1]))[j] == name)
                 have = true;
         }
         if (have)
@@ -664,9 +670,10 @@ u32 sendevent(u32 flag,u32 name)
             serv->misc[0]++;
             serv->misc_ptr[0] = realloc(serv->misc_ptr[0], serv->misc[0] * sizeof(u32));
             ((u32*)(serv->misc_ptr[0]))[serv->misc[0] - 1] = name;
+            numb++;
         }
     }
-    return 0;
+    return numb;
 }
 
 void srv_InitGlobal()
@@ -699,7 +706,7 @@ SERVICE_CMD(0x20000)
 
         mem_Write32(arm11_ServiceBufferAddress() + 0x84, 0); //no error
         mem_Write32(arm11_ServiceBufferAddress() + 0x88, 0); //done in sm 4.4
-        mem_Write32(arm11_ServiceBufferAddress() + 0x8C, eventhandle);
+        mem_Write32(arm11_ServiceBufferAddress() + 0x8C, h->misc[2]);
         return 0;
 
         char names[9];
@@ -896,11 +903,21 @@ SERVICE_CMD(0x000C0080) // PublishToSubscriber
     {
         u32 ID = mem_Read32(arm11_ServiceBufferAddress() + 0x84);
         u32 flag = mem_Read32(arm11_ServiceBufferAddress() + 0x88);
-        DEBUG("PublishToSubscriber %08x %08x --STUB--\n", ID,flag);
+        DEBUG("PublishToSubscriber %08x %08x\n", ID,flag);
         sendevent(flag,ID);
         mem_Write32(arm11_ServiceBufferAddress() + 0x84, 0); //worked
         return 0;
     }
+
+SERVICE_CMD(0x000D0040) // PublishToSubscriber
+{
+    u32 ID = mem_Read32(arm11_ServiceBufferAddress() + 0x84);
+    DEBUG("PublishToSubscriber2 %08x\n", ID);
+    mem_Write32(arm11_ServiceBufferAddress() + 0x88, sendevent(0, ID)); //number
+    mem_Write32(arm11_ServiceBufferAddress() + 0x84, 0); //worked
+    return 0;
+}
+
 
 SERVICE_CMD(0x04030082) // RegisterProcess
     {

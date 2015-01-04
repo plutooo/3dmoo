@@ -348,10 +348,20 @@ u32 svcMapMemoryBlock()
             break;
 
         case MEM_TYPE_ALLOC:
-            if (addr == 0) //map to the lin addr
-                mem_AddMappingShared(h->misc[0], h->misc[1], LINEmembuffer + (h->misc[0] - 0x14000000), PERM_RW, STAT_SHARED); //shared mem gets only mapped when not already mapped
-            else //map to the given addr
-                mem_AddMappingShared(addr, h->misc[1], LINEmembuffer + (h->misc[0] - 0x14000000), PERM_RW, STAT_SHARED);
+            if (h->misc_ptr[0] == NULL)
+            {
+                if (addr == 0) //map to the lin addr
+                    mem_AddMappingShared(h->misc[0], h->misc[1], LINEmembuffer + (h->misc[0] - 0x14000000), PERM_RW, STAT_SHARED); //shared mem gets only mapped when not already mapped
+                else //map to the given addr
+                    mem_AddMappingShared(addr, h->misc[1], LINEmembuffer + (h->misc[0] - 0x14000000), PERM_RW, STAT_SHARED);
+            }
+            else
+            {
+                if (addr == 0) //map to the lin addr
+                    mem_AddMappingShared(h->misc[0], h->misc[1], h->misc_ptr[0], PERM_RW, STAT_SHARED); //shared mem gets only mapped when not already mapped
+                else //map to the given addr
+                    mem_AddMappingShared(addr, h->misc[1], h->misc_ptr[0], PERM_RW, STAT_SHARED);
+            }
             break;
         default:
             ERROR("Trying to map unknown memory\n");
@@ -465,7 +475,7 @@ u32 svcCreateMemoryBlock() // TODO
         ERROR("unknown mapping with addr %08x",addr);
         h->misc[0] = addr;
         h->misc[1] = size;
-        h->misc_ptr[0] = malloc(size);
+        h->misc_ptr[0] = mem_rawaddr(addr, size);
     }
     arm11_SetR(1, handle);
     return 0;

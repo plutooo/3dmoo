@@ -47,7 +47,7 @@ extern u32 main_current_module;
 
 #define MEM_TRACE_COND main_current_module == 14
 
-#define MEM_TRACE 1
+//#define MEM_TRACE 1
 #define PRINT_ILLEGAL 1
 //#define EXIT_ON_ILLEGAL 1
 

@@ -45,7 +45,7 @@ size_t   num_mappings;
 
 extern u32 main_current_module;
 
-#define MEM_TRACE_COND main_current_module == 14
+#define MEM_TRACE_COND main_current_module == 13
 
 //#define MEM_TRACE 1
 #define PRINT_ILLEGAL 1

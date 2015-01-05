@@ -332,6 +332,7 @@ void svc_Execute(ARMul_State * state, ARMword num)
         return;
     case 0x3C: //Break
         ERROR("Break %x (%d).\n", arm11_R(0), arm11_R(0));
+        mem_Dbugdump();
         exit(1);
         return;
     case 0x3D: { //OutputDebugString

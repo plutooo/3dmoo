@@ -47,7 +47,6 @@ void gsp_ExecuteCommandFromSharedMem()
 
         *(u32*)baseaddr = 0;
         for (u32 j = 0; j < toprocess; j++) {
-
             u32 cmd_id = *(u32*)(baseaddr + (j + 1) * 0x20);
 
             switch (cmd_id & 0xFF) {

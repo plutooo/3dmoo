@@ -178,11 +178,9 @@ struct VertexShaderState {
 
     float* input_register_table[16];
     struct vec4  temporary_registers[16];
-    s32  address_registers[2];
+    s32  address_registers[3]; //loop also has one it is 
     bool boolean_registers[16];
     u8 integer_registers[4][3];
-
-    u8 loop_count;
 
     float* output_register_table[16 * 4];
 
@@ -425,7 +423,7 @@ void ProcessShaderCode(struct VertexShaderState* state)
             if ((state->program_counter - &GPUshadercodebuffer[0]) == Stack_Top(&state->loop_stack)) {
 
                 u8 ID = Stack_Top(&state->loop_int_stack);
-                if (state->loop_count <= state->integer_registers[ID][1] + state->integer_registers[ID][0])
+                if (state->address_registers[2] <= state->integer_registers[ID][1] + state->integer_registers[ID][0])
                 {
                     state->program_counter = &GPUshadercodebuffer[Stack_Top(&state->loop_end_stack)];
                 }
@@ -435,7 +433,7 @@ void ProcessShaderCode(struct VertexShaderState* state)
                     Stack_Pop(&state->loop_int_stack);
                     Stack_Pop(&state->loop_end_stack);
                 }
-                state->loop_count += state->integer_registers[ID][2];
+                state->address_registers[2] += state->integer_registers[ID][2];
 
             // TODO: Is "trying again" accurate to hardware?
             continue;
@@ -455,7 +453,7 @@ void ProcessShaderCode(struct VertexShaderState* state)
         bool increment_pc = true;
         u32 instr = *(u32*)state->program_counter;
 
-        s32 idx = (instr_common_idx(instr) == 0) ? 0 : state->address_registers[instr_common_idx(instr)];
+        s32 idx = (instr_common_idx(instr) == 0) ? 0 : state->address_registers[instr_common_idx(instr) - 1];
         u32 instr_common_src1v = instr_common_src1(instr) + idx;
         const float* src1_ = (instr_common_src1v < 0x10) ? state->input_register_table[instr_common_src1v]
             : (instr_common_src1v < 0x20) ? &state->temporary_registers[instr_common_src1v - 0x10].v[0]
@@ -920,8 +918,8 @@ void ProcessShaderCode(struct VertexShaderState* state)
 #ifdef printfunc
             DEBUG("LOOP %02X %03X %01x\n", NUM, DST, ID);
 #endif
-            state->loop_count = state->integer_registers[ID][1];
-            if (state->loop_count <= state->integer_registers[ID][1] + state->integer_registers[ID][0])
+            state->address_registers[2] = state->integer_registers[ID][1];
+            if (state->address_registers[2] <= state->integer_registers[ID][1] + state->integer_registers[ID][0])
             {
                 increment_pc = false;
                 state->program_counter = &GPUshadercodebuffer[DST];
@@ -1041,7 +1039,7 @@ void RunShader(struct vec4 input[17], int num_attributes, struct OutputVertex *r
     for (int i = 0; i < 16; i++)
         state.boolean_registers[i] = GPU_Regs[0x2B0]&(1<<i);
 
-    for (int i = 0; i < 4; i++)
+    for (int i = 0; i < 3; i++)
         state.address_registers[i] = 0.f;
 
     //set up integer

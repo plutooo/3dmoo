@@ -1,6 +1,8 @@
 #include "util.h"
 #include "gpu.h"
 
+#define GSP_ENABLE_LOG
+
 void gpu_ExecuteCommands(u8* buffer, u32 sizea)
 {
     u32 i;

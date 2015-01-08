@@ -337,13 +337,26 @@ static void CommonMemSetup()
     mem_AddSegment(0x1FF00000, 0x80000, NULL);
 
     // Add Read Only Shared Info / AXI WRAM
-    mem_AddSegment(0x1FF80000, 0x80000, NULL);
-    mem_Write8(0x1FF80014, 1); //Bit0 set for Retail
-    mem_Write32(0x1FF80040, 64 * 1024 * 1024); //Set App Memory Size to 64MB?
+    mem_AddSegment(0x1FF80000, 0x2000, NULL);
 
-    //Shared Memory Page For ARM11 Processes
-    //mem_AddSegment(0x1FF81000, 0x100, NULL);
-    mem_Write8(0x1FF800c0, 1); //headset connected
+    mem_Write32(0x1FF80004, 0); //no update don't boot save mode
+    mem_Write32(0x1FF80008, 0x00008002); //load NS
+    mem_Write32(0x1FF8000C, 0x00040130);
+    mem_Write32(0x1FF80010, 0x2); //SYSCOREVER
+    mem_Write8(0x1FF80014, 0x1); //Bit0 set for Retail Bit1 for debug
+    mem_Write8(0x1FF80016, 0);//PREV_FIRM
+    mem_Write32(0x1FF80030, 0); //APPMEMTYPE
+    mem_Write32(0x1FF80040, 64 * 1024 * 1024); //Set App Memory Size to 64MB? (Configmem-APPMEMTYPE)
+    mem_Write32(0x1FF80044, 0x02C00000); //Set App Memory Size to 46MB?
+    mem_Write8(0x1FF80060, 0);//firm 4.1.0
+    mem_Write8(0x1FF80061, 0x0);
+    mem_Write8(0x1FF80062, 0x22);
+    mem_Write8(0x1FF80063, 0x2);
+    mem_Write32(0x1FF80064, 0x2); //FIRM_SYSCOREVER
+    mem_Write32(0x1FF80068, 0xBA0E); //FIRM_CTRSDKVERSION
+    mem_Write8(0x1ff81004, 1); //RUNNING_HW (1=product, 2=devboard, 3=debugger, 4=capture)
+    mem_Write8(0x1ff81086, 1); //??? RUNNING_HW (1=product, 2=devboard, 3=debugger, 4=capture)
+    mem_Write8(0x1FF810C0, 1); //headset connected
 
 }
 

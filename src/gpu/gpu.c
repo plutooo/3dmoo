@@ -179,11 +179,9 @@ struct VertexShaderState {
 
     float* input_register_table[16];
     struct vec4  temporary_registers[16];
-    s32  address_registers[2];
+    u8  address_registers[3]; //loop is also a address_registers
     bool boolean_registers[16];
     u8 integer_registers[4][3];
-
-    u8 loop_count;
 
     float* output_register_table[16 * 4];
 
@@ -193,8 +191,13 @@ struct VertexShaderState {
     u32 call_stack[16];*/
 
     struct Stack call_stack;
-    struct Stack call_type_stack;
     struct Stack call_end_stack;
+
+    struct Stack if_stack;
+    struct Stack if_end_stack;
+    struct Stack loop_stack;
+    struct Stack loop_int_stack;
+    struct Stack loop_end_stack;
 };
 
 struct vec4 const_vectors[96];
@@ -254,15 +257,6 @@ static void PrimitiveAssembly_SubmitVertex(struct OutputVertex* vtx)
         break;
     }
 }
-
-
-
-
-#define STACKTYPE_TYPE_ID_MASK 0x80000000
-
-#define STACKTYPE_CALL 0x00000000
-#define STACKTYPE_LOOP 0x80000000
-#define STACKTYPE_LOOP_int_MASK 0xF
 
 #define SHDR_ADD 0x0
 #define SHDR_DP3 0x1
@@ -379,53 +373,69 @@ static bool ShaderCMP(float a, float b, u32 mode)
 
 //#define printfunc
 
-void loop(struct VertexShaderState* state, u32 offset, u32 num_instruction, u32 return_offset,u32 int_reg)
+void loop(struct VertexShaderState* state, u32 offset, u32 num_instruction, u32 return_offset, u32 int_reg)
 {
-    Stack_Push(&state->call_stack, offset + num_instruction);
-    Stack_Push(&state->call_type_stack, STACKTYPE_LOOP | (int_reg&STACKTYPE_LOOP));
-    Stack_Push(&state->call_end_stack, return_offset);
+#ifdef printfunc
+    DEBUG("callloop %03x %03x %03x %01x\n", offset, num_instruction, return_offset, int_reg);
+#endif
+    Stack_Push(&state->loop_stack, offset + num_instruction);
+    Stack_Push(&state->loop_int_stack, int_reg);
+    Stack_Push(&state->loop_end_stack, return_offset);
 }
-
+void ifcall(struct VertexShaderState* state, u32 offset, u32 num_instruction, u32 return_offset)
+{
+#ifdef printfunc
+    DEBUG("callif %03x %03x %03x\n", offset, num_instruction, return_offset);
+#endif
+    state->program_counter = &GPUshadercodebuffer[offset] - 1; // -1 to make sure when incrementing the PC we end up at the correct offset
+    Stack_Push(&state->if_stack, offset + num_instruction);
+    Stack_Push(&state->if_end_stack, return_offset);
+}
 void call(struct VertexShaderState* state, u32 offset, u32 num_instruction, u32 return_offset)
 {
+#ifdef printfunc
+    DEBUG("callnorm %03x %03x %03x\n", offset, num_instruction, return_offset);
+#endif
     state->program_counter = &GPUshadercodebuffer[offset] - 1; // -1 to make sure when incrementing the PC we end up at the correct offset
     Stack_Push(&state->call_stack, offset + num_instruction);
-    Stack_Push(&state->call_type_stack, STACKTYPE_CALL);
     Stack_Push(&state->call_end_stack, return_offset);
 }
 
 void ProcessShaderCode(struct VertexShaderState* state)
 {
     while (true) {
-        if(!Stack_Empty(&state->call_stack)) {
-            if((state->program_counter - &GPUshadercodebuffer[0]) == Stack_Top(&state->call_stack)) {
-
-                switch (Stack_Top(&state->call_type_stack) & STACKTYPE_TYPE_ID_MASK)
+        if (!Stack_Empty(&state->call_stack)) {
+            if ((state->program_counter - &GPUshadercodebuffer[0]) == Stack_Top(&state->call_stack)) {
+                state->program_counter = &GPUshadercodebuffer[Stack_Top(&state->call_end_stack)];
+                Stack_Pop(&state->call_stack);
+                Stack_Pop(&state->call_end_stack);
+                // TODO: Is "trying again" accurate to hardware?
+                continue;
+            }
+        }
+        if (!Stack_Empty(&state->loop_stack)) {
+            if ((state->program_counter - &GPUshadercodebuffer[0]) == Stack_Top(&state->loop_stack)) {
+                u8 ID = Stack_Top(&state->loop_int_stack);
+                if (state->address_registers[2] <= state->integer_registers[ID][1] + state->integer_registers[ID][0])
                 {
-                    case STACKTYPE_CALL:
-                        state->program_counter = &GPUshadercodebuffer[Stack_Top(&state->call_end_stack)];
-                        Stack_Pop(&state->call_type_stack);
-                        Stack_Pop(&state->call_stack);
-                        Stack_Pop(&state->call_end_stack);
-                        break;
-                    case STACKTYPE_LOOP:
-                    {
-                        u8 ID = Stack_Top(&state->call_type_stack) & STACKTYPE_LOOP_int_MASK;
-                        if (state->loop_count <= state->integer_registers[ID][1] + state->integer_registers[ID][0])
-                        {
-                            state->program_counter = &GPUshadercodebuffer[Stack_Top(&state->call_end_stack)];
-                        }
-                        else //remove loop
-                        {
-                            Stack_Pop(&state->call_type_stack);
-                            Stack_Pop(&state->call_stack);
-                            Stack_Pop(&state->call_end_stack);
-                        }
-                        state->loop_count += state->integer_registers[ID][2];
-                        break;
-                    }
+                    state->program_counter = &GPUshadercodebuffer[Stack_Top(&state->loop_end_stack)];
                 }
-
+                else //remove loop
+                {
+                    Stack_Pop(&state->loop_stack);
+                    Stack_Pop(&state->loop_int_stack);
+                    Stack_Pop(&state->loop_end_stack);
+                }
+                state->address_registers[2] += state->integer_registers[ID][2];
+                // TODO: Is "trying again" accurate to hardware?
+                continue;
+            }
+        }
+        if (!Stack_Empty(&state->if_stack)) {
+            if ((state->program_counter - &GPUshadercodebuffer[0]) == Stack_Top(&state->if_stack)) {
+                state->program_counter = &GPUshadercodebuffer[Stack_Top(&state->if_end_stack)];
+                Stack_Pop(&state->if_stack);
+                Stack_Pop(&state->if_end_stack);
                 // TODO: Is "trying again" accurate to hardware?
                 continue;
             }
@@ -434,7 +444,7 @@ void ProcessShaderCode(struct VertexShaderState* state)
         bool increment_pc = true;
         u32 instr = *(u32*)state->program_counter;
 
-        s32 idx = (instr_common_idx(instr) == 0) ? 0 : state->address_registers[instr_common_idx(instr)];
+        s32 idx = (instr_common_idx(instr) == 0) ? 0 : state->address_registers[instr_common_idx(instr) - 1];
         u32 instr_common_src1v = instr_common_src1(instr) + idx;
         const float* src1_ = (instr_common_src1v < 0x10) ? state->input_register_table[instr_common_src1v]
                              : (instr_common_src1v < 0x20) ? &state->temporary_registers[instr_common_src1v - 0x10].v[0]
@@ -758,11 +768,12 @@ void ProcessShaderCode(struct VertexShaderState* state)
             if(condition)
             {
                 u32 binary_offset = ((u32)(uintptr_t)(state->program_counter) - (u32)(uintptr_t)(&GPUshadercodebuffer[0])) / 4;
-                call(state, binary_offset + 1, (addrv / 4) - (binary_offset - 1), (addrv / 4)+retv);
+                ifcall(state, binary_offset + 1, (addrv / 4) - (binary_offset), (addrv / 4) + retv);
             }
             else
             {
-                call(state, addrv / 4, retv, (addrv / 4) + retv);
+                state->program_counter = &GPUshadercodebuffer[addrv / 4];
+                increment_pc = false;
             }
             break;
         }
@@ -802,11 +813,12 @@ void ProcessShaderCode(struct VertexShaderState* state)
             if(condition)
             {
                 u32 binary_offset = ((u32)(uintptr_t)(state->program_counter) - (u32)(uintptr_t)(&GPUshadercodebuffer[0])) / 4;
-                call(state, binary_offset + 1, (addrv / 4) - (binary_offset - 1), (addrv / 4) + retv);
+                ifcall(state, binary_offset + 1, (addrv / 4) - (binary_offset), (addrv / 4) + retv);
             }
             else
             {
-                call(state, addrv / 4, retv, (addrv / 4) + retv);
+                state->program_counter = &GPUshadercodebuffer[addrv / 4];
+                increment_pc = false;
             }
             break;
         }
@@ -896,8 +908,8 @@ void ProcessShaderCode(struct VertexShaderState* state)
 #ifdef printfunc
             DEBUG("LOOP %02X %03X %01x\n", NUM, DST, ID);
 #endif
-            state->loop_count = state->integer_registers[ID][1];
-            if (state->loop_count <= state->integer_registers[ID][1] + state->integer_registers[ID][0])
+            state->address_registers[2] = state->integer_registers[ID][1];
+            if (state->address_registers[2] <= state->integer_registers[ID][1] + state->integer_registers[ID][0])
             {
                 increment_pc = false;
                 state->program_counter = &GPUshadercodebuffer[DST];
@@ -1017,8 +1029,8 @@ void RunShader(struct vec4 input[17], int num_attributes, struct OutputVertex *r
     for (int i = 0; i < 16; i++)
         state.boolean_registers[i] = GPU_Regs[0x2B0]&(1<<i);
 
-    for (int i = 0; i < 4; i++)
-        state.address_registers[i] = 0.f;
+    for (int i = 0; i < 3; i++)
+        state.address_registers[i] = 0;
 
     //set up integer
     for (int i = 0; i < 4; i++)
@@ -1047,9 +1059,20 @@ void RunShader(struct vec4 input[17], int num_attributes, struct OutputVertex *r
     state.call_stack_pointer = &state.call_stack[1];*/
     Stack_Init(&state.call_stack);
     Stack_Init(&state.call_end_stack);
-    Stack_Init(&state.call_type_stack);
-    Stack_Push(&state.call_stack, VertexShaderState_INVALID_ADDRESS);
-    Stack_Push(&state.call_end_stack, VertexShaderState_INVALID_ADDRESS);
+    //Stack_Push(&state.call_stack, VertexShaderState_INVALID_ADDRESS);
+    //Stack_Push(&state.call_end_stack, VertexShaderState_INVALID_ADDRESS);
+
+    Stack_Init(&state.if_stack);
+    Stack_Init(&state.if_end_stack);
+    //Stack_Push(&state.if_stack, VertexShaderState_INVALID_ADDRESS);
+    //Stack_Push(&state.if_end_stack, VertexShaderState_INVALID_ADDRESS);
+    
+    Stack_Init(&state.loop_stack);
+    Stack_Init(&state.loop_end_stack);
+    Stack_Init(&state.loop_int_stack);
+    //Stack_Push(&state.loop_stack, VertexShaderState_INVALID_ADDRESS);
+    //Stack_Push(&state.loop_int_stack, 0);
+    //Stack_Push(&state.loop_end_stack, VertexShaderState_INVALID_ADDRESS);
 
     for (int i = 0; i < 16; i++) {
         for (int j = 0; j < 4; j++)state.temporary_registers[i].v[j] = (0.f);

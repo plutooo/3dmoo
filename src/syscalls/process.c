@@ -171,14 +171,15 @@ u32 svcCreateProcess()
         }
         else if ((descriptor & (0xff << 24)) == (0xfe << 24))
             fprintf(stdout, "Handle table size:      0x%X\n", descriptor & 0x3FF);
+
         else if ((descriptor & (0xfff << 20)) == (0xffe << 20))
         {
-            mem_AddMappingIO((descriptor & 0xFFFFF) << 12, 0x1000, modulenum, PERM_RW);
+            mem_AddMappingIO((descriptor & 0xFFFFF) << 12, 0x1000, modulenum, (descriptor&(1 << 20)) ? PERM_R : PERM_RW);
             fprintf(stdout, "Mapping IO address:     0x%X (%s)\n", (descriptor & 0xFFFFF) << 12, (descriptor&(1 << 20)) ? "RO" : "RW");
         }
         else if ((descriptor & (0x7ff << 21)) == (0x7fc << 21))
         {
-            mem_AddMappingIO((descriptor & 0x1FFFFF) << 12, 0x1000, modulenum, PERM_RW);
+            mem_AddMappingIO((descriptor & 0x1FFFFF) << 12, 0x1000, modulenum, (descriptor&(1 << 20)) ? PERM_R : PERM_RW);
             fprintf(stdout, "Mapping static address: 0x%X (%s)\n", (descriptor & 0x1FFFFF) << 12, (descriptor&(1 << 20)) ? "RO" : "RW");
         }
         else if ((descriptor & (0x1ff << 23)) == (0x1fe << 23))

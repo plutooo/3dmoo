@@ -74,13 +74,14 @@ SERVICE_CMD(0x00010040)   //TitleIDListGetTotal
 {
     DEBUG("TitleIDListGetTotal (%08x) - STUBBED -\n", CMD(1));
     RESP(2, 0); // we have 0 titles on that medium
-    RESP(1, 0); // we have 0 titles on that medium
+    RESP(1, 0); // ret
     return 0;
 }
 SERVICE_CMD(0x00020082)   //GetTitleIDList
 {
     DEBUG("GetTitleIDList (%08x %08x %08x) - STUBBED -\n", CMD(1), CMD(2), CMD(4));
-    RESP(1, 0); // we have 0 titles on that medium
+    RESP(2, 0); // we have 0 titles on that medium
+    RESP(1, 0); // ret
     return 0;
 }
 

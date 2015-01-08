@@ -29,6 +29,7 @@ int mem_AddMappingShared(uint32_t base, uint32_t size, u8* data);
 bool mem_IsAddrMapped(uint32_t addr);
 u8* mem_rawaddr(uint32_t addr, uint32_t size);
 void mem_Dbugdump();
+u32 svcControlMemory_wrap(u32 op, u32 addr0, u32 addr1, u32 size, u32 perm, u32* newaddr);
 
 #ifdef MEM_REORDER
 void mem_Reorder();

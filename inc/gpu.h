@@ -183,6 +183,7 @@ u32 getsizeofwight(u16 val);
 u32 convertvirtualtopys(u32 addr);
 void updateFramebuffer();
 void updateFramebufferaddr(u32 addr, bool bot);
+void writeGPUID(u16 ID, u8 mask, u32 size, u32* buffer);
 
 //clipper.c
 void Clipper_ProcessTriangle(struct OutputVertex *v0, struct OutputVertex *v1, struct OutputVertex *v2);

@@ -23,6 +23,8 @@
 
 #include "mem.h"
 
+#include "service_macros.h"
+
 #define MAX_NUM_HANDLES 0x1000
 
 //#define EXIT_ON_ERROR 1

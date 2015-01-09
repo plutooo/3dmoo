@@ -440,9 +440,6 @@
     <ClInclude Include="..\inc\fs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\services\service_macros.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\inc\vec4.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -472,6 +469,9 @@
     </ClInclude>
     <ClInclude Include="..\src\gpu\mat4.h">
       <Filter>Source Files\GPU</Filter>
+    </ClInclude>
+    <ClInclude Include="..\inc\service_macros.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

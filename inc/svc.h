@@ -78,5 +78,9 @@ u32 svcSetTimer();
 
 //syscalls/resource_limit.c
 u32 svcGetResourceLimitCurrentValues();
+u32 svcSetResourceLimitValues();
+u32 svcCreateResourceLimit();
+u32 svcGetSystemInfo();
+u32 svcKernelSetState();
 
 #endif

@@ -136,6 +136,7 @@
       <AdditionalDependencies>ws2_32.lib;SDL2.lib;SDL2main.lib;SDL2test.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <BaseAddress>
       </BaseAddress>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -174,6 +175,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <AdditionalDependencies>ws2_32.lib;SDL2.lib;SDL2main.lib;SDL2test.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <IgnoreSpecificDefaultLibraries>msvcrt.lib;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release_nodebug|Win32'">
@@ -197,6 +199,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <AdditionalDependencies>ws2_32.lib;SDL2.lib;SDL2main.lib;SDL2test.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <IgnoreSpecificDefaultLibraries>msvcrt.lib;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -368,6 +371,7 @@
     <ClInclude Include="..\inc\mem.h" />
     <ClInclude Include="..\inc\screen.h" />
     <ClInclude Include="..\inc\gpu.h" />
+    <ClInclude Include="..\inc\service_macros.h" />
     <ClInclude Include="..\inc\svc.h" />
     <ClInclude Include="..\inc\threads.h" />
     <ClInclude Include="..\inc\util.h" />
@@ -381,7 +385,6 @@
     <ClInclude Include="..\src\arm11\vfp\vfpdouble.h" />
     <ClInclude Include="..\src\arm11\vfp\vfp_helper.h" />
     <ClInclude Include="..\src\gpu\mat4.h" />
-    <ClInclude Include="..\src\services\service_macros.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -35,5 +35,6 @@ void arm11_LoadContext(thread *t);
 void arm11_SaveContext(thread *t);
 
 void arm11_Disasm32(u32 opc);
+u64 arm11_GetTicks();
 
 #endif

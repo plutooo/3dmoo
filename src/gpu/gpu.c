@@ -441,7 +441,7 @@ void ProcessShaderCode(struct VertexShaderState* state)
             }
         }
 
-        bool increment_pc = true;
+        bool increment_pc = true; //speedup todo
         u32 instr = *(u32*)state->program_counter;
 
         s32 idx = (instr_common_idx(instr) == 0) ? 0 : state->address_registers[instr_common_idx(instr) - 1];

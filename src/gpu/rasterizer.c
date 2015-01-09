@@ -36,6 +36,10 @@ struct vec3_12P4 {
     s16 v[3];//x, y,z;
 };
 
+#define MIN(x, y) (((x) < (y)) ? (x) : (y))
+#define CLAMP(x, low, high)  (((x) > (high)) ? (high) : (((x) < (low)) ? (low) : (x)))
+
+
 static u16 min3(s16 v1,s16 v2,s16 v3)
 {
     if (v1 < v2 && v1 < v3) return v1;
@@ -76,6 +80,11 @@ static s32 orient2d(u16 vtx1x, u16  vtx1y, u16  vtx2x, u16  vtx2y, u16  vtx3x, u
 
 static u16 GetDepth(int x, int y) 
 {
+    u32 inputdim = GPU_Regs[Framebuffer_FORMAT11E];
+    u32 outy = (inputdim & 0x7FF);
+    u32 outx = ((inputdim >> 12) & 0x3FF);
+
+    y = (outx - y);
     u16* depth_buffer = (u16*)get_pymembuffer(GPU_Regs[DEPTHBUFFER_ADDRESS] << 3);
 
     return *(depth_buffer + x + y * (GPU_Regs[Framebuffer_FORMAT11E] & 0xFFF) / 2);
@@ -83,6 +92,11 @@ static u16 GetDepth(int x, int y)
 
 static void SetDepth(int x, int y, u16 value)
 {
+    u32 inputdim = GPU_Regs[Framebuffer_FORMAT11E];
+    u32 outy = (inputdim & 0x7FF);
+    u32 outx = ((inputdim >> 12) & 0x3FF);
+
+    y = (outx - y);
     u16* depth_buffer = (u16*)get_pymembuffer(GPU_Regs[DEPTHBUFFER_ADDRESS] << 3);
 
     // Assuming 16-bit depth buffer format until actual format handling is implemented
@@ -106,8 +120,10 @@ static void DrawPixel(int x, int y, const struct clov4* color)
 #endif
 
     u32 inputdim = GPU_Regs[Framebuffer_FORMAT11E];
-    u32 outy = (inputdim & 0xFFF);
-    u32 outx = ((inputdim >> 0x10) & 0xFFF);
+    u32 outy = (inputdim & 0x7FF);
+    u32 outx = ((inputdim >> 12) & 0x3FF);
+
+    y = (outx - y);
 
     //TODO: workout why this seems required for ctrulib gpu demo (outy=480)
     if(outy > 240) outy = 240;
@@ -154,12 +170,14 @@ static void DrawPixel(int x, int y, const struct clov4* color)
 #define GetPixel RetrievePixel
 static void RetrievePixel(int x, int y, struct clov4 *output)
 {
+
     u8* color_buffer = (u8*)get_pymembuffer(GPU_Regs[COLORBUFFER_ADDRESS] << 3);
 
     u32 inputdim = GPU_Regs[Framebuffer_FORMAT11E];
-    u32 outy = (inputdim & 0xFFF);
-    u32 outx = ((inputdim >> 0x10) & 0xFFF);
+    u32 outy = (inputdim & 0x7FF);
+    u32 outx = ((inputdim >> 12) & 0x3FF);
 
+    y = (outx - y);
     //TODO: workout why this seems required for ctrulib gpu demo (outy=480)
     if(outy > 240) outy = 240;
 
@@ -274,17 +292,17 @@ static u8 AlphaCombine(u32 op, struct clov3* input)
     case 1://Modulate:
         return input->v[0] * input->v[1] / 255;
     case 2://Add:
-        return input->v[0] + input->v[1];
+        return CLAMP(input->v[0] + input->v[1], 0, 255);
     case 3://Add Signed:
-        return input->v[0] + input->v[1] - 128;
+        return CLAMP(input->v[0] + input->v[1] - 128, 0, 255);
     case 4://Lerp:
-        return (input->v[0] * input->v[2] + input->v[1] * (255 - input->v[2])) / 255;
+        return CLAMP((input->v[0] * input->v[2] + input->v[1] * (255 - input->v[2])) / 255, 0, 255);
     case 5://Subtract:
-        return input->v[0] - input->v[1];
+        return CLAMP(input->v[0] - input->v[1], 0, 255);
     case 8://Multiply Addition:
-        return (input->v[0] * input->v[1] / 255) + input->v[2];
+        return CLAMP((input->v[0] * input->v[1] / 255) + input->v[2], 0, 255);
     case 9://Addition Multiply:
-        return (input->v[0] + input->v[1]) * input->v[2] / 255;
+        return CLAMP((input->v[0] + input->v[1]) * input->v[2] / 255,0, 255);
     default:
         GPUDEBUG("Unknown alpha combiner operation %d\n", (int)op);
         return 0;
@@ -303,34 +321,34 @@ static void ColorCombine(u32 op, struct clov4 input[3])
         (input)[0].v[2] = (input)[0].v[2] * (input)[1].v[2] / 255;
         return;  //((input[0] * input[1]) / 255);
     case 2://Add:
-        (input)[0].v[0] = (input)[0].v[0] + (input)[1].v[0];
-        (input)[0].v[1] = (input)[0].v[1] + (input)[1].v[1];
-        (input)[0].v[2] = (input)[0].v[2] + (input)[1].v[2];
+        (input)[0].v[0] = CLAMP((input)[0].v[0] + (input)[1].v[0], 0, 255);
+        (input)[0].v[1] = CLAMP((input)[0].v[1] + (input)[1].v[1], 0, 255);
+        (input)[0].v[2] = CLAMP((input)[0].v[2] + (input)[1].v[2], 0, 255);
         return; //input->v[0] + input->v[1];
     case 3://Add Signed:
-        (input)[0].v[0] = (input)[0].v[0] + (input)[1].v[0] - 128;
-        (input)[0].v[1] = (input)[0].v[1] + (input)[1].v[1] - 128;
-        (input)[0].v[2] = (input)[0].v[2] + (input)[1].v[2] - 128;
+        (input)[0].v[0] = CLAMP((input)[0].v[0] + (input)[1].v[0] - 128, 0, 255);
+        (input)[0].v[1] = CLAMP((input)[0].v[1] + (input)[1].v[1] - 128, 0, 255);
+        (input)[0].v[2] = CLAMP((input)[0].v[2] + (input)[1].v[2] - 128, 0, 255);
         return;
     case 4://Lerp:
-        (input)[0].v[0] = (input)[0].v[0] * (input)[2].v[0] + (input)[1].v[0] * (255 - (input)[2].v[0]) / 255;
-        (input)[0].v[1] = (input)[0].v[1] * (input)[2].v[1] + (input)[1].v[1] * (255 - (input)[2].v[1]) / 255;
-        (input)[0].v[2] = (input)[0].v[2] * (input)[2].v[2] + (input)[1].v[2] * (255 - (input)[2].v[2]) / 255;
+        (input)[0].v[0] = CLAMP((input)[0].v[0] * (input)[2].v[0] + (input)[1].v[0] * (255 - (input)[2].v[0]) / 255, 0, 255);
+        (input)[0].v[1] = CLAMP((input)[0].v[1] * (input)[2].v[1] + (input)[1].v[1] * (255 - (input)[2].v[1]) / 255, 0, 255);
+        (input)[0].v[2] = CLAMP((input)[0].v[2] * (input)[2].v[2] + (input)[1].v[2] * (255 - (input)[2].v[2]) / 255, 0, 255);
         return; //(input->v[0] * input->v[2] + input->v[1] * (255 - input->v[2])) / 255;
     case 5://Subtract:
-        (input)[0].v[0] = (input)[0].v[0] - (input)[1].v[0];
-        (input)[0].v[1] = (input)[0].v[1] - (input)[1].v[1];
-        (input)[0].v[2] = (input)[0].v[2] - (input)[1].v[2];
+        (input)[0].v[0] = CLAMP((input)[0].v[0] - (input)[1].v[0], 0, 255);
+        (input)[0].v[1] = CLAMP((input)[0].v[1] - (input)[1].v[1], 0, 255);
+        (input)[0].v[2] = CLAMP((input)[0].v[2] - (input)[1].v[2], 0, 255);
         return;
     case 8://Multiply Addition:
-        (input)[0].v[0] = ((input)[0].v[0] * (input)[1].v[0] / 255) + (input)[2].v[0];
-        (input)[0].v[1] = ((input)[0].v[1] * (input)[1].v[1] / 255) + (input)[2].v[1];
-        (input)[0].v[2] = ((input)[0].v[2] * (input)[1].v[2] / 255) + (input)[2].v[2];
+        (input)[0].v[0] = CLAMP(((input)[0].v[0] * (input)[1].v[0] / 255) + (input)[2].v[0], 0, 255);
+        (input)[0].v[1] = CLAMP(((input)[0].v[1] * (input)[1].v[1] / 255) + (input)[2].v[1], 0, 255);
+        (input)[0].v[2] = CLAMP(((input)[0].v[2] * (input)[1].v[2] / 255) + (input)[2].v[2], 0, 255);
         return;
     case 9://Addition Multiply:
-        (input)[0].v[0] = ((input)[0].v[0] + (input)[1].v[0]) * (input)[2].v[0] / 255;
-        (input)[0].v[1] = ((input)[0].v[1] + (input)[1].v[1]) * (input)[2].v[1] / 255;
-        (input)[0].v[2] = ((input)[0].v[2] + (input)[1].v[2]) * (input)[2].v[2] / 255;
+        (input)[0].v[0] = CLAMP(((input)[0].v[0] + (input)[1].v[0]) * (input)[2].v[0] / 255, 0, 255);
+        (input)[0].v[1] = CLAMP(((input)[0].v[1] + (input)[1].v[1]) * (input)[2].v[1] / 255, 0, 255);
+        (input)[0].v[2] = CLAMP(((input)[0].v[2] + (input)[1].v[2]) * (input)[2].v[2] / 255, 0, 255);
         return;
     default:
         GPUDEBUG("Unknown color combiner operation %d\n", (int)op);
@@ -449,10 +467,11 @@ static int GetWrappedTexCoord(WrapMode wrap, int val, int size)
         case Repeat:
             ret = (int)((unsigned)val % size);
             break;
-        //case MirrorRepeat:
-            //val %= size;
-            //val = ~val;
-        //    break;
+        case MirrorRepeat:
+            ret = (int)(((unsigned)val) % (2 * size));
+            if (ret >= size)
+                ret = 2 * size - 1 - ret;
+            break;
         default:
             DEBUG("Unknown wrap format %08X\n", wrap);
             ret = 0;
@@ -827,9 +846,9 @@ const struct clov4 LookupTexture(const u8* source, int x, int y, const TextureFo
     return ret;
 }
 
-void rasterizer_ProcessTriangle(const struct OutputVertex *v0,
-                                const struct OutputVertex * v1,
-                                const struct OutputVertex * v2)
+void rasterizer_ProcessTriangle(struct OutputVertex * v0,
+                                struct OutputVertex * v1,
+                                struct OutputVertex * v2)
 {
 #ifdef testtriang
     numb++;
@@ -838,24 +857,48 @@ void rasterizer_ProcessTriangle(const struct OutputVertex *v0,
 
     struct vec3_12P4 vtxpos[3];
     struct vec3_12P4 vtxpostemp;
+    struct OutputVertex vtemp;
     for (int i = 0; i < 3; i++)vtxpos[0].v[i] = (s16)(roundf(v0->screenpos.v[i] * 16.0f));
     for (int i = 0; i < 3; i++)vtxpos[1].v[i] = (s16)(roundf(v1->screenpos.v[i] * 16.0f));
     for (int i = 0; i < 3; i++)vtxpos[2].v[i] = (s16)(roundf(v2->screenpos.v[i] * 16.0f));
     // TODO: Proper scissor rect test!
 
-    if (GPU_Regs[CULL_MODE]&0x3 == 1) { //KeepClockWise
+    if ((GPU_Regs[CULL_MODE] & 0x3) == 1) { //KeepClockWise
         // Reverse vertex order and use the CW code path.
         memcpy(&vtxpostemp, &vtxpos[2], sizeof(struct vec3_12P4));
         memcpy(&vtxpos[2], &vtxpos[1], sizeof(struct vec3_12P4));
         memcpy(&vtxpos[1], &vtxpostemp, sizeof(struct vec3_12P4));
+
+        memcpy(&vtemp, v2, sizeof(struct OutputVertex));
+        memcpy(v2, v1, sizeof(struct OutputVertex));
+        memcpy(v1, &vtemp, sizeof(struct OutputVertex));
     }
-    if (GPU_Regs[CULL_MODE] & 0x3 != 0) { //mode KeepCounterClockWise or undefined
+    if ((GPU_Regs[CULL_MODE] & 0x3) != 0) { //mode KeepCounterClockWise or undefined
         // Cull away triangles which are wound counter-clockwise.
+        // TODO: Make work :(
         if (orient2d(vtxpos[0].v[0], vtxpos[0].v[1], vtxpos[1].v[0], vtxpos[1].v[1], vtxpos[2].v[0], vtxpos[2].v[1]) <= 0)
-            return;
+        {
+            memcpy(&vtxpostemp, &vtxpos[2], sizeof(struct vec3_12P4));
+            memcpy(&vtxpos[2], &vtxpos[1], sizeof(struct vec3_12P4));
+            memcpy(&vtxpos[1], &vtxpostemp, sizeof(struct vec3_12P4));
+
+            memcpy(&vtemp, v2, sizeof(struct OutputVertex));
+            memcpy(v2, v1, sizeof(struct OutputVertex));
+            memcpy(v1, &vtemp, sizeof(struct OutputVertex));
+        }
     }
     else {
         // TODO: Consider A check for degenerate triangles ("SignedArea == 0")
+        if (orient2d(vtxpos[0].v[0], vtxpos[0].v[1], vtxpos[1].v[0], vtxpos[1].v[1], vtxpos[2].v[0], vtxpos[2].v[1]) <= 0)
+        {
+            memcpy(&vtxpostemp, &vtxpos[2], sizeof(struct vec3_12P4));
+            memcpy(&vtxpos[2], &vtxpos[1], sizeof(struct vec3_12P4));
+            memcpy(&vtxpos[1], &vtxpostemp, sizeof(struct vec3_12P4));
+
+            memcpy(&vtemp, v2, sizeof(struct OutputVertex));
+            memcpy(v2, v1, sizeof(struct OutputVertex));
+            memcpy(v1, &vtemp, sizeof(struct OutputVertex));
+        }
     }
 
 
@@ -1060,9 +1103,9 @@ void rasterizer_ProcessTriangle(const struct OutputVertex *v0,
                 for (int j = 0; j < 3; j++) {
                     switch ((GPU_Regs[regnumaddr] >> (j * 4))&0xF) {
                     case 0://PrimaryColor
+                    case 1://PrimaryFragmentColor: //todo find the difference
                         memcpy(&color_result[j], &primary_color, sizeof(struct clov4));
                         break;
-                    //case 1://PrimaryFragmentColor:
                     //case 2://SecondaryFragmentColor:
                     case 3: //Texture0
                         memcpy(&color_result[j], &texture_color[0], sizeof(struct clov4));
@@ -1110,9 +1153,9 @@ void rasterizer_ProcessTriangle(const struct OutputVertex *v0,
                     u8 alpha = 0;
                     switch ((GPU_Regs[regnumaddr] >> (16 + j * 4)) & 0xF) {
                     case 0://PrimaryColor:
+                    case 1://PrimaryFragmentColor: //todo find the difference
                         alpha = primary_color.v[3];
                         break;
-                    //case 1://PrimaryFragmentColor:
                     //case 2://SecondaryFragmentColor:
                     case 3://Texture0:
                         alpha = texture_color[0].v[3];
@@ -1178,8 +1221,6 @@ void rasterizer_ProcessTriangle(const struct OutputVertex *v0,
             //Alpha blending
             if((GPU_Regs[COLOROUTPUT_CONFIG] >> 8) & 1) //Alpha blending enabled?
             {
-#define MIN(x, y) (((x) < (y)) ? (x) : (y))
-#define CLAMP(x, low, high)  (((x) > (high)) ? (high) : (((x) < (low)) ? (low) : (x)))
                 struct clov4 dest, srcfactor, dstfactor, result;
                 GetPixel(x >> 4, y >> 4, &dest);
 

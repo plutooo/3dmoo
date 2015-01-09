@@ -25,7 +25,7 @@
 #include "mem.h"
 #include "gpu.h"
 #include "color.h"
-
+#include <math.h>
 //#define testtriang
 
 #ifdef testtriang
@@ -837,10 +837,28 @@ void rasterizer_ProcessTriangle(const struct OutputVertex *v0,
     // NOTE: Assuming that rasterizer coordinates are 12.4 fixed-point values
 
     struct vec3_12P4 vtxpos[3];
-    for (int i = 0; i < 3; i++)vtxpos[0].v[i] = (s16)(v0->screenpos.v[i] * 16.0f);
-    for (int i = 0; i < 3; i++)vtxpos[1].v[i] = (s16)(v1->screenpos.v[i] * 16.0f);
-    for (int i = 0; i < 3; i++)vtxpos[2].v[i] = (s16)(v2->screenpos.v[i] * 16.0f);
+    struct vec3_12P4 vtxpostemp;
+    for (int i = 0; i < 3; i++)vtxpos[0].v[i] = (s16)(roundf(v0->screenpos.v[i] * 16.0f));
+    for (int i = 0; i < 3; i++)vtxpos[1].v[i] = (s16)(roundf(v1->screenpos.v[i] * 16.0f));
+    for (int i = 0; i < 3; i++)vtxpos[2].v[i] = (s16)(roundf(v2->screenpos.v[i] * 16.0f));
     // TODO: Proper scissor rect test!
+
+    if (GPU_Regs[CULL_MODE]&0x3 == 1) { //KeepClockWise
+        // Reverse vertex order and use the CW code path.
+        memcpy(&vtxpostemp, &vtxpos[2], sizeof(struct vec3_12P4));
+        memcpy(&vtxpos[2], &vtxpos[1], sizeof(struct vec3_12P4));
+        memcpy(&vtxpos[1], &vtxpostemp, sizeof(struct vec3_12P4));
+    }
+    if (GPU_Regs[CULL_MODE] & 0x3 != 0) { //mode KeepCounterClockWise or undefined
+        // Cull away triangles which are wound counter-clockwise.
+        if (orient2d(vtxpos[0].v[0], vtxpos[0].v[1], vtxpos[1].v[0], vtxpos[1].v[1], vtxpos[2].v[0], vtxpos[2].v[1]) <= 0)
+            return;
+    }
+    else {
+        // TODO: Consider A check for degenerate triangles ("SignedArea == 0")
+    }
+
+
     u16 min_x = min3(vtxpos[0].v[0], vtxpos[1].v[0], vtxpos[2].v[0]);
     u16 min_y = min3(vtxpos[0].v[1], vtxpos[1].v[1], vtxpos[2].v[1]);
     u16 max_x = max3(vtxpos[0].v[0], vtxpos[1].v[0], vtxpos[2].v[0]);
@@ -858,8 +876,8 @@ void rasterizer_ProcessTriangle(const struct OutputVertex *v0,
     int bias1 = IsRightSideOrFlatBottomEdge(&vtxpos[1], &vtxpos[2], &vtxpos[0]) ? -1 : 0;
     int bias2 = IsRightSideOrFlatBottomEdge(&vtxpos[2], &vtxpos[0], &vtxpos[1]) ? -1 : 0;
     // TODO: Not sure if looping through x first might be faster
-    for (u16 y = min_y; y < max_y; y += 0x10) {
-        for (u16 x = min_x; x < max_x; x += 0x10) {
+    for (u16 y = min_y + 8; y < max_y; y += 0x10) {
+        for (u16 x = min_x + 8; x < max_x; x += 0x10) {
             // Calculate the barycentric coordinates w0, w1 and w2
             /*auto orient2d = [](const Math::Vec2<Fix12P4>& vtx1,
                 const Math::Vec2<Fix12P4>& vtx2,
@@ -1128,7 +1146,7 @@ void rasterizer_ProcessTriangle(const struct OutputVertex *v0,
             // TODO: Does depth indeed only get written even if depth testing is enabled?
             if(GPU_Regs[DEPTHTEST_CONFIG] & 1)
             {
-                u16 z = (u16)(-((float)v0->screenpos.v[2] * w0 +
+                u16 z = (u16)(((float)v0->screenpos.v[2] * w0 +
                     (float)v1->screenpos.v[2] * w1 +
                     (float)v2->screenpos.v[2] * w2) * 65535.f / wsum); // TODO: Shouldn't need to multiply by 65536?
 

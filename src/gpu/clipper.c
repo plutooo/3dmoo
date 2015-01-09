@@ -96,7 +96,7 @@ void InitScreenCoordinates(struct OutputVertex *vtx)
     // TODO: Not sure why the viewport width needs to be divided by 2 but the viewport height does not
     vtx->screenpos.v[0] = (vtx->pos.v[0] / vtx->pos.v[3] + 1.0f) * viewport.halfsize_x + viewport.offset_x;
     vtx->screenpos.v[1] = (vtx->pos.v[1] / vtx->pos.v[3] + 1.0f) * viewport.halfsize_y + viewport.offset_y;
-    vtx->screenpos.v[2] = viewport.offset_z - vtx->pos.v[2] / vtx->pos.v[3] * viewport.zscale;
+    vtx->screenpos.v[2] = viewport.offset_z + vtx->pos.v[2] / vtx->pos.v[3] * viewport.zscale;
 }
 
 #define max_vertices 1000
@@ -206,8 +206,8 @@ void Clipper_ProcessTriangle(struct OutputVertex *v0, struct OutputVertex *v1, s
         reference_vertex = &input_list[input_list_num - 1];
 
         for (u32 j = 0; j < input_list_num; j++) {
-            if (input_list[j].pos.v[i] >= -1.0 * input_list[j].pos.v[3]) { //is inside
-                if (!(reference_vertex->pos.v[i] >= -1.0 * reference_vertex->pos.v[3])) {
+            if (input_list[j].pos.v[i] >= 0 * input_list[j].pos.v[3] || ((i != 3) && input_list[j].pos.v[i] >= -1.0 * input_list[j].pos.v[3])) { //is inside
+                if (!(reference_vertex->pos.v[i] >= 0 * reference_vertex->pos.v[3] || ((i != 3) && reference_vertex->pos.v[i] >= -1.0 * reference_vertex->pos.v[3]))) {
                     memcpy(&buffer_vertices[buffer_vertices_num], &input_list[j], sizeof(struct OutputVertex));
 
                     //GetIntersection
@@ -224,7 +224,8 @@ void Clipper_ProcessTriangle(struct OutputVertex *v0, struct OutputVertex *v1, s
                 memcpy(&output_list[output_list_num++], &input_list[j], sizeof(struct OutputVertex));
 
 
-            } else if (reference_vertex->pos.v[i] >= -1.0 * reference_vertex->pos.v[3]) { //is inside
+            }
+            else if (reference_vertex->pos.v[i] >= 0 * reference_vertex->pos.v[3] || ((i != 3) && reference_vertex->pos.v[i] >= -1.0 * reference_vertex->pos.v[3])) { //is inside
                 memcpy(&buffer_vertices[buffer_vertices_num], &input_list[j], sizeof(struct OutputVertex));
 
                 //GetIntersection

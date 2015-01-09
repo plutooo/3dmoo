@@ -104,7 +104,7 @@ void gsp_ExecuteCommandFromSharedMem()
                 break;
             }
 
-            case GSP_ID_SET_MEMFILL: {
+            case GSP_ID_SET_MEMFILL: { //speedup todo
                 u32 addr1, val1, addrend1, addr2, val2, addrend2, width;
                 addr1 = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x4);
                 val1 = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x8);

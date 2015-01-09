@@ -68,6 +68,7 @@ extern u32 GPU_Regs[0xFFFF];
 
 #define TRIGGER_IRQ 0x10
 
+#define CULL_MODE  0x40
 #define VIEWPORT_WIDTH 0x41
 #define VIEWPORT_WIDTH2 0x42
 #define VIEWPORT_HEIGHT 0x43

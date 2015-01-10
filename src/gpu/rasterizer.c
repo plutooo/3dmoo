@@ -856,8 +856,8 @@ void rasterizer_ProcessTriangle(struct OutputVertex * v0,
     // NOTE: Assuming that rasterizer coordinates are 12.4 fixed-point values
 
     struct vec3_12P4 vtxpos[3];
-    struct vec3_12P4 vtxpostemp;
-    struct OutputVertex vtemp;
+        struct vec3_12P4 vtxpostemp;
+        struct OutputVertex *vtemp;
     for (int i = 0; i < 3; i++)vtxpos[0].v[i] = (s16)(roundf(v0->screenpos.v[i] * 16.0f));
     for (int i = 0; i < 3; i++)vtxpos[1].v[i] = (s16)(roundf(v1->screenpos.v[i] * 16.0f));
     for (int i = 0; i < 3; i++)vtxpos[2].v[i] = (s16)(roundf(v2->screenpos.v[i] * 16.0f));
@@ -869,12 +869,11 @@ void rasterizer_ProcessTriangle(struct OutputVertex * v0,
         memcpy(&vtxpos[2], &vtxpos[1], sizeof(struct vec3_12P4));
         memcpy(&vtxpos[1], &vtxpostemp, sizeof(struct vec3_12P4));
 
-        memcpy(&vtemp, v2, sizeof(struct OutputVertex));
-        memcpy(v2, v1, sizeof(struct OutputVertex));
-        memcpy(v1, &vtemp, sizeof(struct OutputVertex));
+        vtemp = v2;
+        v2 = v1;
+        v1 = vtemp;
     }
-    if ((GPU_Regs[CULL_MODE] & 0x3) != 0) { //mode KeepCounterClockWise or undefined
-        // Cull away triangles which are wound counter-clockwise.
+    if ((GPU_Regs[CULL_MODE] & 0x3) != 0) { //mode KeepCounterClockWise or undefined        // Cull away triangles which are wound counter-clockwise.
         // TODO: Make work :(
         if (orient2d(vtxpos[0].v[0], vtxpos[0].v[1], vtxpos[1].v[0], vtxpos[1].v[1], vtxpos[2].v[0], vtxpos[2].v[1]) <= 0)
         {
@@ -882,9 +881,9 @@ void rasterizer_ProcessTriangle(struct OutputVertex * v0,
             memcpy(&vtxpos[2], &vtxpos[1], sizeof(struct vec3_12P4));
             memcpy(&vtxpos[1], &vtxpostemp, sizeof(struct vec3_12P4));
 
-            memcpy(&vtemp, v2, sizeof(struct OutputVertex));
-            memcpy(v2, v1, sizeof(struct OutputVertex));
-            memcpy(v1, &vtemp, sizeof(struct OutputVertex));
+            vtemp = v2;
+            v2 = v1;
+            v1 = vtemp;
         }
     }
     else {
@@ -895,9 +894,9 @@ void rasterizer_ProcessTriangle(struct OutputVertex * v0,
             memcpy(&vtxpos[2], &vtxpos[1], sizeof(struct vec3_12P4));
             memcpy(&vtxpos[1], &vtxpostemp, sizeof(struct vec3_12P4));
 
-            memcpy(&vtemp, v2, sizeof(struct OutputVertex));
-            memcpy(v2, v1, sizeof(struct OutputVertex));
-            memcpy(v1, &vtemp, sizeof(struct OutputVertex));
+            vtemp = v2;
+            v2 = v1;
+            v1 = vtemp;
         }
     }
 

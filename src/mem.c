@@ -313,8 +313,10 @@ static int AddMapping(uint32_t base, uint32_t size, u32 perm, u32 status)
     return 0;
 }
 
-int mem_AddMappingShared(uint32_t base, uint32_t size, u8* data,u32 perm,u32 status)
+int mem_AddMappingShared(uint32_t base, uint32_t size, u8* data, u32 perm, u32 status)
 {
+    if (data == 0)
+        return 0;
     if (size == 0)
         return 0;
 
@@ -326,7 +328,7 @@ int mem_AddMappingShared(uint32_t base, uint32_t size, u8* data,u32 perm,u32 sta
     size_t i = num_mappings, j;
 
     mappings[i].base = base;
-    mappings[i].size = ((size +3)/4)*4; //aline
+    mappings[i].size = ((size + 0xFFF) / 0x1000) * 0x1000; //aline
 
     bool ovelap = false;
 
@@ -340,7 +342,7 @@ int mem_AddMappingShared(uint32_t base, uint32_t size, u8* data,u32 perm,u32 sta
     }
 
     mappings[i].base = base;
-    mappings[i].size = ((size + 3) / 4) * 4; //aline
+    mappings[i].size = ((size + 0xFFF) / 0x1000) * 0x1000; //aline
     mappings[i].accesses = 0;
     mappings[i].phys = data;
     mappings[i].permition = perm;

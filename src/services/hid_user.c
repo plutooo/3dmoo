@@ -56,12 +56,20 @@ SERVICE_CMD(0xA0000)   //GetIPCHandles
 
 SERVICE_CMD(0x110000)   //EnableAccelerometer
 {
+    DEBUG("EnableAccelerometer (not working yet)\n");
+    RESP(1, 0); // Result
+    return 0;
+}
+SERVICE_CMD(0x120000)   //	DisableAccelerometer
+{
+    DEBUG("DisableAccelerometer (not working yet)\n");
     RESP(1, 0); // Result
     return 0;
 }
 
 SERVICE_CMD(0x130000)   //EnableGyroscopeLow
 {
+    DEBUG("EnableGyroscopeLow (not working yet)\n");
     RESP(1, 0); // Result
     return 0;
 }

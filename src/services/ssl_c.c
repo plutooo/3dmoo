@@ -24,9 +24,9 @@
 
 SERVICE_START(ssl_c);
 
-SERVICE_CMD(0x00010002)   // ???
+SERVICE_CMD(0x00010002)   // ??? init?
 {
-    DEBUG("???_10002 %08x %08x %08x %08x %08x %08x %08x %08x --todo--\n", CMD(1), CMD(2), CMD(3), CMD(4), CMD(5), CMD(6), CMD(7), CMD(8));
+    DEBUG("???_10002--todo--\n");
 
     RESP(1, 0);
     return 0;

@@ -25,56 +25,6 @@
 #include "gpu.h"
 #include "vec4.h"
 
-/*
-struct ClippingEdge {
-public:
-    enum Type {
-        POS_X = 0,
-        NEG_X = 1,
-        POS_Y = 2,
-        NEG_Y = 3,
-        POS_Z = 4,
-        NEG_Z = 5,
-    };
-    ClippingEdge(Type type, float24 position) : type(type), pos(position) {}
-    bool IsInside(const OutputVertex& vertex) const {
-        switch (type) {
-        case POS_X: return vertex.pos.x <= pos * vertex.pos.w;
-        case NEG_X: return vertex.pos.x >= pos * vertex.pos.w;
-        case POS_Y: return vertex.pos.y <= pos * vertex.pos.w;
-        case NEG_Y: return vertex.pos.y >= pos * vertex.pos.w;
-            // TODO: Check z compares ... should be 0..1 instead?
-        case POS_Z: return vertex.pos.z <= pos * vertex.pos.w;
-        default:
-        case NEG_Z: return vertex.pos.z >= pos * vertex.pos.w;
-        }
-    }
-    bool IsOutSide(const OutputVertex& vertex) const {
-        return !IsInside(vertex);
-    }
-    OutputVertex GetIntersection(const OutputVertex& v0, const OutputVertex& v1) const {
-        auto dotpr = [this](const OutputVertex& vtx) {
-            switch (type) {
-            case POS_X: return vtx.pos.x - vtx.pos.w;
-            case NEG_X: return -vtx.pos.x - vtx.pos.w;
-            case POS_Y: return vtx.pos.y - vtx.pos.w;
-            case NEG_Y: return -vtx.pos.y - vtx.pos.w;
-                // TODO: Verify z clipping
-            case POS_Z: return vtx.pos.z - vtx.pos.w;
-            default:
-            case NEG_Z: return -vtx.pos.w;
-            }
-        };
-        float24 dp = dotpr(v0);
-        float24 dp_prev = dotpr(v1);
-        float24 factor = dp_prev / (dp_prev - dp);
-        return OutputVertex::Lerp(factor, v0, v1);
-    }
-private:
-    Type type;
-    float24 pos;
-};*/
-
 void InitScreenCoordinates(struct OutputVertex *vtx)
 {
     struct {
@@ -99,151 +49,120 @@ void InitScreenCoordinates(struct OutputVertex *vtx)
     vtx->screenpos.v[2] = viewport.offset_z + vtx->pos.v[2] / vtx->pos.v[3] * viewport.zscale;
 }
 
-#define max_vertices 1000
+#define max_vertices 10
 
+#define EPSILON 0.000001
+#define zero 0
+#define one 1.0
 
-u32 buffer_vertices_num;
-struct OutputVertex buffer_vertices[max_vertices];
+struct OutputVertex buffer_a[max_vertices];
 
-u32 output_list_num;
-struct OutputVertex output_list[max_vertices];
+struct OutputVertex buffer_b[max_vertices];
 
-u32 input_list_num;
-struct OutputVertex input_list[max_vertices];
+//#define edgesnumb 8
+#define edgesnumb 7
+const struct vec4 edges[edgesnumb] = {
+    { one, zero, zero, -one }, 
+    { -one, zero, zero, -one },
+    { zero, one, zero, -one },
+    { zero, -one, zero, -one },
+    { zero, zero, one, zero },
+    { zero, zero, -one, -one },
+    { zero, zero, zero, -one },
+    //{ zero, zero, zero, EPSILON } //this is not how it works at last some times
+};
 
-void Lerp(float factor, const struct OutputVertex *vtx, struct OutputVertex *change)
+bool PointIsOnLine(struct vec4* vLineStart, struct vec4* vLineEnd, struct vec4* vPoint)
 {
-    change->pos.v[0] = change->pos.v[0] * factor + vtx->pos.v[0] * ((1.0f) - factor);
-    change->pos.v[1] = change->pos.v[1] * factor + vtx->pos.v[1] * ((1.0f) - factor);
-    change->pos.v[2] = change->pos.v[2] * factor + vtx->pos.v[2] * ((1.0f) - factor);
-    change->pos.v[3] = change->pos.v[3] * factor + vtx->pos.v[3] * ((1.0f) - factor);
+    float fSX;
+    float fSY;
+    float fSZ;
 
-    // TODO: Should perform perspective correct interpolation here...
-    change->tc0.v[0] = change->tc0.v[0] * factor + vtx->tc0.v[0] * ((1.0f) - factor);
-    change->tc0.v[1] = change->tc0.v[1] * factor + vtx->tc0.v[1] * ((1.0f) - factor);
+    fSX = (vPoint->v[0] - vLineStart->v[0]) / vLineEnd->v[0];
+    fSY = (vPoint->v[1] - vLineStart->v[1]) / vLineEnd->v[1];
+    fSZ = (vPoint->v[2] - vLineStart->v[2]) / vLineEnd->v[2];
 
-    change->tc1.v[0] = change->tc1.v[0] * factor + vtx->tc1.v[0] * ((1.0f) - factor);
-    change->tc1.v[1] = change->tc1.v[1] * factor + vtx->tc1.v[1] * ((1.0f) - factor);
+    if (fSX == fSY && fSY == fSZ)
+        return true;
 
-    change->tc2.v[0] = change->tc2.v[0] * factor + vtx->tc2.v[0] * ((1.0f) - factor);
-    change->tc2.v[1] = change->tc2.v[1] * factor + vtx->tc2.v[1] * ((1.0f) - factor);
-
-    change->screenpos.v[0] = change->screenpos.v[0] * factor + vtx->screenpos.v[0] * ((1.0f) - factor);
-    change->screenpos.v[1] = change->screenpos.v[1] * factor + vtx->screenpos.v[1] * ((1.0f) - factor);
-    change->screenpos.v[2] = change->screenpos.v[2] * factor + vtx->screenpos.v[2] * ((1.0f) - factor);
-
-    change->color.v[0] = change->color.v[0] * factor + vtx->color.v[0] * ((1.0f) - factor);
-    change->color.v[1] = change->color.v[1] * factor + vtx->color.v[1] * ((1.0f) - factor);
-    change->color.v[2] = change->color.v[2] * factor + vtx->color.v[2] * ((1.0f) - factor);
-    change->color.v[3] = change->color.v[3] * factor + vtx->color.v[3] * ((1.0f) - factor);
+    return false;
 }
 
+#define Lerp(factor,v0,v1,output)                                                                             \
+    output.pos.v[0] = v0.pos.v[0] * (1.f - factor) + v1.pos.v[0] * factor;                                    \
+    output.pos.v[1] = v0.pos.v[1] * (1.f - factor) + v1.pos.v[1] * factor;                                    \
+    output.pos.v[2] = v0.pos.v[2] * (1.f - factor) + v1.pos.v[2] * factor;                                    \
+    output.pos.v[3] = v0.pos.v[3] * (1.f - factor) + v1.pos.v[3] * factor;                                    \
+    output.color.v[0] = v0.color.v[0] * (1.f - factor) + v1.color.v[0] * factor;                              \
+    output.color.v[1] = v0.color.v[1] * (1.f - factor) + v1.color.v[1] * factor;                              \
+    output.color.v[2] = v0.color.v[2] * (1.f - factor) + v1.color.v[2] * factor;                              \
+    output.color.v[3] = v0.color.v[3] * (1.f - factor) + v1.color.v[3] * factor;                              \
+    output.tc0.v[0] = v0.tc0.v[0] * (1.f - factor) + v1.tc0.v[0] * factor;                                    \
+    output.tc0.v[1] = v0.tc0.v[1] * (1.f - factor) + v1.tc0.v[1] * factor;                                    \
+    output.tc1.v[0] = v0.tc1.v[0] * (1.f - factor) + v1.tc1.v[0] * factor;                                    \
+    output.tc1.v[1] = v0.tc1.v[1] * (1.f - factor) + v1.tc1.v[1] * factor;                                    \
+    output.tc0_w = v0.tc0_w * (1.f - factor) + v1.tc0_w * factor;                                             \
+    output.View.v[0] = v0.View.v[0] * (1.f - factor) + v1.View.v[0] * factor;                                 \
+    output.View.v[1] = v0.View.v[1] * (1.f - factor) + v1.View.v[1] * factor;                                 \
+    output.View.v[2] = v0.View.v[2] * (1.f - factor) + v1.View.v[2] * factor;                                 \
+    output.tc2.v[0] = v0.tc2.v[0] * (1.f - factor) + v1.tc2.v[0] * factor;                                    \
+    output.tc2.v[1] = v0.tc2.v[1] * (1.f - factor) + v1.tc2.v[1] * factor;
+
+
+#define GetIntersection(v0, v1,edge,output)                                                                                        \
+    float dp = (v0.pos.v[0] * edge.v[0] + v0.pos.v[1] * edge.v[1] + v0.pos.v[2] * edge.v[2] + v0.pos.v[3] * edge.v[3]); /*DOT*/    \
+    float dp_prev = (v1.pos.v[0] * edge.v[0] + v1.pos.v[1] * edge.v[1] + v1.pos.v[2] * edge.v[2] + v0.pos.v[3] * edge.v[3]);       \
+    float factor = dp_prev / (dp_prev - dp);                                                                                       \
+    Lerp(factor, v0, v1,output);                                                                 
+
+#define IsInsidev4(v1,v2) ((v1.pos.v[0]*v2.v[0] + v1.pos.v[1]*v2.v[1] + v1.pos.v[2]*v2.v[2] + v1.pos.v[3]*v2.v[3]) <= 0.f)
+#define IsOutsidev4(v1,v2) ((v1.pos.v[0]*v2.v[0] + v1.pos.v[1]*v2.v[1] + v1.pos.v[2]*v2.v[2] + v1.pos.v[3]*v2.v[3]) > 0.f)
 void Clipper_ProcessTriangle(struct OutputVertex *v0, struct OutputVertex *v1, struct OutputVertex *v2)
 {
-    // todo make this save and remove buffer_vertices
+    if (PointIsOnLine(&v0->pos, &v1->pos, &v2->pos)) //the algo dose not work for them
+        return;
+    // Simple implementation of the Sutherland-Hodgman clipping algorithm.
+    u32 input_list_num = 0;
+    struct OutputVertex *output_list = &buffer_a;
+    struct OutputVertex *input_list = &buffer_b;
+    struct OutputVertex *input_list_temp;
     memcpy(&output_list[0], v0, sizeof(struct OutputVertex));
     memcpy(&output_list[1], v1, sizeof(struct OutputVertex));
     memcpy(&output_list[2], v2, sizeof(struct OutputVertex));
-
-    buffer_vertices_num = 0;
-
-    output_list_num = 3;
-
-    for (int i = 0; i < 3; i++) {
-
-        memcpy(input_list, output_list, sizeof(struct OutputVertex)*output_list_num);
+    u32 output_list_num = 3;
+    for (int i = 0; i < edgesnumb; i++)
+    {
+        //ouput is the new input
+        input_list_temp = input_list;
+        input_list = output_list;
+        output_list = input_list_temp;
         input_list_num = output_list_num;
-
         output_list_num = 0;
 
-        struct OutputVertex* reference_vertex = &input_list[input_list_num - 1];
-
-        for (u32 j = 0; j < input_list_num; j++) {
-            if (input_list[j].pos.v[i] <= +1.0 * input_list[j].pos.v[3]) { //is inside
-                if (!(reference_vertex->pos.v[i] <= +1.0 * reference_vertex->pos.v[3])) {
-                    memcpy(&buffer_vertices[buffer_vertices_num], &input_list[j], sizeof(struct OutputVertex));
-
-                    //GetIntersection
-
-                    float dp = input_list[j].pos.v[i] - input_list[j].pos.v[3];
-                    float dp_prev = reference_vertex->pos.v[i] - reference_vertex->pos.v[3];
-                    float factor = dp_prev / (dp_prev - dp);
-                    Lerp(factor, reference_vertex, &buffer_vertices[buffer_vertices_num]);
-                    buffer_vertices_num++;
-
-
-                    memcpy(&output_list[output_list_num++], &buffer_vertices[buffer_vertices_num - 1], sizeof(struct OutputVertex));
+        struct OutputVertex* reference_vertex = &input_list[input_list_num - 1]; //back
+        for (int j = 0; j < input_list_num; j++)
+        {
+            // NOTE: This algorithm changes vertex order in some cases!
+            float test = input_list[j].pos.v[0] * edges[i].v[0] + input_list[j].pos.v[1] * edges[i].v[1] + input_list[j].pos.v[2] * edges[i].v[2] + input_list[j].pos.v[3] * edges[i].v[3];
+            if (IsInsidev4(input_list[j], edges[i])) {
+                if (IsOutsidev4((*reference_vertex), edges[i])) {
+                    GetIntersection(input_list[j], (*reference_vertex), edges[i], output_list[output_list_num]);
+                    output_list_num++;
                 }
-                memcpy(&output_list[output_list_num++], &input_list[j], sizeof(struct OutputVertex));
-
-
-            } else if (reference_vertex->pos.v[i] <= +1.0 * reference_vertex->pos.v[3]) { //is inside
-                memcpy(&buffer_vertices[buffer_vertices_num], &input_list[j], sizeof(struct OutputVertex));
-
-                //GetIntersection
-
-                float dp = input_list[j].pos.v[i] - input_list[j].pos.v[3];
-                float dp_prev = reference_vertex->pos.v[i] - reference_vertex->pos.v[3];
-                float factor = dp_prev / (dp_prev - dp);
-                Lerp(factor, reference_vertex, &buffer_vertices[buffer_vertices_num]);
-                buffer_vertices_num++;
-
-                memcpy(&output_list[output_list_num++], &buffer_vertices[buffer_vertices_num - 1], sizeof(struct OutputVertex));
+                memcpy(&output_list[output_list_num], &input_list[j], sizeof(struct OutputVertex));
+                output_list_num++;
             }
+            else if (IsInsidev4((*reference_vertex), edges[i])) {
+                GetIntersection(input_list[j], (*reference_vertex), edges[i], output_list[output_list_num]);
+                output_list_num++;
+            }
+
             reference_vertex = &input_list[j];
-
         }
-
-
-
-        //do it again only for neg this time
-
-        memcpy(input_list, output_list, sizeof(struct OutputVertex)*output_list_num);
-        input_list_num = output_list_num;
-
-        output_list_num = 0;
-
-        reference_vertex = &input_list[input_list_num - 1];
-
-        for (u32 j = 0; j < input_list_num; j++) {
-            if (input_list[j].pos.v[i] >= 0 * input_list[j].pos.v[3] || ((i != 3) && input_list[j].pos.v[i] >= -1.0 * input_list[j].pos.v[3])) { //is inside
-                if (!(reference_vertex->pos.v[i] >= 0 * reference_vertex->pos.v[3] || ((i != 3) && reference_vertex->pos.v[i] >= -1.0 * reference_vertex->pos.v[3]))) {
-                    memcpy(&buffer_vertices[buffer_vertices_num], &input_list[j], sizeof(struct OutputVertex));
-
-                    //GetIntersection
-
-                    float dp = -input_list[j].pos.v[i] - input_list[j].pos.v[3];
-                    float dp_prev = reference_vertex->pos.v[i] - reference_vertex->pos.v[3];
-                    float factor = dp_prev / (dp_prev - dp);
-                    Lerp(factor, reference_vertex, &buffer_vertices[buffer_vertices_num]);
-                    buffer_vertices_num++;
-
-
-                    memcpy(&output_list[output_list_num++], &buffer_vertices[buffer_vertices_num - 1], sizeof(struct OutputVertex));
-                }
-                memcpy(&output_list[output_list_num++], &input_list[j], sizeof(struct OutputVertex));
-
-
-            }
-            else if (reference_vertex->pos.v[i] >= 0 * reference_vertex->pos.v[3] || ((i != 3) && reference_vertex->pos.v[i] >= -1.0 * reference_vertex->pos.v[3])) { //is inside
-                memcpy(&buffer_vertices[buffer_vertices_num], &input_list[j], sizeof(struct OutputVertex));
-
-                //GetIntersection
-
-                float dp = -input_list[j].pos.v[i] - input_list[j].pos.v[3];
-                float dp_prev = reference_vertex->pos.v[i] - reference_vertex->pos.v[3];
-                float factor = dp_prev / (dp_prev - dp);
-                Lerp(factor, reference_vertex, &buffer_vertices[buffer_vertices_num]);
-                buffer_vertices_num++;
-
-                memcpy(&output_list[output_list_num++], &buffer_vertices[buffer_vertices_num - 1], sizeof(struct OutputVertex));
-            }
-            reference_vertex = &input_list[j];
-
-        }
-
+        // Need to have at least a full triangle to continue...
+        if (output_list_num < 3)
+            return;
     }
-    int i = 0;
     InitScreenCoordinates(&output_list[0]);
     InitScreenCoordinates(&output_list[1]);
 
@@ -254,10 +173,10 @@ void Clipper_ProcessTriangle(struct OutputVertex *v0, struct OutputVertex *v1, s
             struct OutputVertex* vtx2 = &output_list[i + 2];
             InitScreenCoordinates(vtx2);
             GPUDEBUG(
-                "Triangle %d/%d (%d buffer vertices) at position (%.3f, %.3f, %.3f, %.3f), "
+                "Triangle %d/%d at position (%.3f, %.3f, %.3f, %.3f), "
                 "(%.3f, %.3f, %.3f, %.3f), (%.3f, %.3f, %.3f, %.3f) and "
                 "screen position (%.2f, %.2f, %.2f), (%.2f, %.2f, %.2f), (%.2f, %.2f, %.2f)\n",
-                i, output_list_num, buffer_vertices_num,
+                i, output_list_num,
                 vtx0->pos.v[0], vtx0->pos.v[1], vtx0->pos.v[2], vtx0->pos.v[3],
                 vtx1->pos.v[0], vtx1->pos.v[1], vtx1->pos.v[2], vtx1->pos.v[3],
                 vtx2->pos.v[0], vtx2->pos.v[1], vtx2->pos.v[2], vtx2->pos.v[3],

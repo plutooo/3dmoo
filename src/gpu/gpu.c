@@ -371,7 +371,7 @@ static bool ShaderCMP(float a, float b, u32 mode)
     return false;
 }
 
-//#define printfunc
+#define printfunc
 
 void loop(struct VertexShaderState* state, u32 offset, u32 num_instruction, u32 return_offset, u32 int_reg)
 {
@@ -403,6 +403,7 @@ void call(struct VertexShaderState* state, u32 offset, u32 num_instruction, u32 
 
 void ProcessShaderCode(struct VertexShaderState* state)
 {
+    float should_not_be_used = 0;
     while (true) {
         if (!Stack_Empty(&state->call_stack)) {
             if ((state->program_counter - &GPUshadercodebuffer[0]) == Stack_Top(&state->call_stack)) {
@@ -449,7 +450,7 @@ void ProcessShaderCode(struct VertexShaderState* state)
         const float* src1_ = (instr_common_src1v < 0x10) ? state->input_register_table[instr_common_src1v]
                              : (instr_common_src1v < 0x20) ? &state->temporary_registers[instr_common_src1v - 0x10].v[0]
                              : (instr_common_src1v < 0x80) ? &const_vectors[instr_common_src1v - 0x20].v[0]
-                             : (float*)0;
+                             : &should_not_be_used;
 
         u32 instr_common_src2v = instr_common_src2(instr);
         const float* src2_ = (instr_common_src2v < 0x10) ? state->input_register_table[instr_common_src2v]
@@ -458,7 +459,7 @@ void ProcessShaderCode(struct VertexShaderState* state)
         float* dest = (instr_common_destv < 8) ? state->output_register_table[4 * instr_common_destv]
                       : (instr_common_destv < 0x10) ? (float*)0
                       : (instr_common_destv < 0x20) ? &state->temporary_registers[instr_common_destv - 0x10].v[0]
-                      : (float*)0;
+                      : &should_not_be_used;
 
         u32 swizzle = swizzle_data[instr_common_operand_desc_id(instr)];
 
@@ -1225,7 +1226,7 @@ void writeGPUID(u16 ID, u8 mask, u32 size, u32* buffer)
             // Send to triangle clipper
             PrimitiveAssembly_SubmitVertex(&output);
 
-            //screen_RenderGPUaddr(GPU_Regs[COLORBUFFER_ADDRESS] << 3);
+            screen_RenderGPUaddr(GPU_Regs[COLORBUFFER_ADDRESS] << 3);
 
         }
         break;

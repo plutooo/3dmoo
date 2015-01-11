@@ -371,7 +371,7 @@ static bool ShaderCMP(float a, float b, u32 mode)
     return false;
 }
 
-#define printfunc
+//#define printfunc
 
 void loop(struct VertexShaderState* state, u32 offset, u32 num_instruction, u32 return_offset, u32 int_reg)
 {
@@ -1226,7 +1226,7 @@ void writeGPUID(u16 ID, u8 mask, u32 size, u32* buffer)
             // Send to triangle clipper
             PrimitiveAssembly_SubmitVertex(&output);
 
-            screen_RenderGPUaddr(GPU_Regs[COLORBUFFER_ADDRESS] << 3);
+            //screen_RenderGPUaddr(GPU_Regs[COLORBUFFER_ADDRESS] << 3);
 
         }
         break;
@@ -1266,7 +1266,10 @@ void writeGPUID(u16 ID, u8 mask, u32 size, u32* buffer)
 
     case VSresttriangel:
         if (*buffer & 0x1) //todo more checks
+        {
             buffer_index = 0;
+            strip_ready = 0;
+        }
         updateGPUintreg(*buffer, ID, mask);
         break;
     case VSFloatUniformSetup:

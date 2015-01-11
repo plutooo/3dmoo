@@ -145,8 +145,7 @@ void gsp_ExecuteCommandFromSharedMem()
             }
             case GSP_ID_SET_DISPLAY_TRANSFER:
             {
-                    gpu_SendInterruptToAll(1); //this should be at the start
-                    gpu_SendInterruptToAll(4); //this is wrong
+                    gpu_SendInterruptToAll(4);
 
 
                     u32 inpaddr, outputaddr, inputdim, outputdim, flags, unk;
@@ -297,6 +296,7 @@ void gsp_ExecuteCommandFromSharedMem()
                     break;
                 }
             case GSP_ID_SET_TEXTURE_COPY: {
+                gpu_SendInterruptToAll(1);
                 u32 inpaddr, outputaddr /*,size*/, inputdim, outputdim, flags;
                 inpaddr = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x4);
                 outputaddr = *(u32*)(baseaddr + (j + 1) * 0x20 + 0x8);

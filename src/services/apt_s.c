@@ -20,6 +20,7 @@
 #include "handles.h"
 #include "mem.h"
 #include "arm11.h"
+#include "gpu.h"
 
 #include "service_macros.h"
 
@@ -123,6 +124,7 @@ SERVICE_CMD(0x440000)
             RESP(1, -1);
             return 0;
         }
+        memcpy(LINEmembuffer + (0x18000000 - 0x14000000), APTs_sharedfont, APTs_sharedfontsize);
 
         /*APTs_sharedfont[3] = 0x2;
         APTs_sharedfont[2] = 0x0;

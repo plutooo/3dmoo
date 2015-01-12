@@ -329,8 +329,8 @@ u32 svcMapMemoryBlock()
                 ERROR("No shared font supplied\n");
                 return -1;
             }
-
-            mem_AddMappingShared(0x18000000, APTsharedfontsize, APTsharedfont); //todo ichfly
+            mem_AddMappingShared(0x18000000, APTsharedfontsize, LINEmembuffer + (0x18000000 - 0x14000000));
+            //mem_AddMappingShared(0x18000000, APTsharedfontsize, APTsharedfont); //todo ichfly
             break;
 
         case MEM_TYPE_APT_S_SHARED_FONT:
@@ -340,8 +340,8 @@ u32 svcMapMemoryBlock()
                 ERROR("No shared font supplied\n");
                 return -1;
             }
-
-            mem_AddMappingShared(0x18000000, APTs_sharedfontsize, APTs_sharedfont); //todo ichfly
+            mem_AddMappingShared(0x18000000, APTsharedfontsize, LINEmembuffer + (0x18000000 - 0x14000000));
+            //mem_AddMappingShared(0x18000000, APTs_sharedfontsize, APTs_sharedfont); //todo ichfly
             break;
 
         case MEM_TYPE_ALLOC:

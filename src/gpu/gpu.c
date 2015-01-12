@@ -29,7 +29,7 @@
 #include "gpu.h"
 
 
-//#define GSP_ENABLE_LOG
+#define GSP_ENABLE_LOG
 u32 GPU_Regs[0xFFFF]; //do they all exist don't know but well
 
 u32 GPUshadercodebuffer[0xFFFF]; //how big is the buffer?
@@ -371,13 +371,14 @@ static bool ShaderCMP(float a, float b, u32 mode)
     return false;
 }
 
-//#define printfunc
+#define printfunc
 
 void loop(struct VertexShaderState* state, u32 offset, u32 num_instruction, u32 return_offset, u32 int_reg)
 {
 #ifdef printfunc
     DEBUG("callloop %03x %03x %03x %01x\n", offset, num_instruction, return_offset, int_reg);
 #endif
+    state->program_counter = &GPUshadercodebuffer[offset] - 1; // -1 to make sure when incrementing the PC we end up at the correct offset
     Stack_Push(&state->loop_stack, offset + num_instruction);
     Stack_Push(&state->loop_int_stack, int_reg);
     Stack_Push(&state->loop_end_stack, return_offset);
@@ -916,7 +917,9 @@ void ProcessShaderCode(struct VertexShaderState* state)
                 state->program_counter = &GPUshadercodebuffer[DST];
             }
             else
+            {
                 loop(state, DST, NUM, ((u32)(uintptr_t)(state->program_counter + 1) - (u32)(uintptr_t)(&GPUshadercodebuffer[0])) / 4, ID);
+            }
             break;
         }
         case SHDR_MAD1: //todo add swizzle for the other src

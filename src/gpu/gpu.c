@@ -378,7 +378,6 @@ void loop(struct VertexShaderState* state, u32 offset, u32 num_instruction, u32 
 #ifdef printfunc
     DEBUG("callloop %03x %03x %03x %01x\n", offset, num_instruction, return_offset, int_reg);
 #endif
-    state->program_counter = &GPUshadercodebuffer[offset] - 1; // -1 to make sure when incrementing the PC we end up at the correct offset
     Stack_Push(&state->loop_stack, offset + num_instruction);
     Stack_Push(&state->loop_int_stack, int_reg);
     Stack_Push(&state->loop_end_stack, return_offset);
@@ -406,6 +405,15 @@ void ProcessShaderCode(struct VertexShaderState* state)
 {
     float should_not_be_used = 0;
     while (true) {
+        if (!Stack_Empty(&state->if_stack)) {
+            if ((state->program_counter - &GPUshadercodebuffer[0]) == Stack_Top(&state->if_stack)) {
+                state->program_counter = &GPUshadercodebuffer[Stack_Top(&state->if_end_stack)];
+                Stack_Pop(&state->if_stack);
+                Stack_Pop(&state->if_end_stack);
+                // TODO: Is "trying again" accurate to hardware?
+                continue;
+            }
+        }
         if (!Stack_Empty(&state->call_stack)) {
             if ((state->program_counter - &GPUshadercodebuffer[0]) == Stack_Top(&state->call_stack)) {
                 state->program_counter = &GPUshadercodebuffer[Stack_Top(&state->call_end_stack)];
@@ -433,15 +441,7 @@ void ProcessShaderCode(struct VertexShaderState* state)
                 continue;
             }
         }
-        if (!Stack_Empty(&state->if_stack)) {
-            if ((state->program_counter - &GPUshadercodebuffer[0]) == Stack_Top(&state->if_stack)) {
-                state->program_counter = &GPUshadercodebuffer[Stack_Top(&state->if_end_stack)];
-                Stack_Pop(&state->if_stack);
-                Stack_Pop(&state->if_end_stack);
-                // TODO: Is "trying again" accurate to hardware?
-                continue;
-            }
-        }
+
 
         bool increment_pc = true; //speedup todo
         u32 instr = *(u32*)state->program_counter;
@@ -913,12 +913,12 @@ void ProcessShaderCode(struct VertexShaderState* state)
             state->address_registers[2] = state->integer_registers[ID][1];
             if (state->address_registers[2] <= state->integer_registers[ID][1] + state->integer_registers[ID][0])
             {
-                increment_pc = false;
-                state->program_counter = &GPUshadercodebuffer[DST];
+                loop(state, DST, NUM + 1, ((u32)(uintptr_t)(state->program_counter) - (u32)(uintptr_t)(&GPUshadercodebuffer[0])) / 4 + 1, ID);
             }
             else
             {
-                loop(state, DST, NUM, ((u32)(uintptr_t)(state->program_counter + 1) - (u32)(uintptr_t)(&GPUshadercodebuffer[0])) / 4, ID);
+                increment_pc = false;
+                state->program_counter = &GPUshadercodebuffer[DST];
             }
             break;
         }

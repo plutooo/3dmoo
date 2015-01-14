@@ -49,6 +49,7 @@ typedef struct {
     u32* wait_list;
     u32  wait_list_size;
     bool wait_all;
+    u64  wait_list_max_wait; //todo waits come back with an other return code emulate that else this only cause the code to crush
 
     /* WAITING_ARB */
     u32 arb_addr;

@@ -53,6 +53,15 @@ void dsp_Init()
     mutex_handle = handle_New(HANDLE_TYPE_EVENT, 0);
 }
 
+u32 dsp_sync_soundinter(u32 ID) //this is a stub and is most likely called after processing a sample in DSP ram also called when PDMA is done or a costome interrupt possible more
+{
+    if (myeventhandel)
+    {
+        handleinfo* h = handle_Get(myeventhandel);
+        h->locked = false;
+    }
+}
+
 u32 dsp_dsp_SyncRequest()
 {
     u32 cid = mem_Read32(arm11_ServiceBufferAddress() + 0x80);

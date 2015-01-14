@@ -143,6 +143,16 @@ int Stack_Top(struct Stack *S)
 
     return S->data[S->size - 1];
 }
+int Stack_Top_DEC(struct Stack *S)
+{
+    if (S->size == 0) {
+        fprintf(stderr, "Error: stack empty\n");
+        return -1;
+    }
+    int temp = S->data[S->size - 1];
+    S->data[S->size - 1]--;
+    return temp;
+}
 
 void Stack_Push(struct Stack *S, u32 d)
 {
@@ -195,6 +205,7 @@ struct VertexShaderState {
 
     struct Stack if_stack;
     struct Stack if_end_stack;
+    struct Stack loop_numb_stack;
     struct Stack loop_stack;
     struct Stack loop_int_stack;
     struct Stack loop_end_stack;
@@ -373,11 +384,12 @@ static bool ShaderCMP(float a, float b, u32 mode)
 
 #define printfunc
 
-void loop(struct VertexShaderState* state, u32 offset, u32 num_instruction, u32 return_offset, u32 int_reg)
+void loop(struct VertexShaderState* state, u32 offset, u32 num_instruction, u32 return_offset, u32 int_reg,u32 number_of_rounds)
 {
 #ifdef printfunc
     DEBUG("callloop %03x %03x %03x %01x\n", offset, num_instruction, return_offset, int_reg);
 #endif
+    Stack_Push(&state->loop_numb_stack, number_of_rounds);
     Stack_Push(&state->loop_stack, offset + num_instruction);
     Stack_Push(&state->loop_int_stack, int_reg);
     Stack_Push(&state->loop_end_stack, return_offset);
@@ -426,7 +438,7 @@ void ProcessShaderCode(struct VertexShaderState* state)
         if (!Stack_Empty(&state->loop_stack)) {
             if ((state->program_counter - &GPUshadercodebuffer[0]) == Stack_Top(&state->loop_stack)) {
                 u8 ID = Stack_Top(&state->loop_int_stack);
-                if (state->address_registers[2] <= state->integer_registers[ID][1] + state->integer_registers[ID][0])
+                if (Stack_Top_DEC(&state->loop_numb_stack) != 0)
                 {
                     state->program_counter = &GPUshadercodebuffer[Stack_Top(&state->loop_end_stack)];
                 }
@@ -435,6 +447,7 @@ void ProcessShaderCode(struct VertexShaderState* state)
                     Stack_Pop(&state->loop_stack);
                     Stack_Pop(&state->loop_int_stack);
                     Stack_Pop(&state->loop_end_stack);
+                    Stack_Pop(&state->loop_numb_stack);
                 }
                 state->address_registers[2] += state->integer_registers[ID][2];
                 // TODO: Is "trying again" accurate to hardware?
@@ -893,8 +906,8 @@ void ProcessShaderCode(struct VertexShaderState* state)
 #endif
 
             for (int i = 0; i < 2; ++i) {
-                if(!swizzle_DestComponentEnabled(i, swizzle))
-                    continue;
+                /*if(!swizzle_SRC1ComponentEnabled(i, swizzle))
+                    continue;*/ //no dest stuff here
 
                 //Is it just high 8bits or low 8bits? can't be more than 8 bits at the value looks wrong otherwise
                 state->address_registers[i] = ((s32)src1[i]);
@@ -908,18 +921,10 @@ void ProcessShaderCode(struct VertexShaderState* state)
             u32 DST = ((instr >> 0xA) & 0xFFF);
             u32 ID = ((instr >> 0x16) & 0xF);
 #ifdef printfunc
-            DEBUG("LOOP %02X %03X %01x\n", NUM, DST, ID);
+            DEBUG("LOOP %02X %03X %01x\n", NUM, DST, ID); //this is not realy a loop it is more like that happens for(aL = ID.y;<true for ID.x + 1>;aL += ID.z)
 #endif
             state->address_registers[2] = state->integer_registers[ID][1];
-            if (state->address_registers[2] <= state->integer_registers[ID][1] + state->integer_registers[ID][0])
-            {
-                loop(state, DST, NUM + 1, ((u32)(uintptr_t)(state->program_counter) - (u32)(uintptr_t)(&GPUshadercodebuffer[0])) / 4 + 1, ID);
-            }
-            else
-            {
-                increment_pc = false;
-                state->program_counter = &GPUshadercodebuffer[DST];
-            }
+            loop(state, DST, NUM + 1, ((u32)(uintptr_t)(state->program_counter) - (u32)(uintptr_t)(&GPUshadercodebuffer[0])) / 4 + 1, ID, state->integer_registers[ID][0]);
             break;
         }
         case SHDR_MAD1: //todo add swizzle for the other src
@@ -1007,7 +1012,10 @@ void ProcessShaderCode(struct VertexShaderState* state)
             DEBUG("Unhandled instruction: 0x%08x\n",instr);
             break;
         }
-
+#ifdef printfunc
+        if (dest != NULL)
+            DEBUG("dest: %f %f %f %f\n", dest[0], dest[1], dest[2], dest[3]);
+#endif
         if (increment_pc)
             state->program_counter++;
     }
@@ -1071,6 +1079,7 @@ void RunShader(struct vec4 input[17], int num_attributes, struct OutputVertex *r
     //Stack_Push(&state.if_stack, VertexShaderState_INVALID_ADDRESS);
     //Stack_Push(&state.if_end_stack, VertexShaderState_INVALID_ADDRESS);
     
+    Stack_Init(&state.loop_numb_stack);
     Stack_Init(&state.loop_stack);
     Stack_Init(&state.loop_end_stack);
     Stack_Init(&state.loop_int_stack);

@@ -629,11 +629,11 @@ PDC1 called every VBlank?
 void gpu_SendInterruptToAll(u32 ID)
 {
     int i;
+    dsp_sync_soundinter(0); //this is not correct but it patches all games that wait for this
     handleinfo* h = handle_Get(trigevent);
     if (h == NULL) {
         return;
     }
-    dsp_sync_soundinter(0); //this is not correct but it patches all games that wait for this
     h->locked = false; //unlock we are fast
     for (i = 0; i < 4; i++) {
         u8 next = *(u8*)(GSPsharedbuff + i * 0x40);        //0x33 next is 00

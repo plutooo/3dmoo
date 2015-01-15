@@ -346,7 +346,7 @@ static u32 instr_common_src2(u32 hex)
 }
 static u32 instr_common_operand_desc_id(u32 hex)
 {
-    return hex & 0x1F;
+    return hex & 0x3F;
 }
 static u32 instr_opcode(u32 hex)
 {
@@ -382,7 +382,7 @@ static bool ShaderCMP(float a, float b, u32 mode)
     return false;
 }
 
-#define printfunc
+//#define printfunc
 
 void loop(struct VertexShaderState* state, u32 offset, u32 num_instruction, u32 return_offset, u32 int_reg,u32 number_of_rounds)
 {
@@ -1238,7 +1238,7 @@ void writeGPUID(u16 ID, u8 mask, u32 size, u32* buffer)
             // Send to triangle clipper
             PrimitiveAssembly_SubmitVertex(&output);
 
-            //screen_RenderGPUaddr(GPU_Regs[COLORBUFFER_ADDRESS] << 3);
+            screen_RenderGPUaddr(GPU_Regs[COLORBUFFER_ADDRESS] << 3);
 
         }
         break;

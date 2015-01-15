@@ -906,8 +906,8 @@ void ProcessShaderCode(struct VertexShaderState* state)
 #endif
 
             for (int i = 0; i < 2; ++i) {
-                /*if(!swizzle_SRC1ComponentEnabled(i, swizzle))
-                    continue;*/ //no dest stuff here
+                if (!swizzle_DestComponentEnabled(i, swizzle))
+                    continue; //no dest stuff here
 
                 //Is it just high 8bits or low 8bits? can't be more than 8 bits at the value looks wrong otherwise
                 state->address_registers[i] = ((s32)src1[i]);
@@ -1238,7 +1238,7 @@ void writeGPUID(u16 ID, u8 mask, u32 size, u32* buffer)
             // Send to triangle clipper
             PrimitiveAssembly_SubmitVertex(&output);
 
-            screen_RenderGPUaddr(GPU_Regs[COLORBUFFER_ADDRESS] << 3);
+            //screen_RenderGPUaddr(GPU_Regs[COLORBUFFER_ADDRESS] << 3);
 
         }
         break;

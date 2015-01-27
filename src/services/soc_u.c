@@ -243,6 +243,40 @@ SERVICE_CMD(0x00030082) //listen
     return 0;
 }
 
+SERVICE_CMD(0x00060084) //connect
+{
+    DEBUG("connect %08X %08X %08X\n", CMD(1), CMD(2), CMD(6));
+
+    struct sockaddr_storage addr;
+    struct sockaddr         *saddr = (struct sockaddr*)&addr;
+    socklen_t               addrlen = CMD(2);
+    SOCKET                  s;
+
+    handleinfo* h = handle_Get(CMD(1) + HANDLES_BASE); //bit(31) must not be set
+    if (h == NULL) {
+        DEBUG("failed to get Handle\n");
+        RESP(2, translate_error(ERRNO(EBADF)));
+        RESP(1, 0);
+        return 0;
+    }
+
+    memset(&addr, 0, sizeof(addr));
+    if (load_sockaddr(saddr, &addrlen, CMD(6)) != 0)
+        return 0;
+
+    s = (uintptr_t)h->misc_ptr[0];
+    int rc = connect(s, saddr, addrlen);
+    if (rc != 0) {
+        RESP(2, translate_error(GET_ERRNO));
+        RESP(1, 0);
+        return 0;
+    }
+
+    RESP(2, 0);
+    RESP(1, 0);
+    return 0;
+}
+
 SERVICE_CMD(0x000B0042) //close
 {
     DEBUG("close %08X --todo--\n", CMD(1));

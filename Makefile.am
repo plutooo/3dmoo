@@ -90,9 +90,19 @@ noinst_HEADERS	=	inc/3dsx.h			\
 			src/arm11/vfp/vfp_helper.h	\
 			src/gpu/mat4.h
 
+EXTRA_CPPFLAGS =
+
+if ENABLE_GDB
+EXTRA_CPPFLAGS	+=	-DGDB_STUB
+endif
+
+if DISABLE_DEBUG_MESSAGES
+EXTRA_CPPFLAGS	+=	-DDISABLE_DEBUG
+endif
+
 AM_CPPFLAGS	=	-iquote$(top_srcdir)/inc -iquote$(top_srcdir)/src/arm11 -iquote$(top_srcdir)/src/arm11/vfp \
-			-Wno-format-zero-length -DMODET -DMODE32 -D_DEFAULT_SOURCE -D_BSD_SOURCE -D_POSIX_SOURCE -DGDB_STUB \
-			-std=c99 -DDISABLE_DEBUG
+			-Wno-format-zero-length -DMODET -DMODE32 -D_DEFAULT_SOURCE -D_BSD_SOURCE -D_POSIX_SOURCE \
+			-std=c99 $(EXTRA_CPPFLAGS)
 
 bin_PROGRAMS	=	3dmoo
 

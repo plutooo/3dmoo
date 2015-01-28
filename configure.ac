@@ -31,5 +31,11 @@ case "$host" in
       ;;
 esac
 
+AC_ARG_ENABLE(gdb-stub,AC_HELP_STRING([--enable-gdb-stub],[enable the gdb stub]),,enable_gdb_stub="no")
+AC_ARG_ENABLE(debug-messages,AC_HELP_STRING([--disable-debug-messages],[disable the debug messages]),,enable_debug_messages="yes")
+
+AM_CONDITIONAL(DISABLE_DEBUG_MESSAGES, test "$enable_debug_messages" = "no")
+AM_CONDITIONAL(ENABLE_GDB,test "$enable_gdb_stub" = "yes")
+
 AC_CONFIG_FILES([Makefile])
 AC_OUTPUT

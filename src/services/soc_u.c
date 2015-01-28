@@ -388,14 +388,17 @@ SERVICE_CMD(0x00090106) //sendto_other
     }
 
     memset(&addr, 0, sizeof(addr));
-    if (load_sockaddr(saddr, &addrlen, CMD(8)) != 0) {
+    if (addrlen > 0 && load_sockaddr(saddr, &addrlen, CMD(8)) != 0) {
         free(buffer);
         return 0;
     }
 
-    // TODO detect that we are doing send()
     s = (uintptr_t)h->misc_ptr[0];
-    ssize_t rc = sendto(s, buffer, CMD(2), CMD(3), saddr, addrlen);
+    ssize_t rc;
+    if (addrlen > 0)
+        rc = sendto(s, buffer, CMD(2), CMD(3), saddr, addrlen);
+    else
+        rc = send(s, buffer, CMD(2), CMD(3));
     if (rc < 0) {
         RESP(2, translate_error(GET_ERRNO));
         RESP(1, 0);
@@ -443,14 +446,17 @@ SERVICE_CMD(0x000a0106) //sendto
     }
 
     memset(&addr, 0, sizeof(addr));
-    if (load_sockaddr(saddr, &addrlen, CMD(10)) != 0) {
+    if (addrlen > 0 && load_sockaddr(saddr, &addrlen, CMD(10)) != 0) {
         free(buffer);
         return 0;
     }
 
-    // TODO detect that we are doing send()
     s = (uintptr_t)h->misc_ptr[0];
-    ssize_t rc = sendto(s, buffer, CMD(2), CMD(3), saddr, addrlen);
+    ssize_t rc;
+    if (addrlen > 0)
+        rc = sendto(s, buffer, CMD(2), CMD(3), saddr, addrlen);
+    else
+        rc = send(s, buffer, CMD(2), CMD(3));
     if (rc < 0) {
         RESP(2, translate_error(GET_ERRNO));
         RESP(1, 0);
@@ -490,14 +496,17 @@ SERVICE_CMD(0x00070104) //recvfrom_other
     }
 
     memset(&addr, 0, sizeof(addr));
-    if (load_sockaddr(saddr, &addrlen, EXTENDED_CMD(1)) != 0) {
+    if (addrlen > 0 && load_sockaddr(saddr, &addrlen, EXTENDED_CMD(1)) != 0) {
         free(buffer);
         return 0;
     }
 
-    // TODO detect that we are doing recv()
     s = (uintptr_t)h->misc_ptr[0];
-    ssize_t rc = recvfrom(s, buffer, CMD(2), CMD(3), saddr, &addrlen);
+    ssize_t rc;
+    if (addrlen > 0)
+        rc = recvfrom(s, buffer, CMD(2), CMD(3), saddr, &addrlen);
+    else
+        rc = recv(s, buffer, CMD(2), CMD(3));
     if (rc < 0) {
         ERROR("recvfrom failed.\n");
         RESP(2, translate_error(GET_ERRNO));
@@ -550,14 +559,17 @@ SERVICE_CMD(0x00080102) //recvfrom
         return 0;
     }
 
-    if (load_sockaddr(saddr, &addrlen, EXTENDED_CMD(3)) != 0) {
+    if (addrlen > 0 && load_sockaddr(saddr, &addrlen, EXTENDED_CMD(3)) != 0) {
         free(buffer);
         return 0;
     }
 
-    // TODO detect that we are doing recv()
     s = (uintptr_t)h->misc_ptr[0];
-    ssize_t rc = recvfrom(s, buffer, CMD(2), CMD(3), saddr, &addrlen);
+    ssize_t rc;
+    if (addrlen > 0)
+        rc = recvfrom(s, buffer, CMD(2), CMD(3), saddr, &addrlen);
+    else
+        rc = recv(s, buffer, CMD(2), CMD(3));
     if (rc < 0) {
         ERROR("recvfrom failed.\n");
         RESP(2, translate_error(GET_ERRNO));
@@ -607,31 +619,31 @@ static int load_sockaddr(struct sockaddr *saddr, socklen_t *addrlen, uint32_t sr
 {
     uint8_t addrbuf[0x1C];
 
-    if (*addrlen == 0x8) {
+    if (*addrlen < 2) {
+        RESP(2, translate_error(ERRNO(EINVAL)));
+        RESP(1, 0);
+        return -1;
+    }
+
+    if (mem_Read(addrbuf, src, 2) != 0) {
+        RESP(2, translate_error(ERRNO(EFAULT)));
+        RESP(1, 0);
+        return -1;
+    }
+
+    if (addrbuf[1] == 2) {
         /* AF_INET */
-        if (mem_Read(addrbuf, src, *addrlen) != 0) {
+        if (mem_Read(addrbuf, src, 0x8) != 0) {
             RESP(2, translate_error(ERRNO(EFAULT)));
             RESP(1, 0);
             return -1;
         }
-        saddr->sa_family = addrbuf[1];
+        saddr->sa_family = AF_INET;
         memcpy(saddr->sa_data, &addrbuf[2], 0x6);
         *addrlen = sizeof(struct sockaddr_in);
     }
-    else if (*addrlen == 0x1C) {
-        /* AF_INET6 ? */
-        if (mem_Read(addrbuf, src, *addrlen) != 0) {
-            RESP(2, translate_error(ERRNO(EFAULT)));
-            RESP(1, 0);
-            return -1;
-        }
-        /* this size of 0xE seems bogus */
-        saddr->sa_family = addrbuf[1];
-        memcpy(saddr->sa_data, &addrbuf[2], 0xE);
-        *addrlen = 0x10;
-    }
     else {
-        DEBUG("unknown len\n");
+        DEBUG("unknown protocol family %u\n", addrbuf[1]);
         RESP(2, translate_error(ERRNO(EINVAL)));
         RESP(1, 0);
         return -1;

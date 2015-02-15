@@ -24,6 +24,7 @@
 
 #include "service_macros.h"
 
+static u32 percent;
 u32 lock_handle;
 u32 event_handles[2];
 
@@ -289,12 +290,22 @@ SERVICE_CMD(0xe0080)
     return 0;
 }
 
-SERVICE_CMD(0x4f0080)
+SERVICE_CMD(0x004F0080)    // SetApplicationCpuTimeLimit
 {
-    DEBUG("SetApplicationCpuTimeLimit: core=%u, percent=%u%%\n",
-          CMD(1), CMD(2));
+    u32 core = CMD(1);
+    percent = CMD(2);
+    DEBUG("SetApplicationCpuTimeLimit, core=%u, percent=%u%%\n", core, percent);
 
     RESP(1, 0);
+    return 0;
+}
+
+SERVICE_CMD(0x00500040)   // GetApplicationCpuTimeLimit
+{
+    DEBUG("GetApplicationCpuTimeLimit\n");
+
+    RESP(1, 0);
+    RESP(2, percent);
     return 0;
 }
 

@@ -612,6 +612,67 @@ SERVICE_CMD(0x00190000)   //GetNetworkOpt
     RESP(1, 0); //result code
     return 0;
 }
+
+SERVICE_CMD(0x100100C0)   // ???, seems to crash if the result is 0
+{
+	u32 unk1 = CMD(1);
+	u32 unk2 = CMD(2);
+	u32 unk3 = CMD(3);
+	u32 unk4 = CMD(4);
+	u32 unk5 = CMD(5);
+	u32 unk6 = CMD(6);
+	u32 unk7 = CMD(7);
+	DEBUG("100100C0 %08x %08x %08x %08x %08x %02x %08x\n", unk1, unk2, unk3, unk4, unk5, unk6, unk7);
+
+	RESP(1, -1); // Result
+	return 0;
+}
+
+SERVICE_CMD(0x10030142)   // ???
+{
+	u32 unk1 = CMD(1);
+	u32 unk2 = CMD(2);
+	u32 unk3 = CMD(3);
+	u32 unk4 = CMD(4);
+	u32 unk5 = CMD(5);
+	u32 unk6 = CMD(6);
+	u32 unk7 = CMD(7);
+	DEBUG("10030142 %08x %08x %08x %08x %08x %02x %08x\n", unk1, unk2, unk3, unk4, unk5, unk6, unk7);
+
+	RESP(1, 0); // Result
+	return 0;
+}
+
+SERVICE_CMD(0x10050084)   // ???
+{
+	u32 unk1 = CMD(1);
+	u32 unk2 = CMD(2);
+	u32 unk3 = CMD(3);
+	u32 unk4 = CMD(4);
+	u32 unk5 = CMD(5);
+	u32 unk6 = CMD(6);
+	u32 unk7 = CMD(7);
+	DEBUG("10050084 %08x %08x %08x %08x %08x %02x %08x\n", unk1, unk2, unk3, unk4, unk5, unk6, unk7);
+
+	RESP(1, 0); // Result
+	return 0;
+}
+
+SERVICE_CMD(0x10070102)   // ???
+{
+	u32 unk1 = CMD(1);
+	u32 unk2 = CMD(2);
+	u32 unk3 = CMD(3);
+	u32 unk4 = CMD(4);
+	u32 unk5 = CMD(5);
+	u32 unk6 = CMD(6);
+	u32 unk7 = CMD(7);
+	DEBUG("10070102 %08x %08x %08x %08x %08x %02x %08x\n", unk1, unk2, unk3, unk4, unk5, unk6, unk7);
+
+	RESP(1, 0); // Result
+	return 0;
+}
+
 SERVICE_END()
 
 

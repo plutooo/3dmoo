@@ -60,6 +60,7 @@ u32 dsp_sync_soundinter(u32 ID) //this is a stub and is most likely called after
         handleinfo* h = handle_Get(myeventhandel);
         h->locked = false;
     }
+    return 0;
 }
 
 u32 dsp_dsp_SyncRequest()

@@ -85,7 +85,7 @@ static u16 GetDepth(int x, int y)
     u32 outx = ((inputdim >> 12) & 0x3FF);
 
     y = (outx - y);
-    u16* depth_buffer = (u16*)get_pymembuffer(GPU_Regs[DEPTHBUFFER_ADDRESS] << 3);
+    u16* depth_buffer = (u16*)gpu_GetPhysicalMemoryBuff(GPU_Regs[DEPTHBUFFER_ADDRESS] << 3);
 
     return *(depth_buffer + x + y * (GPU_Regs[Framebuffer_FORMAT11E] & 0xFFF) / 2);
 }
@@ -97,7 +97,7 @@ static void SetDepth(int x, int y, u16 value)
     u32 outx = ((inputdim >> 12) & 0x3FF);
 
     y = (outx - y);
-    u16* depth_buffer = (u16*)get_pymembuffer(GPU_Regs[DEPTHBUFFER_ADDRESS] << 3);
+    u16* depth_buffer = (u16*)gpu_GetPhysicalMemoryBuff(GPU_Regs[DEPTHBUFFER_ADDRESS] << 3);
 
     // Assuming 16-bit depth buffer format until actual format handling is implemented
     if (depth_buffer) //there is no depth_buffer
@@ -111,7 +111,7 @@ static void DrawPixel(int x, int y, struct clov4* color)
 static void DrawPixel(int x, int y, const struct clov4* color)
 {
 #endif
-    u8* color_buffer = (u8*)get_pymembuffer(GPU_Regs[COLORBUFFER_ADDRESS] << 3);
+    u8* color_buffer = (u8*)gpu_GetPhysicalMemoryBuff(GPU_Regs[COLORBUFFER_ADDRESS] << 3);
 
 #ifdef testtriang
     color->v[0] = (numb&0xF) << 0x4;
@@ -128,7 +128,7 @@ static void DrawPixel(int x, int y, const struct clov4* color)
     //TODO: workout why this seems required for ctrulib gpu demo (outy=480)
     if(outy > 240) outy = 240;
 
-    //DEBUG("x=%d,y=%d,outx=%d,outy=%d,format=%d,inputdim=%08X,bufferformat=%08X\n", x, y, outx, outy, (GPU_Regs[BUFFERFORMAT] & 0x7000) >> 12, inputdim, GPU_Regs[BUFFERFORMAT]);
+    //DEBUG("x=%d,y=%d,outx=%d,outy=%d,format=%d,inputdim=%08X,bufferformat=%08X\n", x, y, outx, outy, (GPU_Regs[BUFFER_FORMAT] & 0x7000) >> 12, inputdim, GPU_Regs[BUFFER_FORMAT]);
 
     Color ncolor;
     ncolor.r = color->v[0];
@@ -138,7 +138,7 @@ static void DrawPixel(int x, int y, const struct clov4* color)
 
     u8* outaddr;
     // Assuming RGB8 format until actual framebuffer format handling is implemented
-    switch (GPU_Regs[BUFFERFORMAT] & 0x7000) { //input format
+    switch (GPU_Regs[BUFFER_FORMAT] & 0x7000) { //input format
 
     case 0: //RGBA8
         outaddr = color_buffer + x * 4 + y * (outy)* 4; //check if that is correct
@@ -161,7 +161,7 @@ static void DrawPixel(int x, int y, const struct clov4* color)
         color_encode(&ncolor, RGBA4, outaddr);
         break;
     default:
-        DEBUG("error unknown output format %04X\n", GPU_Regs[BUFFERFORMAT] & 0x7000);
+        DEBUG("error unknown output format %04X\n", GPU_Regs[BUFFER_FORMAT] & 0x7000);
         break;
     }
 
@@ -171,7 +171,7 @@ static void DrawPixel(int x, int y, const struct clov4* color)
 static void RetrievePixel(int x, int y, struct clov4 *output)
 {
 
-    u8* color_buffer = (u8*)get_pymembuffer(GPU_Regs[COLORBUFFER_ADDRESS] << 3);
+    u8* color_buffer = (u8*)gpu_GetPhysicalMemoryBuff(GPU_Regs[COLORBUFFER_ADDRESS] << 3);
 
     u32 inputdim = GPU_Regs[Framebuffer_FORMAT11E];
     u32 outy = (inputdim & 0x7FF);
@@ -188,7 +188,7 @@ static void RetrievePixel(int x, int y, struct clov4 *output)
 
     u8* addr;
     // Assuming RGB8 format until actual framebuffer format handling is implemented
-    switch(GPU_Regs[BUFFERFORMAT] & 0x7000) { //input format
+    switch(GPU_Regs[BUFFER_FORMAT] & 0x7000) { //input format
 
         case 0: //RGBA8
             addr = color_buffer + x * 4 + y * (outy)* 4; //check if that is correct
@@ -211,7 +211,7 @@ static void RetrievePixel(int x, int y, struct clov4 *output)
             color_decode(addr, RGBA4, &ncolor);
             break;
         default:
-            DEBUG("error unknown output format %04X\n", GPU_Regs[BUFFERFORMAT] & 0x7000);
+            DEBUG("error unknown output format %04X\n", GPU_Regs[BUFFER_FORMAT] & 0x7000);
             break;
     }
 
@@ -221,12 +221,14 @@ static void RetrievePixel(int x, int y, struct clov4 *output)
     output->v[3] = ncolor.a;
 }
 
-static float GetInterpolatedAttribute(float attr0, float attr1, float attr2, const struct OutputVertex *v0, const struct OutputVertex * v1, const struct OutputVertex * v2,float w0,float w1, float w2)
+static float GetInterpolatedAttribute(float attr0, float attr1, float attr2, const struct OutputVertex *v0, const struct OutputVertex * v1,
+                                      const struct OutputVertex * v2,float w0,float w1, float w2)
 {
-    float interpolated_attr_over_w = (attr0 / v0->pos.v[3])*w0 + (attr1 / v1->pos.v[3])*w1 + (attr2 / v2->pos.v[3])*w2;
-    float interpolated_w_inverse = ((1.f) / v0->pos.v[3])*w0 + ((1.f) / v1->pos.v[3])*w1 + ((1.f) / v2->pos.v[3])*w2;
+    float interpolated_attr_over_w = (attr0 / v0->position.v[3])*w0 + (attr1 / v1->position.v[3])*w1 + (attr2 / v2->position.v[3])*w2;
+    float interpolated_w_inverse = ((1.f) / v0->position.v[3])*w0 + ((1.f) / v1->position.v[3])*w1 + ((1.f) / v2->position.v[3])*w2;
     return interpolated_attr_over_w / interpolated_w_inverse;
 }
+
 static void GetColorModifier(u32 factor, struct clov4/*3*/ * values)
 {
     switch (factor) {
@@ -284,6 +286,7 @@ static void GetColorModifier(u32 factor, struct clov4/*3*/ * values)
         return;
     }
 }
+
 static u8 AlphaCombine(u32 op, struct clov3* input)
 {
     switch (op) {
@@ -382,6 +385,7 @@ typedef enum{
     ConstantAlpha = 12,
     OneMinusConstantAlpha = 13,
 } BlendFactor;
+
 static void LookupFactorRGB(BlendFactor factor, struct clov4 *source, struct clov4 *output)
 {
     switch(factor)
@@ -452,6 +456,7 @@ typedef enum{
     Repeat = 2,
     MirrorRepeat = 3
 } WrapMode;
+
 static int GetWrappedTexCoord(WrapMode wrap, int val, int size)
 {
     if(size == 0) return val;
@@ -966,25 +971,25 @@ void rasterizer_ProcessTriangle(struct OutputVertex * v0,
             struct clov4 texture_color[4];
 
             float u[3],v[3];
-            u[0] = GetInterpolatedAttribute(v0->tc0.v[0], v1->tc0.v[0], v2->tc0.v[0], v0, v1, v2, (float)w0, (float)w1, (float)w2);
-            v[0] = GetInterpolatedAttribute(v0->tc0.v[1], v1->tc0.v[1], v2->tc0.v[1], v0, v1, v2, (float)w0, (float)w1, (float)w2);
-            u[1] = GetInterpolatedAttribute(v0->tc1.v[0], v1->tc1.v[0], v2->tc1.v[0], v0, v1, v2, (float)w0, (float)w1, (float)w2);
-            v[1] = GetInterpolatedAttribute(v0->tc1.v[1], v1->tc1.v[1], v2->tc1.v[1], v0, v1, v2, (float)w0, (float)w1, (float)w2);
-            u[2] = GetInterpolatedAttribute(v0->tc2.v[0], v1->tc2.v[0], v2->tc2.v[0], v0, v1, v2, (float)w0, (float)w1, (float)w2);
-            v[2] = GetInterpolatedAttribute(v0->tc2.v[1], v1->tc2.v[1], v2->tc2.v[1], v0, v1, v2, (float)w0, (float)w1, (float)w2);
+            u[0] = GetInterpolatedAttribute(v0->texcoord0.v[0], v1->texcoord0.v[0], v2->texcoord0.v[0], v0, v1, v2, (float)w0, (float)w1, (float)w2);
+            v[0] = GetInterpolatedAttribute(v0->texcoord0.v[1], v1->texcoord0.v[1], v2->texcoord0.v[1], v0, v1, v2, (float)w0, (float)w1, (float)w2);
+            u[1] = GetInterpolatedAttribute(v0->texcoord1.v[0], v1->texcoord1.v[0], v2->texcoord1.v[0], v0, v1, v2, (float)w0, (float)w1, (float)w2);
+            v[1] = GetInterpolatedAttribute(v0->texcoord1.v[1], v1->texcoord1.v[1], v2->texcoord1.v[1], v0, v1, v2, (float)w0, (float)w1, (float)w2);
+            u[2] = GetInterpolatedAttribute(v0->texcoord2.v[0], v1->texcoord2.v[0], v2->texcoord2.v[0], v0, v1, v2, (float)w0, (float)w1, (float)w2);
+            v[2] = GetInterpolatedAttribute(v0->texcoord2.v[1], v1->texcoord2.v[1], v2->texcoord2.v[1], v0, v1, v2, (float)w0, (float)w1, (float)w2);
 
             for (int i = 0; i < 3; ++i) {
-                if (GPU_Regs[TEXTURINGSETINGS80] & (0x1<<i)) {
+                if (GPU_Regs[TEXTURING_SETINGS] & (0x1<<i)) {
                     u8* texture_data = NULL;
                     switch (i) {
                     case 0:
-                        texture_data = (u8*)(get_pymembuffer(GPU_Regs[TEXTURCONFIG0ADDR] << 3));
+                        texture_data = (u8*)(gpu_GetPhysicalMemoryBuff(GPU_Regs[TEXTURE_CONFIG0_ADDR] << 3));
                         break;
                     case 1:
-                        texture_data = (u8*)(get_pymembuffer(GPU_Regs[TEXTURCONFIG1ADDR] << 3));
+                        texture_data = (u8*)(gpu_GetPhysicalMemoryBuff(GPU_Regs[TEXTURE_CONFIG1_ADDR] << 3));
                         break;
                     case 2:
-                        texture_data = (u8*)(get_pymembuffer(GPU_Regs[TEXTURCONFIG2ADDR] << 3));
+                        texture_data = (u8*)(gpu_GetPhysicalMemoryBuff(GPU_Regs[TEXTURE_CONFIG2_ADDR] << 3));
                         break;
                     }
 
@@ -998,25 +1003,25 @@ void rasterizer_ProcessTriangle(struct OutputVertex * v0,
                     int wrap_t=0;
                     switch (i) {
                     case 0:
-                        height = (GPU_Regs[TEXTURCONFIG0SIZE] & 0xFFFF);
-                        width = (GPU_Regs[TEXTURCONFIG0SIZE] >> 16) & 0xFFFF;
-                        wrap_s = (GPU_Regs[TEXTURCONFIG0WRAP] >> 8) & 3;
-                        wrap_t = (GPU_Regs[TEXTURCONFIG0WRAP] >> 12) & 3;
-                        format = GPU_Regs[TEXTURCONFIG0TYPE] & 0xF;
+                        height = (GPU_Regs[TEXTURE_CONFIG0_SIZE] & 0xFFFF);
+                        width  = (GPU_Regs[TEXTURE_CONFIG0_SIZE] >> 16) & 0xFFFF;
+                        wrap_s = (GPU_Regs[TEXTURE_CONFIG0_WRAP] >> 8) & 3;
+                        wrap_t = (GPU_Regs[TEXTURE_CONFIG0_WRAP] >> 12) & 3;
+                        format =  GPU_Regs[TEXTURE_CONFIG0_TYPE] & 0xF;
                         break;
                     case 1:
-                        height = (GPU_Regs[TEXTURCONFIG1SIZE] & 0xFFFF);
-                        width = (GPU_Regs[TEXTURCONFIG1SIZE] >> 16) & 0xFFFF;
-                        wrap_s = (GPU_Regs[TEXTURCONFIG1WRAP] >> 8) & 3;
-                        wrap_t = (GPU_Regs[TEXTURCONFIG1WRAP] >> 12) & 3;
-                        format = GPU_Regs[TEXTURCONFIG1TYPE] & 0xF;
+                        height = (GPU_Regs[TEXTURE_CONFIG1_SIZE] & 0xFFFF);
+                        width  = (GPU_Regs[TEXTURE_CONFIG1_SIZE] >> 16) & 0xFFFF;
+                        wrap_s = (GPU_Regs[TEXTURE_CONFIG1_WRAP] >> 8) & 3;
+                        wrap_t = (GPU_Regs[TEXTURE_CONFIG1_WRAP] >> 12) & 3;
+                        format =  GPU_Regs[TEXTURE_CONFIG1_TYPE] & 0xF;
                         break;
                     case 2:
-                        height = (GPU_Regs[TEXTURCONFIG2SIZE] & 0xFFFF);
-                        width = (GPU_Regs[TEXTURCONFIG2SIZE] >> 16) & 0xFFFF;
-                        wrap_s = (GPU_Regs[TEXTURCONFIG2WRAP] >> 8) & 3;
-                        wrap_t = (GPU_Regs[TEXTURCONFIG2WRAP] >> 12) & 3;
-                        format = GPU_Regs[TEXTURCONFIG2TYPE] & 0xF;
+                        height = (GPU_Regs[TEXTURE_CONFIG2_SIZE] & 0xFFFF);
+                        width  = (GPU_Regs[TEXTURE_CONFIG2_SIZE] >> 16) & 0xFFFF;
+                        wrap_s = (GPU_Regs[TEXTURE_CONFIG2_WRAP] >> 8) & 3;
+                        wrap_t = (GPU_Regs[TEXTURE_CONFIG2_WRAP] >> 12) & 3;
+                        format =  GPU_Regs[TEXTURE_CONFIG2_TYPE] & 0xF;
                         break;
                     }
                     
@@ -1218,7 +1223,7 @@ void rasterizer_ProcessTriangle(struct OutputVertex * v0,
             }
 
             //Alpha blending
-            if((GPU_Regs[COLOROUTPUT_CONFIG] >> 8) & 1) //Alpha blending enabled?
+            if((GPU_Regs[COLOR_OUTPUT_CONFIG] >> 8) & 1) //Alpha blending enabled?
             {
                 struct clov4 dest, srcfactor, dstfactor, result;
                 GetPixel(x >> 4, y >> 4, &dest);
@@ -1278,7 +1283,7 @@ void rasterizer_ProcessTriangle(struct OutputVertex * v0,
             }
             else
             {
-                DEBUG("logic op: %x", GPU_Regs[COLORLOGICOP_CONFIG] & 0xF);
+                DEBUG("logic op: %x", GPU_Regs[COLOR_LOGICOP_CONFIG] & 0xF);
             }
 
             /*struct clov4 combiner_output;

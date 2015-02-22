@@ -37,9 +37,9 @@ void gpu_ExecuteCommands(u8* buffer, u32 sizea)
                 GPUDEBUG("masked data? cmd %04x mask %01x size %03x (%08x) %s \n", ID, mask, size, dataone, grouping ? "grouping" : "");
 #endif
             if (grouping) {
-                for (j = 0; j <= size; j++)writeGPUID(ID + j, mask, 1, &datafild[j]);
+                for (j = 0; j <= size; j++)gpu_WriteID(ID + j, mask, 1, &datafild[j]);
             } else {
-                writeGPUID(ID, mask, size + 1, datafild);
+                gpu_WriteID(ID, mask, size + 1, datafild);
             }
         } else {
 #ifdef GSP_ENABLE_LOG

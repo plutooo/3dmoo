@@ -67,7 +67,7 @@ void screen_RenderGPUaddr(u32 addr)
     int updateSurface = 0;
 
     //Top Screen
-    u8* buffer = get_pymembuffer(addr);
+    u8* buffer = gpu_GetPhysicalMemoryBuff(addr);
 
     if (buffer != NULL) {
         SDL_LockSurface(bitmapSurface);
@@ -199,7 +199,7 @@ void screen_RenderGPU()
     } else {
         u32 addr = ((gpu_ReadReg32(frameselecttop) & 0x1) == 0) ? gpu_ReadReg32(RGBuponeleft) : gpu_ReadReg32(RGBuptwoleft);
 
-        u8* buffer = get_pymembuffer(addr);
+        u8* buffer = gpu_GetPhysicalMemoryBuff(addr);
 
         if (buffer != NULL) {
             SDL_LockSurface(bitmapSurface);
@@ -228,7 +228,7 @@ void screen_RenderGPU()
         SDL_FillRect(bitmapSurface, &rect, SDL_MapRGB(bitmapSurface->format, r, g, b));
     } else {
         u32 addr = ((gpu_ReadReg32(frameselectbot) & 0x1) == 0) ? gpu_ReadReg32(RGBdownoneleft) : gpu_ReadReg32(RGBdowntwoleft);
-        buffer = get_pymembuffer(addr);
+        buffer = gpu_GetPhysicalMemoryBuff(addr);
         if (buffer != NULL) {
             if (!updateSurface) {
                 SDL_LockSurface(bitmapSurface);

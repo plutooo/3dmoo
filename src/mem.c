@@ -58,8 +58,6 @@ static size_t   num_mappings;
 #define EXIT_ON_ILLEGAL 1
 //#define PRINT_MISALIGNED 1
 
-
-
 void mem_Dbugdump()
 {
     size_t i;
@@ -71,12 +69,12 @@ void mem_Dbugdump()
         fwrite(mappings[i].phys, 1, schei, data);
         fclose(data);
     }
-    FILE* data = fopen("VRAMdump.bin", "wb");
-    fwrite(VRAMbuff, 1, 0x600000, data);
+    FILE* data = fopen("VRAM_Memorydump.bin", "wb");
+    fwrite(VRAM_MemoryBuff, 1, 0x600000, data);
     fclose(data);
 
-    FILE* membuf = fopen("LINEmembuffer.bin", "wb");
-    fwrite(LINEmembuffer, 1, 0x8000000, membuf);
+    FILE* membuf = fopen("LINEAR_Memorydump.bin", "wb");
+    fwrite(LINEAR_MemoryBuff, 1, 0x8000000, membuf);
     fclose(membuf);
 }
 

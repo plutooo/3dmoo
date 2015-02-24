@@ -212,7 +212,7 @@ u32 svcControlMemory_wrap(u32 op, u32 addr0, u32 addr1, u32 size, u32 perm, u32*
         } else {
             if ((op & 0x10000) == 0x10000) { //LINEAR
                 addr0 = 0x14000000 + linearalloced;
-                u8* outLINEmembuffer = LINEmembuffer + linearalloced;
+                u8* outLINEmembuffer = LINEAR_MemoryBuff + linearalloced;
                 linearalloced += size;
                 *newaddr = addr0; // outaddr is in R1
                 return mem_AddMappingShared(addr0, size, outLINEmembuffer);
@@ -311,7 +311,7 @@ u32 svcMapMemoryBlock()
     if(h->type == HANDLE_TYPE_SHAREDMEM) {
         switch (h->subtype) {
         case MEM_TYPE_GSP_0:
-            mem_AddMappingShared(addr, GSPsharebuffsize, GSPsharedbuff);
+            mem_AddMappingShared(addr, GSP_Shared_Buff_Size, GSP_SharedBuff);
             break;
         case MEM_TYPE_HID_0:
             mem_AddMappingShared(addr, 0x2000, HIDsharedbuff);
@@ -329,7 +329,7 @@ u32 svcMapMemoryBlock()
                 ERROR("No shared font supplied\n");
                 return -1;
             }
-            mem_AddMappingShared(0x18000000, APTsharedfontsize, LINEmembuffer + (0x18000000 - 0x14000000));
+            mem_AddMappingShared(0x18000000, APTsharedfontsize, LINEAR_MemoryBuff + (0x18000000 - 0x14000000));
             //mem_AddMappingShared(0x18000000, APTsharedfontsize, APTsharedfont); //todo ichfly
             break;
 
@@ -340,7 +340,7 @@ u32 svcMapMemoryBlock()
                 ERROR("No shared font supplied\n");
                 return -1;
             }
-            mem_AddMappingShared(0x18000000, APTs_sharedfontsize, LINEmembuffer + (0x18000000 - 0x14000000));
+            mem_AddMappingShared(0x18000000, APTs_sharedfontsize, LINEAR_MemoryBuff + (0x18000000 - 0x14000000));
             //mem_AddMappingShared(0x18000000, APTs_sharedfontsize, APTs_sharedfont); //todo ichfly
             break;
 
@@ -348,9 +348,9 @@ u32 svcMapMemoryBlock()
             if (h->misc_ptr[0] == NULL)
             {
                 if (addr == 0) //map to the lin addr
-                    mem_AddMappingShared(h->misc[0], h->misc[1], LINEmembuffer + (h->misc[0] - 0x14000000)); //shared mem gets only mapped when not already mapped
+                    mem_AddMappingShared(h->misc[0], h->misc[1], LINEAR_MemoryBuff + (h->misc[0] - 0x14000000)); //shared mem gets only mapped when not already mapped
                 else //map to the given addr
-                    mem_AddMappingShared(addr, h->misc[1], LINEmembuffer + (h->misc[0] - 0x14000000));
+                    mem_AddMappingShared(addr, h->misc[1], LINEAR_MemoryBuff + (h->misc[0] - 0x14000000));
             }
             else
             {

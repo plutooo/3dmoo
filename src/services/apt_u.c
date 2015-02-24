@@ -189,7 +189,7 @@ SERVICE_CMD(0x440000)
             return 0;
         }
 
-        memcpy(LINEmembuffer + (0x18000000 - 0x14000000), APTsharedfont, APTsharedfontsize);
+        memcpy(LINEAR_MemoryBuff + (0x18000000 - 0x14000000), APTsharedfont, APTsharedfontsize);
 
         /*APTsharedfont[3] = 0x0;
         APTsharedfont[2] = 0x0;

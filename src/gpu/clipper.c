@@ -42,11 +42,10 @@ void InitScreenCoordinates(struct OutputVertex *vtx)
     f24to32(GPU_Regs[Viewport_depth_range], &viewport.zscale);
     f24to32(GPU_Regs[Viewport_depth_far_plane], &viewport.offset_z);
 
-
     // TODO: Not sure why the viewport width needs to be divided by 2 but the viewport height does not
-    vtx->screenpos.v[0] = (vtx->pos.v[0] / vtx->pos.v[3] + 1.0f) * viewport.halfsize_x + viewport.offset_x;
-    vtx->screenpos.v[1] = (vtx->pos.v[1] / vtx->pos.v[3] + 1.0f) * viewport.halfsize_y + viewport.offset_y;
-    vtx->screenpos.v[2] = viewport.offset_z + vtx->pos.v[2] / vtx->pos.v[3] * viewport.zscale;
+    vtx->screenpos.v[0] = (vtx->position.v[0] / vtx->position.v[3] + 1.0f) * viewport.halfsize_x + viewport.offset_x;
+    vtx->screenpos.v[1] = (vtx->position.v[1] / vtx->position.v[3] + 1.0f) * viewport.halfsize_y + viewport.offset_y;
+    vtx->screenpos.v[2] = viewport.offset_z + vtx->position.v[2] / vtx->position.v[3] * viewport.zscale;
 }
 
 #define max_vertices 10
@@ -89,37 +88,36 @@ bool PointIsOnLine(struct vec4* vLineStart, struct vec4* vLineEnd, struct vec4* 
 }
 
 #define Lerp(factor,v0,v1,output)                                                                             \
-    output.pos.v[0] = v0.pos.v[0] * (1.f - factor) + v1.pos.v[0] * factor;                                    \
-    output.pos.v[1] = v0.pos.v[1] * (1.f - factor) + v1.pos.v[1] * factor;                                    \
-    output.pos.v[2] = v0.pos.v[2] * (1.f - factor) + v1.pos.v[2] * factor;                                    \
-    output.pos.v[3] = v0.pos.v[3] * (1.f - factor) + v1.pos.v[3] * factor;                                    \
+    output.position.v[0] = v0.position.v[0] * (1.f - factor) + v1.position.v[0] * factor;                     \
+    output.position.v[1] = v0.position.v[1] * (1.f - factor) + v1.position.v[1] * factor;                     \
+    output.position.v[2] = v0.position.v[2] * (1.f - factor) + v1.position.v[2] * factor;                     \
+    output.position.v[3] = v0.position.v[3] * (1.f - factor) + v1.position.v[3] * factor;                     \
     output.color.v[0] = v0.color.v[0] * (1.f - factor) + v1.color.v[0] * factor;                              \
     output.color.v[1] = v0.color.v[1] * (1.f - factor) + v1.color.v[1] * factor;                              \
     output.color.v[2] = v0.color.v[2] * (1.f - factor) + v1.color.v[2] * factor;                              \
     output.color.v[3] = v0.color.v[3] * (1.f - factor) + v1.color.v[3] * factor;                              \
-    output.tc0.v[0] = v0.tc0.v[0] * (1.f - factor) + v1.tc0.v[0] * factor;                                    \
-    output.tc0.v[1] = v0.tc0.v[1] * (1.f - factor) + v1.tc0.v[1] * factor;                                    \
-    output.tc1.v[0] = v0.tc1.v[0] * (1.f - factor) + v1.tc1.v[0] * factor;                                    \
-    output.tc1.v[1] = v0.tc1.v[1] * (1.f - factor) + v1.tc1.v[1] * factor;                                    \
-    output.tc0_w = v0.tc0_w * (1.f - factor) + v1.tc0_w * factor;                                             \
+    output.texcoord0.v[0] = v0.texcoord0.v[0] * (1.f - factor) + v1.texcoord0.v[0] * factor;                  \
+    output.texcoord0.v[1] = v0.texcoord0.v[1] * (1.f - factor) + v1.texcoord0.v[1] * factor;                  \
+    output.texcoord1.v[0] = v0.texcoord1.v[0] * (1.f - factor) + v1.texcoord1.v[0] * factor;                  \
+    output.texcoord1.v[1] = v0.texcoord1.v[1] * (1.f - factor) + v1.texcoord1.v[1] * factor;                  \
+    output.texcoord0_w = v0.texcoord0_w * (1.f - factor) + v1.texcoord0_w * factor;                           \
     output.View.v[0] = v0.View.v[0] * (1.f - factor) + v1.View.v[0] * factor;                                 \
     output.View.v[1] = v0.View.v[1] * (1.f - factor) + v1.View.v[1] * factor;                                 \
     output.View.v[2] = v0.View.v[2] * (1.f - factor) + v1.View.v[2] * factor;                                 \
-    output.tc2.v[0] = v0.tc2.v[0] * (1.f - factor) + v1.tc2.v[0] * factor;                                    \
-    output.tc2.v[1] = v0.tc2.v[1] * (1.f - factor) + v1.tc2.v[1] * factor;
-
+    output.texcoord2.v[0] = v0.texcoord2.v[0] * (1.f - factor) + v1.texcoord2.v[0] * factor;                  \
+    output.texcoord2.v[1] = v0.texcoord2.v[1] * (1.f - factor) + v1.texcoord2.v[1] * factor;
 
 #define GetIntersection(v0, v1,edge,output)                                                                                        \
-    float dp = (v0.pos.v[0] * edge.v[0] + v0.pos.v[1] * edge.v[1] + v0.pos.v[2] * edge.v[2] + v0.pos.v[3] * edge.v[3]); /*DOT*/    \
-    float dp_prev = (v1.pos.v[0] * edge.v[0] + v1.pos.v[1] * edge.v[1] + v1.pos.v[2] * edge.v[2] + v0.pos.v[3] * edge.v[3]);       \
+    float dp = (v0.position.v[0] * edge.v[0] + v0.position.v[1] * edge.v[1] + v0.position.v[2] * edge.v[2] + v0.position.v[3] * edge.v[3]); /*DOT*/    \
+    float dp_prev = (v1.position.v[0] * edge.v[0] + v1.position.v[1] * edge.v[1] + v1.position.v[2] * edge.v[2] + v0.position.v[3] * edge.v[3]);       \
     float factor = dp_prev / (dp_prev - dp);                                                                                       \
     Lerp(factor, v0, v1,output);                                                                 
 
-#define IsInsidev4(v1,v2) ((v1.pos.v[0]*v2.v[0] + v1.pos.v[1]*v2.v[1] + v1.pos.v[2]*v2.v[2] + v1.pos.v[3]*v2.v[3]) <= 0.f)
-#define IsOutsidev4(v1,v2) ((v1.pos.v[0]*v2.v[0] + v1.pos.v[1]*v2.v[1] + v1.pos.v[2]*v2.v[2] + v1.pos.v[3]*v2.v[3]) > 0.f)
+#define IsInsidev4(v1,v2) ((v1.position.v[0]*v2.v[0] + v1.position.v[1]*v2.v[1] + v1.position.v[2]*v2.v[2] + v1.position.v[3]*v2.v[3]) <= 0.f)
+#define IsOutsidev4(v1,v2) ((v1.position.v[0]*v2.v[0] + v1.position.v[1]*v2.v[1] + v1.position.v[2]*v2.v[2] + v1.position.v[3]*v2.v[3]) > 0.f)
 void Clipper_ProcessTriangle(struct OutputVertex *v0, struct OutputVertex *v1, struct OutputVertex *v2)
 {
-    if (PointIsOnLine(&v0->pos, &v1->pos, &v2->pos)) //the algo dose not work for them
+    if (PointIsOnLine(&v0->position, &v1->position, &v2->position)) //the algo dose not work for them
         return;
     // Simple implementation of the Sutherland-Hodgman clipping algorithm.
     u32 input_list_num = 0;
@@ -140,10 +138,11 @@ void Clipper_ProcessTriangle(struct OutputVertex *v0, struct OutputVertex *v1, s
         output_list_num = 0;
 
         struct OutputVertex* reference_vertex = &input_list[input_list_num - 1]; //back
-        for (int j = 0; j < input_list_num; j++)
+        for (u32 j = 0; j < input_list_num; j++)
         {
             // NOTE: This algorithm changes vertex order in some cases!
-            float test = input_list[j].pos.v[0] * edges[i].v[0] + input_list[j].pos.v[1] * edges[i].v[1] + input_list[j].pos.v[2] * edges[i].v[2] + input_list[j].pos.v[3] * edges[i].v[3];
+            float test = input_list[j].position.v[0] * edges[i].v[0] + input_list[j].position.v[1]
+            * edges[i].v[1] + input_list[j].position.v[2] * edges[i].v[2] + input_list[j].position.v[3] * edges[i].v[3];
             if (IsInsidev4(input_list[j], edges[i])) {
                 if (IsOutsidev4((*reference_vertex), edges[i])) {
                     GetIntersection(input_list[j], (*reference_vertex), edges[i], output_list[output_list_num]);
@@ -177,9 +176,9 @@ void Clipper_ProcessTriangle(struct OutputVertex *v0, struct OutputVertex *v1, s
                 "(%.3f, %.3f, %.3f, %.3f), (%.3f, %.3f, %.3f, %.3f) and "
                 "screen position (%.2f, %.2f, %.2f), (%.2f, %.2f, %.2f), (%.2f, %.2f, %.2f)\n",
                 i, output_list_num,
-                vtx0->pos.v[0], vtx0->pos.v[1], vtx0->pos.v[2], vtx0->pos.v[3],
-                vtx1->pos.v[0], vtx1->pos.v[1], vtx1->pos.v[2], vtx1->pos.v[3],
-                vtx2->pos.v[0], vtx2->pos.v[1], vtx2->pos.v[2], vtx2->pos.v[3],
+                vtx0->position.v[0],  vtx0->position.v[1],  vtx0->position.v[2], vtx0->position.v[3],
+                vtx1->position.v[0],  vtx1->position.v[1],  vtx1->position.v[2], vtx1->position.v[3],
+                vtx2->position.v[0],  vtx2->position.v[1],  vtx2->position.v[2], vtx2->position.v[3],
                 vtx0->screenpos.v[0], vtx0->screenpos.v[1], vtx0->screenpos.v[2],
                 vtx1->screenpos.v[0], vtx1->screenpos.v[1], vtx1->screenpos.v[2],
                 vtx2->screenpos.v[0], vtx2->screenpos.v[1], vtx2->screenpos.v[2]);

@@ -5,12 +5,12 @@ compiler:
 before_install:
  - lsb_release -a
  - sudo apt-add-repository --yes ppa:zoogie/sdl2-snapshots # libsdl2
- - sudo add-apt-repository --yes ppa:terry.guo/gcc-arm-embedded # gnuarm
+ - sudo add-apt-repository --yes ppa:team-gcc-arm-embedded/ppa # gnuarm
  - sudo apt-get update -qq
 
 install:
  - sudo apt-get install libsdl2-dev
- - sudo apt-get install gcc-arm-none-eabi
+ - sudo apt-get install gcc-arm-embedded
 
 script:
   - make

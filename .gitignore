@@ -198,3 +198,20 @@ title/*
 rw/*
 ro/*
 LINEmembuffer.bin
+
+# autotools files
+INSTALL
+Makefile.in
+aclocal.m4
+autom4te.cache/
+build-host/
+compile
+config.guess
+config.sub
+config.log
+configure
+depcomp
+install-sh
+missing
+.deps
+

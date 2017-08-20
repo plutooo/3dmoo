@@ -1,5 +1,9 @@
 # Makefile.am -- Process this file with automake to produce Makefile.in
 
+# Makefile.am -- Process this file with automake to produce Makefile.in
+
+AUTOMAKE_OPTIONS = subdir-objects
+
 SRC_FILES	=	src/mem.c src/screen.c src/handles.c src/loader.c src/utils.c	\
 			src/svc.c src/config.c src/gdb/gdbstubchelper.c src/gdb/gdbstub.c \
 			src/gdb/gdb.c

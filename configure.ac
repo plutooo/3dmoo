@@ -5,7 +5,7 @@ AC_PREREQ(2.61)
 AC_INIT([3dmoo],[0.1.0],[https://github.com/plutooo/3dmoo/issues])
 AC_CONFIG_SRCDIR([src/config.c])
 
-AM_INIT_AUTOMAKE([1.10])
+AM_INIT_AUTOMAKE
 
 AC_CANONICAL_BUILD
 AC_CANONICAL_HOST

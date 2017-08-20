@@ -3,6 +3,7 @@
 
 AC_PREREQ(2.61)
 AC_INIT([3dmoo],[0.1.0],[https://github.com/plutooo/3dmoo/issues])
+AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_SRCDIR([src/config.c])
 
 AM_INIT_AUTOMAKE
@@ -24,6 +25,12 @@ AM_PATH_SDL2($SDL2_VERSION,
 )
 CFLAGS="$CFLAGS $SDL_CFLAGS"
 LIBS="$LIBS $SDL_LIBS"
+
+AC_LANG_PUSH([C])
+AX_CHECK_COMPILE_FLAG([-pthread],   [CPPFLAGS+=" -pthread" LIBS+=" -pthread"])
+AC_LANG_POP()
+
+LIBS="$LIBS -lm"
 
 case "$host" in
    *-*-mingw*)
